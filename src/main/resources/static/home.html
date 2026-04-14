@@ -45,6 +45,17 @@
         .main-content {
             padding-bottom: 100px !important;
         }
+        .status-pending { background: #eee; color: #666; }
+        .status-shortlisted { background: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+        .detailed-apps-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        function scrollToApps() {
+            document.getElementById('appsDetailSection').scrollIntoView({ behavior: 'smooth' });
+        }
     </style>
 </head>
 <body>
@@ -52,7 +63,10 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <h2>CrewCanvas</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <h2>CrewCanvas</h2>
+                    <button onclick="toggleSidebar()" class="sidebar-close-btn" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; display: none;">✕</button>
+                </div>
                 <p>Where all crafts connect</p>
             </div>
             <nav class="nav-menu">
@@ -140,44 +154,6 @@
 
                 <!-- Stats Section -->
                 <div class="stats-section">
-                    <!-- Followers -->
-                    <div class="stat-card card has-accent" id="followersCard">
-                        <div class="card-accent-strip">
-                            <div class="accent-top"></div>
-                            <div class="accent-bottom orange"></div>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-main">
-                                <span class="stat-icon-large orange-text">
-                                    <i class="fa-solid fa-users"></i>
-                                </span>
-                                <div class="stat-info">
-                                    <h3>Followers</h3>
-                                    <p class="stat-number" id="countFollowers">0</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Following -->
-                    <div class="stat-card card has-accent" id="followingCard">
-                        <div class="card-accent-strip">
-                            <div class="accent-top"></div>
-                            <div class="accent-bottom blue"></div>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-main">
-                                <span class="stat-icon-large blue-text">
-                                    <i class="fa-solid fa-user-plus"></i>
-                                </span>
-                                <div class="stat-info">
-                                    <h3>Following</h3>
-                                    <p class="stat-number" id="countFollowing">0</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- My Events -->
                     <div class="stat-card card has-accent" id="myEventsCard">
                         <div class="card-accent-strip">
@@ -190,7 +166,7 @@
                                     <i class="fa-solid fa-calendar-days orange-text"></i>
                                 </div>
                                 <div class="stat-title-group">
-                                    <h3>MY EVENTS</h3>
+                                    <h3>TOTAL EVENTS</h3>
                                     <p class="stat-number" id="totalEvents">0</p>
                                 </div>
                             </div>
@@ -217,6 +193,67 @@
                                     <span class="value" id="countWorkshops">0</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- My Applications -->
+                    <div class="stat-card card has-accent" id="applicationsCard" style="grid-column: span 1;">
+                        <div class="card-accent-strip">
+                            <div class="accent-top"></div>
+                            <div class="accent-bottom blue"></div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-header">
+                                <div class="event-icon-box">
+                                    <i class="fa-solid fa-file-signature blue-text"></i>
+                                </div>
+                                <div class="stat-title-group">
+                                    <h3>APPLICATIONS</h3>
+                                    <p class="stat-number" id="totalApps">0</p>
+                                </div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="events-grid">
+                                <div class="event-type">
+                                    <span class="dot orange"></span>
+                                    <span class="label">Courses</span>
+                                    <span class="value" id="appCourses">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot blue"></span>
+                                    <span class="label">Auditions</span>
+                                    <span class="value" id="appAuditions">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot green"></span>
+                                    <span class="label">Contests</span>
+                                    <span class="value" id="appContests">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot purple"></span>
+                                    <span class="label">Workshops</span>
+                                    <span class="value" id="appWorkshops">0</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.03); padding-top: 12px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #388e3c; background: #e8f5e9; padding: 2px 8px; border-radius: 4px;">
+                                    SHORTLISTED: <span id="shortlistedCount">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Applications List Section (The detailed tab content) -->
+                <div class="applications-detail-section" id="appsDetailSection" style="margin-top: 40px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <h2 style="font-size: 24px; font-weight: 800; color: #333; margin: 0;">My Project Applications</h2>
+                        <div style="flex: 1; height: 1px; background: rgba(0,0,0,0.05);"></div>
+                    </div>
+                    <div id="detailedAppsContainer" class="detailed-apps-grid">
+                        <!-- Content loaded via JS -->
+                        <div style="padding: 40px; text-align: center; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                            <p style="color: #888;">No applications found yet.</p>
                         </div>
                     </div>
                 </div>
@@ -256,8 +293,6 @@
                     setTimeout(async () => {
                         const user = ProfileHandler.user;
                         if (user) {
-                            document.getElementById('countFollowers').innerText = user.followers || 0;
-                            document.getElementById('countFollowing').innerText = user.following || 0;
                             if (user.name) {
                                 document.getElementById('welcomeHeading').innerText = `Welcome Back, ${user.name} !`;
                             }
@@ -266,8 +301,6 @@
                             const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
                             if (profileRes.ok) {
                                 const u = await profileRes.json();
-                                document.getElementById('countFollowers').innerText = u.followers || 0;
-                                document.getElementById('countFollowing').innerText = u.following || 0;
                                 if (u.name) {
                                     document.getElementById('welcomeHeading').innerText = `Welcome Back, ${u.name} !`;
                                 }
@@ -285,38 +318,73 @@
                         const applications = await appsRes.json();
                         const allEvents = await allEventsRes.json();
 
-                        // Get IDs of events the user registered for
-                        const registeredEventIds = applications.map(app => app.eventId);
-                        const registeredEvents = allEvents.filter(e => registeredEventIds.includes(e.id));
+                        // Update Applications Card Stats
+                        document.getElementById('totalApps').innerText = applications.length;
+                        document.getElementById('shortlistedCount').innerText = applications.filter(a => a.status === 'shortlisted').length;
 
-                        // Combine for total "My Events" (Created + Registered)
-                        const myEventsMap = new Map();
-                        createdEvents.forEach(e => myEventsMap.set(e.id, e));
-                        registeredEvents.forEach(e => myEventsMap.set(e.id, e));
+                        // Render Detailed Applications
+                        const detailedContainer = document.getElementById('detailedAppsContainer');
+                        const eventMap = new Map(allEvents.map(e => [e.id, e]));
                         
-                        const myEvents = Array.from(myEventsMap.values());
-                        document.getElementById('totalEvents').innerText = myEvents.length || 0;
+                        // Count applied types
+                        const appCounts = { course: 0, audition: 0, contest: 0, workshop: 0 };
+
+                        if (applications.length > 0) {
+                            detailedContainer.innerHTML = applications.map(app => {
+                                const event = eventMap.get(app.eventId) || { title: 'Unknown Event' };
+                                const statusClass = app.status === 'shortlisted' ? 'status-shortlisted' : 
+                                                    app.status === 'rejected' ? 'status-rejected' : 'status-pending';
+                                
+                                // Increment app counts
+                                const type = (event.eventType || '').toLowerCase();
+                                if (type.includes('course')) appCounts.course++;
+                                else if (type.includes('audition')) appCounts.audition++;
+                                else if (type.includes('contest')) appCounts.contest++;
+                                else if (type.includes('workshop')) appCounts.workshop++;
+
+                                return `
+                                <div class="stat-card card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; padding: 25px;">
+                                    <div style="display: flex; align-items: center; gap: 20px;">
+                                        <div style="width: 50px; height: 50px; background: rgba(0,0,0,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                            🎬
+                                        </div>
+                                        <div>
+                                            <h4 style="margin: 0; font-size: 18px; font-weight: 700; color: #333;">${event.title}</h4>
+                                            <p style="margin: 5px 0; color: #888; font-size: 13px;">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 20px;">
+                                        <span style="padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase;" class="${statusClass}">
+                                            ${app.status}
+                                        </span>
+                                        <button onclick="window.location.href='launch-audition.html'" style="background: none; border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Details</button>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('');
+                        }
                         
-                        // Count by type
-                        const counts = {
-                            course: 0,
-                            audition: 0,
-                            contest: 0,
-                            workshop: 0
-                        };
+                        document.getElementById('appCourses').innerText = appCounts.course;
+                        document.getElementById('appAuditions').innerText = appCounts.audition;
+                        document.getElementById('appContests').innerText = appCounts.contest;
+                        document.getElementById('appWorkshops').innerText = appCounts.workshop;
+
+                        // Total Events breakdown
+                        document.getElementById('totalEvents').innerText = allEvents.length || 0;
+                        const eventCounts = { course: 0, audition: 0, contest: 0, workshop: 0 };
                         
-                        myEvents.forEach(event => {
+                        allEvents.forEach(event => {
                             const type = (event.eventType || '').toLowerCase();
-                            if (type.includes('course')) counts.course++;
-                            else if (type.includes('audition')) counts.audition++;
-                            else if (type.includes('contest')) counts.contest++;
-                            else if (type.includes('workshop')) counts.workshop++;
+                            if (type.includes('course')) eventCounts.course++;
+                            else if (type.includes('audition')) eventCounts.audition++;
+                            else if (type.includes('contest')) eventCounts.contest++;
+                            else if (type.includes('workshop')) eventCounts.workshop++;
                         });
                         
-                        document.getElementById('countCourses').innerText = counts.course;
-                        document.getElementById('countAuditions').innerText = counts.audition;
-                        document.getElementById('countContests').innerText = counts.contest;
-                        document.getElementById('countWorkshops').innerText = counts.workshop;
+                        document.getElementById('countCourses').innerText = eventCounts.course;
+                        document.getElementById('countAuditions').innerText = eventCounts.audition;
+                        document.getElementById('countContests').innerText = eventCounts.contest;
+                        document.getElementById('countWorkshops').innerText = eventCounts.workshop;
                     }
                 } catch (e) {
                     console.error("Failed to load dashboard data", e);

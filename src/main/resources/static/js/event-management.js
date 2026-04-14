@@ -51,28 +51,111 @@ const EventManagement = {
         document.getElementById('pendingCount').innerText = pending;
     },
 
-    render() {
+    render(data = this.applicants) {
         const tbody = document.getElementById('applicant-tbody');
         if (!tbody) return;
 
-        if (this.applicants.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #888;">No applications yet.</td></tr>';
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #888;">No applications found.</td></tr>';
             return;
         }
 
-        tbody.innerHTML = this.applicants.map(app => `
+        tbody.innerHTML = data.map(app => `
             <tr>
-                <td><b>${app.applicantName}</b><br><small style="color:#888">${app.applicantEmail || ''}</small></td>
+                <td><b>${app.applicantName || 'Unknown User'}</b><br><small style="color:#888">${app.applicantEmail || ''}</small></td>
                 <td>${app.role || '-'}</td>
-                <td>${app.experience || '-'}</td>
+                <td><div style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${app.experience || ''}">${app.experience || '-'}</div></td>
                 <td>${app.location || '-'}</td>
-                <td><span class="status-badge status-${app.status}">${app.status.toUpperCase()}</span></td>
+                <td><span class="status-badge status-${app.status || 'pending'}">${(app.status || 'pending').toUpperCase()}</span></td>
                 <td class="action-btns">
                     <button class="btn-action" title="Shortlist" onclick="EventManagement.updateStatus(${app.id}, 'shortlisted')">✅</button>
                     <button class="btn-action" title="Reject" onclick="EventManagement.updateStatus(${app.id}, 'rejected')">❌</button>
                 </td>
             </tr>
         `).join('');
+    },
+
+    filterApplicants(query) {
+        const q = query.toLowerCase();
+        const filtered = this.applicants.filter(app => 
+            (app.applicantName && app.applicantName.toLowerCase().includes(q)) || 
+            (app.applicantEmail && app.applicantEmail.toLowerCase().includes(q)) ||
+            (app.role && app.role.toLowerCase().includes(q)) ||
+            (app.location && app.location.toLowerCase().includes(q))
+        );
+        this.render(filtered);
+    },
+
+    exportCSV() {
+        console.log('[EventManagement] Exporting CSV for event:', this.eventId);
+        console.log('[EventManagement] Applicants data:', this.applicants);
+
+        if (!this.applicants || this.applicants.length === 0) {
+            console.warn('[EventManagement] No applicants to export.');
+            showMessage('No data to export', 'info');
+            return;
+        }
+
+        const headers = ['Name', 'Email', 'Role', 'Experience', 'Location', 'Status', 'Applied At'];
+        
+        // Helper to escape CSV values
+        const escapeCSV = (val) => {
+            if (val === null || val === undefined) return '""';
+            const s = String(val).replace(/"/g, '""');
+            return `"${s}"`;
+        };
+
+        try {
+            const rows = this.applicants.map(app => [
+                escapeCSV(app.applicantName),
+                escapeCSV(app.applicantEmail),
+                escapeCSV(app.role),
+                escapeCSV(app.experience),
+                escapeCSV(app.location),
+                escapeCSV(app.status),
+                escapeCSV(app.appliedAt)
+            ]);
+
+            const csvContent = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+            
+            console.log('[EventManagement] CSV Content size:', csvContent.length);
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `applicants_event_${this.eventId}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            
+            // Small delay before cleanup to ensure trigger
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                console.log('[EventManagement] Export link cleaned up.');
+            }, 100);
+
+            showMessage('Data exported successfully', 'success');
+        } catch (err) {
+            console.error('[EventManagement] Export Failed:', err);
+            // Fallback to data URI if Blob fails
+            try {
+                const headers = ['Name', 'Email', 'Role', 'Experience', 'Location', 'Status', 'Applied At'];
+                const rows = this.applicants.map(app => [app.applicantName, app.applicantEmail, app.role, '', app.location, app.status]);
+                const csvString = headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvString);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "applicants_export_fallback.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage('Exported via fallback method', 'info');
+            } catch (fallbackErr) {
+                showMessage('Export failed. Check console for details.', 'error');
+            }
+        }
     },
 
     async updateStatus(id, newStatus) {
@@ -99,5 +182,9 @@ const EventManagement = {
         }
     }
 };
+
+// Global aliases for HTML event handlers
+window.filterApplicants = (val) => EventManagement.filterApplicants(val);
+window.exportCSV = () => EventManagement.exportCSV();
 
 document.addEventListener('DOMContentLoaded', () => EventManagement.init());

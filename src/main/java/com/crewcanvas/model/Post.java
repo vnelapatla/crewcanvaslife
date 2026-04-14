@@ -60,8 +60,8 @@ public class Post {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"password", "bio", "skills", "phone", "coverImage", "linkedinProfile", "personalWebsite", "instagram", "authProvider", "providerId", "updatedAt", "following", "followers"})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 

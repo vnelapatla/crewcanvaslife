@@ -15,7 +15,10 @@
     <!-- Sidebar (Desktop) -->
     <aside class="sidebar">
         <div class="brand">
-            <h2>CrewCanvas</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h2>CrewCanvas</h2>
+                <button onclick="toggleSidebar()" class="sidebar-close-btn" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; display: none;">✕</button>
+            </div>
             <p>Where all crafts connect</p>
         </div>
         <nav class="nav-menu">
@@ -454,6 +457,27 @@
             .profile-info-grid { grid-template-columns: 1fr; }
             .sidebar { display: none; }
             .profile-hero-mini { flex-direction: column; text-align: center; }
+            
+            /* Make stats bar scrollable on mobile */
+            .profile-stats-bar {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 10px;
+                padding-left: 5px;
+                padding-right: 5px;
+                gap: 12px;
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE 10+ */
+                -webkit-overflow-scrolling: touch;
+            }
+            .profile-stats-bar::-webkit-scrollbar {
+                display: none;
+            }
+            .stat-pill {
+                flex-shrink: 0;
+                padding: 10px 20px;
+                font-size: 12px;
+            }
         }
 
         /* Legacy Feed Styles for Profile */
@@ -581,6 +605,11 @@
             transform: scale(1.2);
             box-shadow: 0 0 10px var(--orange-active);
         }
+
+        /* Application Status Badges */
+        .status-pending { background: #444 !important; color: #ddd !important; }
+        .status-shortlisted { background: rgba(255, 138, 0, 0.2) !important; color: var(--orange-active) !important; border: 1px solid rgba(255, 138, 0, 0.3); }
+        .status-rejected { background: rgba(244, 67, 54, 0.2) !important; color: #f44336 !important; border: 1px solid rgba(244, 67, 54, 0.3); }
     </style>
 
     <script src="js/utils.js"></script>
@@ -598,7 +627,7 @@
                 postsTab.classList.remove('active');
                 projectsContent.style.display = 'block';
                 postsContent.style.display = 'none';
-            } else {
+            } else if (tab === 'posts') {
                 postsTab.classList.add('active');
                 projectsTab.classList.remove('active');
                 postsContent.style.display = 'block';

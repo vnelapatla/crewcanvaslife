@@ -117,4 +117,24 @@ public class EventController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @GetMapping("/{id}/applicants")
+    public ResponseEntity<?> getApplicants(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(eventService.getApplicantsForEvent(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/application/{appId}/status")
+    public ResponseEntity<?> updateApplicationStatus(@PathVariable Long appId, @RequestParam String status) {
+        try {
+            return ResponseEntity.ok(eventService.updateApplicationStatus(appId, status));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

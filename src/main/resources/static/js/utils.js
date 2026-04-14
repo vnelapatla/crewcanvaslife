@@ -269,14 +269,52 @@ function initUniversalBottomNav() {
     document.body.insertAdjacentHTML('beforeend', navHtml);
 }
 
+// Sidebar Toggle logic
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
+}
+
+function initSidebarToggle() {
+    const header = document.querySelector('.top-header, .profile-top-nav');
+    // For mobile only (based on window width)
+    if (window.innerWidth > 1080) return;
+    
+    if (header && !header.querySelector('.sidebar-toggle-btn')) {
+        const hamburgerHtml = `
+            <div class="header-left-group" id="mobileHeaderLeft">
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                    <span class="icon">☰</span>
+                </button>
+                <span class="mobile-brand-name">CrewCanvas</span>
+            </div>
+        `;
+        header.insertAdjacentHTML('afterbegin', hamburgerHtml);
+    }
+
+    // Ensure sidebar-overlay exists
+    if (!document.querySelector('.sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.onclick = toggleSidebar;
+        document.body.appendChild(overlay);
+    }
+}
+
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
     // Inject bottom nav on mobile if missing
     initUniversalBottomNav();
     
+    // Initialize sidebar toggle
+    initSidebarToggle();
+    
     // Listen for resize to handle orientation changes or window resizing
     window.addEventListener('resize', debounce(() => {
         initUniversalBottomNav();
+        initSidebarToggle();
     }, 250));
 });
 

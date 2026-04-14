@@ -17,10 +17,16 @@ public class EventApplication {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    private String applicantName;
+    private String applicantEmail;
+    private String role;
+    private String experience;
+    private String location;
+
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
-    private String status = "pending"; // pending, accepted, rejected
+    private String status = "pending"; // pending, shortlisted, rejected
 
     @PrePersist
     protected void onCreate() {
@@ -56,6 +62,46 @@ public class EventApplication {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getApplicantName() {
+        return applicantName;
+    }
+
+    public void setApplicantName(String applicantName) {
+        this.applicantName = applicantName;
+    }
+
+    public String getApplicantEmail() {
+        return applicantEmail;
+    }
+
+    public void setApplicantEmail(String applicantEmail) {
+        this.applicantEmail = applicantEmail;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getExperience() {
+        return experience;
+    }
+
+    public void setExperience(String experience) {
+        this.experience = experience;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public LocalDateTime getAppliedAt() {

@@ -19,6 +19,9 @@ public class EventService {
     @Autowired
     private EventApplicationRepository applicationRepository;
 
+    @Autowired
+    private com.crewcanvas.repository.UserRepository userRepository;
+
     public Event createEvent(Event event) {
         return eventRepository.save(event);
     }
@@ -95,6 +98,16 @@ public class EventService {
 
             // Create application
             EventApplication application = new EventApplication(id, userId);
+            
+            // Populate user details for management
+            userRepository.findById(userId).ifPresent(user -> {
+                application.setApplicantName(user.getName());
+                application.setApplicantEmail(user.getEmail());
+                application.setRole(user.getRole());
+                application.setLocation(user.getLocation());
+                application.setExperience(user.getBio()); // Using bio as experience summary
+            });
+
             applicationRepository.save(application);
 
             // Increment count
@@ -106,5 +119,35 @@ public class EventService {
 
     public List<EventApplication> getUserApplications(Long userId) {
         return applicationRepository.findByUserId(userId);
+    }
+
+    public List<EventApplication> getApplicantsForEvent(Long eventId) {
+        List<EventApplication> applications = applicationRepository.findByEventId(eventId);
+        
+        // Populate missing details if any (for existing records)
+        for (EventApplication app : applications) {
+            if (app.getApplicantName() == null) {
+                userRepository.findById(app.getUserId()).ifPresent(u -> {
+                    app.setApplicantName(u.getName());
+                    app.setApplicantEmail(u.getEmail());
+                    app.setRole(u.getRole());
+                    app.setLocation(u.getLocation());
+                    app.setExperience(u.getBio());
+                    applicationRepository.save(app); // Persist the fix
+                });
+            }
+        }
+        
+        return applications;
+    }
+
+    public EventApplication updateApplicationStatus(Long appId, String status) {
+        Optional<EventApplication> appOpt = applicationRepository.findById(appId);
+        if (appOpt.isPresent()) {
+            EventApplication application = appOpt.get();
+            application.setStatus(status);
+            return applicationRepository.save(application);
+        }
+        throw new RuntimeException("Application not found");
     }
 }

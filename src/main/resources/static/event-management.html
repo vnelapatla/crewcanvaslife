@@ -136,7 +136,7 @@
                         EVENT MANAGEMENT</p>
                     <h2 class="section-title" id="eventTitleDisplay">Loading Event...</h2>
                 </div>
-                <button class="filter-toggle" onclick="exportCSV()">Export Data</button>
+                <button class="filter-toggle" onclick="EventManagement.exportCSV()">Export Data</button>
             </div>
 
             <!-- Stats Grid -->
@@ -167,7 +167,7 @@
             <div class="management-table">
                 <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                     <div class="search-box-wrapper" style="width:300px;">
-                        <input type="text" placeholder="Search applicants..." oninput="filterApplicants(this.value)">
+                        <input type="text" placeholder="Search applicants..." oninput="EventManagement.filterApplicants(this.value)">
                     </div>
                 </div>
 
@@ -175,7 +175,8 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Applied For</th>
+                            <th>Role</th>
+                            <th>Experience</th>
                             <th>Location</th>
                             <th>Status</th>
                             <th>Actions</th>

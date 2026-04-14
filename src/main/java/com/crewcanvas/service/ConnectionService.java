@@ -21,6 +21,11 @@ public class ConnectionService {
     private UserRepository userRepository;
 
     public Connection followUser(Long followerId, Long followingId) {
+        // Prevent self-follow
+        if (followerId.equals(followingId)) {
+            throw new RuntimeException("Self-following is not allowed");
+        }
+
         // Check if already following
         if (connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
             throw new RuntimeException("Already following this user");

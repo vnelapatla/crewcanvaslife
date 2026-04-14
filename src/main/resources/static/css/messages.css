@@ -338,6 +338,22 @@
         padding: 15px;
         min-height: auto;
     }
+
+    .connection-stats {
+        gap: 20px;
+        overflow-x: auto;
+        padding-bottom: 15px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .connection-stats::-webkit-scrollbar {
+        display: none;
+    }
+    .stat-pill {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 }
 
 .message-row-btn {

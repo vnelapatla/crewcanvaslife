@@ -14,6 +14,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadUserProjects(); // Added to populate the movies split
 });
 
+// Load user applications and their statuses
+async function loadUserApplications() {
+    const container = document.getElementById('applicationsContent');
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/events/applications/user/${profileUserId}`);
+        if (!response.ok) return;
+
+        const applications = await response.json();
+        if (applications.length === 0) return;
+
+        // Fetch all events to get titles
+        const eventsRes = await fetch(`${API_BASE_URL}/api/events`);
+        const allEvents = await eventsRes.json();
+        const eventMap = new Map(allEvents.map(e => [e.id, e]));
+
+        container.innerHTML = applications.map(app => {
+            const event = eventMap.get(app.eventId) || { title: 'Unknown Event' };
+            const statusClass = app.status === 'shortlisted' ? 'status-shortlisted' : 
+                                app.status === 'rejected' ? 'status-rejected' : 'status-pending';
+            
+            return `
+            <div class="post-card legacy-post-style application-card" style="padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h4 style="margin: 0; color: #fff; font-size: 18px;">${event.title}</h4>
+                        <p style="margin: 5px 0; color: #888; font-size: 13px;">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p>
+                        <div style="margin-top: 10px;">
+                            <span class="status-badge ${statusClass}" style="padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                                ${app.status.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="window.location.href='launch-audition.html'" style="background: none; border: 1px solid #444; color: #ccc; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-size: 12px;">View Event</button>
+                </div>
+            </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading applications:', error);
+    }
+}
+
 // Load profile data
 async function loadProfile() {
     try {

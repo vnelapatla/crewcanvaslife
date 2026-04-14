@@ -405,7 +405,7 @@ body {
     color: #94a3b8;
 }
 
-/* Footer Actions */
+/* Form Footer */
 .form-footer {
     display: flex;
     justify-content: flex-end;
@@ -434,3 +434,89 @@ body {
     font-weight: 600;
     cursor: pointer;
 }
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 20px 15px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .card {
+        padding: 20px 15px;
+    }
+
+    .profile-pic-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .upload-dashed-box {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .card-header::after {
+        bottom: -5px;
+    }
+
+    .add-project-btn-header {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%; /* Ensure full width */
+    }
+
+    .social-input-wrapper input {
+        width: 100%;
+    }
+
+    .form-footer {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+
+    .btn-save, .btn-cancel {
+        width: 100%;
+    }
+
+    .project-edit-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .item-thumb {
+        width: 80px;
+        height: 110px;
+    }
+
+    .wizard-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-save-small, .btn-cancel-small {
+        width: 100%;
+    }
+
+    .skills-input-group {
+        flex-direction: column;
+    }
+
+    .add-skill-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+

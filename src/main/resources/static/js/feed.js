@@ -18,8 +18,16 @@ async function loadFeed() {
             // Handle Spring Boot Pageable format
             const posts = data.content ? data.content : data;
             
+            // Fetch only missing unique user IDs to avoid redundant requests
+            const uniqueUserIds = [...new Set(posts.filter(p => p.userId && !p.user).map(p => p.userId))];
+            
+            // Pre-fetch all user profiles in parallel
+            const profilePromises = uniqueUserIds.map(id => getUserProfile(id));
+            await Promise.all(profilePromises);
+
+            // Assign users to posts (use existing if available, else fetch)
             for (let post of posts) {
-                if (post.userId) {
+                if (!post.user && post.userId) {
                     post.user = await getUserProfile(post.userId);
                 }
             }
@@ -82,13 +90,13 @@ function displayPosts(posts) {
         return `
         <div class="post-card" data-post-id="${post.id}">
             <div class="post-header">
-                <div style="display:flex; gap:12px; align-items:center;">
+                <a href="profile.html?userId=${post.userId}" class="post-user-link" style="display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit;">
                     ${renderAvatar(post.user || { name: 'Unknown' }, 'post-avatar')}
                     <div>
                         <h4 style="margin:0; font-size:15px;">${post.user?.name || 'Unknown Creative'}</h4>
                         <span style="font-size:11px; color:#999;">${formatDate(post.createdAt)}</span>
                     </div>
-                </div>
+                </a>
                 ${post.userId == currentUserId ? `
                     <button class="filter-toggle" onclick="editPost(${post.id}, '${post.content.replace(/'/g, "\\'")}')" style="padding:5px 10px; font-size:12px; margin-right:5px;">✏️ Edit</button>
                     <button class="filter-toggle" onclick="deletePost(${post.id})" style="padding:5px 10px; font-size:12px;">🗑️</button>

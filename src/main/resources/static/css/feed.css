@@ -98,6 +98,14 @@
     color: #999;
 }
 
+.post-user-link:hover h4 {
+    color: #ff8800;
+}
+
+.post-user-link:hover .post-avatar {
+    opacity: 0.8;
+}
+
 .post-actions-menu {
     margin-left: auto;
 }

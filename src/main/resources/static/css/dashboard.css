@@ -381,5 +381,27 @@ body {
     .welcome-banner h1 {
         font-size: 28px;
     }
+
+    /* Make quick actions scrollable on mobile */
+    .quick-actions {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 20px;
+        gap: 15px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+        margin-right: -20px; /* Bleed to edge */
+        margin-left: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .quick-actions::-webkit-scrollbar {
+        display: none;
+    }
+    .action-card {
+        flex: 0 0 calc(50% - 10px); /* Show roughly 2 cards at a time, hinting at more */
+        padding: 25px 15px;
+    }
 }
 
