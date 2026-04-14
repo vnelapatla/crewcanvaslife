@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewCanvas | Where Film Professionals Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-core.css">
+    <style>
+        body {
+            background-color: var(--bg-main);
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .main-content {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(rgba(10, 12, 16, 0.7), rgba(10, 12, 16, 0.7)), 
+                        url('images/auth_premium.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 48px;
+            transition: var(--transition-smooth);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-section h1 {
+            font-size: 38px;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .logo-section p {
+            color: var(--text-dim);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: 14px;
+            margin-bottom: 32px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .auth-tab.active {
+            background: var(--bg-surface);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 24px;
+        }
+
+        .forgot-password a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .forgot-password a:hover {
+            opacity: 0.8;
+        }
+
+        .social-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 32px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .social-divider::before, 
+        .social-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border-glass);
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .social-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-weight: 500;
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--text-muted);
+        }
+
+        .social-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 32px 24px;
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .logo-section h1 {
+                font-size: 32px;
+            }
+
+            .auth-tabs {
+                padding: 4px;
+            }
+
+            .auth-tab {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            body {
+                padding: 0;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="main-content">
+        <div class="auth-container glass-card animate-fade-up">
+            <div class="logo-section">
+                <h1 class="gradient-text">CrewCanvas</h1>
+                <p>Connect. Create. Conquer.</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTabBtn" onclick="toggleAuth('login')">Sign In</button>
+                <button class="auth-tab" id="signupTabBtn" onclick="toggleAuth('signup')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" class="premium-input" placeholder="name@studio.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" class="premium-input" placeholder="••••••••" required>
+                </div>
+                <div class="forgot-password">
+                    <a href="#">Forgot your password?</a>
+                </div>
+                <button type="submit" class="premium-btn" style="width: 100%;">
+                    Access Studio
+                </button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <label>Creative Name</label>
+                    <input type="text" id="signupName" class="premium-input" placeholder="Director / Actor / Crew" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signupEmail" class="premium-input" placeholder="name@studio.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword" class="premium-input" placeholder="Min. 8 characters" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="premium-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="premium-btn" style="width: 100%;">
+                    Create Portfolio
+                </button>
+            </form>
+
+            <div class="social-divider">Or continue with</div>
+
+            <div class="social-grid">
+                <button class="social-btn">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google">
+                    Google Account
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        function toggleAuth(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const loginTab = document.getElementById('loginTabBtn');
+            const signupTab = document.getElementById('signupTabBtn');
+
+            if (mode === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+            } else {
+                loginForm.classList.remove('active');
+                signupForm.classList.add('active');
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+            }
+        }
+    </script>
+</body>
+
+</html>

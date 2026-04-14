@@ -1,0 +1,261 @@
+/* Premium Profile Advanced UI - Pixel Perfect Update */
+
+/* --- Top Header & Banner Area --- */
+.profile-top-nav-wrapper {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    background: #000;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.banner-bg-blurred {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=2000');
+    background-size: cover;
+    background-position: center;
+    filter: blur(10px) brightness(0.6);
+    transform: scale(1.1); /* Prevent blurry edges */
+    opacity: 0.7;
+}
+
+.profile-top-nav {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0 20px;
+}
+
+.search-bar-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 25px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 380px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.search-icon { color: #666; font-size: 18px; }
+
+.search-bar-container input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+}
+
+.header-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.notification-icon {
+    font-size: 22px;
+    background: rgba(0,0,0,0.4);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.user-dropdown-pill {
+    background: white;
+    padding: 6px 20px 6px 6px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.user-avatar-small { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; background: #ff8c00; }
+.user-avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+
+#userNameHeader { font-size: 16px; font-weight: 700; color: #111; text-transform: lowercase; }
+
+/* --- Split Layout --- */
+.profile-split-container {
+    display: flex;
+    min-height: calc(100vh - 140px);
+}
+
+/* --- Left Column - Advanced Dark UI --- */
+.profile-left-col {
+    flex: 0 0 500px;
+    background: #000;
+    position: relative;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    overflow: hidden;
+}
+
+/* Stardust/Particle Overlay */
+.profile-left-col::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: 
+        radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 50px 160px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 100px 250px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 150px 350px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 200px 100px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 300px 500px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 400px 200px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 350px 400px, #fff, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 500px 500px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.profile-glow-avatar-wrapper {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    margin-bottom: 30px;
+    z-index: 2;
+}
+
+.glow-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid #5a4fcf; /* Purple glow ring as in image */
+    box-shadow: 0 0 30px rgba(90, 79, 207, 0.4);
+    overflow: hidden;
+    position: relative;
+    background: #111;
+}
+
+.glow-avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
+
+.profile-main-info { text-align: center; margin-bottom: 40px; z-index: 2; }
+
+#profileName {
+    font-size: 56px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+#profileRole {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.profile-sub-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #4dc; /* Cyan globe as in image */
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Contact Section - Pill Based */
+.profile-contact-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 50px;
+    z-index: 2;
+}
+
+.contact-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 25px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contact-box .label { font-size: 12px; font-weight: 700; color: #555; width: 60px; text-transform: uppercase; }
+.contact-box .value { font-size: 14px; font-weight: 600; color: #ccc; flex: 1; text-align: center; text-transform: uppercase; }
+.contact-box .icon { color: #555; font-size: 16px; }
+
+.profile-footer-tags { margin-top: auto; color: #333; font-weight: 700; letter-spacing: 1px; z-index: 2; }
+
+/* Hide default actions as per screenshot */
+.profile-actions-overlay { display: none; }
+
+/* --- Right Column - Light Content UI --- */
+.profile-right-col {
+    flex: 1;
+    background: white;
+    padding: 80px 100px;
+    position: relative;
+}
+
+.right-header { margin-bottom: 50px; }
+.right-header h2 { font-size: 24px; font-weight: 900; color: #000; letter-spacing: 1px; }
+
+/* Projects Grid - Card Based on Image */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 50px;
+}
+
+.project-card-advanced {
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+}
+
+.project-thumb {
+    width: 100%;
+    height: 380px;
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+}
+
+.project-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.project-meta {
+    padding: 30px 20px;
+}
+
+.project-meta h3 {
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.role-text {
+    font-size: 14px;
+    color: #999;
+    font-weight: 600;
+}
+
+/* Redesign stats pill */
+.profile-stats-pill { display: none; } /* Not in image */

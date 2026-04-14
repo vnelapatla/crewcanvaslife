@@ -1,0 +1,73 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**, /api/profile/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userServiceCircuitBreaker
+                fallbackUri: forward:/fallback/userServiceFallback
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: eventServiceCircuitBreaker
+                fallbackUri: forward:/fallback/eventServiceFallback
+        - id: feed-service
+          uri: lb://feed-service
+          predicates:
+            - Path=/api/posts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: feedServiceCircuitBreaker
+                fallbackUri: forward:/fallback/feedServiceFallback
+        - id: chat-service
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/messages/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: chatServiceCircuitBreaker
+                fallbackUri: forward:/fallback/chatServiceFallback
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 3
+    instances:
+      userServiceCircuitBreaker:
+        baseConfig: default
+      eventServiceCircuitBreaker:
+        baseConfig: default
+      feedServiceCircuitBreaker:
+        baseConfig: default
+      chatServiceCircuitBreaker:
+        baseConfig: default
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
+

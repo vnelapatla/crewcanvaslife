@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/feed.css">
+</head>
+
+<body>
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item active">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="launch-audition.html" class="nav-item">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="status-bar">
+                <a href="settings.html" class="mobile-settings-btn">⚙️</a>
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+                        <span id="userInitialsSmall">U</span>
+                    </div>
+                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
+                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="section-header">
+                <h2 class="section-title">Community Feed</h2>
+            </div>
+
+            <!-- Create Post Section -->
+            <div class="create-post-card card" style="margin-bottom: 30px;">
+                <textarea id="postContent" placeholder="Share your latest project or news..." maxlength="1000"
+                    style="background:#fcfcfc; border:1px solid #eee; border-radius:12px; height:100px; resize:none; padding:15px; margin-bottom: 10px;"></textarea>
+                
+                <input type="url" id="postLink" placeholder="📎 Add external link (e.g. YouTube, Portfolio)" 
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 15px; font-size: 13px;">
+
+                <div class="create-post-actions"
+                    style="display:flex; justify-content:space-between; align-items:center;">
+                    <input type="file" id="postImage" accept="image/*" multiple style="display: none;">
+                    <button class="filter-toggle" onclick="document.getElementById('postImage').click()"
+                        style="background:transparent; border:none; color: var(--text-muted); cursor: pointer;">
+                        <span class="filter-icon">🖼️</span> Add Multiple Media
+                    </button>
+                    <button class="auth-btn" style="width:120px; padding:10px;" onclick="createPost()">Post</button>
+                </div>
+                <!-- Image Preview Container -->
+                <div id="imagePreviewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                    <!-- Previews will appear here -->
+                </div>
+            </div>
+
+            <!-- Feed -->
+            <div id="feedContainer" class="feed-container">
+                <!-- Posts dynamic -->
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="scroll-load">
+                <div class="loader-dots">
+                    <div class="dot dot-1"></div>
+                    <div class="dot dot-2"></div>
+                    <div class="dot dot-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item active">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Crew Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/feed.js"></script>
+</body>
+
+</html>

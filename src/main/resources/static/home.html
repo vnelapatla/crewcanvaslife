@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .bottom-nav {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 70px !important;
+            background: #000 !important;
+            display: flex !important;
+            justify-content: space-around !important;
+            align-items: center !important;
+            z-index: 99999 !important;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .bottom-nav .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            text-decoration: none;
+            font-size: 10px;
+        }
+        .bottom-nav .nav-item.active {
+            color: #ff8c00 !important;
+        }
+        .bottom-nav .nav-item .icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+        @media (min-width: 1025px) {
+            .bottom-nav { display: none !important; }
+        }
+        .main-content {
+            padding-bottom: 100px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>CrewCanvas</h2>
+                <p>Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item">
+                    <span class="icon">📰</span> Feed
+                </a>
+                <a href="home.html" class="nav-item active">
+                    <span class="icon">🏠</span> Dashboard
+                </a>
+                <a href="crew-search.html" class="nav-item">
+                    <span class="icon">🔍</span> Crew Search
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <span class="icon">💬</span> Messages
+                </a>
+                <a href="launch-audition.html" class="nav-item">
+                    <span class="icon">🎬</span> Events
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header (Added for consistency) -->
+            <header class="top-header" style="display: flex; justify-content: flex-end; padding: 25px 40px; background: transparent; margin-bottom: 0;">
+                <div class="header-right-actions" style="display: flex; align-items: center; gap: 25px;">
+                    <button class="notification-icon" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-dark); opacity: 0.7;">🔔</button>
+                    <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                        <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                            <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+                            <span id="userInitialsSmall">U</span>
+                        </div>
+                        <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333;">User</span>
+                        <span class="chevron-down" style="font-size: 10px; opacity: 0.4;">▼</span>
+                        <div class="profile-dropdown-menu" id="profileDropdown">
+                            <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <style>
+                .profile-dropdown-menu.active { display: flex !important; }
+                .dropdown-item:hover { background: rgba(255,255,255,0.05); }
+                .user-dropdown-pill { position: relative; }
+            </style>
+
+            <div class="content-wrapper">
+                
+                <!-- Welcome Banner -->
+                <div class="welcome-banner card">
+                    <h1 id="welcomeHeading">Welcome To CrewCanvas !</h1>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="action-card card" onclick="window.location.href='feed.html'" id="btnPostFeed">
+                        <div class="action-icon orange-bg">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <p>Post Feed</p>
+                    </div>
+                    <div class="action-card card" onclick="window.location.href='messages.html'" id="btnMessage">
+                        <div class="action-icon pink-bg">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </div>
+                        <p>Message</p>
+                    </div>
+                    <div class="action-card card" onclick="window.location.href='crew-search.html'" id="btnFindCrew">
+                        <div class="action-icon green-bg">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <p>Find Crew</p>
+                    </div>
+                    <div class="action-card card" onclick="window.location.href='event-management.html'" id="btnCreateEvent">
+                        <div class="action-icon blue-bg">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                        </div>
+                        <p>Create Event</p>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section">
+                    <!-- Followers -->
+                    <div class="stat-card card has-accent" id="followersCard">
+                        <div class="card-accent-strip">
+                            <div class="accent-top"></div>
+                            <div class="accent-bottom orange"></div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-main">
+                                <span class="stat-icon-large orange-text">
+                                    <i class="fa-solid fa-users"></i>
+                                </span>
+                                <div class="stat-info">
+                                    <h3>Followers</h3>
+                                    <p class="stat-number" id="countFollowers">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Following -->
+                    <div class="stat-card card has-accent" id="followingCard">
+                        <div class="card-accent-strip">
+                            <div class="accent-top"></div>
+                            <div class="accent-bottom blue"></div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-main">
+                                <span class="stat-icon-large blue-text">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </span>
+                                <div class="stat-info">
+                                    <h3>Following</h3>
+                                    <p class="stat-number" id="countFollowing">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- My Events -->
+                    <div class="stat-card card has-accent" id="myEventsCard">
+                        <div class="card-accent-strip">
+                            <div class="accent-top"></div>
+                            <div class="accent-bottom orange"></div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-header">
+                                <div class="event-icon-box">
+                                    <i class="fa-solid fa-calendar-days orange-text"></i>
+                                </div>
+                                <div class="stat-title-group">
+                                    <h3>MY EVENTS</h3>
+                                    <p class="stat-number" id="totalEvents">0</p>
+                                </div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="events-grid">
+                                <div class="event-type">
+                                    <span class="dot orange"></span>
+                                    <span class="label">Courses</span>
+                                    <span class="value" id="countCourses">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot blue"></span>
+                                    <span class="label">Auditions</span>
+                                    <span class="value" id="countAuditions">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot green"></span>
+                                    <span class="label">Contests</span>
+                                    <span class="value" id="countContests">0</span>
+                                </div>
+                                <div class="event-type">
+                                    <span class="dot purple"></span>
+                                    <span class="label">Workshops</span>
+                                    <span class="value" id="countWorkshops">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Universal Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item active">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Crew Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <!-- Script to fetch actual data if available -->
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+                try {
+                    // Wait a moment for ProfileHandler to fetch data, or just use it if ready
+                    setTimeout(async () => {
+                        const user = ProfileHandler.user;
+                        if (user) {
+                            document.getElementById('countFollowers').innerText = user.followers || 0;
+                            document.getElementById('countFollowing').innerText = user.following || 0;
+                            if (user.name) {
+                                document.getElementById('welcomeHeading').innerText = `Welcome Back, ${user.name} !`;
+                            }
+                        } else {
+                            // Fallback fetch if handler failed
+                            const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+                            if (profileRes.ok) {
+                                const u = await profileRes.json();
+                                document.getElementById('countFollowers').innerText = u.followers || 0;
+                                document.getElementById('countFollowing').innerText = u.following || 0;
+                                if (u.name) {
+                                    document.getElementById('welcomeHeading').innerText = `Welcome Back, ${u.name} !`;
+                                }
+                            }
+                        }
+                    }, 500);
+
+                    // Fetch Events Data (Created events + Registered events)
+                    const eventsRes = await fetch(`${API_BASE_URL}/api/events/user/${userId}`);
+                    const appsRes = await fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`);
+                    const allEventsRes = await fetch(`${API_BASE_URL}/api/events`);
+                    
+                    if (eventsRes.ok && appsRes.ok && allEventsRes.ok) {
+                        const createdEvents = await eventsRes.json();
+                        const applications = await appsRes.json();
+                        const allEvents = await allEventsRes.json();
+
+                        // Get IDs of events the user registered for
+                        const registeredEventIds = applications.map(app => app.eventId);
+                        const registeredEvents = allEvents.filter(e => registeredEventIds.includes(e.id));
+
+                        // Combine for total "My Events" (Created + Registered)
+                        const myEventsMap = new Map();
+                        createdEvents.forEach(e => myEventsMap.set(e.id, e));
+                        registeredEvents.forEach(e => myEventsMap.set(e.id, e));
+                        
+                        const myEvents = Array.from(myEventsMap.values());
+                        document.getElementById('totalEvents').innerText = myEvents.length || 0;
+                        
+                        // Count by type
+                        const counts = {
+                            course: 0,
+                            audition: 0,
+                            contest: 0,
+                            workshop: 0
+                        };
+                        
+                        myEvents.forEach(event => {
+                            const type = (event.eventType || '').toLowerCase();
+                            if (type.includes('course')) counts.course++;
+                            else if (type.includes('audition')) counts.audition++;
+                            else if (type.includes('contest')) counts.contest++;
+                            else if (type.includes('workshop')) counts.workshop++;
+                        });
+                        
+                        document.getElementById('countCourses').innerText = counts.course;
+                        document.getElementById('countAuditions').innerText = counts.audition;
+                        document.getElementById('countContests').innerText = counts.contest;
+                        document.getElementById('countWorkshops').innerText = counts.workshop;
+                    }
+                } catch (e) {
+                    console.error("Failed to load dashboard data", e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

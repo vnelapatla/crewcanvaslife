@@ -1,0 +1,61 @@
+package com.crewcanvas.service;
+
+import com.crewcanvas.model.Message;
+import com.crewcanvas.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class MessageService {
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private ConversationService conversationService;
+
+    @Transactional
+    public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
+        Message message = new Message(senderId, receiverId, content);
+        message.setImageUrl(imageUrl);
+        message.setFileUrl(fileUrl);
+        message.setFileType(fileType);
+        Message saved = messageRepository.save(message);
+
+        // Update/Create conversation record
+        conversationService.startConversation(senderId, receiverId);
+        conversationService.updateLastMessage(senderId, receiverId, content != null ? content : "Attachment");
+
+        return saved;
+    }
+
+    public List<Message> getConversation(Long userId1, Long userId2) {
+        return messageRepository.findConversation(userId1, userId2);
+    }
+
+    public List<Message> getUserMessages(Long userId) {
+        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId);
+    }
+
+    public List<Message> getUnreadMessages(Long userId) {
+        return messageRepository.findUnreadMessages(userId);
+    }
+
+    public Message markAsRead(Long messageId) {
+        Optional<Message> messageOpt = messageRepository.findById(messageId);
+        if (messageOpt.isPresent()) {
+            Message message = messageOpt.get();
+            message.setIsRead(true);
+            return messageRepository.save(message);
+        }
+        throw new RuntimeException("Message not found");
+    }
+
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
+    }
+}

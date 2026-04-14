@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+
+<body>
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="launch-audition.html" class="nav-item">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- New Top Header Wrap with Blurred Banner -->
+        <div class="profile-top-nav-wrapper">
+            <div class="banner-bg-blurred"></div>
+            <header class="profile-top-nav">
+                <div class="search-bar-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search for crew, projects..." id="globalSearch">
+                </div>
+                <div class="header-right-actions">
+                    <button class="notification-icon">🔔</button>
+                    <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                        <div class="user-avatar-small" id="userAvatarSmall">
+                            <img src="" alt="" id="userAvatarImg" style="display:none;">
+                            <span id="userInitialsSmall">U</span>
+                        </div>
+                        <span id="userNameHeader">User</span>
+                        <span class="chevron-down">▼</span>
+                        <div class="profile-dropdown-menu" id="profileDropdown">
+                            <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </div>
+
+        <!-- Hero Profile Identity -->
+        <section class="profile-hero-mini">
+            <div class="hero-left">
+                <div id="profileAvatarContainer" class="avatar-holder">
+                    <div class="avatar-fallback">?</div>
+                </div>
+            </div>
+            <div class="hero-right">
+                <h1 id="profileName">Loading User...</h1>
+                <p id="profileRoleBadge">Film Professional</p>
+            </div>
+        </section>
+
+        <!-- Upper Banner/Action Row -->
+        <div class="profile-stats-bar">
+            <div class="stat-pill"><span class="icon">👥</span> <span id="countFollowers">0</span> FOLLOWERS</div>
+            <div class="stat-pill"><span class="icon">🤝</span> <span id="countFollowing">0</span> FOLLOWING</div>
+            <div class="stat-pill"><span class="icon">🎬</span> <span id="projectsCount">0</span> PROJECTS</div>
+            <div class="stat-pill"><span class="icon">⚒️</span> <span id="skillsCount">0</span> SKILLS</div>
+            <div class="stat-pill"><span class="icon">📝</span> <span id="postsCount">0</span> POSTS</div>
+        </div>
+
+        <div class="profile-info-grid">
+            <!-- Personal Information Card -->
+            <div class="info-card">
+                <div class="card-header">
+                    <span class="icon">👤</span> Personal Information
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <span class="label">Email</span>
+                        <span class="value" id="profileEmail">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Phone</span>
+                        <span class="value" id="profilePhone">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Location</span>
+                        <span class="value" id="profileLocation">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills & Social Card -->
+            <div class="info-card">
+                <div class="card-header">
+                    <span class="icon">⚒️</span> Skills & Social
+                </div>
+                <div class="card-body">
+                    <div class="skills-wrap" id="skillsContainer">
+                        <span class="empty-badge">No skills added yet</span>
+                    </div>
+                    <div class="social-links-wrap" id="socialLinksContainer">
+                        <span class="empty-text">No social links added</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabbed Content Section -->
+        <div class="profile-tabs-section">
+            <div class="tabs-nav">
+                <div class="tab-item active" onclick="switchTab('projects')" id="tab-projects">
+                    <span class="icon">🎞️</span> Projects
+                </div>
+                <div class="tab-item" onclick="switchTab('posts')" id="tab-posts">
+                    <span class="icon">📙</span> Posts
+                </div>
+            </div>
+
+            <div class="tab-content" id="tabContent">
+                <div id="projectsContent">
+                    <div class="no-posts-placeholder">
+                        <div class="placeholder-icon">🎞️</div>
+                        <h3>No Projects Yet</h3>
+                        <p>Begin building your cinematic portfolio by adding your first project.</p>
+                    </div>
+                </div>
+                <div id="postsContent" style="display: none;">
+                    <div class="no-posts-placeholder">
+                        <div class="placeholder-icon">📝</div>
+                        <h3>No Posts Yet</h3>
+                        <p>You haven't shared any posts yet. Start sharing your posts, stories, or achievements with your network!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <!-- Unified Detailed Styling to match provided image -->
+    <style>
+        :root {
+            --orange-active: #FF8A00;
+            --dark-card: #222222;
+            --dark-input: rgba(255, 255, 255, 0.05);
+            --text-dim: #999;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            overflow-y: auto;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .main-content {
+            padding: 40px;
+            margin-left: 260px; /* Account for sidebar */
+            max-width: 1200px;
+            gap: 30px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Stats Bar */
+        .profile-stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-pill {
+            background: rgba(255, 138, 0, 0.1);
+            border: 1px solid rgba(255, 138, 0, 0.3);
+            border-radius: 40px;
+            padding: 10px 25px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stat-pill:hover { background: rgba(255, 138, 0, 0.2); transform: translateY(-2px); }
+
+        /* Info Grid */
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .info-card {
+            background: var(--dark-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .info-card .card-header {
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.03);
+            color: #fff;
+        }
+
+        .info-card .card-header .icon { color: var(--orange-active); }
+
+        .info-card .card-body {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-item {
+            background: var(--dark-input);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-item .label { color: #888; font-size: 13px; font-weight: 600; }
+        .info-item .value { font-size: 15px; font-weight: 500; color: #fff; }
+
+        .empty-badge {
+            background: #000;
+            color: #ddd;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .empty-text { color: #555; font-size: 13px; font-style: italic; }
+
+        /* Tabs Logic */
+        .profile-tabs-section {
+            margin-top: 20px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+            margin-bottom: 30px;
+        }
+
+        .tab-item {
+            padding: 15px 60px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab-item.active {
+            color: var(--orange-active);
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--orange-active);
+            box-shadow: 0 0 15px var(--orange-active);
+        }
+
+        /* Content Placeholder (Matched to Image) */
+        .no-posts-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: var(--dark-card);
+            padding: 60px;
+            border-radius: 24px;
+            max-width: 600px;
+            margin: 40px auto;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .placeholder-icon {
+            font-size: 80px;
+            margin-bottom: 25px;
+            opacity: 0.3;
+            color: #fff;
+        }
+
+        .no-posts-placeholder h3 { font-size: 28px; margin-bottom: 15px; color: #fff; font-weight: 800; }
+        .no-posts-placeholder p { color: #888; font-size: 15px; line-height: 1.7; max-width: 400px; }
+        
+        /* New Project Card Components */
+        .project-thumb { position: relative; }
+        .project-year-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            color: var(--orange-active);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid rgba(255,138,0,0.3);
+        }
+        .role-pill {
+            background: rgba(255,138,0,0.1);
+            color: var(--orange-active);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .project-snippet {
+            color: #777;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .project-card-advanced:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .project-card-advanced { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .no-img-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-size: 40px;
+            color: #333;
+        }
+
+        /* Hero Mini Style */
+        .profile-hero-mini {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 20px 0;
+            margin-bottom: 10px;
+        }
+
+        .avatar-holder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #252525;
+            border: 3px solid var(--orange-active);
+            box-shadow: 0 0 20px rgba(255, 138, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-holder img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-fallback { font-size: 48px; font-weight: 800; color: #444; }
+
+        .hero-right h1 {
+            font-size: 42px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        #profileRoleBadge {
+            background: var(--orange-active);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-block;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 1080px) {
+            .main-content { margin-left: 0; padding: 20px; padding-bottom: 90px; }
+            .profile-info-grid { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .profile-hero-mini { flex-direction: column; text-align: center; }
+        }
+
+        /* Legacy Feed Styles for Profile */
+        .legacy-post-style {
+            background: #222;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .post-header {
+            padding: 20px 25px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .user-info { display: flex; gap: 15px; align-items: center; }
+        .mini-avatar { 
+            width: 45px; height: 45px; border-radius: 50%; 
+            background: var(--orange-active); color: #000;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 18px;
+        }
+
+        .user-name { margin: 0; font-size: 16px; font-weight: 700; color: #fff; }
+        .post-date { font-size: 11px; color: #666; font-weight: 700; letter-spacing: 1px; }
+
+        .post-body { padding: 25px; }
+        .post-text { font-size: 16px; line-height: 1.6; color: #ddd; margin-bottom: 20px; }
+        .post-img-fluid { width: 100%; border-radius: 12px; display: block; }
+        
+        .post-footer {
+            padding: 15px 25px;
+            display: flex;
+            gap: 25px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .footer-btn {
+            background: none; border: none; color: #888;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .footer-btn:hover { color: var(--orange-active); }
+
+        .post-media-wrap {
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Slider Styles */
+        .post-slider-container {
+            position: relative;
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .post-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .post-slider::-webkit-scrollbar { display: none; }
+
+        .post-slider-item {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+        }
+
+        .post-slider-item img {
+            width: 100%;
+            display: block;
+        }
+
+        .slider-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .slider-nav-btn.prev { left: 10px; }
+        .slider-nav-btn.next { right: 10px; }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .slider-dot.active {
+            background: var(--orange-active);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px var(--orange-active);
+        }
+    </style>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/profile.js"></script>
+    <script>
+        function switchTab(tab) {
+            const projectsTab = document.getElementById('tab-projects');
+            const postsTab = document.getElementById('tab-posts');
+            const projectsContent = document.getElementById('projectsContent');
+            const postsContent = document.getElementById('postsContent');
+
+            if (tab === 'projects') {
+                projectsTab.classList.add('active');
+                postsTab.classList.remove('active');
+                projectsContent.style.display = 'block';
+                postsContent.style.display = 'none';
+            } else {
+                postsTab.classList.add('active');
+                projectsTab.classList.remove('active');
+                postsContent.style.display = 'block';
+                projectsContent.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+
+<body>
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="launch-audition.html" class="nav-item">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- New Top Header Wrap with Blurred Banner -->
+        <div class="profile-top-nav-wrapper">
+            <div class="banner-bg-blurred"></div>
+            <header class="profile-top-nav">
+                <div class="search-bar-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search for crew, projects..." id="globalSearch">
+                </div>
+                <div class="header-right-actions">
+                    <button class="notification-icon">🔔</button>
+                    <div class="user-dropdown-pill" onclick="ProfileHandler.toggleProfileDropdown()">
+                        <div class="user-avatar-small" id="userAvatarSmall">
+                            <img src="" alt="" id="userAvatarImg" style="display:none;">
+                            <span id="userInitialsSmall">U</span>
+                        </div>
+                        <span id="userNameHeader">User</span>
+                        <span class="chevron-down">▼</span>
+                        <div class="profile-dropdown-menu" id="profileDropdown">
+                            <a href="profile.html" class="dropdown-item">👤 My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item">📝 Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item">⚙️ Settings</a>
+                            <a href="#" onclick="logout()" class="dropdown-item" style="color: #ef4444;">↪️ Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </div>
+
+        <div class="profile-split-container">
+            <!-- Left Column: Profile Details (Dark Theme) -->
+            <div class="profile-left-col">
+                <div class="profile-glow-avatar-wrapper">
+                    <div id="profileAvatarContainer" class="glow-avatar-inner">
+                        <div id="profileAvatarInitial" class="avatar-fallback-large">?</div>
+                    </div>
+                </div>
+
+                <div class="profile-main-info">
+                    <h1 id="profileName">Loading...</h1>
+                    <p id="profileRole">Film Professional</p>
+                    <div class="profile-sub-info">
+                        <span class="icon">🌍</span>
+                        <span id="profileLocation">HYDERABAD</span>
+                    </div>
+                </div>
+
+                <div class="profile-contact-section">
+                    <div class="contact-box">
+                        <span class="label">EMAIL:</span>
+                        <span class="value" id="profileEmail">user@gmail.com</span>
+                        <span class="icon">✉️</span>
+                    </div>
+                    <div class="contact-box">
+                        <span class="label">PHONE:</span>
+                        <span class="value" id="profilePhone">9951020428</span>
+                        <span class="icon">📞</span>
+                    </div>
+                </div>
+
+                <div class="profile-footer-tags">
+                    <span>sifi directors</span>
+                </div>
+
+                <!-- Hidden Actions as per screenshot -->
+                <div class="profile-actions-overlay" style="display:none;">
+                    <button class="action-btn-primary" id="actionButton" onclick="handleAction()">Follow</button>
+                    <button class="action-btn-secondary" onclick="sendMessage()">Message</button>
+                </div>
+            </div>
+
+            <!-- Right Column: Projects/Posts (Light Theme) -->
+            <div class="profile-right-col">
+                <div class="right-header">
+                    <h2>MOVIE PROJECTS</h2>
+                </div>
+                
+                <div id="userPosts" class="projects-grid">
+                    <!-- Posts loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/profile.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = localStorage.getItem('userName') || 'User';
+            const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            // Populate header name if not yet handled by profile.js
+            const headerName = document.getElementById('userNameHeader');
+            if (headerName) headerName.textContent = userName;
+            
+            // Populate initials in dropdown pill
+            const initialsSmall = document.getElementById('userInitialsSmall');
+            if (initialsSmall) initialsSmall.innerText = initials.substring(0, 2);
+
+            // Initial fallback for main profile avatar if needed
+            const bigInitial = document.getElementById('profileAvatarInitial');
+            if (bigInitial) bigInitial.innerText = initials.substring(0, 1);
+        });
+    </script>
+</body>
+
+</html>

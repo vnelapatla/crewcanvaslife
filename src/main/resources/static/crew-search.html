@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Search | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/crew-search.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item active">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="launch-audition.html" class="nav-item">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="status-bar">
+                <button class="notify-btn">⚙️</button>
+                <button class="notify-btn">🔔</button>
+                <a href="settings.html" class="mobile-settings-btn">⚙️</a>
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+                        <span id="userInitialsSmall">U</span>
+                    </div>
+                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
+                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- Section Title -->
+            <div class="section-header">
+                <h2 class="section-title">TOP CREATORS</h2>
+            </div>
+
+            <!-- Feature Cards (Find Crew / Connections) -->
+            <div class="features-grid">
+                <div class="feature-card active" id="findCrewCard" onclick="switchSearchTab('find')">
+                    <div class="feature-icon-circle">👥</div>
+                    <div class="feature-info">
+                        <h3>TOTAL CREW</h3>
+                        <p>In database</p>
+                    </div>
+                    <div class="count-badge" id="totalCrewCount">0</div>
+                </div>
+
+                <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections')">
+                    <div class="feature-icon-circle">🤝</div>
+                    <div class="feature-info">
+                        <h3>MY FOLLOWERS</h3>
+                        <p>People following you</p>
+                    </div>
+                    <div class="count-badge" id="myConnectionsCount">0</div>
+                </div>
+            </div>
+
+            <!-- Toggle Switch Tabs -->
+            <div class="toggle-switch-container">
+                <div class="toggle-btn active" id="followingTab" onclick="switchConnectionTab('following')">
+                    <span class="icon">👤+</span> Following
+                </div>
+                <div class="toggle-btn" id="followersTab" onclick="switchConnectionTab('followers')">
+                    <span class="icon">👥</span> Followers
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="custom-search-bar">
+                <input type="text" id="searchInput" placeholder="Search people you follow..." oninput="searchUsers()">
+                <span class="search-person-icon">👤</span>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="searchResults" class="crew-grid" style="margin-top: 40px;">
+                <!-- Dynamically loaded -->
+            </div>
+
+            <!-- Loading Dots -->
+            <div class="scroll-load">
+                <div class="loader-dots">
+                    <div class="dot dot-1"></div>
+                    <div class="dot dot-2"></div>
+                    <div class="dot dot-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item active">
+            <span class="icon">🔍</span> <span>Crew Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/crew-search.js"></script>
+</body>
+
+</html>

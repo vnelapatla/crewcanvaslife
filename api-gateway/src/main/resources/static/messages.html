@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/messages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="messages-page">
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2 style="color: var(--primary-orange);">CrewCanvas</h2>
+                <p>Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item"><span>📋</span> Feed</a>
+                <a href="home.html" class="nav-item"><span>🏠</span> Dashboard</a>
+                <a href="crew-search.html" class="nav-item"><span>🔍</span> Crew Search</a>
+                <a href="messages.html" class="nav-item active"><span>✉️</span> Messages</a>
+                <a href="launch-audition.html" class="nav-item"><span>🎬</span> Events</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Cinematic Header -->
+            <header class="top-header">
+                <div class="cinematic-banner"></div>
+                <div class="header-right">
+                    <div class="notification-bell">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="profile-dropdown">
+                        <div class="profile-btn">
+                            <i class="fa-solid fa-user"></i>
+                            <span>menu</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Messaging View -->
+            <main class="content-body" id="messagingView">
+                <div class="messages-card">
+                    <!-- Search Header -->
+                    <div class="search-section">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchConversations" placeholder="Search conversations..." oninput="searchConversations()">
+                        </div>
+                    </div>
+
+                    <!-- Connection Stats -->
+                    <div class="connection-stats">
+                        <div class="stat-pill" onclick="switchSidebarTab('following')">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span id="followingCount">0 Following</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fa-solid fa-heart"></i>
+                            <span id="followerCount">0 Followers</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fa-solid fa-users"></i>
+                            <span id="mutualCount">0 Mutual</span>
+                        </div>
+                    </div>
+
+                    <!-- User Lists (Conversations by default) -->
+                    <div class="lists-wrapper">
+                        <!-- Switch Tabs -->
+                        <div class="list-tabs">
+                            <button class="active" onclick="switchSidebarTab('conversations')">Recent Chats</button>
+                            <button onclick="switchSidebarTab('following')">Connections</button>
+                        </div>
+
+                        <div id="conversationsList" class="user-list">
+                            <!-- Injected by JS -->
+                            <div class="loading-state">Loading your conversations...</div>
+                        </div>
+
+                        <div id="followingList" class="user-list" style="display: none;">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Chat Modal / Fullscreen Panel (Hidden by default) -->
+            <div id="chatOverlay" class="chat-overlay" style="display: none;">
+                <div class="chat-window">
+                    <header class="chat-header">
+                        <div class="chat-user">
+                            <button class="back-btn" onclick="closeChatArea()"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div id="chatUserAvatar" class="initials-avatar"></div>
+                            <div class="user-info">
+                                <h4 id="chatUserName">User Name</h4>
+                                <span id="chatUserStatus">active now</span>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <i class="fa-solid fa-phone"></i>
+                            <i class="fa-solid fa-video"></i>
+                            <i class="fa-solid fa-xmark" onclick="closeChatArea()"></i>
+                        </div>
+                    </header>
+                    <div id="messagesArea" class="messages-container"></div>
+                    <div class="chat-input-area">
+                        <div class="input-actions">
+                            <i class="fa-regular fa-face-smile"></i>
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
+                        <button onclick="sendMessage()" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/advanced-messaging.js"></script>
+    <script src="js/messages.js"></script>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/events.css">
+    <style>
+        .horizontal-cards {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0 25px;
+            scrollbar-width: none;
+        }
+
+        .horizontal-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        .event-feature-card {
+            min-width: 280px;
+            background: var(--white);
+            border-radius: 24px;
+            padding: 24px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow-premium);
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .event-feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .event-feature-card.active {
+            background: linear-gradient(90deg, #ff8c00 0%, #ff4c3b 100%);
+            border: none;
+        }
+
+        .event-feature-card.active .icon-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .event-feature-card.active .info h3 {
+            color: #fff;
+        }
+
+        .event-feature-card.active .info p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .event-feature-card.active .badge {
+            color: #fff;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .info h3 {
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-dark);
+            letter-spacing: 0.5px;
+        }
+
+        .info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
+
+        .badge {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-left: auto;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ff4c3b, #ff8c00);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 10px 25px rgba(255, 76, 59, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        /* Choice Modal Styles */
+        .choices-grid {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 30px;
+            padding-bottom: 10px;
+        }
+
+        .choice-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .choice-item:hover {
+            transform: translateY(-8px);
+        }
+
+        .choice-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .choice-icon.pink { background: #fff1f2; color: #f43f5e; }
+        .choice-icon.green { background: #f0fdf4; color: #22c55e; }
+        .choice-icon.yellow { background: #fffbeb; color: #f59e0b; }
+        .choice-icon.blue { background: #eff6ff; color: #3b82f6; }
+
+        .choice-item span {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        /* Premium Form Styles */
+        .modern-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label-premium {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+
+        .form-control-premium {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #1f2937;
+            transition: all 0.3s;
+            background: #fff;
+            outline: none;
+        }
+
+        .form-control-premium:focus {
+            border-color: #ff8c00;
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+        }
+
+        .mobile-input-group {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 2px 12px;
+            background: #fff;
+            transition: all 0.3s;
+        }
+
+        .mobile-input-group:focus-within {
+            border-color: #ff8c00;
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+        }
+
+        .phone-icon, .email-icon {
+            font-size: 18px;
+            margin-right: 10px;
+            color: #6b7280;
+        }
+
+        .country-select {
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            padding-right: 10px;
+            margin-right: 10px;
+            border-right: 1px solid #e5e7eb;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .phone-input {
+            border: none !important;
+            padding: 10px 0 !important;
+            box-shadow: none !important;
+        }
+
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-icon .email-icon {
+            position: absolute;
+            left: 16px;
+        }
+
+        .email-input {
+            padding-left: 45px !important;
+        }
+
+        .btn-next-premium {
+            flex: 1;
+            background: linear-gradient(135deg, #ff8c00, #ff4c3b);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-next-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 76, 59, 0.3);
+        }
+
+        .btn-cancel-premium {
+            flex: 1;
+            background: #f3f4f6;
+            color: #4b5563;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel-premium:hover {
+            background: #e5e7eb;
+        }
+
+        .mb-4 { margin-bottom: 24px; }
+    </style>
+
+</head>
+
+<body>
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="launch-audition.html" class="nav-item active">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="status-bar">
+                <a href="settings.html" class="mobile-settings-btn">⚙️</a>
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+                        <span id="userInitialsSmall">U</span>
+                    </div>
+                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
+                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="horizontal-cards">
+                <div class="event-feature-card active" onclick="switchEventTab('auditions', this)">
+                    <div class="icon-box">🎥</div>
+                    <div class="info">
+                        <h3>AUDITIONS</h3>
+                        <p>Casting & Roles</p>
+                    </div>
+                    <div class="badge" id="auditionCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('workshops', this)">
+                    <div class="icon-box">🛠️</div>
+                    <div class="info">
+                        <h3>WORKSHOPS</h3>
+                        <p>Skill building sessions</p>
+                    </div>
+                    <div class="badge" id="workshopCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('courses', this)">
+                    <div class="icon-box">🎓</div>
+                    <div class="info">
+                        <h3>COURSES</h3>
+                        <p>Long-term learning</p>
+                    </div>
+                    <div class="badge" id="courseCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('contests', this)">
+                    <div class="icon-box">🏆</div>
+                    <div class="info">
+                        <h3>CONTESTS</h3>
+                        <p>Awards & Glory</p>
+                    </div>
+                    <div class="badge" id="contestCount">0</div>
+                </div>
+            </div>
+
+            <div id="eventsGrid" class="events-grid">
+                <!-- Content will load here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="home.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Crew Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Messages</span>
+        </a>
+        <a href="launch-audition.html" class="nav-item active">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
+
+    <button class="fab" onclick="showChoiceModal()">+</button>
+
+    <!-- Step 1: Choice Modal -->
+    <div id="choiceModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>What would you like to create?</h2>
+                <span class="close" onclick="closeChoiceModal()">✕</span>
+            </div>
+            <div class="choices-grid">
+                <div class="choice-item" onclick="openCreateForm('Workshop')">
+                    <div class="choice-icon pink">🛠️</div>
+                    <span>Workshop</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Course')">
+                    <div class="choice-icon green">🎓</div>
+                    <span>Course</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Contest')">
+                    <div class="choice-icon yellow">🏆</div>
+                    <span>Contest</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Audition')">
+                    <div class="choice-icon blue">🎥</div>
+                    <span>Audition</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Form Modal (Redesigned) -->
+    <div id="formModal" class="modal" style="display: none; align-items: center; justify-content: center;">
+        <div class="modal-content" style="max-width: 480px; width: 90%; border-radius: 20px; padding: 0; display: flex; flex-direction: column; max-height: 90vh;">
+            <div class="modal-header" style="border-bottom: 1px solid #eee; padding: 25px 30px;">
+                <h2 id="formTitle" style="font-size: 22px; font-weight: 700; color: #333;">Add New Event</h2>
+                <span class="close" onclick="closeFormModal()" style="font-size: 20px;">✕</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 30px; overflow-y: auto; flex: 1;">
+                <div class="modern-form">
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Event Title</label>
+                        <input type="text" id="eventTitle" class="form-control-premium" placeholder="Workshop - |">
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Event Date</label>
+                        <div class="input-with-icon">
+                            <input type="date" id="eventDate" class="form-control-premium">
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">End Date</label>
+                        <div class="input-with-icon">
+                            <input type="date" id="eventEndDate" class="form-control-premium">
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Time Duration</label>
+                        <input type="text" id="eventTimeDuration" class="form-control-premium" placeholder="e.g. 3:00pm - 6:00pm (Daily)">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Organized By</label>
+                        <input type="text" id="eventOrgName" class="form-control-premium" placeholder="Organizer's Name">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Organizer Mobile Number</label>
+                        <div class="mobile-input-group">
+                            <span class="phone-icon">📞</span>
+                            <select id="countryCode" class="country-select">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                            </select>
+                            <input type="text" id="eventOrgPhone" class="form-control-premium phone-input" placeholder="Mobile Number">
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Organizer Email</label>
+                        <div class="input-with-icon">
+                            <span class="email-icon">📧</span>
+                            <input type="email" id="eventOrgEmail" class="form-control-premium email-input" placeholder="Email Address">
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Location</label>
+                        <input type="text" id="eventLocation" class="form-control-premium" placeholder="Enter location">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label-premium">Description</label>
+                        <textarea id="eventDescription" class="form-control-premium" placeholder="Describe the event" style="min-height: 120px;"></textarea>
+                    </div>
+
+                    <div class="form-actions-premium" style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button class="btn-next-premium" onclick="submitEvent()">Next</button>
+                        <button class="btn-cancel-premium" onclick="closeFormModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/events.js"></script>
+    <script>
+        function showChoiceModal() {
+            document.getElementById('choiceModal').style.display = 'flex';
+        }
+        function closeChoiceModal() {
+            document.getElementById('choiceModal').style.display = 'none';
+        }
+        // These are now handled in events.js but I'll keep the UI helpers here if needed, 
+        // however openCreateForm was redefined in events.js.
+        // I will remove the ones that conflict.
+    </script>
+</body>
+
+</html>

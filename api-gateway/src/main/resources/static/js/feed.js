@@ -1,0 +1,297 @@
+// Feed functionality
+let currentUserId = null;
+let selectedImageFiles = []; // Array for multiple images
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+    currentUserId = getCurrentUserId();
+    loadFeed();
+    setupImageUpload();
+});
+
+// Load feed posts
+async function loadFeed() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts`);
+        if (response.ok) {
+            let data = await response.json();
+            // Handle Spring Boot Pageable format
+            const posts = data.content ? data.content : data;
+            
+            for (let post of posts) {
+                if (post.userId) {
+                    post.user = await getUserProfile(post.userId);
+                }
+            }
+            displayPosts(posts);
+        } else {
+            document.getElementById('feedContainer').innerHTML = '<p class="no-data">No posts yet. Be the first to post!</p>';
+        }
+    } catch (error) {
+        console.error('Error loading feed:', error);
+        showMessage('Error loading feed', 'error');
+    }
+}
+
+// Display posts
+function displayPosts(posts) {
+    const container = document.getElementById('feedContainer');
+    if (!container) return;
+
+    if (posts.length === 0) {
+        container.innerHTML = '<p class="no-data">No posts yet. Be the first to post!</p>';
+        return;
+    }
+
+    container.innerHTML = posts.map(post => {
+        // Handle both legacy string arrays and new List format
+        let images = [];
+        if (post.imageUrls && post.imageUrls.length > 0) {
+            images = post.imageUrls;
+        } else if (post.imageUrl) {
+            images = post.imageUrl.split(',');
+        }
+        
+        // Handle links
+        const link = (post.externalLinks && post.externalLinks.length > 0) ? post.externalLinks[0] : post.externalLink;
+        return `
+        <div class="post-card" data-post-id="${post.id}">
+            <div class="post-header">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    ${renderAvatar(post.user || { name: 'Unknown' }, 'post-avatar')}
+                    <div>
+                        <h4 style="margin:0; font-size:15px;">${post.user?.name || 'Unknown Creative'}</h4>
+                        <span style="font-size:11px; color:#999;">${formatDate(post.createdAt)}</span>
+                    </div>
+                </div>
+                ${post.userId == currentUserId ? `
+                    <button class="filter-toggle" onclick="editPost(${post.id}, '${post.content.replace(/'/g, "\\'")}')" style="padding:5px 10px; font-size:12px; margin-right:5px;">✏️ Edit</button>
+                    <button class="filter-toggle" onclick="deletePost(${post.id})" style="padding:5px 10px; font-size:12px;">🗑️</button>
+                ` : ''}
+            </div>
+            <div class="post-content" style="padding: 15px 0;">
+                <p style="margin-bottom:15px; line-height:1.6;">${post.content}</p>
+                
+                ${link ? `
+                    <div style="margin-bottom:15px;">
+                        <a href="${link}" target="_blank" style="color:var(--primary-orange); text-decoration:none; font-weight:700; font-size:13px;">
+                            🔗 ${link}
+                        </a>
+                    </div>
+                ` : ''}
+
+                ${images.length > 0 ? `
+                    <div class="post-image-grid" style="display:grid; grid-template-columns:${images.length > 1 ? '1fr 1fr' : '1fr'}; gap:10px; background:#000; border-radius:12px; overflow:hidden;">
+                        ${images.map(img => `<img src="${img}" style="width:100%; height:100%; object-fit:contain; max-height:500px; display:block;" alt="Post content">`).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            <div class="post-footer" style="padding-top:15px; border-top:1px solid #f1f5f9; display:flex; gap:20px;">
+                <button style="background:none; border:none; color:${post.likedByUsers && post.likedByUsers.includes(currentUserId) ? 'red' : '#666'}; font-size:14px; cursor:pointer;" onclick="likePost(${post.id})">❤️ ${post.likes || 0}</button>
+                <button style="background:none; border:none; color:#666; font-size:14px; cursor:pointer;" onclick="toggleCommentBox(${post.id})">💬 ${post.comments || 0}</button>
+            </div>
+            
+            <div id="comment-box-${post.id}" style="display:none; padding:15px; border-top:1px solid #f1f5f9; background:#fafafa; border-radius:0 0 16px 16px;">
+                <div style="margin-bottom:10px; max-height: 150px; overflow-y: auto;">
+                    ${post.actualComments && post.actualComments.length > 0 
+                        ? post.actualComments.map(c => `<div style="font-size:13px; margin-bottom:5px; padding:8px; background:white; border-radius:8px; border:1px solid #eee;">💬 ${c}</div>`).join('') 
+                        : '<div style="font-size:12px; color:#aaa; margin-bottom:10px;">No comments yet. Be the first!</div>'}
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="comment-input-${post.id}" placeholder="Type a comment..." style="flex:1; padding:8px; border:1px solid #ddd; border-radius:8px; font-size:13px; outline:none;">
+                    <button class="auth-btn" style="width:auto; padding:8px 15px; font-size:13px;" onclick="commentPost(${post.id})">Post</button>
+                </div>
+            </div>
+        </div>
+    `}).join('');
+}
+
+// Setup Multi-Image Upload
+function setupImageUpload() {
+    const imageInput = document.getElementById('postImage');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+
+    if (!imageInput || !previewContainer) return;
+
+    imageInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            for (const file of files) {
+                try {
+                    const base64 = await uploadImage(file);
+                    selectedImageFiles.push(base64);
+                    
+                    const previewDiv = document.createElement('div');
+                    previewDiv.style.cssText = "position:relative; width:80px; height:80px;";
+                    previewDiv.innerHTML = `
+                        <img src="${base64}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+                        <button onclick="removeSelectedImage(this, '${base64}')" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer;">✕</button>
+                    `;
+                    previewContainer.appendChild(previewDiv);
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
+            }
+        }
+    });
+}
+
+// Remove specifically selected image from array
+function removeSelectedImage(btnElement, base64) {
+    const index = selectedImageFiles.indexOf(base64);
+    if (index > -1) {
+        selectedImageFiles.splice(index, 1);
+    }
+    btnElement.parentElement.remove();
+}
+
+async function createPost() {
+    const content = document.getElementById('postContent').value.trim();
+    const link = document.getElementById('postLink').value.trim();
+
+    if (!content && selectedImageFiles.length === 0) {
+        showMessage('Please write something or add media', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: currentUserId,
+                content: content,
+                imageUrls: selectedImageFiles,
+                externalLinks: link ? [link] : []
+            })
+        });
+
+        if (response.ok) {
+            showMessage('Post created successfully!', 'success');
+            document.getElementById('postContent').value = '';
+            document.getElementById('postLink').value = '';
+            selectedImageFiles = [];
+            document.getElementById('imagePreviewContainer').innerHTML = '';
+            loadFeed();
+        } else {
+            const error = await response.text();
+            showMessage('Error: ' + error, 'error');
+        }
+    } catch (error) {
+        console.error('Error creating post:', error);
+        showMessage('Connection Error', 'error');
+    }
+}
+
+async function deletePost(postId) {
+    if (!confirm('Delete this post?')) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            showMessage('Deleted');
+            loadFeed();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function likePost(postId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: currentUserId })
+        });
+        if (response.ok) {
+            loadFeed(); 
+        } else {
+            showMessage('Could not like post', 'error');
+        }
+    } catch (e) {
+        console.error('Error:', e);
+    }
+}
+
+function toggleCommentBox(postId) {
+    const box = document.getElementById(`comment-box-${postId}`);
+    if (box) {
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        
+        // Auto focus the input if opened
+        if(box.style.display === 'block') {
+            document.getElementById(`comment-input-${postId}`).focus();
+        }
+    }
+}
+
+async function commentPost(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const text = input ? input.value.trim() : "";
+    
+    if (!text) {
+        showMessage('Please type a comment first!', 'error');
+        return;
+    }
+
+    try {
+        // Get current user's name for display
+        let userName = "A User";
+        try {
+            const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
+            if(userRes.ok) {
+                const profile = await userRes.json();
+                userName = profile.name || userName;
+            }
+        } catch(err) {}
+
+        const finalComment = `**${userName}**: ${text}`;
+
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({text: finalComment})
+        });
+        if (response.ok) {
+            loadFeed();
+            showMessage('Comment added gracefully!', 'success');
+        } else {
+            showMessage('Error commenting', 'error');
+        }
+    } catch (e) {
+        console.error('Error:', e);
+    }
+}
+
+async function editPost(postId, currentContent) {
+    const newContent = prompt("Edit your post:", currentContent);
+    if (newContent !== null && newContent.trim() !== "") {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: newContent.trim()
+                })
+            });
+            if (response.ok) {
+                showMessage('Post updated!');
+                loadFeed();
+            } else {
+                showMessage('Failed to update post.', 'error');
+            }
+        } catch (e) {
+            console.error('Error updating post', e);
+        }
+    }
+}

@@ -1,0 +1,3 @@
+@echo off
+echo Starting CrewCanvas...
+call mvn spring-boot:run > boot.log 2>&1

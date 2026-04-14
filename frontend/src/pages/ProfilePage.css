@@ -1,0 +1,373 @@
+/* Premium React Profile Styles */
+
+.profile-page-container {
+    background: #fff;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Header & Banner */
+.react-profile-header-wrap {
+    height: 150px;
+    position: relative;
+    overflow: hidden;
+    background: #000;
+}
+
+.banner-overlay-blur {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=2000') center/cover;
+    filter: blur(12px) brightness(0.6);
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+.react-top-nav {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 50px;
+}
+
+.react-search-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    width: 400px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.react-search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    flex: 1;
+    font-weight: 500;
+    color: #111;
+}
+
+.header-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.react-notify-btn {
+    background: rgba(0,0,0,0.3);
+    border: none;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.react-user-pill {
+    background: #fff;
+    padding: 6px 20px 6px 6px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+.pill-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #ff8c00;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.pill-name { font-weight: 700; color: #111; }
+
+.react-dropdown-menu {
+    position: absolute;
+    top: 60px; right: 0;
+    width: 200px;
+    background: white;
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    z-index: 100;
+}
+
+.dropdown-item {
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #444;
+    transition: 0.2s;
+}
+
+.dropdown-item:hover { background: #f8f9fa; color: #ff8c00; }
+
+/* Split Layout */
+.react-profile-split {
+    display: flex;
+    min-height: calc(100vh - 150px);
+}
+
+/* Dark Column */
+.profile-dark-col {
+    flex: 0 0 450px;
+    background: #000;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.stars-layer {
+    position: absolute;
+    top:0; left:0; width:100%; height:100%;
+    background: url('https://www.transparenttextures.com/patterns/stardust.png');
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.avatar-glow-container {
+    position: relative;
+    width: 220px; height: 220px;
+    margin-bottom: 30px;
+}
+
+.glow-ring {
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border: 3px solid #5a4fcf;
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(90, 79, 207, 0.5);
+    animation: pulseGlow 3s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.6; }
+}
+
+.main-avatar-box {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-avatar-box img { width:100%; height:100%; object-fit:cover; }
+.avatar-initial-big { font-size: 80px; font-weight: 900; color: #5a4fcf; }
+
+.profile-title-block h1 {
+    font-size: 48px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.role-tagline {
+    color: #888;
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.location-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: #4dc;
+    margin-bottom: 25px;
+}
+
+.profile-actions-row {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+.msg-btn-react, .follow-btn-react {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.msg-btn-react {
+    background: #ff8c00;
+    color: white;
+    box-shadow: 0 10px 20px rgba(255, 140, 0, 0.3);
+}
+
+.msg-btn-react:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 140, 0, 0.4);
+}
+
+.follow-btn-react {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.follow-btn-react:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-5px);
+}
+
+
+.contact-list-react {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 50px;
+}
+
+.react-contact-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 16px 25px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.react-contact-pill:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+.p-label { font-size: 11px; font-weight: 800; color: #555; }
+.p-value { font-size: 14px; font-weight: 700; color: #e0e0e0; }
+.p-icon { color: #555; opacity: 0.6; }
+
+.bottom-brand-text {
+    margin-top: auto;
+    font-weight: 800;
+    color: #222;
+    letter-spacing: 2px;
+}
+
+/* Light Column */
+.profile-light-col {
+    flex: 1;
+    background: #fdfdfd;
+    padding: 80px 100px;
+}
+
+.section-title-wrap h2 {
+    font-size: 26px;
+    font-weight: 900;
+    color: #000;
+    margin-bottom: 50px;
+    letter-spacing: 1px;
+}
+
+.react-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 60px;
+}
+
+.project-card-react {
+    background: white;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.03);
+    transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    border: 1px solid #f0f0f0;
+}
+
+.project-card-react:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.1);
+}
+
+.card-image-wrap {
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-image-wrap img { width:100%; height:100%; object-fit:cover; transition: 0.6s; }
+.project-card-react:hover .card-image-wrap img { transform: scale(1.1); }
+
+.hover-overlay-react {
+    position: absolute;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(90, 79, 207, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.project-card-react:hover .hover-overlay-react { opacity: 1; }
+
+.card-info-react { padding: 30px 25px 15px; }
+.card-info-react h3 { font-size: 22px; font-weight: 900; text-transform: uppercase; color: #000; margin-bottom: 5px; }
+.card-info-react p { font-size: 15px; color: #aaa; font-weight: 600; }
+
+.card-stats-react {
+    padding: 0 25px 30px;
+    display: flex;
+    gap: 20px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.card-stats-react span { display: flex; align-items: center; gap: 6px; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .profile-dark-col { flex: 0 0 380px; padding: 40px 20px; }
+    .profile-light-col { padding: 40px 50px; }
+}
+
+@media (max-width: 992px) {
+    .react-profile-split { flex-direction: column; }
+    .profile-dark-col { width: 100%; }
+}

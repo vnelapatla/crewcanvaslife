@@ -1,0 +1,55 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn -f pom-monolith.xml clean package -DskipTests
+
+    - name: Deploy to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "target/crewcanvas-monolith-0.0.1-SNAPSHOT.jar"
+        target: "~/app"
+        strip_components: 1
+
+    - name: Restart Application on EC2
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # Kill any running instance of the app
+          fuser -k 8080/tcp || true
+          # Start the new version in the background
+          nohup java -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
+          # Wait for it to boot and check if it's still alive
+          sleep 20
+          if ! pgrep -f crewcanvas-monolith; then
+            echo "FAILED TO START! Printing logs:"
+            tail -n 50 ~/app/app.log
+            exit 1
+          fi
+          echo "Application started successfully on port 8080"
