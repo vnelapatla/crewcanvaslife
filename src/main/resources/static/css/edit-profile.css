@@ -435,88 +435,137 @@ body {
     cursor: pointer;
 }
 
-/* --- Responsive Adjustments --- */
+/* --- Robust Mobile Optimization --- */
 @media (max-width: 768px) {
     .main-content {
-        padding: 20px 15px;
-        width: 100%;
-        max-width: 100%;
+        padding: 15px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    .edit-profile-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 20px !important;
     }
 
     .card {
-        padding: 20px 15px;
+        padding: 20px 15px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 8px !important;
     }
 
     .profile-pic-row {
-        flex-direction: column;
-        text-align: center;
-        gap: 20px;
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 20px !important;
+        align-items: center !important;
+    }
+
+    .avatar-preview-container {
+        width: 100px !important;
+        height: 100px !important;
     }
 
     .upload-dashed-box {
-        width: 100%;
-        height: auto;
-        padding: 20px;
+        width: 100% !important;
+        height: auto !important;
+        padding: 20px !important;
     }
 
     .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .card-header h3 {
+        font-size: 1.1rem !important;
     }
 
     .card-header::after {
-        bottom: -5px;
+        bottom: -5px !important;
     }
 
     .add-project-btn-header {
-        width: 100%;
-        justify-content: center;
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px !important;
     }
 
-    .form-group input, .form-group select, .form-group textarea {
-        width: 100%; /* Ensure full width */
+    .form-grid {
+        display: block !important;
+        width: 100% !important;
     }
 
-    .social-input-wrapper input {
-        width: 100%;
+    .form-group {
+        width: 100% !important;
+        margin-bottom: 15px !important;
+    }
+
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea,
+    .social-input-wrapper input,
+    .skills-input-group input {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 16px !important; /* Prevent zoom on iOS */
+    }
+
+    .social-input-wrapper {
+        width: 100% !important;
     }
 
     .form-footer {
-        flex-direction: column-reverse;
-        gap: 10px;
+        flex-direction: column-reverse !important;
+        gap: 12px !important;
+        padding: 20px 0 !important;
     }
 
     .btn-save, .btn-cancel {
-        width: 100%;
+        width: 100% !important;
+        padding: 14px !important;
     }
 
     .project-edit-item {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 15px !important;
     }
 
     .item-thumb {
-        width: 80px;
-        height: 110px;
+        width: 100px !important;
+        height: 140px !important;
+        margin-bottom: 10px !important;
     }
 
     .wizard-actions {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: column !important;
+        gap: 10px !important;
     }
 
     .btn-save-small, .btn-cancel-small {
-        width: 100%;
+        width: 100% !important;
     }
 
     .skills-input-group {
-        flex-direction: column;
+        flex-direction: column !important;
+        gap: 10px !important;
     }
 
     .add-skill-btn {
-        width: 100%;
-        padding: 12px;
+        width: 100% !important;
+        padding: 12px !important;
     }
 }
+
 

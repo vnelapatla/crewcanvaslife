@@ -370,16 +370,25 @@ body {
 
     .main-content {
         margin-left: 0;
-        padding: 30px 20px;
+        padding: 20px 15px;
         padding-bottom: 90px;
     }
 
+    .content-wrapper {
+        padding: 0;
+    }
+
     .welcome-banner {
-        padding: 30px;
+        padding: 20px;
+        margin-bottom: 25px;
     }
 
     .welcome-banner h1 {
-        font-size: 28px;
+        font-size: 22px;
+    }
+
+    .applications-detail-section h2 {
+        font-size: 18px !important;
     }
 
     /* Make quick actions scrollable on mobile */
@@ -391,7 +400,7 @@ body {
         scrollbar-width: none;
         -ms-overflow-style: none;
         -webkit-overflow-scrolling: touch;
-        margin-right: -20px; /* Bleed to edge */
+        margin-right: -20px;
         margin-left: -20px;
         padding-left: 20px;
         padding-right: 20px;
@@ -400,8 +409,50 @@ body {
         display: none;
     }
     .action-card {
-        flex: 0 0 calc(50% - 10px); /* Show roughly 2 cards at a time, hinting at more */
+        flex: 0 0 140px;
         padding: 25px 15px;
+    }
+
+    /* Fit stats section to full screen width on mobile */
+    .stats-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .stat-card {
+        width: 100%;
+        flex: none;
+        min-height: auto;
+    }
+    .stat-content {
+        padding: 30px 20px;
+    }
+    .stat-number {
+        font-size: 32px;
+    }
+    .stat-header {
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .event-icon-box {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+    }
+    .events-grid {
+        gap: 15px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .event-type .label {
+        font-size: 13px;
+    }
+    .event-type .value {
+        font-size: 15px;
     }
 }
 

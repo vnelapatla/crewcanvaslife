@@ -17,13 +17,20 @@ const ProfileHandler = {
             return;
         }
 
+        // --- OPTIMIZATION: Immediate UI update from cache ---
+        const cachedName = localStorage.getItem('userName');
+        if (cachedName) {
+            this.user = { name: cachedName, profilePicture: localStorage.getItem('userAvatar') };
+            this.updateGlobalHeader();
+        }
+
         try {
-            // Load current user profile from server
+            // Load current user profile from server for latest data
             const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
             if (response.ok) {
                 this.user = await response.json();
                 
-                // Sync to localStorage for simple lookups
+                // Sync to localStorage
                 localStorage.setItem('userName', this.user.name);
                 if (this.user.profilePicture) {
                     localStorage.setItem('userAvatar', this.user.profilePicture);

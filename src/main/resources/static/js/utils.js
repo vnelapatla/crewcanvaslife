@@ -282,12 +282,9 @@ function initSidebarToggle() {
     // For mobile only (based on window width)
     if (window.innerWidth > 1080) return;
     
-    if (header && !header.querySelector('.sidebar-toggle-btn')) {
+    if (header && !header.querySelector('.mobile-brand-name')) {
         const hamburgerHtml = `
             <div class="header-left-group" id="mobileHeaderLeft">
-                <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
-                    <span class="icon">☰</span>
-                </button>
                 <span class="mobile-brand-name">CrewCanvas</span>
             </div>
         `;
