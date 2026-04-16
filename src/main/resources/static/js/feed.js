@@ -1,3 +1,4 @@
+// v2.1.0 - Resolved selectedImageFiles undefined issue
 let currentPage = 0;
 let isLoading = false;
 let hasMore = true;

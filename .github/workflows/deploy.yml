@@ -41,15 +41,27 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Kill any running instance of the app
+          # Robust cleanup: Kill anything on 8080 and wait for it to die
+          echo "Stopping old version..."
           fuser -k 8080/tcp || true
-          # Start the new version in the background
-          nohup java -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
-          # Wait for it to boot and check if it's still alive
-          sleep 20
-          if ! pgrep -f crewcanvas-monolith; then
-            echo "FAILED TO START! Printing logs:"
+          sleep 5
+          
+          # Force kill if still alive
+          PID=$(lsof -t -i:8080)
+          if [ ! -z "$PID" ]; then
+            kill -9 $PID || true
+          fi
+
+          echo "Starting new version..."
+          # Start with a specific tag to help pgrep
+          nohup java -Dappname=crewcanvas-monolith -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
+          
+          # Wait and verify
+          sleep 15
+          if netstat -tuln | grep :8080; then
+            echo "SUCCESS: New application is listening on port 8080"
+          else
+            echo "FAILURE: Application did not start on port 8080. Logs:"
             tail -n 50 ~/app/app.log
             exit 1
           fi
-          echo "Application started successfully on port 8080"
