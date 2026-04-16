@@ -22,7 +22,10 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn -f pom-monolith.xml clean package -DskipTests
+      run: |
+        mvn -f pom-monolith.xml clean package -DskipTests
+        mkdir -p publish
+        cp target/*.jar publish/
 
     - name: Deploy to EC2
       uses: appleboy/scp-action@v0.1.4
@@ -30,7 +33,7 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "target/*.jar"
+        source: "publish/*.jar"
         target: "~/app"
         strip_components: 1
         overwrite: true
