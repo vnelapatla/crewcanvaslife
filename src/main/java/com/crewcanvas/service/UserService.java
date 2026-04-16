@@ -76,19 +76,19 @@ public class UserService {
 
         return userRepository.findById(updatedUser.getId()).map(existingUser -> {
             // Update only the fields that can be changed via edit profile
-            if (updatedUser.getName() != null) existingUser.setName(updatedUser.getName());
-            if (updatedUser.getEmail() != null) existingUser.setEmail(updatedUser.getEmail());
-            if (updatedUser.getPhone() != null) existingUser.setPhone(updatedUser.getPhone());
-            if (updatedUser.getLocation() != null) existingUser.setLocation(updatedUser.getLocation());
-            if (updatedUser.getRole() != null) existingUser.setRole(updatedUser.getRole());
-            if (updatedUser.getProjectsCount() != null) existingUser.setProjectsCount(updatedUser.getProjectsCount());
-            if (updatedUser.getBio() != null) existingUser.setBio(updatedUser.getBio());
-            if (updatedUser.getSkills() != null) existingUser.setSkills(updatedUser.getSkills());
-            if (updatedUser.getLinkedinProfile() != null) existingUser.setLinkedinProfile(updatedUser.getLinkedinProfile());
-            if (updatedUser.getPersonalWebsite() != null) existingUser.setPersonalWebsite(updatedUser.getPersonalWebsite());
-            if (updatedUser.getInstagram() != null) existingUser.setInstagram(updatedUser.getInstagram());
-            if (updatedUser.getProfilePicture() != null) existingUser.setProfilePicture(updatedUser.getProfilePicture());
-            if (updatedUser.getCoverImage() != null) existingUser.setCoverImage(updatedUser.getCoverImage());
+            if (updatedUser.getName() != null && !updatedUser.getName().isEmpty()) existingUser.setName(updatedUser.getName());
+            if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) existingUser.setEmail(updatedUser.getEmail());
+            if (updatedUser.getPhone() != null && !updatedUser.getPhone().isEmpty()) existingUser.setPhone(updatedUser.getPhone());
+            if (updatedUser.getLocation() != null && !updatedUser.getLocation().isEmpty()) existingUser.setLocation(updatedUser.getLocation());
+            if (updatedUser.getRole() != null && !updatedUser.getRole().isEmpty()) existingUser.setRole(updatedUser.getRole());
+            if (updatedUser.getProjectsCount() != null && !updatedUser.getProjectsCount().isEmpty()) existingUser.setProjectsCount(updatedUser.getProjectsCount());
+            if (updatedUser.getBio() != null && !updatedUser.getBio().isEmpty()) existingUser.setBio(updatedUser.getBio());
+            if (updatedUser.getSkills() != null && !updatedUser.getSkills().isEmpty()) existingUser.setSkills(updatedUser.getSkills());
+            if (updatedUser.getLinkedinProfile() != null && !updatedUser.getLinkedinProfile().isEmpty()) existingUser.setLinkedinProfile(updatedUser.getLinkedinProfile());
+            if (updatedUser.getPersonalWebsite() != null && !updatedUser.getPersonalWebsite().isEmpty()) existingUser.setPersonalWebsite(updatedUser.getPersonalWebsite());
+            if (updatedUser.getInstagram() != null && !updatedUser.getInstagram().isEmpty()) existingUser.setInstagram(updatedUser.getInstagram());
+            if (updatedUser.getProfilePicture() != null && !updatedUser.getProfilePicture().isEmpty()) existingUser.setProfilePicture(updatedUser.getProfilePicture());
+            if (updatedUser.getCoverImage() != null && !updatedUser.getCoverImage().isEmpty()) existingUser.setCoverImage(updatedUser.getCoverImage());
             
             // Do NOT overwrite system fields like password, followers, following, status, createdAt unless explicitly provided
             // and intended to be changed here.

@@ -69,10 +69,11 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody PostRequest request) {
         try {
-            Post post = postService.updatePost(id, request.getContent(), request.getImageUrls(), request.getExternalLinks());
+            // FIXED Incident BF-303: Added ownership validation for updates
+            Post post = postService.updatePost(id, request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks());
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -80,10 +81,13 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+    public ResponseEntity<?> deletePost(@PathVariable Long id, @RequestParam Long userId) {
         try {
-            postService.deletePost(id);
+            // FIXED Incident BF-303: Passed userId to service for ownership validation
+            postService.deletePost(id, userId);
             return ResponseEntity.ok("Post deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

@@ -44,9 +44,10 @@ public class AuthController {
             userEventProducer.sendUserRegistrationEvent(user.getId(), user.getName(), user.getEmail());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        } catch (RuntimeException e) {
+            // FIXED Incident BF-001: Return specific message with 409 Conflict for duplicate emails
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
-            // BUG INJECTED for BackendForge (Ticket BF-001): 
-            // All registration errors (duplicates, nulls, etc.) are buried under a generic 500.
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Signup failed: " + e.getMessage());
         }
     }

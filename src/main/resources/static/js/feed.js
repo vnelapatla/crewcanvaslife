@@ -2,6 +2,8 @@ let currentPage = 0;
 let isLoading = false;
 let hasMore = true;
 const PAGE_SIZE = 5;
+let currentUserId = null;
+let selectedImageFiles = []; // Array for multiple images
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();

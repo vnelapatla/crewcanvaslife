@@ -1,4 +1,4 @@
- package com.crewcanvas.repository;
+package com.crewcanvas.repository;
 
 import com.crewcanvas.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

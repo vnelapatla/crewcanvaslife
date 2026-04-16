@@ -4,6 +4,7 @@ import com.crewcanvas.model.Event;
 import com.crewcanvas.model.EventApplication;
 import com.crewcanvas.repository.EventApplicationRepository;
 import com.crewcanvas.repository.EventRepository;
+import com.crewcanvas.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class EventService {
     private EventApplicationRepository applicationRepository;
 
     @Autowired
-    private com.crewcanvas.repository.UserRepository userRepository;
+    private UserRepository userRepository;
 
     public Event createEvent(Event event) {
         return eventRepository.save(event);

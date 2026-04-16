@@ -35,23 +35,30 @@ public class PostService {
         return postRepository.findById(id);
     }
 
-    public Post updatePost(Long id, String content, List<String> imageUrls, List<String> externalLinks) {
-        Optional<Post> postOpt = postRepository.findById(id);
-        if (postOpt.isPresent()) {
-            Post post = postOpt.get();
-            if (content != null)
-                post.setContent(content);
-            if (imageUrls != null)
-                post.setImageUrls(imageUrls);
-            if (externalLinks != null)
-                post.setExternalLinks(externalLinks);
-            return postRepository.save(post);
+    public Post updatePost(Long id, Long requesterId, String content, List<String> imageUrls, List<String> externalLinks) {
+        // FIXED Incident BF-303: Added ownership validation
+        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
+        
+        if (requesterId == null || !post.getUserId().equals(requesterId)) {
+            throw new RuntimeException("Unauthorized: You do not own this post");
         }
-        throw new RuntimeException("Post not found");
+
+        if (content != null)
+            post.setContent(content);
+        if (imageUrls != null)
+            post.setImageUrls(imageUrls);
+        if (externalLinks != null)
+            post.setExternalLinks(externalLinks);
+        return postRepository.save(post);
     }
 
-    public void deletePost(Long id) {
-        postRepository.deleteById(id);
+    public void deletePost(Long id, Long requesterId) {
+        // FIXED Incident BF-303: Added ownership validation
+        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
+        if (!post.getUserId().equals(requesterId)) {
+            throw new RuntimeException("Unauthorized: You do not own this post");
+        }
+        postRepository.delete(post);
     }
 
     public Post likePost(Long id, Long userId) {

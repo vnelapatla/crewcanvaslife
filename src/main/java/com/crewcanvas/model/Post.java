@@ -60,7 +60,11 @@ public class Post {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"password", "bio", "skills", "phone", "coverImage", "linkedinProfile", "personalWebsite", "instagram", "authProvider", "providerId", "updatedAt", "following", "followers"})
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({
+        "password", "bio", "skills", "phone", "coverImage",
+        "linkedinProfile", "personalWebsite", "instagram",
+        "authProvider", "providerId", "updatedAt", "following", "followers"
+    })
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -128,6 +132,30 @@ public class Post {
 
     public void setImageUrls(java.util.List<String> imageUrls) {
         this.imageUrls = imageUrls;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getExternalLink() {
+        return externalLink;
+    }
+
+    public void setExternalLink(String externalLink) {
+        this.externalLink = externalLink;
     }
 
     public java.util.List<String> getExternalLinks() {

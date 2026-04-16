@@ -18,11 +18,9 @@ async function loadFeed() {
             // Handle Spring Boot Pageable format
             const posts = data.content ? data.content : data;
             
-            for (let post of posts) {
-                if (post.userId) {
-                    post.user = await getUserProfile(post.userId);
-                }
-            }
+            // FIXED Incident BF-404: Removed sequential getUserProfile calls.
+            // The back-end already provides the 'user' object in the post response.
+            // This fixes the N+1 API call performance trap.
             displayPosts(posts);
         } else {
             document.getElementById('feedContainer').innerHTML = '<p class="no-data">No posts yet. Be the first to post!</p>';
@@ -188,7 +186,7 @@ async function createPost() {
 async function deletePost(postId) {
     if (!confirm('Delete this post?')) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}?userId=${currentUserId}`, {
             method: 'DELETE'
         });
         if (response.ok) {
@@ -281,6 +279,7 @@ async function editPost(postId, currentContent) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    userId: currentUserId,
                     content: newContent.trim()
                 })
             });
