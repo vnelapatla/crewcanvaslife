@@ -316,7 +316,7 @@ async function createPost() {
 async function deletePost(postId) {
     if (!confirm('Delete this post?')) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}?userId=${currentUserId}`, {
             method: 'DELETE'
         });
         if (response.ok) {
