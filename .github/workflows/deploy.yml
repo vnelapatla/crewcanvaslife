@@ -52,16 +52,16 @@ jobs:
             kill -9 $PID || true
           fi
 
-          echo "Starting new version..."
-          # Start with a specific tag to help pgrep
-          nohup java -Dappname=crewcanvas-monolith -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
+          echo "Starting new version on port 8080..."
+          # Force port 8080 to ensure consistency
+          nohup java -Dappname=crewcanvas-monolith -Dserver.port=8080 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
           
           # Wait and verify
-          sleep 15
-          if netstat -tuln | grep :8080; then
+          sleep 20
+          if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null; then
             echo "SUCCESS: New application is listening on port 8080"
           else
-            echo "FAILURE: Application did not start on port 8080. Logs:"
-            tail -n 50 ~/app/app.log
+            echo "FAILURE: Application did not start on port 8080. Final logs:"
+            tail -n 100 ~/app/app.log
             exit 1
           fi
