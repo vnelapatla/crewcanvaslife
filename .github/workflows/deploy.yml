@@ -41,27 +41,27 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Robust cleanup: Kill anything on 8080 and wait for it to die
-          echo "Stopping old version..."
-          fuser -k 8080/tcp || true
+          # Robust cleanup: Kill anything on 8081 and wait for it to die
+          echo "Stopping old version on port 8081..."
+          fuser -k 8081/tcp || true
           sleep 5
           
           # Force kill if still alive
-          PID=$(lsof -t -i:8080)
+          PID=$(lsof -t -i:8081)
           if [ ! -z "$PID" ]; then
             kill -9 $PID || true
           fi
 
-          echo "Starting new version on port 8080..."
-          # Force port 8080 to ensure consistency
-          nohup java -Dappname=crewcanvas-monolith -Dserver.port=8080 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
+          echo "Starting new version on port 8081..."
+          # Force port 8081 for AWS environment
+          nohup java -Dappname=crewcanvas-monolith -Dserver.port=8081 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 &
           
           # Wait and verify
           sleep 20
-          if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null; then
-            echo "SUCCESS: New application is listening on port 8080"
+          if lsof -Pi :8081 -sTCP:LISTEN -t >/dev/null; then
+            echo "SUCCESS: New application is listening on port 8081"
           else
-            echo "FAILURE: Application did not start on port 8080. Final logs:"
+            echo "FAILURE: Application did not start on port 8081. Final logs:"
             tail -n 100 ~/app/app.log
             exit 1
           fi
