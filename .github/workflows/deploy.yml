@@ -57,12 +57,28 @@ jobs:
         strip_components: 1
         overwrite: true
 
-    - name: Final Startup
+    - name: Final Startup and Nginx Fix
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          # 1. Start the Java App
           nohup java -Dserver.port=8081 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 < /dev/null &
-          echo "App triggered."
+          echo "App triggered on port 8081."
+
+          # 2. Fix Nginx Upload Limit (50MB)
+          echo "Updating Nginx configuration..."
+          # Check if client_max_body_size is already set
+          if ! sudo grep -q "client_max_body_size" /etc/nginx/nginx.conf; then
+            # Add it to the http block if missing
+            sudo sed -i '/http {/a \    client_max_body_size 50M;' /etc/nginx/nginx.conf
+          else
+            # Update existing line to 50M
+            sudo sed -i 's/client_max_body_size.*/client_max_body_size 50M;/' /etc/nginx/nginx.conf
+          fi
+          
+          # Test and Reload Nginx
+          sudo nginx -t && sudo systemctl reload nginx
+          echo "Nginx reloaded with 50MB limit."
