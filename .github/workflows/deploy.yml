@@ -24,8 +24,21 @@ jobs:
     - name: Build with Maven
       run: |
         mvn -f pom-monolith.xml clean package -DskipTests
-        mkdir -p publish
-        cp target/*.jar publish/
+        # Verify the file exists
+        ls -lh target/crewcanvas-monolith-0.0.1-SNAPSHOT.jar
+
+    - name: Clean EC2 Disk Space
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "Cleaning up EC2..."
+          rm -f ~/app/*.jar.old || true
+          # Remove any large logs to free up space
+          truncate -s 0 ~/app/app.log || true
+          df -h
 
     - name: Deploy to EC2
       uses: appleboy/scp-action@v0.1.4
@@ -33,10 +46,11 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "publish/*.jar"
+        source: "target/crewcanvas-monolith-0.0.1-SNAPSHOT.jar"
         target: "~/app"
         strip_components: 1
         overwrite: true
+        use_insecure_cipher: true
 
     - name: Restart Application on EC2
       uses: appleboy/ssh-action@v0.1.10
