@@ -3,284 +3,1723 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - CrewCanvas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/edit-profile.css">
-    <!-- Font Awesome for icons -->
+    <title>CrewCanvas - Edit Profile</title>
+    <link rel="stylesheet" href="styles/home.css">
+    <link rel="stylesheet" href="styles/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/profile-handler.js"></script>
+    <style>
+        /* CSS Variables for consistent colors */
+        :root {
+            --primary-orange: #ff6b35;
+            --primary-orange-dark: #e55a2b;
+            --primary-blue: #4a90e2;
+            --primary-blue-dark: #357abd;
+            --gradient-orange: linear-gradient(90deg, #ff6b35, #e55a2b);
+        }
+
+        /* Enhanced animation keyframes */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @keyframes scaleIn {
+            from { 
+                transform: scale(0.95); 
+                opacity: 0; 
+            }
+            to { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(74, 144, 226, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(74, 144, 226, 0.6); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideInFromBottom {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes morphing {
+            0% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+        }
+
+        /* Enhanced container animation */
+        .edit-profile-container {
+            animation: fadeIn 0.8s ease-out;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Enhanced form section animations with staggered delay */
+        .form-section {
+            margin-bottom: 3rem;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 0.6s ease-out forwards;
+            animation-delay: calc(var(--animation-order) * 0.2s);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .form-section:hover::before {
+            left: 100%;
+        }
+
+        .form-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .form-section h3 {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid #eef2f7;
+            animation: slideInFromLeft 0.5s ease-out 0.3s both;
+            position: relative;
+        }
+
+        .form-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-gradient, linear-gradient(90deg, #ff6b35, #e55a2b));
+            animation: typewriter 1s ease-out 0.8s forwards;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            position: relative;
+            animation: fadeIn 0.5s ease-out 0.4s both;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .form-group:hover label {
+            color: #4a90e2;
+            transform: translateX(5px);
+        }
+
+        .form-group label::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            width: 0;
+            height: 2px;
+            background: #ff6b35;
+            transition: width 0.3s ease;
+        }
+
+        .form-group:hover label::before {
+            width: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .form-group input:hover,
+        .form-group textarea:hover,
+        .form-group select:hover {
+            background-color: #ffffff;
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            transform: translateY(-3px);
+            border-color: #4a90e2;
+            background-color: #ffffff;
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.2);
+            outline: none;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .form-group input:focus::placeholder,
+        .form-group textarea:focus::placeholder {
+            animation: blink 1s infinite;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Enhanced profile picture section */
+        .profile-picture-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            animation: bounceIn 0.8s ease-out 0.5s both, float 6s ease-in-out infinite 2s;
+        }
+
+        .current-picture-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .current-picture-container:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            animation: morphing 3s ease-in-out infinite;
+        }
+
+        .current-picture {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4a90e2;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .current-picture.loading {
+            opacity: 0.5;
+            transform: scale(0.95);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .current-picture.error {
+            border-color: #f44336;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .picture-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 2rem;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .picture-placeholder i {
+            font-size: 1.5rem;
+            opacity: 0.7;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .picture-placeholder span {
+            font-size: 1rem;
+            margin-top: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .picture-upload {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .picture-upload-btn {
+            background: #f5f5f5;
+            border: 2px dashed #ddd;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .picture-upload-btn:hover {
+            border-color: #4a90e2;
+            background: #f0f7ff;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.15);
+        }
+
+        .picture-upload-btn:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .picture-upload-btn i {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .picture-upload-btn:hover i {
+            transform: scale(1.2) rotate(10deg);
+            color: #4a90e2;
+            animation: rotate 2s linear infinite;
+        }
+
+        .picture-upload-btn p {
+            color: #666;
+            margin: 0;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+
+        .picture-upload-btn:hover p {
+            color: #4a90e2;
+            transform: scale(1.05);
+        }
+
+        .upload-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #e9ecef;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-progress.active {
+            transform: scaleX(1);
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            animation: glow 1s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .profile-picture-section {
+                flex-direction: row;
+                align-items: center;
+                gap: 1rem;
+                padding: 0.75rem;
+            }
+
+            .current-picture-container {
+                width: 80px;
+                height: 80px;
+            }
+
+            .picture-upload {
+                min-height: 80px;
+            }
+
+            .picture-upload-btn {
+                padding: 0.75rem;
+                min-height: 60px;
+            }
+
+            .picture-upload-btn i {
+                font-size: 1.25rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .picture-upload-btn p {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Enhanced skills section */
+        .skills-section {
+            margin-bottom: 2rem;
+            animation: slideInFromRight 0.6s ease-out 0.6s both;
+        }
+
+        .skills-input {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .skills-input input {
+            flex: 1;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .add-skill-btn {
+            padding: 0.75rem 1.5rem;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-skill-btn:hover {
+            background: #e55a2b;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .add-skill-btn:active {
+            transform: translateY(0) scale(1.02);
+        }
+
+        .skills-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: rgba(248, 249, 250, 0.5);
+            border-radius: 8px;
+            min-height: 60px;
+            animation: slideInFromBottom 0.8s ease-out 0.7s both;
+        }
+
+        .skill-tag {
+            background: #e9f0ff;
+            color: #4a90e2;
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(74, 144, 226, 0.2);
+            animation: scaleIn 0.4s ease-out, float 4s ease-in-out infinite 1s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-tag:hover {
+            background: #d1e3ff;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.2);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .skill-tag .remove-skill {
+            cursor: pointer;
+            color: #95a5a6;
+            transition: all 0.3s ease;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .skill-tag .remove-skill:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: #e74c3c;
+            transform: scale(1.2) rotate(90deg);
+        }
+
+        /* Enhanced social links section */
+        .form-group.social-input {
+            position: relative;
+            animation: slideInFromLeft 0.5s ease-out 0.7s both;
+        }
+
+        .form-group.social-input input {
+            padding-left: 4rem;
+            position: relative;
+        }
+
+        .form-group.social-input i {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+
+        .form-group.social-input input:focus ~ i {
+            color: #4a90e2;
+            transform: translateY(-50%) scale(1.15);
+        }
+
+        /* Add icons to social input fields with proper colors */
+        .form-group.social-input.linkedin i { 
+            color: #0077b5; 
+        }
+        .form-group.social-input.linkedin input:focus ~ i {
+            color: #0077b5;
+        }
+        
+        .form-group.social-input.website i { 
+            color: #2c3e50; 
+        }
+        .form-group.social-input.website input:focus ~ i {
+            color: #2c3e50;
+        }
+        
+        .form-group.social-input.instagram i { 
+            color: #e1306c; 
+        }
+        .form-group.social-input.instagram input:focus ~ i {
+            color: #e1306c;
+        }
+
+        /* Enhanced form actions */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            animation: slideInFromRight 0.6s ease-out 0.8s both;
+        }
+
+        .cancel-btn,
+        .save-btn,
+        .add-skill-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .cancel-btn {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+
+        .cancel-btn:hover {
+            background: #eee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .cancel-btn:active {
+            transform: translateY(0);
+        }
+
+        .save-btn {
+            background: #ff6b35;
+            border: none;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #e55a2b;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .save-btn:active {
+            transform: translateY(0) scale(1.02);
+        }
+
+        /* Remove notification styles */
+        .notification,
+        .notification.show,
+        .notification.error,
+        .notification::before {
+            display: none;
+        }
+
+        /* Enhanced form validation visual feedback */
+        .form-group input:invalid,
+        .form-group select:invalid {
+            border-color: #ff4444;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Loading state animation */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* Success feedback animation */
+        @keyframes successPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+        }
+
+        .save-btn.success {
+            animation: successPulse 1.5s ease-out;
+            background: #4CAF50;
+        }
+
+        /* Staggered animation for form sections */
+        .form-section:nth-child(1) { --animation-order: 1; }
+        .form-section:nth-child(2) { --animation-order: 2; }
+        .form-section:nth-child(3) { --animation-order: 3; }
+        .form-section:nth-child(4) { --animation-order: 4; }
+        .form-section:nth-child(5) { --animation-order: 5; }
+
+        /* Enhanced header animation */
+        .edit-profile-header {
+            animation: slideInFromLeft 0.6s ease-out 0.2s both, float 8s ease-in-out infinite 1s;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .edit-profile-header h2 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            background: var(--gradient-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .edit-profile-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            animation: slideInFromBottom 0.8s ease-out 0.4s both;
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Enhanced focus states */
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Responsive animations */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item">
-                <span class="icon">📰</span> Feed
-            </a>
-            <a href="home.html" class="nav-item">
-                <span class="icon">🏠</span> Dashboard
-            </a>
-            <a href="crew-search.html" class="nav-item">
-                <span class="icon">🔍</span> Crew Search
-            </a>
-            <a href="messages.html" class="nav-item">
-                <span class="icon">💬</span> Messages
-            </a>
-            <a href="launch-audition.html" class="nav-item">
-                <span class="icon">🎬</span> Events
-            </a>
-        </nav>
-    </aside>
 
-    <main class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <div class="status-bar">
-                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
-                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
-                        <span id="userInitialsSmall">U</span>
-                    </div>
-                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
-                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
-                    <div class="profile-dropdown-menu" id="profileDropdown">
-                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
-                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
-                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-                    </div>
-                </div>
+    <script>
+        // Just get user info from localStorage if available
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    // Update UI with user info
+                    document.querySelector('.user-name').textContent = user.name;
+                    if (user.picture) {
+                        document.querySelector('.user-profile img').src = user.picture;
+                    }
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+
+            // Add logout handler
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.replace('index.html');
+            });
+        });
+    </script>
+
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CrewCanvas</h1>
+                <p class="logo-caption">Where all crafts connect</p>
             </div>
-        </header>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Feed</span>
+                </a>
+                <a href="home.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="crew-search.html" class="nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Crew Search</span>
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="launch-audition.html" class="nav-item" >
+                    <i class="fas fa-film"></i>
+                    <span>Events</span>
+                </a>
+            </nav>
+        </aside>
 
-        <div class="content-body" style="padding: 20px;">
-            <h2 class="section-title">Edit Profile</h2>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="topbar-logo-mobile">
+                    <span class="topbar-title">CrewCanvas</span>
+                    <span class="topbar-caption">Where all crafts connect</span>
+                </div>
+                <div class="nav-right">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>  
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
+                        <span class="user-name"></span>
+                        <div class="profile-dropdown">
+                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                </div>
+                </div>
+            </nav>
+
+            <!-- Edit Profile Content -->
             <div class="edit-profile-container">
-            
-            <!-- Profile Picture Section -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Profile Picture</h3>
+                <div class="edit-profile-header">
+                    <h2>Edit Profile</h2>
+                    <p>Update your profile information and preferences</p>
                 </div>
-                <div class="profile-pic-row">
-                    <div class="avatar-preview-container" id="profilePicPreview">
-                        <div class="avatar-placeholder">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                    </div>
-                    <div class="upload-dashed-box" onclick="document.getElementById('profilePicInput').click()">
-                        <i class="fa-solid fa-camera fa-xl"></i>
-                        <span>Click to upload a new profile picture</span>
-                        <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
-                    </div>
-                </div>
-            </div>
 
-            <!-- Basic Information -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Basic Information</h3>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="editName" placeholder="Enter your full name">
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="editEmail" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="text" id="editPhone" placeholder="Enter your phone number">
-                    </div>
-                    <div class="form-group">
-                        <label>Location</label>
-                        <input type="text" id="editLocation" placeholder="Enter your location">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Professional Information -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Professional Information</h3>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Primary Role</label>
-                        <select id="editRole">
-                            <option value="">Select your primary role</option>
-                            <option value="Director">Director</option>
-                            <option value="Actor">Actor</option>
-                            <option value="Cinematographer">Cinematographer</option>
-                            <option value="Editing">Editing</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Number of Projects</label>
-                        <select id="editProjects">
-                            <option value="">Select number of projects</option>
-                            <option value="0-5">0-5</option>
-                            <option value="5-10">5-10</option>
-                            <option value="10-20">10-20</option>
-                            <option value="20+">20+</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Bio</label>
-                        <textarea id="editBio" placeholder="Tell us about yourself and your experience..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Skills -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Skills</h3>
-                </div>
-                <div class="skills-input-group">
-                    <input type="text" id="skillInput" placeholder="Add a skill">
-                    <button class="add-skill-btn" onclick="addSkill()">Add</button>
-                </div>
-                <div class="skills-container" id="skillsContainer">
-                    <!-- Skills will be added here -->
-                </div>
-            </div>
-
-            <!-- Movie Projects Management (Step-by-Step) -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Movie Portfolio / Projects</h3>
-                    <button class="add-project-btn-header" onclick="startNewProjectWizard()">
-                        <i class="fa-solid fa-plus"></i> Add New Movie
-                    </button>
-                </div>
-                
-                <!-- Project Wizard (Initially hidden) -->
-                <div id="projectWizard" class="project-wizard" style="display: none;">
-                    <!-- Wizard Progress Bar -->
-                    <div class="wizard-progress">
-                        <div class="progress-step active" id="step1-indicator">1</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" id="step2-indicator">2</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" id="step3-indicator">3</div>
-                    </div>
-
-                    <!-- Step 1: Basics -->
-                    <div id="wizardStep1" class="wizard-step">
-                        <h4>Step 1: Project Identity</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Movie Title *</label>
-                                <input type="text" id="projTitle" placeholder="e.g. Inception">
+                <form class="edit-profile-form" id="editProfileForm">
+                    <!-- Profile Picture Section -->
+                    <div class="form-section">
+                        <h3>Profile Picture</h3>
+                        <div class="profile-picture-section">
+                            <div class="current-picture-container">
+                                <img src="" alt="Current Profile Picture" class="current-picture" id="currentProfilePicture" style="display: none;">
                             </div>
-                            <div class="form-group">
-                                <label>Your Role *</label>
-                                <input type="text" id="projRole" placeholder="e.g. Director">
+                            <div class="picture-upload">
+                                <label class="picture-upload-btn" for="profilePictureInput">
+                                    <i class="fas fa-camera"></i>
+                                    <p>Click to upload a new profile picture</p>
+                                    <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+                                </label>
                             </div>
                         </div>
-                        <div class="wizard-actions">
-                            <button class="btn-cancel-small" onclick="closeProjectWizard()">Cancel</button>
-                            <button class="btn-save-small" onclick="goToStep(2)">Next: Details <i class="fa-solid fa-arrow-right"></i></button>
-                        </div>
                     </div>
 
-                    <!-- Step 2: Details -->
-                    <div id="wizardStep2" class="wizard-step" style="display: none;">
-                        <h4>Step 2: Project Details</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Release Year</label>
-                                <input type="number" id="projYear" placeholder="2024">
-                            </div>
-                            <div class="form-group">
-                                <label>Short Description</label>
-                                <textarea id="projDesc" placeholder="Briefly describe the movie and your contribution..."></textarea>
-                            </div>
-                        </div>
-                        <div class="wizard-actions">
-                            <button class="btn-cancel-small" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                            <button class="btn-save-small" onclick="goToStep(3)">Next: Media <i class="fa-solid fa-arrow-right"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Photo -->
-                    <div id="wizardStep3" class="wizard-step" style="display: none;">
-                        <h4>Step 3: Project Visuals</h4>
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h3>Basic Information</h3>
                         <div class="form-group">
-                            <label>Movie Poster / Image</label>
-                            <div class="project-upload-box" onclick="document.getElementById('projImageInput').click()">
-                                <i class="fa-solid fa-image fa-2xl" id="projUploadIcon"></i>
-                                <span id="projImageStatus">Click to upload poster</span>
-                                <input type="file" id="projImageInput" accept="image/*" style="display: none;">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location">
+                        </div>
+                    </div>
+
+                    <!-- Professional Information Section -->
+                    <div class="form-section">
+                        <h3>Professional Information</h3>
+                        <div class="form-group">
+                            <label for="role">Primary Role</label>
+                            <select id="role" name="role" required>
+                                <option value="">Select your primary role</option>
+                                <option value="director">Director</option>
+                                <option value="cinematographer">Cinematographer</option>
+                                <option value="editor">Editor</option>
+                                <option value="sound-designer">Sound Designer</option>
+                                <option value="production-designer">Production Designer</option>
+                                <option value="costume-designer">Costume Designer</option>
+                                <option value="makeup-artist">Makeup Artist</option>
+                                <option value="lighting-technician">Lighting Technician</option>
+                                <option value="stunt-coordinator">Stunt Coordinator</option>
+                                <option value="casting-director">Casting Director</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Number of Projects</label>
+                               <select id="experience" name="experience" required>
+        <option value="">Select number of projects</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+        <option value="25">25</option>
+        <option value="26">26</option>
+        <option value="27">27</option>
+        <option value="28">28</option>
+        <option value="29">29</option>
+        <option value="30">30</option>
+    </select>
+
+    <!-- Container where dynamic project fields will be added -->
+    <div id="projectFieldsContainer"></div>
+
+    <!-- Add the JavaScript code just before the closing </body> tag -->
+    <script>
+        // Get references to the dropdown and container where fields will be added
+        const experienceSelect = document.getElementById('experience');
+        const projectFieldsContainer = document.getElementById('projectFieldsContainer');
+
+        // Event listener for when the dropdown value changes
+        experienceSelect.addEventListener('change', function () {
+            // Clear any previously added fields
+            projectFieldsContainer.innerHTML = '';
+
+            // Get the number of projects selected
+            const numberOfProjects = parseInt(experienceSelect.value);
+
+            // Loop to create the required number of project fields
+            for (let i = 1; i <= numberOfProjects; i++) {
+                // Create a div for each project input set
+                const projectDiv = document.createElement('div');
+                projectDiv.classList.add('project-field-set');
+                projectDiv.style.marginBottom = '20px';
+
+                // Create the project name input field
+                const projectNameLabel = document.createElement('label');
+                projectNameLabel.textContent = `Project ${i} Name: `;
+                const projectNameInput = document.createElement('input');
+                projectNameInput.type = 'text';
+                projectNameInput.name = `project${i}_name`;
+                projectNameInput.required = true;
+
+                // Create the project description input field
+                const projectDescLabel = document.createElement('label');
+                projectDescLabel.textContent = `Project ${i} Description: `;
+                const projectDescInput = document.createElement('textarea');
+                projectDescInput.name = `project${i}_description`;
+                projectDescInput.required = true;
+
+                // Create the project role input field
+                const projectRoleLabel = document.createElement('label');
+                projectRoleLabel.textContent = `Project ${i} Role: `;
+                const projectRoleInput = document.createElement('input');
+                projectRoleInput.type = 'text';
+                projectRoleInput.name = `project${i}_role`;
+                projectRoleInput.required = true;
+
+                // Create the file upload input (for image/video)
+                const fileUploadLabel = document.createElement('label');
+                fileUploadLabel.textContent = `Project ${i} Media (Image/Video): `;
+                const fileUploadInput = document.createElement('input');
+                fileUploadInput.type = 'file';
+                fileUploadInput.name = `project${i}_media`;
+
+                // Append the inputs to the project div
+                projectDiv.appendChild(projectNameLabel);
+                projectDiv.appendChild(projectNameInput);
+                projectDiv.appendChild(document.createElement('br'));
+
+                projectDiv.appendChild(projectDescLabel);
+                projectDiv.appendChild(projectDescInput);
+                projectDiv.appendChild(document.createElement('br'));
+
+                projectDiv.appendChild(projectRoleLabel);
+                projectDiv.appendChild(projectRoleInput);
+                projectDiv.appendChild(document.createElement('br'));
+
+                projectDiv.appendChild(fileUploadLabel);
+                projectDiv.appendChild(fileUploadInput);
+                projectDiv.appendChild(document.createElement('br'));
+
+                // Append the project div to the container
+                projectFieldsContainer.appendChild(projectDiv);
+            }
+        });
+    </script>
+
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" placeholder="Tell us about yourself and your experience..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Skills Section -->
+                    <div class="form-section">
+                        <h3>Skills</h3>
+                        <div class="skills-section">
+                            <div class="skills-input">
+                                <input type="text" id="skillInput" placeholder="Add a skill">
+                                <button type="button" class="add-skill-btn" id="addSkillBtn">Add</button>
                             </div>
-                            <div id="projImagePreviewContainer" style="display:none; margin-top: 15px; text-align: center;">
-                                <img id="projImagePreview" src="" alt="Preview" style="max-height: 200px; border-radius: 8px;">
-                            </div>
-                        </div>
-                        <div class="wizard-actions">
-                            <button class="btn-cancel-small" onclick="goToStep(2)"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                            <button class="btn-save-small" onclick="saveNewProject()">Finish & Add Project <i class="fa-solid fa-check"></i></button>
+                            <div class="skills-tags" id="skillsTags"></div>
                         </div>
                     </div>
-                </div>
 
-                <!-- List of existing projects -->
-                <div class="projects-edit-list" id="projectsListContainer">
-                    <!-- Projects will be rendered here -->
-                    <p class="empty-notif" style="color: #666; font-style: italic;">No projects added yet.</p>
-                </div>
-            </div>
-
-            <!-- Social Links -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Social Links</h3>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>LinkedIn Profile</label>
-                        <div class="social-input-wrapper">
-                            <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" class="social-icon" alt="LinkedIn">
-                            <input type="text" id="editLinkedin" placeholder="https://linkedin.com/in/yourprofile">
+                    <!-- Social Links Section -->
+                    <div class="form-section">
+                        <h3>Social Links</h3>
+                        <div class="form-group social-input linkedin">
+                            <label for="linkedin">LinkedIn Profile</label>
+                            <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <div class="form-group social-input website">
+                            <label for="website">Personal Website</label>
+                            <input type="url" id="website" name="website" placeholder="https://yourwebsite.com">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="form-group social-input instagram">
+                            <label for="instagram">Instagram</label>
+                            <input type="url" id="instagram" name="instagram" placeholder="https://instagram.com/yourhandle">
+                            <i class="fab fa-instagram"></i>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Personal Website</label>
-                        <div class="social-input-wrapper">
-                            <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" class="social-icon" alt="Website">
-                            <input type="text" id="editWebsite" placeholder="https://yourwebsite.com">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Instagram</label>
-                        <div class="social-input-wrapper">
-                            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" class="social-icon" alt="Instagram">
-                            <input type="text" id="editInstagram" placeholder="https://instagram.com/yourhandle">
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Form Actions -->
-            <div class="form-footer">
-                <button class="btn-cancel" onclick="window.location.href='profile.html'">Back to Profile</button>
-                <button class="btn-save" onclick="saveProfile()">Save Basic Changes</button>
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" onclick="window.location.href='profile.html'">Cancel</button>
+                        <button type="submit" class="save-btn">Save Changes</button>
+                    </div>
+                </form>
             </div>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/edit-profile.js"></script>
+    <script>
+        const API_BASE_URL = 'https://api.crewcanvas.in';
+
+        // Debug logging function
+        function debugLog(message, data = null) {
+            console.log(`[DEBUG] ${message}`, data ? data : '');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Enhanced animation initialization
+            initializeAnimations();
+
+            // Fetch latest profile data from backend
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            let user = null;
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    user = await response.json();
+                }
+            } catch (e) { user = null; }
+            if (!user) {
+                // fallback to localStorage if needed
+                const userStr = localStorage.getItem('user');
+                if (userStr) user = JSON.parse(userStr);
+            }
+            if (user) {
+                debugLog('User object received from backend:', user);
+                populateFormWithAnimation(user);
+                // --- Do NOT pre-fill projects ---
+                // (No code to fill project fields here)
+            }
+            // --- Skills section already handled in populateFormWithAnimation ---
+
+            // Image compression function
+            async function compressImage(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            // Calculate new dimensions while maintaining aspect ratio
+                            const maxDimension = 400; // Max width/height
+                            if (width > height && width > maxDimension) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            } else if (height > maxDimension) {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Start with high quality and reduce until size is under 50KB
+                            let quality = 0.9;
+                            let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            
+                            // Function to get base64 size in KB
+                            const getBase64Size = (base64String) => {
+                                const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+                                return (base64String.length * 0.75 - padding) / 1024;
+                            };
+
+                            // Reduce quality until size is under 50KB
+                            while (getBase64Size(compressedDataUrl) > 50 && quality > 0.1) {
+                                quality -= 0.1;
+                                compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            }
+
+                            // If still too large, show error
+                            if (getBase64Size(compressedDataUrl) > 50) {
+                                reject(new Error('Image is too large even after compression. Please choose a smaller image.'));
+                                return;
+                            }
+
+                            resolve(compressedDataUrl);
+                        };
+                        img.onerror = () => reject(new Error('Failed to load image'));
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read file'));
+                });
+            }
+
+            // Initialize enhanced animations
+            function initializeAnimations() {
+                // Add intersection observer for scroll-triggered animations
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                            entry.target.classList.add('animated');
+                        }
+                    });
+                }, observerOptions);
+
+                // Observe form sections for scroll animations
+                document.querySelectorAll('.form-section').forEach(section => {
+                    observer.observe(section);
+                });
+
+                // Add hover effects to form groups
+                document.querySelectorAll('.form-group').forEach(group => {
+                    group.addEventListener('mouseenter', () => {
+                        group.style.transform = 'translateX(5px)';
+                        group.style.transition = 'transform 0.3s ease';
+                    });
+
+                    group.addEventListener('mouseleave', () => {
+                        group.style.transform = 'translateX(0)';
+                    });
+                });
+
+                // Add ripple effect to buttons
+                document.querySelectorAll('.save-btn, .cancel-btn, .add-skill-btn').forEach(button => {
+                    button.addEventListener('click', createRippleEffect);
+                });
+
+                // Add typing animation to input fields
+                document.querySelectorAll('input, textarea').forEach(input => {
+                    input.addEventListener('focus', () => {
+                        input.parentElement.style.transform = 'scale(1.02)';
+                        input.parentElement.style.transition = 'transform 0.3s ease';
+                    });
+
+                    input.addEventListener('blur', () => {
+                        input.parentElement.style.transform = 'scale(1)';
+                    });
+                });
+            }
+
+            // Create ripple effect for buttons
+            function createRippleEffect(event) {
+                const button = event.currentTarget;
+                const ripple = document.createElement('span');
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+
+                // Add ripple styles
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.pointerEvents = 'none';
+
+                button.style.position = 'relative';
+                button.style.overflow = 'hidden';
+                button.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+
+            // Add ripple animation keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Load user data from localStorage
+            // Populate form with smooth animations
+            function populateFormWithAnimation(user) {
+                // Ensure all expected fields exist on user object
+                const safeUser = {
+                    name: user.name || '',
+                    email: user.email || '',
+                    phone: user.phone || '',
+                    location: user.location || '',
+                    role: user.role || '',
+                    experience: user.experience || '',
+                    bio: user.bio || '',
+                    linkedin: user.linkedin || '',
+                    website: user.website || '',
+                    instagram: user.instagram || ''
+                };
+                const fields = [
+                    { id: 'fullName', value: safeUser.name },
+                    { id: 'email', value: safeUser.email },
+                    { id: 'phone', value: safeUser.phone },
+                    { id: 'location', value: safeUser.location },
+                    { id: 'role', value: safeUser.role },
+                    { id: 'experience', value: safeUser.experience },
+                    { id: 'bio', value: safeUser.bio },
+                    { id: 'linkedin', value: safeUser.linkedin },
+                    { id: 'website', value: safeUser.website },
+                    { id: 'instagram', value: safeUser.instagram }
+                ];
+                fields.forEach((field, index) => {
+                    setTimeout(() => {
+                        const element = document.getElementById(field.id);
+                        if (element) {
+                            element.value = field.value;
+                            element.style.animation = 'fadeIn 0.5s ease-out';
+                            debugLog(`Populating field #${field.id} with value:`, field.value);
+                        }
+                    }, index * 100);
+                });
+
+                // Set profile picture
+                updateProfilePictureDisplay(user.picture);
+
+                // Load skills with animation
+                if (user.skills && Array.isArray(user.skills)) {
+                    user.skills.forEach((skill, index) => {
+                        setTimeout(() => {
+                            addSkillTag(skill);
+                        }, index * 150);
+                    });
+                }
+            }
+
+            // Function to get initials from name
+            function getInitials(name) {
+                return name
+                    .split(' ')
+                    .map(word => word[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+            }
+
+            // Function to update profile picture display
+            function updateProfilePictureDisplay(imageUrl = null) {
+                const container = document.querySelector('.current-picture-container');
+                const currentPicture = document.getElementById('currentProfilePicture');
+                const placeholder = document.createElement('div');
+                placeholder.className = 'picture-placeholder';
+                
+                // Get user name from localStorage
+                const userStr = localStorage.getItem('user');
+                let initials = 'U'; // Default initial
+                
+                if (userStr) {
+                    try {
+                        const user = JSON.parse(userStr);
+                        if (user.name) {
+                            initials = getInitials(user.name);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing user data:', error);
+                    }
+                }
+
+                placeholder.innerHTML = `
+                    <i class="fas fa-user"></i>
+                    <span>${initials}</span>
+                `;
+                
+                // Remove existing placeholder if any
+                const existingPlaceholder = container.querySelector('.picture-placeholder');
+                if (existingPlaceholder) {
+                    existingPlaceholder.remove();
+                }
+
+                if (!imageUrl || imageUrl === 'null' || imageUrl === 'undefined') {
+                    // Show placeholder
+                    currentPicture.style.display = 'none';
+                    container.appendChild(placeholder);
+                } else {
+                    // Show actual image
+                    currentPicture.style.display = 'block';
+                    currentPicture.src = imageUrl;
+                    if (existingPlaceholder) {
+                        existingPlaceholder.remove();
+                    }
+                }
+            }
+
+            // Update profile picture display on load
+            updateProfilePictureDisplay(document.getElementById('currentProfilePicture').src);
+
+            // Handle form submission
+            const editProfileForm = document.getElementById('editProfileForm');
+            editProfileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                debugLog('Form submission started');
+
+                // Get the submit button reference once
+                const submitButton = document.querySelector('.save-btn');
+                const originalBtnText = submitButton.textContent;
+
+                try {
+                    // Show loading state with animation
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Saving...';
+                    submitButton.style.animation = 'pulse 1s infinite';
+
+                    // Create FormData object
+                    const formData = new FormData();
+                    
+                    // Add all form fields
+                    const formFields = {
+                        name: document.getElementById('fullName').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        location: document.getElementById('location').value,
+                        role: document.getElementById('role').value,
+                        experience: document.getElementById('experience').value,
+                        bio: document.getElementById('bio').value,
+                        linkedin: document.getElementById('linkedin').value,
+                        website: document.getElementById('website').value,
+                        instagram: document.getElementById('instagram').value
+                    };
+
+                    debugLog('Form fields collected:', formFields);
+
+                    // Add fields to FormData
+                    Object.entries(formFields).forEach(([key, value]) => {
+                        formData.append(key, value);
+                    });
+
+                    // Add project data
+                    const numberOfProjects = parseInt(document.getElementById('experience').value) || 0;
+                    formData.append('numberOfProjects', numberOfProjects);
+                    debugLog('Number of projects:', numberOfProjects);
+
+                    // Collect project data
+                    for (let i = 1; i <= numberOfProjects; i++) {
+                        const projectName = document.querySelector(`input[name="project${i}_name"]`)?.value;
+                        const projectDesc = document.querySelector(`textarea[name="project${i}_description"]`)?.value;
+                        const projectRole = document.querySelector(`input[name="project${i}_role"]`)?.value;
+                        const projectMedia = document.querySelector(`input[name="project${i}_media"]`)?.files[0];
+
+                        if (projectName && projectDesc && projectRole) {
+                            formData.append(`project${i}_name`, projectName);
+                            formData.append(`project${i}_description`, projectDesc);
+                            formData.append(`project${i}_role`, projectRole);
+                            
+                            if (projectMedia) {
+                                formData.append(`project${i}_media`, projectMedia);
+                                debugLog(`Project ${i} media file added:`, projectMedia.name);
+                            }
+                            
+                            debugLog(`Project ${i} data added:`, { name: projectName, role: projectRole });
+                        }
+                    }
+                    
+                    // Add skills as JSON string
+                    const skills = Array.from(document.querySelectorAll('.skill-tag span:first-child'))
+                        .map(span => span.textContent);
+                    formData.append('skills', JSON.stringify(skills));
+                    debugLog('Skills added to form data:', skills);
+
+                    // Add profile picture if it's been changed
+                    const profilePicture = document.getElementById('currentProfilePicture');
+                    if (profilePicture.dataset.changed === 'true') {
+                        debugLog('Profile picture has been changed, preparing to upload');
+                        try {
+                            // Convert base64 to blob
+                            const response = await fetch(profilePicture.src);
+                            const blob = await response.blob();
+                            formData.append('picture', blob, 'profile.jpg');
+                            debugLog('Profile picture blob created, size:', blob.size);
+                        } catch (error) {
+                            debugLog('Error creating profile picture blob:', error);
+                            throw error;
+                        }
+                    }
+
+                    // Get auth token from localStorage
+                    const token = localStorage.getItem('token');
+                    debugLog('Auth token present:', !!token);
+                    
+                    if (!token) {
+                        throw new Error('Not authenticated - No token found');
+                    }
+
+                    // Log the request details
+                    debugLog('Sending request to:', `${API_BASE_URL}/api/profile/update`);
+                    debugLog('Request headers:', {
+                        'Authorization': 'Bearer [HIDDEN]',
+                        'Content-Type': 'multipart/form-data'
+                    });
+
+                    // Send to API
+                    const response = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    debugLog('Response status:', response.status);
+                    debugLog('Response headers:', Object.fromEntries(response.headers.entries()));
+
+                    // Log the raw response text for debugging
+                    const responseText = await response.text();
+                    debugLog('Raw response:', responseText);
+
+                    if (!response.ok) {
+                        let errorMessage;
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            errorMessage = errorData.error || 'Failed to update profile';
+                        } catch (e) {
+                            errorMessage = `Server error: ${response.status} - ${responseText}`;
+                        }
+                        throw new Error(errorMessage);
+                    }
+
+                    // Parse the response as JSON
+                    let user;
+                    try {
+                        user = JSON.parse(responseText);
+                        debugLog('Parsed user data:', user);
+                        debugLog('Profile picture URL:', user.picture);
+                    } catch (e) {
+                        debugLog('Error parsing response as JSON:', e);
+                        throw new Error('Invalid server response format');
+                    }
+
+                    // Update localStorage with new user data
+                    localStorage.setItem('user', JSON.stringify(user));
+                    debugLog('User data updated in localStorage');
+                    
+                    // Also update the profile picture in localStorage if it exists
+                    if (user.picture) {
+                        localStorage.setItem('userPicture', user.picture);
+                        debugLog('Profile picture URL stored in localStorage:', user.picture);
+                    }
+
+                    // Update top navigation profile picture immediately
+                    const topNavProfilePicture = document.querySelector('.user-profile img');
+                    if (topNavProfilePicture && user.picture) {
+                        topNavProfilePicture.src = user.picture;
+                        debugLog('Updated top navigation profile picture');
+                    }
+                    
+                    // Also refresh profile picture using the global function if available
+                    if (window.refreshProfilePicture) {
+                        window.refreshProfilePicture();
+                        debugLog('Called global refresh profile picture function');
+                    }
+
+                    // Show success animation
+                    submitButton.classList.add('success');
+                    submitButton.textContent = 'Saved!';
+                    submitButton.style.animation = 'successPulse 1.5s ease-out';
+                    
+                    // Wait for animation to complete before redirecting
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 1500);
+
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    debugLog('Error details:', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                    alert(error.message || 'Failed to update profile. Please try again.');
+                    
+                    // Reset button state
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalBtnText;
+                    submitButton.style.animation = '';
+                }
+            });
+
+            // Update profile picture handling
+            const profilePictureInput = document.getElementById('profilePictureInput');
+            profilePictureInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
+                const currentPicture = document.getElementById('currentProfilePicture');
+                const uploadBtn = document.querySelector('.picture-upload-btn');
+                const progressBar = document.createElement('div');
+                progressBar.className = 'upload-progress';
+                uploadBtn.appendChild(progressBar);
+
+                try {
+                    // Show loading state
+                    currentPicture.classList.add('loading');
+                    progressBar.classList.add('active');
+
+                    // Compress the image
+                    const compressedImage = await compressImage(file);
+                    
+                    // Update the image with animation
+                    currentPicture.classList.remove('loading');
+                    currentPicture.src = compressedImage;
+                    currentPicture.style.display = 'block';
+                    currentPicture.dataset.changed = 'true'; // Mark as changed
+                    
+                    // Add success animation
+                    currentPicture.style.animation = 'bounceIn 0.6s ease-out';
+                    
+                    // Remove placeholder if exists
+                    const placeholder = document.querySelector('.picture-placeholder');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert(error.message || 'Failed to process image. Please try again.');
+                    currentPicture.classList.add('error');
+                    setTimeout(() => currentPicture.classList.remove('error'), 2000);
+                } finally {
+                    // Clean up
+                    progressBar.remove();
+                    currentPicture.classList.remove('loading');
+                }
+            });
+
+            // Handle skills input
+            const skillInput = document.getElementById('skillInput');
+            const addSkillBtn = document.getElementById('addSkillBtn');
+            const skillsTags = document.getElementById('skillsTags');
+
+            function addSkillTag(skill) {
+                const tag = document.createElement('div');
+                tag.className = 'skill-tag';
+                tag.innerHTML = `
+                    <span>${skill}</span>
+                    <span class="remove-skill"><i class="fas fa-times"></i></span>
+                `;
+                
+                tag.querySelector('.remove-skill').addEventListener('click', () => {
+                    tag.style.animation = 'scaleIn 0.3s ease-out reverse';
+                    setTimeout(() => tag.remove(), 300);
+                });
+
+                skillsTags.appendChild(tag);
+            }
+
+            addSkillBtn.addEventListener('click', () => {
+                const skill = skillInput.value.trim();
+                if (skill) {
+                    addSkillTag(skill);
+                    skillInput.value = '';
+                    // Add input animation
+                    skillInput.style.animation = 'glow 0.5s ease-out';
+                    setTimeout(() => skillInput.style.animation = '', 500);
+                }
+            });
+
+            skillInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const skill = skillInput.value.trim();
+                    if (skill) {
+                        addSkillTag(skill);
+                        skillInput.value = '';
+                        // Add input animation
+                        skillInput.style.animation = 'glow 0.5s ease-out';
+                        setTimeout(() => skillInput.style.animation = '', 500);
+                    }
+                }
+            });
+
+            // Handle profile dropdown
+            const userProfile = document.querySelector('.user-profile');
+            if (userProfile) {
+                userProfile.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userProfile.querySelector('.profile-dropdown');
+                    dropdown.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userProfile.contains(e.target)) {
+                        const dropdown = userProfile.querySelector('.profile-dropdown');
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    }
+                });
+            }
+
+            // Handle logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Add scroll-triggered animations
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const parallax = document.querySelector('.edit-profile-container');
+                const speed = scrolled * 0.5;
+                
+                if (parallax) {
+                    parallax.style.transform = `translateY(${speed}px)`;
+                }
+            });
+        });
+    </script>
 </body>
-</html>
+</html> 

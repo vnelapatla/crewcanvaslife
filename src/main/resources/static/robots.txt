@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Disallow private/admin areas
+Disallow: /uploads/
+Disallow: /js/
+Disallow: /css/
+Disallow: /styles/
+Disallow: /images/
+
+# Allow important static assets
+Allow: /images/logo-removebg-preview.png
+Allow: /images/logo.jpeg
+Allow: /images/profile.jpg
+
+# Sitemap location
+Sitemap: https://crewcanvas.in/sitemap.xml
+
+# Crawl delay (optional - helps with server load)
+Crawl-delay: 1 

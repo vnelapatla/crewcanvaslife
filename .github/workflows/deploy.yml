@@ -65,6 +65,11 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           # 1. Start the Java App
+          echo "Deep cleaning processes..."
+          pkill -f 'crewcanvas-monolith' || true
+          PID=$(lsof -t -i:8081)
+          if [ ! -z "$PID" ]; then kill -9 $PID || true; fi
+          
           nohup java -Dserver.port=8081 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 < /dev/null &
           echo "App triggered on port 8081."
 

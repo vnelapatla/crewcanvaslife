@@ -1,407 +1,325 @@
-// Profile page functionality
-let profileUserId = null;
-let currentUserId = null;
-let profileUserData = null; // Global store for the loaded user
-let currentTab = 'posts';
-
-document.addEventListener('DOMContentLoaded', async () => {
-    checkAuth();
-    currentUserId = getCurrentUserId();
-    profileUserId = getQueryParam('userId') || currentUserId;
-
-    await loadProfile();
-    loadUserPosts();
-    loadUserProjects(); // Added to populate the movies split
+// Profile hover functionality
+document.addEventListener('DOMContentLoaded', () => {
+    initializeProfilePopups();
+    initializeProfileActions();
+    initializeScrollIndicator();
 });
 
-// Load user applications and their statuses
-async function loadUserApplications() {
-    const container = document.getElementById('applicationsContent');
-    if (!container) return;
+function initializeProfilePopups() {
+    document.querySelectorAll('.profile-card').forEach(card => {
+        const name = card.querySelector('h3').textContent;
+        const role = card.querySelector('.role').textContent;
+        const rating = card.querySelector('.rating span').textContent;
+        const bio = card.querySelector('.bio').textContent;
+        const skills = Array.from(card.querySelectorAll('.skill-tag'))
+            .map(skill => skill.textContent);
+        const profileImage = card.querySelector('.profile-header img').src;
+        
+        card.addEventListener('click', (e) => {
+            // Get card position
+            const rect = card.getBoundingClientRect();
+            const cardCenterX = rect.left + rect.width / 2;
+            const cardCenterY = rect.top + rect.height / 2;
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/events/applications/user/${profileUserId}`);
-        if (!response.ok) return;
-
-        const applications = await response.json();
-        if (applications.length === 0) return;
-
-        // Fetch all events to get titles
-        const eventsRes = await fetch(`${API_BASE_URL}/api/events`);
-        const allEvents = await eventsRes.json();
-        const eventMap = new Map(allEvents.map(e => [e.id, e]));
-
-        container.innerHTML = applications.map(app => {
-            const event = eventMap.get(app.eventId) || { title: 'Unknown Event' };
-            const statusClass = app.status === 'shortlisted' ? 'status-shortlisted' : 
-                                app.status === 'rejected' ? 'status-rejected' : 'status-pending';
+            const popup = document.createElement('div');
+            popup.className = 'profile-popup';
+            popup.innerHTML = `
+                <button class="popup-close">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="profile-popup-content">
+                    <img src="${profileImage}" alt="${name}" class="popup-profile-image">
+                    <h4>${name}</h4>
+                    <p>${role}</p>
+                    <div class="popup-rating">
+                        <i class="fas fa-star"></i>
+                        <span>${rating}</span>
+                    </div>
+                    <p class="popup-bio">${bio}</p>
+                    <div class="popup-skills">
+                        ${skills.map(skill => `<span class="popup-skill">${skill}</span>`).join('')}
+                    </div>
+                </div>
+            `;
             
-            return `
-            <div class="post-card legacy-post-style application-card" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <h4 style="margin: 0; color: #fff; font-size: 18px;">${event.title}</h4>
-                        <p style="margin: 5px 0; color: #888; font-size: 13px;">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p>
-                        <div style="margin-top: 10px;">
-                            <span class="status-badge ${statusClass}" style="padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
-                                ${app.status.toUpperCase()}
-                            </span>
-                        </div>
-                    </div>
-                    <button class="btn-action" onclick="window.location.href='launch-audition.html'" style="background: none; border: 1px solid #444; color: #ccc; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-size: 12px;">View Event</button>
-                </div>
-            </div>
-            `;
-        }).join('');
+            document.body.appendChild(popup);
+            
+            // Position the popup content at the card's center
+            const popupContent = popup.querySelector('.profile-popup-content');
+            popupContent.style.position = 'absolute';
+            popupContent.style.left = `${cardCenterX}px`;
+            popupContent.style.top = `${cardCenterY}px`;
+            popupContent.style.transform = 'translate(-50%, -50%)';
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                popup.style.opacity = '1';
+                popupContent.style.position = 'relative';
+                popupContent.style.left = 'auto';
+                popupContent.style.top = 'auto';
+                popupContent.style.transform = 'none';
+            });
 
-    } catch (error) {
-        console.error('Error loading applications:', error);
-    }
+            // Close button functionality
+            const closeBtn = popup.querySelector('.popup-close');
+            closeBtn.addEventListener('click', () => {
+                closePopup(popup, cardCenterX, cardCenterY);
+            });
+
+            // Close on click outside
+            popup.addEventListener('click', (e) => {
+                if (e.target === popup) {
+                    closePopup(popup, cardCenterX, cardCenterY);
+                }
+            });
+
+            // Close on escape key
+            document.addEventListener('keydown', function closeOnEscape(e) {
+                if (e.key === 'Escape') {
+                    closePopup(popup, cardCenterX, cardCenterY);
+                    document.removeEventListener('keydown', closeOnEscape);
+                }
+            });
+        });
+    });
 }
 
-// Load profile data
-async function loadProfile() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}`);
-        if (response.ok) {
-            profileUserData = await response.json();
-            displayProfile(profileUserData);
-        } else {
-            showMessage('Profile not found', 'error');
-            window.location.href = 'home.html';
-        }
-    } catch (error) {
-        console.error('Error loading profile:', error);
-        showMessage('Error loading profile', 'error');
-    }
+function closePopup(popup, cardCenterX, cardCenterY) {
+    const popupContent = popup.querySelector('.profile-popup-content');
+    
+    // Position the popup content back at the card's center
+    popupContent.style.position = 'absolute';
+    popupContent.style.left = `${cardCenterX}px`;
+    popupContent.style.top = `${cardCenterY}px`;
+    popupContent.style.transform = 'translate(-50%, -50%)';
+    
+    // Add closing class for animation
+    popup.classList.add('closing');
+    
+    // Remove popup after animation
+    setTimeout(() => {
+        popup.remove();
+    }, 400);
 }
 
-// Display profile data
-function displayProfile(user) {
-    if (!user) return;
-    
-    // Set Profile Identity
-    const nameEl = document.getElementById('profileName');
-    if (nameEl) nameEl.textContent = user.name || 'Anonymous User';
-    
-    const roleBadge = document.getElementById('profileRoleBadge');
-    if (roleBadge) roleBadge.textContent = user.role || 'Film Professional';
-    
-    // Set Profile Info Card fields
-    const emailEl = document.getElementById('profileEmail');
-    if (emailEl) emailEl.textContent = user.email || 'Not Provided';
-    
-    const phoneEl = document.getElementById('profilePhone');
-    if (phoneEl) phoneEl.textContent = user.phone || 'Not Provided';
-    
-    const locationEl = document.getElementById('profileLocation');
-    if (locationEl) locationEl.textContent = (user.location || 'Not Specified').toUpperCase();
-
-    // Set Main Profile Image
-    const avatarContainer = document.getElementById('profileAvatarContainer');
-    if (avatarContainer) {
-        if (user.profilePicture && user.profilePicture.length > 50) {
-            avatarContainer.innerHTML = `<img src="${user.profilePicture}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-        } else {
-            const initials = getAvatarFallback(user.name);
-            avatarContainer.innerHTML = `<div class="avatar-fallback" style="font-size: 48px; font-weight: 800; color: #444;">${initials}</div>`;
-        }
-    }
-
-    // Render Skills Tags
-    const skillsContainer = document.getElementById('skillsContainer');
-    if (skillsContainer) {
-        if (user.skills) {
-            const skillsArr = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
-            if (skillsArr.length > 0) {
-                skillsContainer.innerHTML = skillsArr.map(s => `<span class="empty-badge">${s}</span>`).join('');
+function initializeProfileActions() {
+    // Connect button functionality
+    document.querySelectorAll('.action-btn.connect').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const card = e.target.closest('.profile-card');
+            const name = card.querySelector('h3').textContent;
+            
+            if (button.textContent.includes('Connect')) {
+                button.innerHTML = '<i class="fas fa-check"></i> Connected';
+                button.classList.add('connected');
+                showNotification(`Connected with ${name}`);
             } else {
-                skillsContainer.innerHTML = '<span class="empty-text">No skills added yet</span>';
+                button.innerHTML = '<i class="fas fa-user-plus"></i> Connect';
+                button.classList.remove('connected');
+                showNotification(`Disconnected from ${name}`);
             }
-        } else {
-            skillsContainer.innerHTML = '<span class="empty-text">No skills added yet</span>';
-        }
-    }
+        });
+    });
 
-    // Render Social Links
-    const socialContainer = document.getElementById('socialLinksContainer');
-    if (socialContainer) {
-        let socialHtml = '';
-        if (user.linkedinProfile) socialHtml += `<a href="${user.linkedinProfile}" target="_blank" class="social-pill">LinkedIn</a>`;
-        if (user.instagram) socialHtml += `<a href="${user.instagram}" target="_blank" class="social-pill">Instagram</a>`;
-        if (user.personalWebsite) socialHtml += `<a href="${user.personalWebsite}" target="_blank" class="social-pill">Website</a>`;
+    // Message button functionality
+    document.querySelectorAll('.action-btn.message').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const card = e.target.closest('.profile-card');
+            const name = card.querySelector('h3').textContent;
+            window.location.href = `messages.html?recipient=${encodeURIComponent(name)}`;
+        });
+    });
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Trigger animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Search functionality
+const searchInput = document.querySelector('.search-bar input');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
         
-        socialContainer.innerHTML = socialHtml || '<span class="empty-text">No social links added</span>';
-    }
+        document.querySelectorAll('.profile-card').forEach(card => {
+            const name = card.querySelector('h3').textContent.toLowerCase();
+            const role = card.querySelector('.role').textContent.toLowerCase();
+            const bio = card.querySelector('.bio').textContent.toLowerCase();
+            const skills = Array.from(card.querySelectorAll('.skill-tag'))
+                .map(skill => skill.textContent.toLowerCase());
+            
+            const isVisible = name.includes(searchTerm) ||
+                            role.includes(searchTerm) ||
+                            bio.includes(searchTerm) ||
+                            skills.some(skill => skill.includes(searchTerm));
+            
+            card.style.display = isVisible ? 'block' : 'none';
+        });
+    });
+}
 
-    // Update Stats Bar
-    const followersEl = document.getElementById('countFollowers');
-    if (followersEl) followersEl.textContent = user.followers || '0';
-    
-    const followingEl = document.getElementById('countFollowing');
-    if (followingEl) followingEl.textContent = user.following || '0';
+function initializeScrollIndicator() {
+    // Create scroll indicator element
+    const scrollIndicator = document.createElement('div');
+    scrollIndicator.className = 'scroll-indicator';
+    scrollIndicator.innerHTML = `
+        <div class="scroll-stick">
+            <div class="scroll-ball"></div>
+        </div>
+        <span>Scroll</span>
+    `;
+    document.body.appendChild(scrollIndicator);
 
-    // Update Tab Counts If Explicitly present
-    const projectsCount = document.getElementById('projectsCount');
-    if (projectsCount) projectsCount.textContent = user.projectsCount || '0';
-
-    const skillsCount = document.getElementById('skillsCount');
-    if (skillsCount && user.skills) {
-        skillsCount.textContent = user.skills.split(',').filter(s => s.trim()).length;
-    }
-
-    // Update Header Navigation
-    const headerName = document.getElementById('userNameHeader');
-    if (headerName) headerName.textContent = user.name.toLowerCase();
-
-    // Set Page Title & Banner Polish
-    document.title = `${user.name} | CrewCanvas Profile`;
-    const bannerBg = document.querySelector('.banner-bg-blurred');
-    if (bannerBg && user.profilePicture) {
-        bannerBg.style.backgroundImage = `url('${user.profilePicture}')`;
-        bannerBg.style.backgroundSize = 'cover';
-        bannerBg.style.backgroundPosition = 'center';
-        bannerBg.style.filter = 'blur(40px) brightness(0.4)';
-    }
-
-    // Handle follow button visibility and state
-    const actionButton = document.getElementById('actionButton');
-    if (actionButton) {
-        if (user.id == currentUserId) {
-            actionButton.style.display = 'none';
+    // Hide scroll indicator when scrolled
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > 100) {
+            scrollIndicator.classList.add('hidden');
         } else {
-            actionButton.style.display = 'inline-flex';
-            checkFollowStatus(user.id);
+            scrollIndicator.classList.remove('hidden');
         }
-    }
+        
+        lastScrollTop = scrollTop;
+    });
+} 
 
-    // Notify ProfileHandler for global sync
-    if (user.id == getCurrentUserId() && typeof ProfileHandler !== 'undefined') {
-        ProfileHandler.user = user;
-        ProfileHandler.updateGlobalHeader();
-    }
+const logo = document.querySelector('.sidebar .logo');
+if (logo) {
+    logo.style.cursor = 'pointer';
+    logo.addEventListener('click', () => {
+        window.location.href = 'feed.html';
+    });
 }
 
-async function checkFollowStatus(userId) {
-    const actionButton = document.getElementById('actionButton');
-    if (!actionButton) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following`);
-        if (response.ok) {
-            const following = await response.json();
-            const isFollowing = following.some(u => String(u.id || u) === String(userId));
-            updateFollowButtonState(isFollowing);
+// Show right panel if add comment is shown
+postModalCommentBtn.addEventListener('click', function() {
+    const igModalRightContainer = document.getElementById('igModalRightContainer');
+    if (!document.querySelector('.ig-modal-right')) {
+        igModalRightContainer.innerHTML = `
+            <div class="ig-modal-right">
+                <button class="post-modal-close" id="postModalClose">&times;</button>
+                <div class="comments-section" id="postModalCommentsSection"></div>
+                <div class="add-comment" id="postModalAddComment" style="display:flex;">
+                    <input type="text" placeholder="Add a comment..." class="comment-input" id="postModalCommentInput">
+                    <button class="submit-comment" id="postModalSubmitComment">Post</button>
+                </div>
+            </div>
+        `;
+        // Attach close button event
+        const postModalCloseBtn = document.getElementById('postModalClose');
+        if (postModalCloseBtn) {
+            postModalCloseBtn.addEventListener('click', function() {
+                postModalOverlay.classList.remove('active');
+            });
         }
-    } catch (e) {
-        console.error("Error checking follow status:", e);
-    }
-}
-
-function updateFollowButtonState(isFollowing) {
-    const actionButton = document.getElementById('actionButton');
-    if (!actionButton) return;
-    
-    if (isFollowing) {
-        actionButton.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-        actionButton.style.background = '#ef4444';
-        actionButton.style.borderColor = '#dc2626';
-        actionButton.style.color = 'white';
-        actionButton.onmouseover = null;
-        actionButton.onmouseout = null;
     } else {
-        actionButton.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-        actionButton.style.background = '';
-        actionButton.style.borderColor = '';
-        actionButton.style.color = '';
-        actionButton.onmouseover = null;
-        actionButton.onmouseout = null;
+        document.getElementById('postModalAddComment').style.display = 'flex';
+        document.getElementById('postModalCommentInput').focus();
     }
+});
+
+// After fetching posts, fix empty state logic
+if (posts && Array.isArray(posts) && posts.length > 0) {
+    const postsEmptyState = document.getElementById('postsEmptyState');
+    if (postsEmptyState) postsEmptyState.style.display = 'none';
+    postsGrid.style.display = 'grid';
+    // Render posts as before...
+} else {
+    const postsEmptyState = document.getElementById('postsEmptyState');
+    if (postsEmptyState) postsEmptyState.style.display = 'block';
+    postsGrid.style.display = 'grid';
 }
 
-// Handle follow/unfollow
-async function handleAction() {
-    const actionButton = document.getElementById('actionButton');
-    if (!actionButton) return;
-    const isFollowing = actionButton.textContent.trim().toLowerCase().includes('following') || 
-                       actionButton.textContent.trim().toLowerCase().includes('unfollow');
-
-    try {
-        const url = `${API_BASE_URL}/api/profile/${profileUserId}/${isFollowing ? 'unfollow' : 'follow'}?followerId=${currentUserId}`;
-        const response = await fetch(url, {
-            method: isFollowing ? 'DELETE' : 'POST'
+// Event delegation for modal buttons
+postModalOverlay.addEventListener('click', async function(e) {
+    const post = window.currentModalPost;
+    if (!post) return;
+    // Like button
+    if (e.target.closest('#postModalLikeBtn')) {
+        const userId = user.id || 'me';
+        const liked = post.likes && post.likes.includes(userId);
+        let newLikes;
+        if (liked) {
+            newLikes = post.likes.filter(id => id !== userId);
+        } else {
+            newLikes = [...(post.likes || []), userId];
+        }
+        post.likes = newLikes;
+        postModalLikes.textContent = newLikes.length;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/posts/${post.id}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ userId })
+            });
+            if (!res.ok) throw new Error('Failed to like/unlike');
+        } catch (err) {
+            alert('Failed to update like.');
+        }
+        return;
+    }
+    // Comment button
+    if (e.target.closest('#postModalCommentBtn')) {
+        document.getElementById('postModalCommentInput').focus();
+        return;
+    }
+    // Submit comment
+    if (e.target.closest('#postModalSubmitComment')) {
+        const input = document.getElementById('postModalCommentInput');
+        const text = input.value.trim();
+        if (!text) return;
+        const commentsSection = document.getElementById('postModalCommentsSection');
+        const commentDiv = document.createElement('div');
+        commentDiv.className = 'modal-comment';
+        commentDiv.innerHTML = `<b>${user.name || 'You'}:</b> ${text}`;
+        commentsSection.appendChild(commentDiv);
+        post.comments = post.comments || [];
+        post.comments.push({ author: user.name, text });
+        postModalComments.textContent = post.comments.length;
+        input.value = '';
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/posts/${post.id}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ text })
+            });
+            if (!res.ok) throw new Error('Failed to comment');
+        } catch (err) {
+            alert('Failed to add comment.');
+        }
+        return;
+    }
+    // Share button
+    if (e.target.closest('#postModalShareBtn')) {
+        const shareBtn = document.getElementById('postModalShareBtn');
+        const postUrl = window.location.origin + `/post/${post.id}`;
+        navigator.clipboard.writeText(postUrl).then(() => {
+            shareBtn.innerHTML = '<i class="far fa-paper-plane"></i> Copied!';
+            setTimeout(() => {
+                shareBtn.innerHTML = '<i class="far fa-paper-plane"></i>';
+            }, 1200);
+        }).catch(() => {
+            alert('Failed to copy link.');
         });
-
-        if (response.ok) {
-            updateFollowButtonState(!isFollowing);
-            showMessage(isFollowing ? 'Unfollowed successfully' : 'Following!', 'success');
-            loadProfile(); // Reload to update follower count
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showMessage('Error updating follow status', 'error');
+        return;
     }
-}
-
-// Send message
-function sendMessage() {
-    window.location.href = `messages.html?userId=${profileUserId}`;
-}
-
-// Load user posts
-async function loadUserPosts() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/posts/user/${profileUserId}`);
-        const posts = await response.json();
-
-        const postsCountEl = document.getElementById('postsCount');
-        if (postsCountEl) postsCountEl.textContent = posts.length;
-
-        const container = document.getElementById('postsContent');
-        if (posts.length === 0) {
-            // Keep the placeholder shown in HTML
-            return;
-        }
-
-        container.innerHTML = posts.map(post => {
-            // Handle both legacy string arrays and new List format
-            let images = [];
-            if (post.imageUrls && post.imageUrls.length > 0) {
-                images = post.imageUrls;
-            } else if (post.imageUrl) {
-                images = post.imageUrl.split(',');
-            }
-
-            let mediaHtml = '';
-            if (images.length === 1) {
-                mediaHtml = `<div class="post-media-wrap"><img src="${images[0]}" class="post-img-fluid" alt="Post content"></div>`;
-            } else if (images.length > 1) {
-                mediaHtml = `
-                    <div class="post-slider-container">
-                        <div id="slider-${post.id}" class="post-slider" onscroll="updateSliderDots(${post.id})">
-                            ${images.map(img => `<div class="post-slider-item"><img src="${img}" alt="Post content"></div>`).join('')}
-                        </div>
-                        <button class="slider-nav-btn prev" onclick="moveSlider(${post.id}, -1)">❮</button>
-                        <button class="slider-nav-btn next" onclick="moveSlider(${post.id}, 1)">❯</button>
-                        <div class="slider-dots" id="dots-${post.id}">
-                            ${images.map((_, i) => `<span class="slider-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-            <div class="post-card legacy-post-style" data-post-id="${post.id}">
-                <div class="post-header">
-                    <div class="user-info">
-                        <div class="mini-avatar">${(profileUserData?.name || 'U')[0]}</div>
-                        <div>
-                            <h4 class="user-name">${profileUserData?.name || 'Creative'}</h4>
-                            <span class="post-date">SHARED POST</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="post-body">
-                    <p class="post-text">${post.content}</p>
-                    ${mediaHtml}
-                </div>
-                <div class="post-footer">
-                    <button class="footer-btn">❤️ ${post.likes || 0}</button>
-                    <button class="footer-btn">💬 ${post.comments || 0}</button>
-                </div>
-            </div>
-            `;
-        }).join('');
-    } catch (error) {
-        console.error('Error loading posts:', error);
-    }
-}
-
-function viewPost(postId) {
-    // Placeholder for viewing post details
-    console.log('Viewing post:', postId);
-}
-
-// Load user projects
-async function loadUserProjects() {
-    const container = document.getElementById('projectsContent');
-    if (!container) return;
-
-    try {
-        const idToFetch = Number(profileUserId);
-        console.log(`[ProjectLoader] Fetching projects for User ID: ${idToFetch}`);
-        
-        const response = await fetch(`${API_BASE_URL}/api/projects/user/${idToFetch}`);
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-        const projects = await response.json();
-        console.log(`[ProjectLoader] Received ${projects.length} projects:`, projects);
-
-        const projectsCountEl = document.getElementById('projectsCount');
-        if (projectsCountEl) projectsCountEl.textContent = projects.length;
-
-        if (!projects || projects.length === 0) {
-            console.log('[ProjectLoader] No projects found, keeping placeholder.');
-            return;
-        }
-
-        // Clear the placeholder and render projects as full cards (similar to posts)
-        container.innerHTML = projects.map(project => `
-            <div class="post-card legacy-post-style project-card-v2">
-                <div class="post-header" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="user-info">
-                        <div class="mini-avatar" style="background:#333; color:var(--orange-active);">🎬</div>
-                        <div>
-                            <h4 class="user-name">${project.title}</h4>
-                            <span class="post-date">${project.year || 'Released'} • PORTFOLIO</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="post-body" style="padding: 20px;">
-                    <div class="project-role-banner" style="margin-bottom:15px;">
-                        <span class="role-pill" style="font-size:12px; padding:6px 15px; background:rgba(255,138,0,0.15);">${(project.role || 'Professional').toUpperCase()}</span>
-                    </div>
-                    <p class="post-text" style="font-size:15px; line-height:1.6; color:#bbb;">${project.description || 'No project description provided.'}</p>
-                    ${project.imageUrl ? `
-                        <div class="post-media-wrap" style="margin-top:20px; border: 1px solid rgba(255,255,255,0.1);">
-                            <img src="${project.imageUrl}" class="post-img-fluid" alt="${project.title}" style="max-height: 500px; object-fit: contain; width: 100%; background: #000;">
-                        </div>
-                    ` : ''}
-                </div>
-                <div class="post-footer" style="opacity:0.5; font-size:12px;">
-                    <span style="padding-left:25px;">FILM PROJECT • PROJECT ID: ${project.id}</span>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('[ProjectLoader] Error:', error);
-    }
-}
-
-// Show add project modal
-function showAddProject() {
-    showMessage('Add project functionality coming soon!', 'info');
-}
-
-// Post Slider Navigation
-function moveSlider(postId, direction) {
-    const slider = document.getElementById(`slider-${postId}`);
-    if (slider) {
-        const itemWidth = slider.offsetWidth;
-        slider.scrollBy({ left: direction * itemWidth, behavior: 'smooth' });
-        // The dots will update via scroll event or manual trigger
-        setTimeout(() => updateSliderDots(postId), 350);
-    }
-}
-
-function updateSliderDots(postId) {
-    const slider = document.getElementById(`slider-${postId}`);
-    const dotsContainer = document.getElementById(`dots-${postId}`);
-    if (slider && dotsContainer) {
-        const index = Math.round(slider.scrollLeft / slider.offsetWidth);
-        const dots = dotsContainer.querySelectorAll('.slider-dot');
-        dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === index);
-        });
-    }
-}
+});

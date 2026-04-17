@@ -1,132 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Feed | CrewCanvas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/feed.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewCanvas - Feed</title>
+    <link rel="stylesheet" href="styles/feed.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/profile-handler.js"></script>
 </head>
-
 <body>
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item active">
-                <span class="icon">📰</span> Feed
-            </a>
-            <a href="home.html" class="nav-item">
-                <span class="icon">🏠</span> Dashboard
-            </a>
-            <a href="crew-search.html" class="nav-item">
-                <span class="icon">🔍</span> Crew Search
-            </a>
-            <a href="messages.html" class="nav-item">
-                <span class="icon">💬</span> Messages
-            </a>
-            <a href="launch-audition.html" class="nav-item">
-                <span class="icon">🎬</span> Events
-            </a>
-        </nav>
-    </aside>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle profile dropdown
+            const userProfile = document.querySelector('.user-profile');
+            if (userProfile) {
+                userProfile.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userProfile.querySelector('.profile-dropdown');
+                    dropdown.classList.toggle('show');
+                });
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="top-header">
-            <div class="status-bar">
-                <a href="settings.html" class="mobile-settings-btn">⚙️</a>
-                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
-                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
-                        <span id="userInitialsSmall">U</span>
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userProfile.contains(e.target)) {
+                        const dropdown = userProfile.querySelector('.profile-dropdown');
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    }
+                });
+            }
+
+            // Handle logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                });
+            }
+        });
+    </script>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CrewCanvas</h1>
+                <p class="logo-caption">Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item active">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Feed</span>
+                </a>
+                <a href="home.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="crew-search.html" class="nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Crew Search</span>
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="launch-audition.html" class="nav-item">
+                    <i class="fas fa-film"></i>
+                    <span>Events</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="topbar-logo-mobile">
+                    <span class="topbar-title">CrewCanvas</span>
+                    <span class="topbar-caption">Where all crafts connect</span>
+                </div>
+                <div class="nav-right">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>  
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
+                        <span class="user-name"></span>
+                        <div class="profile-dropdown">
+                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                </div>
+                </div>
+            </nav>
+            <!-- Feed Content -->
+            <div class="feed-container">
+                <div class="feed-header">
+                    <h2>Community Feed</h2>
+                </div>
+
+                <!-- Post Feed -->
+                <div class="post-feed" id="postFeed">
+                    <!-- Posts will be dynamically loaded here -->
+                    <div class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
                     </div>
-                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
-                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
-                    <div class="profile-dropdown-menu" id="profileDropdown">
-                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
-                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
-                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    <div class="no-posts" style="display: none;">
+                        <p>No posts yet. Be the first to share something!</p>
                     </div>
                 </div>
             </div>
-        </header>
-
-        <div class="content-body">
-            <div class="section-header">
-                <h2 class="section-title">Community Feed</h2>
-            </div>
-
-            <!-- Create Post Section -->
-            <div class="create-post-card card" style="margin-bottom: 30px;">
-                <textarea id="postContent" placeholder="Share your latest project or news..." maxlength="1000"
-                    style="background:#fcfcfc; border:1px solid #eee; border-radius:12px; height:100px; resize:none; padding:15px; margin-bottom: 10px;"></textarea>
-                
-                <input type="url" id="postLink" placeholder="📎 Add external link (e.g. YouTube, Portfolio)" 
-                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 15px; font-size: 13px;">
-
-                <div class="create-post-actions"
-                    style="display:flex; justify-content:space-between; align-items:center;">
-                    <input type="file" id="postImage" accept="image/*" multiple style="display: none;">
-                    <button class="filter-toggle" onclick="document.getElementById('postImage').click()"
-                        style="background:transparent; border:none; color: var(--text-muted); cursor: pointer;">
-                        <span class="filter-icon">🖼️</span> Add Multiple Media
-                    </button>
-                    <button class="auth-btn" style="width:120px; padding:10px;" onclick="createPost()">Post</button>
-                </div>
-                <!-- Image Preview Container -->
-                <div id="imagePreviewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                    <!-- Previews will appear here -->
-                </div>
-            </div>
-
-            <!-- Feed -->
-            <div id="feedContainer" class="feed-container">
-                <!-- Posts dynamic -->
-            </div>
-
-            <!-- Loading Indicator -->
-            <div class="scroll-load">
-                <div class="loader-dots">
-                    <div class="dot dot-1"></div>
-                    <div class="dot dot-2"></div>
-                    <div class="dot dot-3"></div>
-                </div>
-            </div>
-            <button id="loadMoreBtn" class="auth-btn" style="display:none; margin: 20px auto; width: 180px; background: #f0f0f0; color: #666; border: 1px solid #ddd; font-size: 14px;">Load More</button>
-        </div>
-    </main>
-
-    <!-- Universal Bottom Navigation -->
-    <div class="bottom-nav">
-        <a href="feed.html" class="nav-item active">
-            <span class="icon">📰</span> <span>Feed</span>
-        </a>
-        <a href="home.html" class="nav-item">
-            <span class="icon">🏠</span> <span>Dashboard</span>
-        </a>
-        <a href="crew-search.html" class="nav-item">
-            <span class="icon">🔍</span> <span>Crew Search</span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <span class="icon">💬</span> <span>Messages</span>
-        </a>
-        <a href="launch-audition.html" class="nav-item">
-            <span class="icon">🎬</span> <span>Events</span>
-        </a>
+        </main>
     </div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
+    <!-- Create Post Modal -->
+    <div class="modal-overlay" id="createPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Post</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createPostForm">
+                    <div class="form-group">
+                        <label for="postText">Text & Image</label>
+                        <textarea id="postText" placeholder="What's on your mind?" rows="4"></textarea>
+                    </div>
+                    <div class="form-group image-upload">
+                        <div class="upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag & drop images here or click to browse</p>
+                            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    <div class="form-group video-link">
+                        <label for="videoLinkInput">Or paste a video link</label>
+                        <input type="url" id="videoLinkInput" placeholder="Paste YouTube, Vimeo, or other video URL here" style="width:100%;padding:0.5rem 1rem;border-radius:8px;border:1px solid #e0e0e0;font-size:1rem;">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelPost">Cancel</button>
+                        <button type="submit" class="submit-btn">Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script src="js/feed.js"></script>
-</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if we're in view-only mode (shared post link)
+            const isViewOnly = checkViewOnlyMode();
+            
+            const token = localStorage.getItem('token');
+            if (!token && !isViewOnly) {
+                // Only redirect to login if not in view-only mode
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Initialize feed components
+            const postFeed = document.getElementById('postFeed');
+            const loadingSpinner = postFeed.querySelector('.loading-spinner');
+            const noPosts = postFeed.querySelector('.no-posts');
+            const createPostBtn = document.getElementById('createPostBtn');
+            const modal = document.getElementById('createPostModal');
+            const closeModal = document.getElementById('closeModal');
+            const cancelPost = document.getElementById('cancelPost');
+            
+            // Load posts when page loads
+            await loadPosts();
 
-</html>
+            // Only set up post creation if user is authenticated
+            if (token && createPostBtn) {
+                // Create Post Button Click Handler
+                createPostBtn.addEventListener('click', () => {
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close Modal Handlers
+                [closeModal, cancelPost].forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                        resetForm();
+                    });
+                });
+
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                        resetForm();
+                    }
+                });
+            }
+
+            function resetForm() {
+                document.getElementById('createPostForm').reset();
+                document.querySelector('#imagePreview').innerHTML = '';
+            }
+        });
+    </script>
+
+    <!-- Create Post Button -->
+    <button class="create-post-btn floating" id="createPostBtn" aria-label="Create Post">
+        <i class="fas fa-plus"></i> <span>Create Post</span>
+    </button>
+</body>
+</html> 

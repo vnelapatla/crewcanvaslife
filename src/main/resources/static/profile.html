@@ -1,649 +1,1596 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Profile | CrewCanvas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/profile.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewCanvas - My Profile</title>
+    <link rel="stylesheet" href="styles/home.css">
+    <link rel="stylesheet" href="styles/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-
-<body>
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar">
-        <div class="brand">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <h2>CrewCanvas</h2>
-                <button onclick="toggleSidebar()" class="sidebar-close-btn" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; display: none;">✕</button>
-            </div>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item">
-                <span class="icon">📰</span> Feed
-            </a>
-            <a href="home.html" class="nav-item">
-                <span class="icon">🏠</span> Dashboard
-            </a>
-            <a href="crew-search.html" class="nav-item">
-                <span class="icon">🔍</span> Crew Search
-            </a>
-            <a href="messages.html" class="nav-item">
-                <span class="icon">💬</span> Messages
-            </a>
-            <a href="launch-audition.html" class="nav-item">
-                <span class="icon">🎬</span> Events
-            </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- New Top Header Wrap with Blurred Banner -->
-        <div class="profile-top-nav-wrapper">
-            <div class="banner-bg-blurred"></div>
-            <header class="profile-top-nav">
-                <div class="search-bar-container">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" placeholder="Search for crew, projects..." id="globalSearch">
-                </div>
-                <div class="header-right-actions">
-                    <button class="notification-icon">🔔</button>
-                    <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                        <div class="user-avatar-small" id="userAvatarSmall">
-                            <img src="" alt="" id="userAvatarImg" style="display:none;">
-                            <span id="userInitialsSmall">U</span>
-                        </div>
-                        <span id="userNameHeader">User</span>
-                        <span class="chevron-down">▼</span>
-                        <div class="profile-dropdown-menu" id="profileDropdown">
-                            <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
-                            <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
-                            <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-                        </div>
-                    </div>
-                </div>
-            </header>
-        </div>
-
-        <!-- Hero Profile Identity -->
-        <section class="profile-hero-mini">
-            <div class="hero-left">
-                <div id="profileAvatarContainer" class="avatar-holder">
-                    <div class="avatar-fallback">?</div>
-                </div>
-            </div>
-            <div class="hero-right">
-                <h1 id="profileName">Loading User...</h1>
-                <p id="profileRoleBadge">Film Professional</p>
-                <div id="profileActions" style="margin-top: 15px;">
-                    <button id="actionButton" class="stat-pill" style="display: none; border: none; font-family: inherit;" onclick="handleAction()">
-                        <i class="fas fa-user-plus"></i> Follow
-                    </button>
-                    <button class="stat-pill" onclick="sendMessage()" style="display: inline-flex; border: none; font-family: inherit; margin-left: 10px;">
-                        <i class="fas fa-paper-plane"></i> Message
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Upper Banner/Action Row -->
-        <div class="profile-stats-bar">
-            <div class="stat-pill"><span class="icon">👥</span> <span id="countFollowers">0</span> FOLLOWERS</div>
-            <div class="stat-pill"><span class="icon">🤝</span> <span id="countFollowing">0</span> FOLLOWING</div>
-            <div class="stat-pill"><span class="icon">🎬</span> <span id="projectsCount">0</span> PROJECTS</div>
-            <div class="stat-pill"><span class="icon">⚒️</span> <span id="skillsCount">0</span> SKILLS</div>
-            <div class="stat-pill"><span class="icon">📝</span> <span id="postsCount">0</span> POSTS</div>
-        </div>
-
-        <div class="profile-info-grid">
-            <!-- Personal Information Card -->
-            <div class="info-card">
-                <div class="card-header">
-                    <span class="icon">👤</span> Personal Information
-                </div>
-                <div class="card-body">
-                    <div class="info-item">
-                        <span class="label">Email</span>
-                        <span class="value" id="profileEmail">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Phone</span>
-                        <span class="value" id="profilePhone">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Location</span>
-                        <span class="value" id="profileLocation">Loading...</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Skills & Social Card -->
-            <div class="info-card">
-                <div class="card-header">
-                    <span class="icon">⚒️</span> Skills & Social
-                </div>
-                <div class="card-body">
-                    <div class="skills-wrap" id="skillsContainer">
-                        <span class="empty-badge">No skills added yet</span>
-                    </div>
-                    <div class="social-links-wrap" id="socialLinksContainer">
-                        <span class="empty-text">No social links added</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tabbed Content Section -->
-        <div class="profile-tabs-section">
-            <div class="tabs-nav">
-                <div class="tab-item active" onclick="switchTab('projects')" id="tab-projects">
-                    <span class="icon">🎞️</span> Projects
-                </div>
-                <div class="tab-item" onclick="switchTab('posts')" id="tab-posts">
-                    <span class="icon">📙</span> Posts
-                </div>
-            </div>
-
-            <div class="tab-content" id="tabContent">
-                <div id="projectsContent">
-                    <div class="no-posts-placeholder">
-                        <div class="placeholder-icon">🎞️</div>
-                        <h3>No Projects Yet</h3>
-                        <p>Begin building your cinematic portfolio by adding your first project.</p>
-                    </div>
-                </div>
-                <div id="postsContent" style="display: none;">
-                    <div class="no-posts-placeholder">
-                        <div class="placeholder-icon">📝</div>
-                        <h3>No Posts Yet</h3>
-                        <p>You haven't shared any posts yet. Start sharing your posts, stories, or achievements with your network!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Universal Bottom Navigation (Mobile) -->
-    <div class="bottom-nav">
-        <a href="feed.html" class="nav-item">
-            <span class="icon">📰</span> <span>Feed</span>
-        </a>
-        <a href="home.html" class="nav-item">
-            <span class="icon">🏠</span> <span>Dashboard</span>
-        </a>
-        <a href="crew-search.html" class="nav-item">
-            <span class="icon">🔍</span> <span>Search</span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <span class="icon">💬</span> <span>Messages</span>
-        </a>
-        <a href="launch-audition.html" class="nav-item">
-            <span class="icon">🎬</span> <span>Events</span>
-        </a>
-    </div>
-
-    <!-- Unified Detailed Styling to match provided image -->
+    <script src="js/profile-handler.js"></script>
     <style>
         :root {
-            --orange-active: #FF8A00;
-            --dark-card: #222222;
-            --dark-input: rgba(255, 255, 255, 0.05);
-            --text-dim: #999;
+            --primary-gradient: linear-gradient(135deg, #121212 0%, #000000 100%);
+            --accent-gradient: linear-gradient(135deg, #FF8A00 0%, #FF2D55 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --film-orange: #FF8A00;
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
         }
 
-        body {
-            background-color: #1a1a1a;
-            color: #fff;
-            overflow-y: auto;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Inter', sans-serif;
         }
 
-        .main-content {
-            padding: 40px;
-            margin-left: 260px; /* Account for sidebar */
-            max-width: 1200px;
-            gap: 30px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Stats Bar */
-        .profile-stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .stat-pill {
-            background: rgba(255, 138, 0, 0.1);
-            border: 1px solid rgba(255, 138, 0, 0.3);
-            border-radius: 40px;
-            padding: 10px 25px;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .stat-pill:hover { background: rgba(255, 138, 0, 0.2); transform: translateY(-2px); }
-
-        /* Info Grid */
-        .profile-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .info-card {
-            background: var(--dark-card);
-            border-radius: 16px;
+        body {
+            background-color: #080808;
+            color: var(--text-main);
+            height: 100vh;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .info-card .card-header {
-            padding: 15px 25px;
-            font-size: 16px;
-            font-weight: 700;
+        .dashboard-container {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid rgba(255,255,255,0.03);
-            color: #fff;
+            height: 100vh;
+            width: 100%;
         }
 
-        .info-card .card-header .icon { color: var(--orange-active); }
-
-        .info-card .card-body {
-            padding: 25px;
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background: #0a0a0a;
+            border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
+            padding: 40px 25px;
+            flex-shrink: 0;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .logo-caption {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 50px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 18px;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 14px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--glass-bg);
+            color: var(--text-main);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background: #080808;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            background: rgba(8, 8, 8, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 10;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .user-profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        /* 3-Section Layout */
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+        }
+
+        /* TOP SECTION (50%) */
+        .top-section {
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            border-bottom: 1px solid var(--glass-border);
+            background: radial-gradient(circle at center, rgba(255, 138, 0, 0.05) 0%, transparent 70%);
+        }
+
+        .profile-avatar-large {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--glass-border);
+            margin-bottom: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .profile-name-bold {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+            background: linear-gradient(to bottom, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile-role-small {
+            font-size: 1.2rem;
+            color: var(--film-orange);
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .profile-location-small {
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .contact-cards-row {
+            display: flex;
             gap: 15px;
         }
 
-        .info-item {
-            background: var(--dark-input);
-            border: 1px solid rgba(255,255,255,0.05);
+        .contact-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 14px 25px;
             border-radius: 12px;
-            padding: 15px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            transition: 0.3s;
         }
 
-        .info-item .label { color: #888; font-size: 13px; font-weight: 600; }
-        .info-item .value { font-size: 15px; font-weight: 500; color: #fff; }
-
-        .empty-badge {
-            background: #000;
-            color: #ddd;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+        .contact-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 138, 0, 0.3);
         }
 
-        .empty-text { color: #555; font-size: 13px; font-style: italic; }
-
-        /* Tabs Logic */
-        .profile-tabs-section {
-            margin-top: 20px;
+        .contact-card i {
+            color: var(--film-orange);
+            font-size: 1.1rem;
         }
 
-        .tabs-nav {
+        /* BOTTOM SECTION (50%) */
+        .bottom-section {
+            height: 50%;
             display: flex;
-            justify-content: center;
-            border-bottom: 2px solid rgba(255,255,255,0.05);
-            margin-bottom: 30px;
+            flex-direction: row;
         }
 
-        .tab-item {
-            padding: 15px 60px;
-            cursor: pointer;
+        /* Movie Projects Split (50%) */
+        .movies-split {
+            width: 50%;
+            height: 100%;
+            border-right: 1px solid var(--glass-border);
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* User Posts Split (50%) */
+        .posts-split {
+            width: 50%;
+            height: 100%;
+            padding: 40px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            font-size: 1.5rem;
             font-weight: 700;
-            color: #888;
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            position: relative;
-            transition: color 0.3s ease;
+            gap: 12px;
         }
 
-        .tab-item.active {
-            color: var(--orange-active);
+        .section-header i {
+            color: var(--film-orange);
         }
 
-        .tab-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
+        /* Grid & Feed Styling */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .project-card:hover {
+            transform: scale(1.02);
+        }
+
+        .project-thumb {
             width: 100%;
-            height: 3px;
-            background: var(--orange-active);
-            box-shadow: 0 0 15px var(--orange-active);
+            height: 140px;
+            object-fit: cover;
         }
 
-        /* Content Placeholder (Matched to Image) */
-        .no-posts-placeholder {
+        .project-details {
+            padding: 15px;
+        }
+
+        .project-details h4 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .posts-feed {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            background: var(--dark-card);
-            padding: 60px;
-            border-radius: 24px;
-            max-width: 600px;
-            margin: 40px auto;
-            border: 1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            gap: 20px;
         }
 
-        .placeholder-icon {
-            font-size: 80px;
-            margin-bottom: 25px;
-            opacity: 0.3;
-            color: #fff;
+        .post-card-vertical {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 20px;
         }
 
-        .no-posts-placeholder h3 { font-size: 28px; margin-bottom: 15px; color: #fff; font-weight: 800; }
-        .no-posts-placeholder p { color: #888; font-size: 15px; line-height: 1.7; max-width: 400px; }
-        
-        /* New Project Card Components */
-        .project-thumb { position: relative; }
-        .project-year-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            color: var(--orange-active);
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 800;
-            border: 1px solid rgba(255,138,0,0.3);
-        }
-        .role-pill {
-            background: rgba(255,138,0,0.1);
-            color: var(--orange-active);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        .project-snippet {
-            color: #777;
-            font-size: 13px;
-            line-height: 1.5;
-            margin-top: 10px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .project-card-advanced:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .project-card-advanced { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        .no-img-fallback {
+        .post-card-vertical img.post-media {
             width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #111;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            font-size: 40px;
-            color: #333;
+            border-radius: 10px;
+            margin-top: 15px;
+            max-height: 350px;
+            object-fit: cover;
         }
 
-        /* Hero Mini Style */
-        .profile-hero-mini {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            padding: 20px 0;
-            margin-bottom: 10px;
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
         }
 
-        .avatar-holder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: #252525;
-            border: 3px solid var(--orange-active);
-            box-shadow: 0 0 20px rgba(255, 138, 0, 0.2);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .avatar-holder img { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-fallback { font-size: 48px; font-weight: 800; color: #444; }
-
-        .hero-right h1 {
-            font-size: 42px;
-            font-weight: 900;
-            margin: 0;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-        }
-
-        #profileRoleBadge {
-            background: var(--orange-active);
-            color: #000;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-block;
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        @media (max-width: 1080px) {
-            .main-content { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            .profile-info-grid { grid-template-columns: 1fr; }
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 900px) {
             .sidebar { display: none; }
-            .profile-hero-mini { flex-direction: column; text-align: center; }
-            
-            /* Make stats bar scrollable on mobile */
-            .profile-stats-bar {
-                justify-content: flex-start;
-                overflow-x: auto;
-                padding-bottom: 10px;
-                padding-left: 5px;
-                padding-right: 5px;
-                gap: 12px;
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE 10+ */
-                -webkit-overflow-scrolling: touch;
-            }
-            .profile-stats-bar::-webkit-scrollbar {
-                display: none;
-            }
-            .stat-pill {
-                flex-shrink: 0;
-                padding: 10px 20px;
-                font-size: 12px;
-            }
+            body { height: auto; overflow: auto; }
+            .main-content { height: auto; overflow: visible; }
+            .profile-container { height: auto; }
+            .top-section { height: auto; padding: 60px 20px; }
+            .bottom-section { flex-direction: column; height: auto; }
+            .movies-split, .posts-split { width: 100%; height: auto; overflow: visible; padding: 30px 20px; }
+            .profile-name-bold { font-size: 2.5rem; }
+            .contact-cards-row { flex-direction: column; width: 100%; }
         }
-
-        /* Legacy Feed Styles for Profile */
-        .legacy-post-style {
-            background: #222;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.05);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-        }
-
-        .post-header {
-            padding: 20px 25px;
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-
-        .user-info { display: flex; gap: 15px; align-items: center; }
-        .mini-avatar { 
-            width: 45px; height: 45px; border-radius: 50%; 
-            background: var(--orange-active); color: #000;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 18px;
-        }
-
-        .user-name { margin: 0; font-size: 16px; font-weight: 700; color: #fff; }
-        .post-date { font-size: 11px; color: #666; font-weight: 700; letter-spacing: 1px; }
-
-        .post-body { padding: 25px; }
-        .post-text { font-size: 16px; line-height: 1.6; color: #ddd; margin-bottom: 20px; }
-        .post-img-fluid { width: 100%; border-radius: 12px; display: block; }
-        
-        .post-footer {
-            padding: 15px 25px;
-            display: flex;
-            gap: 25px;
-            background: rgba(0,0,0,0.2);
-        }
-
-        .footer-btn {
-            background: none; border: none; color: #888;
-            font-size: 14px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-            transition: color 0.2s;
-        }
-
-        .footer-btn:hover { color: var(--orange-active); }
-
-        .post-media-wrap {
-            margin-top: 15px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Slider Styles */
-        .post-slider-container {
-            position: relative;
-            margin-top: 15px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .post-slider {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .post-slider::-webkit-scrollbar { display: none; }
-
-        .post-slider-item {
-            flex: 0 0 100%;
-            scroll-snap-align: start;
-        }
-
-        .post-slider-item img {
-            width: 100%;
-            display: block;
-        }
-
-        .slider-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0,0,0,0.5);
-            color: #fff;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        .slider-nav-btn.prev { left: 10px; }
-        .slider-nav-btn.next { right: 10px; }
-
-        .slider-dots {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-        }
-
-        .slider-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transition: all 0.3s ease;
-        }
-
-        .slider-dot.active {
-            background: var(--orange-active);
-            transform: scale(1.2);
-            box-shadow: 0 0 10px var(--orange-active);
-        }
-
-        /* Application Status Badges */
-        .status-pending { background: #444 !important; color: #ddd !important; }
-        .status-shortlisted { background: rgba(255, 138, 0, 0.2) !important; color: var(--orange-active) !important; border: 1px solid rgba(255, 138, 0, 0.3); }
-        .status-rejected { background: rgba(244, 67, 54, 0.2) !important; color: #f44336 !important; border: 1px solid rgba(244, 67, 54, 0.3); }
     </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CrewCanvas</h1>
+                <p class="logo-caption">Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Feed</span>
+                </a>
+                <a href="home.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="crew-search.html" class="nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Crew Search</span>
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="launch-audition.html" class="nav-item">
+                    <i class="fas fa-film"></i>
+                    <span>Events</span>
+                </a>
+            </nav>
+        </aside>
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/profile.js"></script>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="nav-right">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>  
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile" id="navProfilePic">
+                        <span class="user-name"></span>
+                        <div class="profile-dropdown">
+                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
+                            <a href="javascript:void(0)" class="dropdown-item" id="dropdownSettingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="profile-container">
+                <!-- TOP SECTION: Profile Information (50% height) -->
+                <section class="top-section">
+                    <div class="profile-avatar-wrapper">
+                        <img src="" alt="Profile" id="profilePicture" class="profile-avatar-large" onerror="this.src='https://ui-avatars.com/api/?name=User&background=FF8A00&color=fff&size=200'">
+                    </div>
+                    
+                    <h1 id="profileName" class="profile-name-bold">Loading Name...</h1>
+                    <p id="profileBio" class="profile-role-small">Role</p>
+                    <p id="profileLocation" class="profile-location-small">
+                        <i class="fas fa-map-marker-alt"></i> Location not specified
+                    </p>
+
+                    <div class="contact-cards-row">
+                        <div class="contact-card">
+                            <i class="fas fa-envelope"></i>
+                            <span id="profileEmail">email@example.com</span>
+                        </div>
+                        <div class="contact-card">
+                            <i class="fas fa-phone"></i>
+                            <span id="profilePhone">+1 234 567 890</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions" style="margin-top: 30px; display: flex; gap: 15px;">
+                        <a href="edit-profile.html" class="action-btn" style="background: var(--accent-gradient); color: white; padding: 12px 25px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    </div>
+                </section>
+
+                <!-- BOTTOM SECTION: Movies & Posts Spilt (50% height) -->
+                <section class="bottom-section">
+                    <!-- LEFT Split: Movie Projects (50% width) -->
+                    <div class="movies-split">
+                        <h2 class="section-header"><i class="fas fa-clapperboard"></i> Movie Projects</h2>
+                        <div id="projectsGrid" class="projects-grid">
+                            <!-- Injected Projects -->
+                            <div class="empty-state" id="emptyState">
+                                <i class="fas fa-film"></i>
+                                <p>Loading projects...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT Split: Posts (50% width) -->
+                    <div class="posts-split">
+                        <h2 class="section-header"><i class="fas fa-newspaper"></i> Posts</h2>
+                        <div id="postsGrid" class="posts-feed">
+                            <!-- Injected Posts -->
+                            <div class="empty-state" id="postsEmptyState">
+                                <i class="fas fa-edit"></i>
+                                <p>Loading posts...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+    </div>
+
     <script>
-        function switchTab(tab) {
-            const projectsTab = document.getElementById('tab-projects');
-            const postsTab = document.getElementById('tab-posts');
-            const projectsContent = document.getElementById('projectsContent');
-            const postsContent = document.getElementById('postsContent');
+        const API_BASE_URL = 'https://api.crewcanvas.in';
 
-            if (tab === 'projects') {
-                projectsTab.classList.add('active');
-                postsTab.classList.remove('active');
-                projectsContent.style.display = 'block';
-                postsContent.style.display = 'none';
-            } else if (tab === 'posts') {
-                postsTab.classList.add('active');
-                projectsTab.classList.remove('active');
-                postsContent.style.display = 'block';
-                projectsContent.style.display = 'none';
-            }
+        // At the top of the script, after defining API_BASE_URL, add this block to show notification on page load if needed
+        if (localStorage.getItem('showProjectDeleteSuccess') === '1') {
+            let notif = document.createElement('div');
+            notif.id = 'customSuccessNotif';
+            notif.style.position = 'fixed';
+            notif.style.top = '32px';
+            notif.style.left = '50%';
+            notif.style.transform = 'translateX(-50%)';
+            notif.style.background = '#2ecc40';
+            notif.style.color = '#fff';
+            notif.style.padding = '16px 32px';
+            notif.style.borderRadius = '8px';
+            notif.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+            notif.style.display = 'flex';
+            notif.style.alignItems = 'center';
+            notif.style.gap = '12px';
+            notif.style.fontSize = '1.1rem';
+            notif.style.zIndex = '3000';
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.3s';
+            notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Project deleted successfully!</span>';
+            document.body.appendChild(notif);
+            setTimeout(() => { notif.style.opacity = '1'; }, 10);
+            setTimeout(() => { if (notif) notif.style.opacity = '0'; }, 2000);
+            setTimeout(() => { if (notif && notif.style.opacity === '0') notif.remove(); }, 2500);
+            localStorage.removeItem('showProjectDeleteSuccess');
         }
+
+        // At the top of the script, after the project delete success message block:
+        if (localStorage.getItem('showPostEditSuccess') === '1') {
+            let notif = document.createElement('div');
+            notif.id = 'customSuccessNotif';
+            notif.style.position = 'fixed';
+            notif.style.top = '32px';
+            notif.style.left = '50%';
+            notif.style.transform = 'translateX(-50%)';
+            notif.style.background = '#2ecc40';
+            notif.style.color = '#fff';
+            notif.style.padding = '16px 32px';
+            notif.style.borderRadius = '8px';
+            notif.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+            notif.style.display = 'flex';
+            notif.style.alignItems = 'center';
+            notif.style.gap = '12px';
+            notif.style.fontSize = '1.1rem';
+            notif.style.zIndex = '3000';
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.3s';
+            notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Post updated successfully!</span>';
+            document.body.appendChild(notif);
+            setTimeout(() => { notif.style.opacity = '1'; }, 10);
+            setTimeout(() => { if (notif) notif.style.opacity = '0'; }, 2000);
+            setTimeout(() => { if (notif && notif.style.opacity === '0') notif.remove(); }, 2500);
+            localStorage.removeItem('showPostEditSuccess');
+        }
+
+        // At the top of the script, after the post edit success message block:
+        if (localStorage.getItem('showProjectEditSuccess') === '1') {
+            let notif = document.createElement('div');
+            notif.id = 'customSuccessNotif';
+            notif.style.position = 'fixed';
+            notif.style.top = '32px';
+            notif.style.left = '50%';
+            notif.style.transform = 'translateX(-50%)';
+            notif.style.background = '#2ecc40';
+            notif.style.color = '#fff';
+            notif.style.padding = '16px 32px';
+            notif.style.borderRadius = '8px';
+            notif.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+            notif.style.display = 'flex';
+            notif.style.alignItems = 'center';
+            notif.style.gap = '12px';
+            notif.style.fontSize = '1.1rem';
+            notif.style.zIndex = '3000';
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.3s';
+            notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Project updated successfully!</span>';
+            document.body.appendChild(notif);
+            setTimeout(() => { notif.style.opacity = '1'; }, 10);
+            setTimeout(() => { if (notif) notif.style.opacity = '0'; }, 2000);
+            setTimeout(() => { if (notif && notif.style.opacity === '0') notif.remove(); }, 2500);
+            localStorage.removeItem('showProjectEditSuccess');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get auth token
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Add loading states
+            addLoadingStates();
+
+            try {
+                // Fetch user profile data
+                const response = await fetch(`${API_BASE_URL}/api/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch profile data');
+                }
+
+                const user = await response.json();
+
+                // Update profile picture
+                const profilePicture = document.getElementById('profilePicture');
+                console.log('Profile data received:', { name: user.name, picture: user.picture });
+                
+                if (user.picture && user.picture !== 'null' && user.picture !== 'undefined') {
+                    console.log('Setting profile picture:', user.picture);
+                    
+                    // Handle different types of picture URLs
+                    let pictureUrl = user.picture;
+                    
+                    // If it's a relative path (default or uploaded), convert to full URL
+                    if (pictureUrl.startsWith('/images/')) {
+                        // Default profile picture
+                        pictureUrl = `${API_BASE_URL}${pictureUrl}`;
+                        console.log('Converted default picture URL:', pictureUrl);
+                    } else if (pictureUrl.startsWith('uploads/')) {
+                        // Uploaded profile picture - already handled by backend
+                        console.log('Using uploaded picture URL:', pictureUrl);
+                    } else if (pictureUrl.startsWith('http')) {
+                        // External URL (Google picture)
+                        console.log('Using external picture URL:', pictureUrl);
+                    }
+                    
+                    profilePicture.src = pictureUrl;
+                    
+                    // Add error handling for image loading
+                    profilePicture.onerror = function() {
+                        console.log('Failed to load profile picture, using fallback');
+                        const initials = user.name
+                            .split(' ')
+                            .map(word => word[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2);
+                        profilePicture.src = `https://ui-avatars.com/api/?name=${initials}&background=FF8A00&color=fff&size=200`;
+                    };
+                    
+                    profilePicture.onload = function() {
+                        console.log('Profile picture loaded successfully');
+                    };
+                } else {
+                    console.log('No profile picture, using fallback');
+                    // Use initials as fallback
+                    const initials = user.name
+                    .split(' ')
+                    .map(word => word[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+                    profilePicture.src = `https://ui-avatars.com/api/?name=${initials}&background=FF8A00&color=fff&size=200`;
+                }
+
+                // Update profile information
+                document.getElementById('profileUsername').textContent = user.username || user.name.toLowerCase().replace(/\s+/g, '');
+                document.getElementById('profileName').textContent = user.name;
+                document.getElementById('profileBio').textContent = user.bio || 'No bio provided';
+                
+                // Update personal information
+                document.getElementById('profileEmail').textContent = user.email || 'Not provided';
+                document.getElementById('profilePhone').textContent = user.phone || 'Not provided';
+                document.getElementById('profileLocation').textContent = user.location || 'Not provided';
+                // Removed update for profileAltPhone since the element no longer exists
+                // document.getElementById('profileAltPhone').textContent = user.altPhone || user.phone || 'Not provided';
+                document.getElementById('profileBio').textContent = user.bio || 'No bio provided';
+
+                // Update skills with animation
+                const skillsContainer = document.getElementById('skillsContainer');
+                if (user.skills && Array.isArray(user.skills) && user.skills.filter(s => s && s.trim()).length > 0) {
+                    skillsContainer.innerHTML = ''; // Clear previous content
+                    user.skills.filter(s => s && s.trim()).forEach((skill, index) => {
+                        setTimeout(() => {
+                            const skillTag = document.createElement('div');
+                            skillTag.className = 'skill-tag';
+                            skillTag.textContent = skill;
+                            skillsContainer.appendChild(skillTag);
+                        }, index * 100);
+                    });
+                } else {
+                    skillsContainer.innerHTML = '<p style="color: rgba(255,255,255,0.6); font-style: italic;">No skills added yet</p>';
+                }
+
+                // Update social links
+                const socialLinksContainer = document.getElementById('socialLinks');
+                if (user.socialLinks || user.linkedin || user.website || user.instagram) {
+                    const links = [];
+                    if (user.socialLinks?.linkedin || user.linkedin) {
+                        links.push(`<a href="${user.socialLinks?.linkedin || user.linkedin}" class="social-link linkedin" target="_blank">
+                            <i class="fab fa-linkedin"></i>
+                            <span>LinkedIn</span>
+                        </a>`);
+                    }
+                    if (user.socialLinks?.website || user.website) {
+                        links.push(`<a href="${user.socialLinks?.website || user.website}" class="social-link website" target="_blank">
+                            <i class="fas fa-globe"></i>
+                            <span>Website</span>
+                        </a>`);
+                    }
+                    if (user.socialLinks?.instagram || user.instagram) {
+                        links.push(`<a href="${user.socialLinks?.instagram || user.instagram}" class="social-link instagram" target="_blank">
+                            <i class="fab fa-instagram"></i>
+                            <span>Instagram</span>
+                        </a>`);
+                    }
+                    if (links.length > 0) {
+                        socialLinksContainer.innerHTML = links.join('');
+                    } else {
+                        socialLinksContainer.innerHTML = '<p style="color: rgba(255,255,255,0.6); font-style: italic;">No social links added</p>';
+                    }
+                    } else {
+                    socialLinksContainer.innerHTML = '<p style="color: rgba(255,255,255,0.6); font-style: italic;">No social links added</p>';
+                }
+                    
+                // Update projects with animation
+                const projectsGrid = document.getElementById('projectsGrid');
+                const emptyState = document.getElementById('emptyState');
+                
+                if (user.projects && Array.isArray(user.projects) && user.projects.length > 0) {
+                    projectsGrid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                    
+                    user.projects.forEach((project, index) => {
+                        setTimeout(() => {
+                            const projectCard = document.createElement('div');
+                            projectCard.className = 'project-card';
+                            // Add three dots menu
+                            const menu = document.createElement('div');
+                            menu.className = 'card-menu';
+                            menu.innerHTML = `
+                                <div class="three-dots" style="position:absolute;top:12px;right:12px;cursor:pointer;z-index:2;">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                    <div class="menu-dropdown" style="display:none;position:absolute;right:0;top:28px;background:#232526;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.25);min-width:120px;overflow:hidden;">
+                                        <div class="menu-item edit-project" data-index="${index}" style="padding:10px 18px;color:#fff;cursor:pointer;text-align:left;transition:background 0.2s;">Edit</div>
+                                        <div style="height:1px;background:#333;margin:0;"></div>
+                                        <div class="menu-item delete-project" data-index="${index}" style="padding:10px 18px;color:#ff4d4f;cursor:pointer;text-align:left;transition:background 0.2s;">Delete</div>
+                                    </div>
+                                </div>
+                            `;
+                            menu.querySelectorAll('.menu-item').forEach(item => {
+                                item.addEventListener('mouseenter', function() {
+                                    this.style.background = '#333';
+                                });
+                                item.addEventListener('mouseleave', function() {
+                                    this.style.background = 'none';
+                                });
+                            });
+                            
+                            let mediaContent = '';
+                            if (project.media && project.media.length > 0) {
+                                const media = project.media[0];
+                                if (media.type === 'video') {
+                                    mediaContent = `<video class="project-media" muted><source src="${media.url}" type="video/mp4"></video>`;
+                                } else {
+                                    mediaContent = `<img src="${media.url}" alt="${project.name}" class="project-media">`;
+                                }
+                            } else {
+                                // Default placeholder with gradient
+                                mediaContent = `<div class="project-media" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white;">
+                                    <i class="fas fa-image" style="font-size: 3rem; opacity: 0.7;"></i>
+                                </div>`;
+                            }
+                            
+                            projectCard.innerHTML = `
+                                ${mediaContent}
+                                <div class="project-info">
+                                    <h4 class="project-title">${project.name}</h4>
+                                    <p class="project-role">${project.role}</p>
+                                    <p class="project-description">${project.description}</p>
+                                </div>
+                            `;
+                            projectCard.appendChild(menu);
+                            // Menu logic
+                            const threeDots = menu.querySelector('.three-dots');
+                            const dropdown = menu.querySelector('.menu-dropdown');
+                            threeDots.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                            });
+                            document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+                            menu.querySelector('.edit-project').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                // Use project.id or project.project_id for the modal
+                                openEditProjectModal({
+                                    id: project.id || project.project_id,
+                                    name: project.name,
+                                    description: project.description,
+                                    role: project.role
+                                });
+                                dropdown.style.display = 'none';
+                            });
+                            menu.querySelector('.delete-project').addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                const projectId = project.id || project.project_id;
+                                // Custom confirmation popup
+                                if (document.getElementById('customDeleteConfirm')) return; // Prevent multiple popups
+                                const confirmDiv = document.createElement('div');
+                                confirmDiv.id = 'customDeleteConfirm';
+                                confirmDiv.style.position = 'fixed';
+                                confirmDiv.style.top = '0';
+                                confirmDiv.style.left = '0';
+                                confirmDiv.style.width = '100vw';
+                                confirmDiv.style.height = '100vh';
+                                confirmDiv.style.background = 'rgba(0,0,0,0.5)';
+                                confirmDiv.style.display = 'flex';
+                                confirmDiv.style.alignItems = 'center';
+                                confirmDiv.style.justifyContent = 'center';
+                                confirmDiv.style.zIndex = '2000';
+                                confirmDiv.innerHTML = `
+                                  <div style="background:#232526;padding:32px 24px;border-radius:16px;max-width:350px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.4);text-align:center;">
+                                    <h3 style="color:#FFD700;margin-bottom:18px;">Delete Project?</h3>
+                                    <p style="color:#fff;margin-bottom:24px;">Are you sure you want to delete this project? This action cannot be undone.</p>
+                                    <div style="display:flex;gap:16px;justify-content:center;">
+                                      <button id="cancelDeleteProjectBtn" style="background:#444;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
+                                      <button id="confirmDeleteProjectBtn" style="background:#FF4D4F;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Delete</button>
+                                    </div>
+                                  </div>
+                                `;
+                                document.body.appendChild(confirmDiv);
+                                document.getElementById('cancelDeleteProjectBtn').onclick = () => {
+                                  confirmDiv.remove();
+                                dropdown.style.display = 'none';
+                                };
+                                document.getElementById('confirmDeleteProjectBtn').onclick = async () => {
+                                  confirmDiv.remove();
+                                  const token = localStorage.getItem('token');
+                                  try {
+                                    const response = await fetch(`${API_BASE_URL}/api/profile/projects/${projectId}`, {
+                                      method: 'DELETE',
+                                      headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    const result = await response.json().catch(() => ({}));
+                                    if (response.ok) {
+                                      // Show custom success notification
+                                      let notif = document.getElementById('customSuccessNotif');
+                                      if (!notif) {
+                                          notif = document.createElement('div');
+                                          notif.id = 'customSuccessNotif';
+                                          notif.style.position = 'fixed';
+                                          notif.style.top = '32px';
+                                          notif.style.left = '50%';
+                                          notif.style.transform = 'translateX(-50%)';
+                                          notif.style.background = '#2ecc40';
+                                          notif.style.color = '#fff';
+                                          notif.style.padding = '16px 32px';
+                                          notif.style.borderRadius = '8px';
+                                          notif.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+                                          notif.style.display = 'flex';
+                                          notif.style.alignItems = 'center';
+                                          notif.style.gap = '12px';
+                                          notif.style.fontSize = '1.1rem';
+                                          notif.style.zIndex = '3000';
+                                          notif.style.opacity = '0';
+                                          notif.style.transition = 'opacity 0.3s';
+                                          notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Project deleted successfully!</span>';
+                                          document.body.appendChild(notif);
+                                          setTimeout(() => { notif.style.opacity = '1'; }, 10);
+                                          setTimeout(() => { if (notif) notif.style.opacity = '0'; }, 2000);
+                                          setTimeout(() => { if (notif && notif.style.opacity === '0') notif.remove(); }, 2500);
+                                      } else {
+                                          notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Project deleted successfully!</span>';
+                                          notif.style.opacity = '1';
+                                      }
+                                      setTimeout(() => {
+                                          if (notif) notif.style.opacity = '0';
+                                      }, 2000);
+                                      setTimeout(() => {
+                                          if (notif && notif.style.opacity === '0') notif.remove();
+                                      }, 2500);
+                                      // Remove the project from the UI without reloading
+                                      if (window.user && Array.isArray(window.user.projects)) {
+                                          window.user.projects = window.user.projects.filter(p => String(p.id || p.project_id) !== String(projectId));
+                                          // Remove the project card from the DOM
+                                          if (projectCard && projectCard.parentNode) projectCard.parentNode.removeChild(projectCard);
+                                          // Show empty state if no projects left
+                                          if (window.user.projects.length === 0) {
+                                              const emptyState = document.getElementById('emptyState');
+                                              if (emptyState) emptyState.style.display = 'block';
+                                          }
+                                      } else {
+                                          localStorage.setItem('showProjectDeleteSuccess', '1');
+                                          location.reload();
+                                      }
+                                    } else {
+                                      alert('Failed to delete project: ' + (result.message || response.statusText));
+                                    }
+                                  } catch (err) {
+                                    alert('Error deleting project: ' + err.message);
+                                    console.error('Error deleting project:', err);
+                                  }
+                                  dropdown.style.display = 'none';
+                                };
+                            });
+                            projectsGrid.appendChild(projectCard);
+                        }, index * 200);
+                    });
+                } else {
+                    projectsGrid.style.display = 'grid'; // Always show grid
+                    emptyState.style.display = 'block';
+                }
+
+                // Update posts with animation
+                const postsGrid = document.getElementById('postsGrid');
+                const postsEmptyState = document.getElementById('postsEmptyState');
+                // Fetch user posts
+                try {
+                    const postsResponse = await fetch(`${API_BASE_URL}/api/posts/user/${user.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (postsResponse.ok) {
+                        const posts = await postsResponse.json();
+                        document.getElementById('postCount').textContent = posts.length || 0;
+                        if (posts && Array.isArray(posts) && posts.length > 0) {
+                            postsGrid.style.display = 'grid';
+                            if (postsEmptyState) {
+                                postsEmptyState.style.display = 'none';
+                            }
+                            // Remove only post-card children
+                            Array.from(postsGrid.children).forEach(child => {
+                                if (child.classList && child.classList.contains('post-card')) {
+                                    postsGrid.removeChild(child);
+                                }
+                            });
+                            posts.forEach((post, index) => {
+                                console.log('Rendering post:', post);
+                                setTimeout(() => {
+                                    const postItem = document.createElement('div');
+                                    postItem.className = 'post-card'; // match project-card style
+
+                                    let mediaContent = '';
+                                    if (post.image) {
+                                        mediaContent = `<img src="${post.image}" alt="Post media" class="post-media">`;
+                                    } else if (post.video) {
+                                        mediaContent = `<video class="post-media" muted controls><source src="${post.video}" type="video/mp4"></video>`;
+                                    } else {
+                                        mediaContent = `<div class="post-media" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; height: 200px;"><i class="fas fa-image" style="font-size: 3rem; opacity: 0.7;"></i></div>`;
+                                    }
+
+                                    // Create the menu for each post
+                                    const menu = document.createElement('div');
+                                    menu.className = 'card-menu';
+                                    menu.innerHTML = `
+                                    <div class="three-dots" style="position:absolute;top:12px;right:12px;cursor:pointer;z-index:2;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:50%;">
+                                        <i class="fas fa-ellipsis-v" style="color:#fff;"></i>
+                                        <div class="menu-dropdown" style="display:none;position:absolute;right:0;top:28px;background:#232526;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.25);min-width:120px;overflow:hidden;">
+                                        <div class="menu-item edit-post" data-index="${index}" style="padding:10px 18px;color:#fff;cursor:pointer;text-align:left;transition:background 0.2s;">Edit</div>
+                                        <div style="height:1px;background:#333;margin:0;"></div>
+                                        <div class="menu-item delete-post" data-index="${index}" style="padding:10px 18px;color:#ff4d4f;cursor:pointer;text-align:left;transition:background 0.2s;">Delete</div>
+                                        </div>
+                                    </div>
+                                    `;
+
+                                    postItem.innerHTML = `
+                                    ${mediaContent}
+                                    <div class="post-info" style="padding: 20px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                            <div>
+                                                <h4 class="post-title" style="font-size:1.1rem;color:white;margin:0 0 4px 0;">${post.author?.name || 'User'}</h4>
+                                                <span class="post-date" style="color:#aaa;font-size:0.85rem;">${new Date(post.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <p class="post-text" style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; font-size: 0.95rem; margin-bottom: 15px;">${post.content || ''}</p>
+                                        <div class="post-actions" style="display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                            <span class="post-action" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;"><i class="far fa-heart" style="margin-right: 6px;"></i> ${post.likes?.length || 0}</span>
+                                            <span class="post-action" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;"><i class="far fa-comment" style="margin-right: 6px;"></i> ${post.comments?.length || 0}</span>
+                                        </div>
+                                    </div>
+                                    `;
+                                    postItem.appendChild(menu);
+                                    // Menu logic
+                                    const threeDots = menu.querySelector('.three-dots');
+                                    const dropdown = menu.querySelector('.menu-dropdown');
+                                    if (threeDots && dropdown) {
+                                        threeDots.addEventListener('click', (e) => {
+                                            e.stopPropagation();
+                                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                                        });
+                                        document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+                                    }
+                                    const editPostBtn = menu.querySelector('.edit-post');
+                                    if (editPostBtn) {
+                                        editPostBtn.addEventListener('click', (e) => {
+                                            e.stopPropagation();
+                                            openEditPostModal(post);
+                                            if (dropdown) dropdown.style.display = 'none';
+                                        });
+                                    }
+                                    const deletePostBtn = menu.querySelector('.delete-post');
+                                    if (deletePostBtn) {
+                                        deletePostBtn.addEventListener('click', async (e) => {
+                                            e.stopPropagation();
+                                            const postId = post._id;
+                                            // Custom confirmation popup
+                                            if (document.getElementById('customDeleteConfirm')) return; // Prevent multiple popups
+                                            const confirmDiv = document.createElement('div');
+                                            confirmDiv.id = 'customDeleteConfirm';
+                                            confirmDiv.style.position = 'fixed';
+                                            confirmDiv.style.top = '0';
+                                            confirmDiv.style.left = '0';
+                                            confirmDiv.style.width = '100vw';
+                                            confirmDiv.style.height = '100vh';
+                                            confirmDiv.style.background = 'rgba(0,0,0,0.5)';
+                                            confirmDiv.style.display = 'flex';
+                                            confirmDiv.style.alignItems = 'center';
+                                            confirmDiv.style.justifyContent = 'center';
+                                            confirmDiv.style.zIndex = '2000';
+                                            confirmDiv.innerHTML = `
+                                              <div style="background:#232526;padding:32px 24px;border-radius:16px;max-width:350px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.4);text-align:center;">
+                                                <h3 style="color:#FFD700;margin-bottom:18px;">Delete Post?</h3>
+                                                <p style="color:#fff;margin-bottom:24px;">Are you sure you want to delete this post? This action cannot be undone.</p>
+                                                <div style="display:flex;gap:16px;justify-content:center;">
+                                                  <button id="cancelDeletePostBtn" style="background:#444;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
+                                                  <button id="confirmDeletePostBtn" style="background:#FF4D4F;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Delete</button>
+                                                </div>
+                                              </div>
+                                            `;
+                                            document.body.appendChild(confirmDiv);
+                                            document.getElementById('cancelDeletePostBtn').onclick = () => {
+                                              confirmDiv.remove();
+                                              if (dropdown) dropdown.style.display = 'none';
+                                            };
+                                            document.getElementById('confirmDeletePostBtn').onclick = async () => {
+                                              confirmDiv.remove();
+                                              const token = localStorage.getItem('token');
+                                              try {
+                                                const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+                                                  method: 'DELETE',
+                                                  headers: { 'Authorization': `Bearer ${token}` }
+                                                });
+                                                const result = await response.json().catch(() => ({}));
+                                                if (response.ok) {
+                                                  // Show custom success notification
+                                                  let notif = document.getElementById('customSuccessNotif');
+                                                  if (!notif) {
+                                                      notif = document.createElement('div');
+                                                      notif.id = 'customSuccessNotif';
+                                                      notif.style.position = 'fixed';
+                                                      notif.style.top = '32px';
+                                                      notif.style.left = '50%';
+                                                      notif.style.transform = 'translateX(-50%)';
+                                                      notif.style.background = '#2ecc40';
+                                                      notif.style.color = '#fff';
+                                                      notif.style.padding = '16px 32px';
+                                                      notif.style.borderRadius = '8px';
+                                                      notif.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+                                                      notif.style.display = 'flex';
+                                                      notif.style.alignItems = 'center';
+                                                      notif.style.gap = '12px';
+                                                      notif.style.fontSize = '1.1rem';
+                                                      notif.style.zIndex = '3000';
+                                                      notif.style.opacity = '0';
+                                                      notif.style.transition = 'opacity 0.3s';
+                                                      notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Post deleted successfully!</span>';
+                                                      document.body.appendChild(notif);
+                                                      setTimeout(() => { notif.style.opacity = '1'; }, 10);
+                                                      setTimeout(() => { if (notif) notif.style.opacity = '0'; }, 2000);
+                                                      setTimeout(() => { if (notif && notif.style.opacity === '0') notif.remove(); }, 2500);
+                                                  } else {
+                                                      notif.innerHTML = '<span style="font-size:1.5rem;">✔️</span> <span>Post deleted successfully!</span>';
+                                                      notif.style.opacity = '1';
+                                                  }
+                                                  setTimeout(() => {
+                                                      if (notif) notif.style.opacity = '0';
+                                                  }, 2000);
+                                                  setTimeout(() => {
+                                                      if (notif && notif.style.opacity === '0') notif.remove();
+                                                  }, 2500);
+                                                  // Remove the post from the UI without reloading
+                                                  if (postItem && postItem.parentNode) postItem.parentNode.removeChild(postItem);
+                                                  // Show empty state if no posts left
+                                                  setTimeout(() => {
+                                                      const visiblePosts = Array.from(postsGrid.children).filter(child => child.classList.contains('post-card'));
+                                                      if (visiblePosts.length === 0) {
+                                                          postsEmptyState.style.display = 'block';
+                                                      } else {
+                                                          postsEmptyState.style.display = 'none';
+                                                      }
+                                                  }, 100);
+                                                } else {
+                                                  alert('Failed to delete post: ' + (result.message || response.statusText));
+                                                }
+                                              } catch (err) {
+                                                alert('Error deleting post: ' + err.message);
+                                                console.error('Error deleting post:', err);
+                                              }
+                                              if (dropdown) dropdown.style.display = 'none';
+                                            };
+                                        });
+                                    }
+                                    postsGrid.appendChild(postItem);
+                                }, index * 200);
+                            });
+                            // Modal logic
+                            const postModalOverlay = document.getElementById('postModalOverlay');
+                            const postModalClose = document.getElementById('postModalClose');
+                            const postModalMedia = document.getElementById('postModalMedia');
+                            const postModalAuthor = document.getElementById('postModalAuthor');
+                            const postModalDate = document.getElementById('postModalDate');
+                            const postModalDesc = document.getElementById('postModalDesc');
+                            const postModalLikes = document.getElementById('postModalLikes');
+                            const postModalComments = document.getElementById('postModalComments');
+                            if (postModalClose) {
+                                postModalClose.addEventListener('click', function() {
+                                    postModalOverlay.classList.remove('active');
+                                });
+                            }
+                            postModalOverlay.addEventListener('click', function(e) {
+                                if (e.target === postModalOverlay) {
+                                    postModalOverlay.classList.remove('active');
+                                }
+                            });
+                        } else {
+                            postsGrid.style.display = 'grid';
+                            postsEmptyState.style.display = 'block';
+                            // Do NOT clear postsGrid.innerHTML here!
+                            console.log('[DEBUG] Showing posts empty state (no posts loaded)');
+                        }
+                    } else {
+                        postsGrid.style.display = 'grid';
+                        postsEmptyState.style.display = 'block';
+                        // Do NOT clear postsGrid.innerHTML here!
+                        console.log('[DEBUG] Showing posts empty state (no posts loaded)');
+                    }
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                    postsGrid.style.display = 'grid';
+                    postsEmptyState.style.display = 'block';
+                    // Do NOT clear postsGrid.innerHTML here!
+                    console.log('[DEBUG] Showing posts empty state (no posts loaded)');
+                    }
+
+                // Update top nav user info
+                document.querySelector('.user-name').textContent = user.name;
+                document.querySelector('.user-profile img').src = user.picture || profilePicture.src;
+
+                // Remove loading states
+                removeLoadingStates();
+
+                // After fetching user data and updating the UI, update the counts:
+                // Update project count
+                const projectCountElem = document.getElementById('projectCount');
+                if (projectCountElem) projectCountElem.textContent = (user.projects && Array.isArray(user.projects)) ? user.projects.length : 0;
+                // Update skills count
+                const skillCountElem = document.getElementById('skillCount');
+                if (skillCountElem) skillCountElem.textContent = (user.skills && Array.isArray(user.skills)) ? user.skills.filter(s => s && s.trim()).length : 0;
+                // Update updates/posts count (after posts are fetched below)
+                let postCount = 0;
+                try {
+                    const postsResponse = await fetch(`${API_BASE_URL}/api/posts/user/${user.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (postsResponse.ok) {
+                        const posts = await postsResponse.json();
+                        postCount = posts.length || 0;
+                        const postCountElem = document.getElementById('postCount');
+                        if (postCountElem) postCountElem.textContent = postCount;
+                    }
+                } catch (error) {
+                    // fallback: set to 0
+                    const postCountElem = document.getElementById('postCount');
+                    if (postCountElem) postCountElem.textContent = 0;
+                }
+
+                } catch (error) {
+                console.error('Error loading profile:', error);
+                alert('Failed to load profile data. Please try again later.');
+                removeLoadingStates();
+            }
+
+            // Handle logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Add interactive animations
+            addInteractiveAnimations();
+        });
+
+        function addLoadingStates() {
+            const elements = ['profileEmail', 'profilePhone', 'profileLocation', 'profileRole'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = 'Loading...';
+                    element.classList.add('loading-skeleton');
+                }
+            });
+        }
+
+        function removeLoadingStates() {
+            const elements = ['profileEmail', 'profilePhone', 'profileLocation', 'profileRole'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.remove('loading-skeleton');
+                }
+            });
+        }
+
+        function addInteractiveAnimations() {
+            // Add hover effects to project cards
+            document.addEventListener('mouseover', (e) => {
+                if (e.target.closest('.project-card')) {
+                    e.target.closest('.project-card').style.transform = 'translateY(-10px) scale(1.02)';
+                }
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                if (e.target.closest('.project-card')) {
+                    e.target.closest('.project-card').style.transform = 'translateY(0) scale(1)';
+                }
+            });
+
+            // Add click effects to buttons
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.pointerEvents = 'none';
+
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                    this.appendChild(ripple);
+
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        }
+
+        // Add modal HTML at the end of <body>
+        const editProjectModalHtml = `
+<div class="modal-overlay" id="editProjectModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal" style="background:#232526;padding:32px 24px;border-radius:16px;max-width:400px;width:100%;position:relative;">
+    <button id="closeEditProjectModal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;color:#fff;cursor:pointer;">&times;</button>
+    <h3 style="color:#FFD700;margin-bottom:18px;">Edit Project</h3>
+    <form id="editProjectForm">
+      <input type="hidden" id="editProjectId">
+      <div style="margin-bottom:14px;">
+        <label for="editProjectName" style="color:#fff;">Project Name</label>
+        <input type="text" id="editProjectName" name="name" style="width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid #444;background:#18191a;color:#fff;">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label for="editProjectDescription" style="color:#fff;">Description</label>
+        <textarea id="editProjectDescription" name="description" rows="3" style="width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid #444;background:#18191a;color:#fff;"></textarea>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label for="editProjectRole" style="color:#fff;">Role</label>
+        <input type="text" id="editProjectRole" name="role" style="width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid #444;background:#18191a;color:#fff;">
+      </div>
+      <div style="margin-bottom:18px;">
+        <label for="editProjectMedia" style="color:#fff;">Media (Image/Video)</label>
+        <input type="file" id="editProjectMedia" name="media" accept="image/*,video/*" style="width:100%;margin-top:4px;color:#fff;">
+      </div>
+      <button type="submit" style="background:#FF8A00;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;width:100%;">Save Changes</button>
+    </form>
+  </div>
+</div>`;
+document.body.insertAdjacentHTML('beforeend', editProjectModalHtml);
+
+// Modal logic
+const editProjectModalOverlay = document.getElementById('editProjectModalOverlay');
+const closeEditProjectModal = document.getElementById('closeEditProjectModal');
+const editProjectForm = document.getElementById('editProjectForm');
+
+closeEditProjectModal.addEventListener('click', () => {
+  editProjectModalOverlay.style.display = 'none';
+});
+editProjectModalOverlay.addEventListener('click', (e) => {
+  if (e.target === editProjectModalOverlay) editProjectModalOverlay.style.display = 'none';
+});
+
+// Open modal and fill data
+function openEditProjectModal(project) {
+  console.log('Opening edit modal for project:', project);
+  document.getElementById('editProjectId').value = project.id;
+  document.getElementById('editProjectName').value = project.name || '';
+  document.getElementById('editProjectDescription').value = project.description || '';
+  document.getElementById('editProjectRole').value = project.role || '';
+  document.getElementById('editProjectMedia').value = '';
+  editProjectModalOverlay.style.display = 'flex';
+}
+
+// Handle form submit
+editProjectForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const id = document.getElementById('editProjectId').value;
+  const name = document.getElementById('editProjectName').value;
+  const description = document.getElementById('editProjectDescription').value;
+  const role = document.getElementById('editProjectRole').value;
+  const media = document.getElementById('editProjectMedia').files[0];
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('description', description);
+  formData.append('role', role);
+  if (media) formData.append('media', media);
+  const url = `${API_BASE_URL}/api/profile/projects/${id}`;
+  console.log('Submitting project update:', { id, url, name, description, role, media });
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const result = await response.json().catch(() => ({}));
+    console.log('Backend response:', response.status, result);
+    if (response.ok) {
+      editProjectModalOverlay.style.display = 'none';
+      // Set flag in localStorage to show success message after reload
+      localStorage.setItem('showProjectEditSuccess', '1');
+      location.reload();
+    } else {
+      alert('Failed to update project: ' + (result.message || response.statusText));
+    }
+  } catch (err) {
+    alert('Error updating project: ' + err.message);
+    console.error('Error updating project:', err);
+  }
+});
+
+// Add modal HTML for editing posts at the end of <body>
+const editPostModalHtml = `
+<div class="modal-overlay" id="editPostModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal" style="background:#232526;padding:32px 24px;border-radius:16px;max-width:400px;width:100%;position:relative;">
+    <button id="closeEditPostModal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;color:#fff;cursor:pointer;">&times;</button>
+    <h3 style="color:#FFD700;margin-bottom:18px;">Edit Post</h3>
+    <form id="editPostForm">
+      <input type="hidden" id="editPostId">
+      <div style="margin-bottom:14px;">
+        <label for="editPostDescription" style="color:#fff;">Description</label>
+        <textarea id="editPostDescription" name="description" rows="3" style="width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid #444;background:#18191a;color:#fff;"></textarea>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label for="editPostMedia" style="color:#fff;">Media (Image/Video)</label>
+        <input type="file" id="editPostMedia" name="media" accept="image/*,video/*" style="width:100%;margin-top:4px;color:#fff;">
+      </div>
+      <button type="submit" style="background:#FF8A00;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;width:100%;">Save Changes</button>
+    </form>
+  </div>
+</div>`;
+document.body.insertAdjacentHTML('beforeend', editPostModalHtml);
+
+// Modal logic for posts
+const editPostModalOverlay = document.getElementById('editPostModalOverlay');
+const closeEditPostModal = document.getElementById('closeEditPostModal');
+const editPostForm = document.getElementById('editPostForm');
+closeEditPostModal.addEventListener('click', () => {
+  editPostModalOverlay.style.display = 'none';
+});
+editPostModalOverlay.addEventListener('click', (e) => {
+  if (e.target === editPostModalOverlay) editPostModalOverlay.style.display = 'none';
+});
+
+// Open modal and fill data for posts
+function openEditPostModal(post) {
+  document.getElementById('editPostId').value = post._id;
+  document.getElementById('editPostDescription').value = post.description || '';
+  document.getElementById('editPostMedia').value = '';
+  editPostModalOverlay.style.display = 'flex';
+}
+
+// Handle form submit for editing posts
+editPostForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const id = document.getElementById('editPostId').value;
+  const description = document.getElementById('editPostDescription').value;
+  const media = document.getElementById('editPostMedia').files[0];
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('description', description);
+  if (media) formData.append('media', media);
+  const url = `${API_BASE_URL}/api/posts/${id}`;
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) {
+      editPostModalOverlay.style.display = 'none';
+      // Set flag in localStorage to show success message after reload
+      localStorage.setItem('showPostEditSuccess', '1');
+      location.reload();
+    } else {
+      alert('Failed to update post: ' + (result.message || response.statusText));
+    }
+  } catch (err) {
+    alert('Error updating post: ' + err.message);
+    console.error('Error updating post:', err);
+  }
+});
+
+// ... existing code ...
+// Replace all direct event listeners for modal like, comment, and share buttons with a single event delegation handler:
+
+// Find the section after postModalOverlay.classList.add('active');
+// Add this event delegation logic:
+
+postModalOverlay.onclick = async function(e) {
+  // Like button
+  if (e.target.closest('#postModalLikeBtn')) {
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`/api/posts/${post._id}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to like post');
+      const result = await response.json();
+      const likeCount = document.getElementById('postModalLikes');
+      const likeIcon = document.getElementById('postModalLikeBtn').querySelector('i');
+      likeCount.textContent = result.likes.length;
+      if (result.liked) {
+        document.getElementById('postModalLikeBtn').classList.add('liked');
+        likeIcon.classList.remove('far');
+        likeIcon.classList.add('fas');
+      } else {
+        document.getElementById('postModalLikeBtn').classList.remove('liked');
+        likeIcon.classList.remove('fas');
+        likeIcon.classList.add('far');
+      }
+    } catch (error) {
+      alert('Failed to like post. Please try again.');
+    }
+    return;
+  }
+  // Comment button
+  if (e.target.closest('#postModalCommentBtn')) {
+    e.stopPropagation();
+    const igModalRightContainer = document.getElementById('igModalRightContainer');
+    igModalRightContainer.innerHTML = `
+      <div class="ig-modal-right">
+        <button class="post-modal-close" id="postModalClose">&times;</button>
+        <div class="comments-section" id="postModalCommentsSection"></div>
+        <div class="add-comment" id="postModalAddComment" style="display:flex;">
+          <input type="text" placeholder="Add a comment..." class="comment-input" id="postModalCommentInput">
+          <button class="submit-comment" id="postModalSubmitComment">Post</button>
+        </div>
+      </div>
+    `;
+    // Attach close button event
+    const postModalCloseBtn = document.getElementById('postModalClose');
+    if (postModalCloseBtn) {
+      postModalCloseBtn.onclick = function() {
+        postModalOverlay.classList.remove('active');
+      };
+    }
+    // Fetch and display comments
+    const commentsSection = document.getElementById('postModalCommentsSection');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/posts/${post._id}/comments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch comments');
+      const result = await response.json();
+      commentsSection.innerHTML = result.comments && result.comments.length
+        ? result.comments.map(c => `<div style='margin-bottom:4px;'><b>${c.author?.name || 'User'}:</b> ${c.text}</div>`).join('')
+        : '<div style=\"color:#ccc;\">No comments yet.</div>';
+    } catch (error) {
+      commentsSection.innerHTML = '<div style=\"color:#f88;\">Failed to load comments.</div>';
+    }
+    // Add comment submit logic
+    const submitCommentBtn = document.getElementById('postModalSubmitComment');
+    const commentInput = document.getElementById('postModalCommentInput');
+    if (submitCommentBtn && commentInput) {
+      submitCommentBtn.onclick = async function(ev) {
+        ev.stopPropagation();
+        const text = commentInput.value.trim();
+        if (!text) return;
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/posts/${post._id}/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ text })
+          });
+          if (!response.ok) throw new Error('Failed to add comment');
+          commentInput.value = '';
+          // Refresh comments
+          document.getElementById('postModalCommentBtn').click();
+        } catch (error) {
+          alert('Failed to add comment.');
+        }
+      };
+    }
+    return;
+  }
+  // Share button
+  if (e.target.closest('#postModalShareBtn')) {
+    e.stopPropagation();
+    const postUrl = window.location.origin + `/post/${post._id}`;
+    const modalShareBtn = document.getElementById('postModalShareBtn');
+    navigator.clipboard.writeText(postUrl).then(() => {
+      modalShareBtn.innerHTML = '<i class="far fa-paper-plane"></i> Copied!';
+      setTimeout(() => {
+        modalShareBtn.innerHTML = '<i class="far fa-paper-plane"></i>';
+      }, 1200);
+    }).catch(() => {
+      alert('Failed to copy link.');
+    });
+    return;
+  }
+};
+
+// Settings Modal Logic
+const settingsModalHtml = `
+<div class="modal-overlay" id="settingsModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(8px);">
+  <div class="modal" style="background:#18191a;padding:0;border-radius:24px;max-width:600px;width:90%;max-height:85vh;overflow:hidden;position:relative;box-shadow:0 25px 50px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;">
+    <div style="padding:24px;background:#232526;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="color:#FFD700;margin:0;font-size:1.5rem;display:flex;align-items:center;gap:12px;">
+            <i class="fas fa-cog"></i> Account Settings
+        </h3>
+        <button id="closeSettingsModal" style="background:rgba(255,255,255,0.05);border:none;width:36px;height:36px;border-radius:50%;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all 0.2s;">&times;</button>
+    </div>
+    
+    <div style="flex:1;overflow-y:auto;padding:24px;">
+        <div class="settings-group" style="margin-bottom:32px;">
+            <h4 style="color:#fff;margin-bottom:16px;font-size:1.1rem;border-left:4px solid #FF8A00;padding-left:12px;">Privacy & Security</h4>
+            <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:8px;">
+                <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="color:#eee;font-weight:500;">Private Profile</div>
+                    <label class="switch" style="position:relative;display:inline-block;width:44px;height:22px;">
+                        <input type="checkbox" style="opacity:0;width:0;height:0;">
+                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#444;transition:.3s;border-radius:22px;"></span>
+                    </label>
+                </div>
+                <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="color:#eee;font-weight:500;">Show Activity Status</div>
+                    <label class="switch" style="position:relative;display:inline-block;width:44px;height:22px;">
+                        <input type="checkbox" checked style="opacity:0;width:0;height:0;">
+                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#FF8A00;transition:.3s;border-radius:22px;"></span>
+                    </label>
+                </div>
+                <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="color:#eee;font-weight:500;">Two-Factor Authentication</div>
+                    <button style="background:rgba(255,215,0,0.1);color:#FFD700;border:1px solid #FFD700;padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer;">Enable</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-group" style="margin-bottom:32px;">
+            <h4 style="color:#fff;margin-bottom:16px;font-size:1.1rem;border-left:4px solid #FF8A00;padding-left:12px;">Notifications</h4>
+            <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:8px;">
+                <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="color:#eee;font-weight:500;">Email Notifications</div>
+                    <label class="switch" style="position:relative;display:inline-block;width:44px;height:22px;">
+                        <input type="checkbox" checked style="opacity:0;width:0;height:0;">
+                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#FF8A00;transition:.3s;border-radius:22px;"></span>
+                    </label>
+                </div>
+                <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="color:#eee;font-weight:500;">Push Notifications</div>
+                    <label class="switch" style="position:relative;display:inline-block;width:44px;height:22px;">
+                        <input type="checkbox" checked style="opacity:0;width:0;height:0;">
+                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#FF8A00;transition:.3s;border-radius:22px;"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <h4 style="color:#fff;margin-bottom:16px;font-size:1.1rem;border-left:4px solid #FF2D55;padding-left:12px;">Support & More</h4>
+            <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:8px;">
+                <div style="padding:16px;display:flex;align-items:center;gap:12px;color:#eee;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fas fa-question-circle" style="color:#FF8A00;"></i> Help Center</div>
+                <div style="padding:16px;display:flex;align-items:center;gap:12px;color:#eee;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fas fa-file-alt" style="color:#FF8A00;"></i> Terms of Service</div>
+                <div style="padding:16px;display:flex;align-items:center;gap:12px;color:#ff4d4f;cursor:pointer;"><i class="fas fa-trash-alt"></i> Delete Account</div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="padding:20px 24px;background:#232526;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:flex-end;">
+        <button id="saveSettingsBtn" style="background:#FF8A00;color:#fff;padding:12px 28px;border:none;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:0 8px 16px rgba(255,138,0,0.3);transition:all 0.3s;">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.switch input:checked + .slider:before { transform: translateX(22px); }
+.slider:before {
+  position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+</style>
+`;
+document.body.insertAdjacentHTML('beforeend', settingsModalHtml);
+
+const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+const closeSettingsModal = document.getElementById('closeSettingsModal');
+const profileSettingsBtn = document.getElementById('profileSettingsBtn');
+const dropdownSettingsBtn = document.getElementById('dropdownSettingsBtn');
+const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+function openSettingsModal() {
+    settingsModalOverlay.style.display = 'flex';
+    settingsModalOverlay.style.animation = 'fadeIn 0.3s ease-out';
+    settingsModalOverlay.querySelector('.modal').style.animation = 'slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+}
+
+function closeSettingsModalFunc() {
+    settingsModalOverlay.style.display = 'none';
+}
+
+if (profileSettingsBtn) profileSettingsBtn.onclick = openSettingsModal;
+if (dropdownSettingsBtn) dropdownSettingsBtn.onclick = openSettingsModal;
+if (closeSettingsModal) closeSettingsModal.onclick = closeSettingsModalFunc;
+if (saveSettingsBtn) saveSettingsBtn.onclick = () => {
+    alert('Settings saved successfully!');
+    closeSettingsModalFunc();
+};
+
+settingsModalOverlay.onclick = (e) => {
+    if (e.target === settingsModalOverlay) closeSettingsModalFunc();
+};
+};
     </script>
 </body>
-
-</html>
+</html> 

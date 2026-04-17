@@ -1,157 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crew Search | CrewCanvas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/crew-search.css">
+    <title>CrewCanvas - Crew Search</title>
+    <link rel="stylesheet" href="styles/home.css">
+    <link rel="stylesheet" href="styles/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/crew-search.css?v=3">
+    <!-- Add profile handler script early -->
+    <script src="js/profile-handler.js"></script>
 </head>
-
 <body>
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item">
-                <span class="icon">📰</span> Feed
-            </a>
-            <a href="home.html" class="nav-item">
-                <span class="icon">🏠</span> Dashboard
-            </a>
-            <a href="crew-search.html" class="nav-item active">
-                <span class="icon">🔍</span> Crew Search
-            </a>
-            <a href="messages.html" class="nav-item">
-                <span class="icon">💬</span> Messages
-            </a>
-            <a href="launch-audition.html" class="nav-item">
-                <span class="icon">🎬</span> Events
-            </a>
-        </nav>
-    </aside>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>CrewCanvas</h1>
+                <p class="logo-caption">Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Feed</span>
+                </a>
+                <a href="home.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="crew-search.html" class="nav-item active">
+                    <i class="fas fa-search"></i>
+                    <span>Crew Search</span>
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="launch-audition.html" class="nav-item" >
+                    <i class="fas fa-film"></i>
+                    <span>Events</span>
+                </a>
+            </nav>
+        </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="top-header">
-            <div class="status-bar">
-                <button class="notify-btn">⚙️</button>
-                <button class="notify-btn">🔔</button>
-                <a href="settings.html" class="mobile-settings-btn">⚙️</a>
-                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                    <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
-                        <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
-                        <span id="userInitialsSmall">U</span>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="topbar-logo-mobile">
+                    <span class="topbar-title">CrewCanvas</span>
+                    <span class="topbar-caption">Where all crafts connect</span>
+                </div>
+                <div class="nav-right">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
                     </div>
-                    <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
-                    <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
-                    <div class="profile-dropdown-menu" id="profileDropdown">
-                        <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
-                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
-                        <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
+                        <span class="user-name"></span>
+                        <div class="profile-dropdown">
+                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>   
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+
+                <!-- Top Users (Instagram-style) -->
+                <section class="top-users-section" style="margin: 2rem 0 1.5rem 0;">
+                    <h3 style="margin-left: 1rem; color: #FF8A00; font-size: 1.1rem;">Top Creators</h3>
+                    <div id="topUsers" class="top-users-row" style="display: flex; gap: 2.5rem; align-items: flex-end; margin: 1rem 0 2rem 1rem;"></div>
+                </section>
+                <div class="crew-feature-tabs">
+                    <div class="feature-tab active" id="findCrewTab">
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <div class="feature-labels">
+                            <div class="feature-title">FIND CREW</div>
+                            <div class="feature-desc">Browse all crew</div>
+                        </div>
+                        <div class="feature-count">0</div>
+                    </div>
+                    <div class="feature-tab" id="myConnectionsTab">
+                        <div class="feature-icon"><i class="fas fa-user-friends"></i></div>
+                        <div class="feature-labels">
+                            <div class="feature-title">MY CONNECTIONS</div>
+                            <div class="feature-desc">View your connections</div>
+                        </div>
+                        <div class="feature-count">0        </div>
+                    </div>
+                </div>
+                
+                <div class="feature-tab-content" id="findCrewContent">
+                    <!-- Film-Themed Filter Section -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1.5rem;">
+                        <div class="crew-search-bar" style="display:flex;align-items:center;gap:8px;">
+                            <input type="text" placeholder="Search crew..." style="padding: 0.5rem 2.2rem 0.5rem 1rem; border-radius: 24px; border: 1.5px solid #e0e0e0; font-size: 1rem; background: #fff; width: 220px;">
+                            <span style="position:relative;left:-2rem;color:#FF8A00;font-size:1.1rem;"><i class="fas fa-search"></i></span>
+                        </div>
+                        <div class="crew-filter-toggle" style="cursor:pointer;display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;color:#222;">
+                            <i class="fas fa-filter" style="color:#FF8A00;font-size:1.3rem;"></i>
+                            <span>Filter Crew</span>
+                        </div>
+                    </div>
+                    <div class="crew-filter-section" id="crewFilterSection" style="display:none;">
+                        <div class="filter-header">
+                            <div class="filter-title">
+                                <i class="fas fa-filter"></i>
+                                <span>Filter Crew</span>
+                            </div>
+                                                    <div class="filter-graphics">
+                            <div class="film-clapperboard"></div>
+                            <div class="film-light"></div>
+                        </div>
+                        </div>
+                        
+                        <div class="crew-filter-bar">
+                            <div class="filter-group">
+                                <label for="filterRole">
+                                    <i class="fas fa-theater-masks"></i>
+                                    <span>Role</span>
+                                </label>
+                                <select id="filterRole">
+                                    <option value="">All Roles</option>
+                                    <option value="director">Director</option>
+                                    <option value="cinematographer">Cinematographer</option>
+                                    <option value="editor">Editor</option>
+                                    <option value="sound-designer">Sound Designer</option>
+                                    <option value="production-designer">Production Designer</option>
+                                    <option value="costume-designer">Costume Designer</option>
+                                    <option value="makeup-artist">Makeup Artist</option>
+                                    <option value="lighting-technician">Lighting Technician</option>
+                                    <option value="stunt-coordinator">Stunt Coordinator</option>
+                                    <option value="casting-director">Casting Director</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterLocation">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Location</span>
+                                </label>
+                                <input id="filterLocation" type="text" placeholder="City, State" />
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterSkills">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Skills</span>
+                                </label>
+                                <input id="filterSkills" type="text" placeholder="e.g., Camera, Editing, Sound" />
+                            </div>
+                            
+                            <div class="filter-actions">
+                                <button id="clearFiltersBtn" class="clear-filters-btn">
+                                    <i class="fas fa-times"></i>
+                                    <span>Clear</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="profileGridWrapper">
+                <div class="profile-grid">
+    <!-- Profile cards will be dynamically loaded here -->
+                    </div>
+                    <div id="paginationControls" class="pagination-controls">
+                        <!-- Pagination buttons will be dynamically loaded here -->
+                    </div>
+                    </div>
+                </div>
+                <div class="feature-tab-content" id="myConnectionsContent" style="display:none;">
+                    <!-- Connection Type Tabs -->
+                    <div class="connection-tabs">
+                        <button class="connection-tab active" id="followingTab">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Following</span>
+                        </button>
+                        <button class="connection-tab" id="followersTab">
+                            <i class="fas fa-users"></i>
+                            <span>Followers</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Following Content -->
+                    <div class="connection-content active" id="followingContent">
+                        <div class="profile-search-bar">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="followingSearchInput" placeholder="Search people you follow..." />
+                                <span class="search-icon"><i class="fas fa-user"></i></span>
+                            </div>
+                        </div>
+                        <div class="profile-grid" id="followingGrid">
+                            <!-- Following will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Followers Content -->
+                    <div class="connection-content" id="followersContent">
+                        <div class="profile-search-bar">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="followersSearchInput" placeholder="Search your followers..." />
+                                <span class="search-icon"><i class="fas fa-users"></i></span>
+                            </div>
+                        </div>
+                        <div class="profile-grid" id="followersGrid">
+                            <!-- Followers will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </header>
-
-        <div class="content-body">
-            <!-- Section Title -->
-            <div class="section-header">
-                <h2 class="section-title">TOP CREATORS</h2>
-            </div>
-
-            <!-- Feature Cards (Find Crew / Connections) -->
-            <div class="features-grid">
-                <div class="feature-card active" id="findCrewCard" onclick="switchSearchTab('find')">
-                    <div class="feature-icon-circle">👥</div>
-                    <div class="feature-info">
-                        <h3>TOTAL CREW</h3>
-                    </div>
-                    <div class="count-badge" id="totalCrewCount">0</div>
-                </div>
-
-                <div class="feature-card" id="followingCountCard" onclick="switchSearchTab('connections'); switchConnectionTab('following')">
-                    <div class="feature-icon-circle">👤+</div>
-                    <div class="feature-info">
-                        <h3>MY FOLLOWING</h3>
-                        <p>People you follow</p>
-                    </div>
-                    <div class="count-badge" id="myFollowingCount">0</div>
-                </div>
-
-                <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections'); switchConnectionTab('followers')">
-                    <div class="feature-icon-circle">🤝</div>
-                    <div class="feature-info">
-                        <h3>MY FOLLOWERS</h3>
-                        <p>People following you</p>
-                    </div>
-                    <div class="count-badge" id="myConnectionsCount">0</div>
-                </div>
-            </div>
-
-            <!-- Toggle Switch Tabs -->
-            <div class="toggle-switch-container">
-                <div class="toggle-btn active" id="followingTab" onclick="switchConnectionTab('following')">
-                    <span class="icon">👤+</span> Following
-                </div>
-                <div class="toggle-btn" id="followersTab" onclick="switchConnectionTab('followers')">
-                    <span class="icon">👥</span> Followers
-                </div>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="custom-search-bar">
-                <input type="text" id="searchInput" placeholder="Search people you follow..." oninput="searchUsers()">
-                <span class="search-person-icon">👤</span>
-            </div>
-
-            <!-- Results Grid -->
-            <div id="searchResults" class="crew-grid" style="margin-top: 40px;">
-                <!-- Dynamically loaded -->
-            </div>
-
-            <!-- Loading Dots -->
-            <div class="scroll-load">
-                <div class="loader-dots">
-                    <div class="dot dot-1"></div>
-                    <div class="dot dot-2"></div>
-                    <div class="dot dot-3"></div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Universal Bottom Navigation -->
-    <div class="bottom-nav">
-        <a href="feed.html" class="nav-item">
-            <span class="icon">📰</span> <span>Feed</span>
-        </a>
-        <a href="home.html" class="nav-item">
-            <span class="icon">🏠</span> <span>Dashboard</span>
-        </a>
-        <a href="crew-search.html" class="nav-item active">
-            <span class="icon">🔍</span> <span>Crew Search</span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <span class="icon">💬</span> <span>Messages</span>
-        </a>
-        <a href="launch-audition.html" class="nav-item">
-            <span class="icon">🎬</span> <span>Events</span>
-        </a>
+        </main>
     </div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/crew-search.js"></script>
-</body>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Fetch top 3 users
+        try {
+            const res = await fetch('/api/profile/top', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (!res.ok) return;
+            const users = await res.json();
+            const topUsersDiv = document.getElementById('topUsers');
+            if (!topUsersDiv) return;
+            topUsersDiv.innerHTML = '';
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.style.display = 'flex';
+                userDiv.style.flexDirection = 'column';
+                userDiv.style.alignItems = 'center';
+                userDiv.style.cursor = 'pointer';
+                userDiv.style.textAlign = 'center';
+                userDiv.style.width = '90px';
+                userDiv.innerHTML = `
+                    <a href="profile.html?user=${user.id}" style="text-decoration:none; color:inherit;">
+                        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid #FF8A00; margin-bottom: 0.5rem; background: #fff;">
+                            <img src="${user.picture || 'images/profile.jpg'}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <span style="font-size: 0.95rem; font-weight: 500;">${user.name.split(' ')[0]}</span>
+                    </a>
+                `;
+                topUsersDiv.appendChild(userDiv);
+            });
+        } catch (e) {
+            // Optionally handle error
+        }
+    });
+    </script>
+    <script>
+    function initializeProfileDropdown() {
+        const userProfile = document.querySelector('.user-profile');
+        if (userProfile) {
+            userProfile.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = userProfile.querySelector('.profile-dropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            });
 
-</html>
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userProfile.contains(e.target)) {
+                    const dropdown = userProfile.querySelector('.profile-dropdown');
+                    if (dropdown && dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+        }
+
+        // Handle logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeProfileDropdown);
+    } else {
+        initializeProfileDropdown();
+    }
+</script>
+    <script src="js/profile.js"></script>
+    <script>
+    // Toggle filter section
+    const filterToggle = document.querySelector('.crew-filter-toggle');
+    const filterSection = document.getElementById('crewFilterSection');
+    if (filterToggle && filterSection) {
+        filterToggle.addEventListener('click', () => {
+            if (filterSection.style.display === 'none' || filterSection.style.display === '') {
+                filterSection.style.display = 'block';
+            } else {
+                filterSection.style.display = 'none';
+            }
+        });
+    }
+
+    // Crew search bar functionality
+    const crewSearchInput = document.querySelector('.crew-search-bar input');
+    if (crewSearchInput) {
+        crewSearchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            const cards = document.querySelectorAll('.film-card');
+            cards.forEach(card => {
+                const name = card.querySelector('.user-name')?.textContent?.toLowerCase() || '';
+                const role = card.querySelector('.user-role')?.textContent?.toLowerCase() || '';
+                const location = card.querySelector('.user-location')?.textContent?.toLowerCase() || '';
+                if (name.includes(query) || role.includes(query) || location.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html> 
