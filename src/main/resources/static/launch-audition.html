@@ -112,8 +112,19 @@
             cursor: pointer;
             transition: all 0.3s;
             border: none;
-            z-index: 1000;
+            z-index: 20000; /* Definitely above bottom nav (10000) */
         }
+
+        @media (max-width: 1080px) {
+            .fab {
+                bottom: 100px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+        }
+
 
         .fab:hover {
             transform: scale(1.1);

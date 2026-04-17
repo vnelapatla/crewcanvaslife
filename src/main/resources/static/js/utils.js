@@ -129,9 +129,9 @@ async function uploadImage(file) {
             return;
         }
 
-        // Check file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            reject(new Error('File size must be less than 5MB'));
+        // Check file size (max 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+            showMessage('File size must be less than 50MB', 'error');
             return;
         }
 

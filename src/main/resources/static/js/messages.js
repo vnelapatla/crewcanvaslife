@@ -4,6 +4,14 @@ const MessagingUI = {
         switchSidebarTab(tabName);
     }
 };
+// State management
+let connectionFilter = 'all'; // 'all', 'following', 'followers', 'mutual'
+
+// Helper for robust ID retrieval
+function getUserId(user) {
+    if (!user) return null;
+    return user.id || user.userId || user.ID || user.userID || (typeof user !== 'object' ? user : null);
+}
 
 function switchSidebarTab(tabName) {
     const chatTab = document.getElementById('conversationsList');
@@ -28,7 +36,7 @@ let selectedConversationUserId = null;
 let conversations = [];
 let stompClient = null;
 
-const WS_ENDPOINT = 'http://localhost:8084/ws-chat';
+const WS_ENDPOINT = '/ws-chat';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Messages JS Loaded");
@@ -60,7 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if opening conversation with specific user
     const targetUserId = getQueryParam('userId');
     if (targetUserId) {
-        openConversation(targetUserId);
+        console.log("Redirected with target user ID:", targetUserId);
+        // Using setTimeout to ensure initMessaging runs first
+        setTimeout(() => startNewChat(targetUserId), 500);
     }
 
     initMessaging();
@@ -75,7 +85,7 @@ function connectWebSocket() {
 
     stompClient.connect({}, (frame) => {
         console.log('Connected to WebSocket');
-        stompClient.subscribe(`/user/${currentUserId}/queue/messages`, (message) => {
+        stompClient.subscribe(`/topic/messages/${currentUserId}`, (message) => {
             const msg = JSON.parse(message.body);
             onMessageReceived(msg);
         });
@@ -86,8 +96,8 @@ function connectWebSocket() {
 }
 
 function onMessageReceived(msg) {
-    if (selectedConversationUserId == msg.senderId) {
-        loadMessages(); // Reload existing logic
+    if (String(selectedConversationUserId) === String(msg.senderId) || String(selectedConversationUserId) === String(msg.receiverId)) {
+        loadMessages(); 
     }
     loadConversations();
 }
@@ -139,69 +149,85 @@ async function loadConversations() {
 // Load following and followers
 async function loadFollowing() {
     try {
-        // Load Following
-        console.log("Loading followers for:", currentUserId);
-        const respFollowers = await fetch(`${API_BASE_URL}/api/users/${currentUserId}/followers`);
+        console.log("Loading all connection types for:", currentUserId);
         
-        console.log("API Response /api/users/followers:", respFollowers.status);
-        
-        if (respFollowers.ok) {
-            window.allFollowerUsers = await respFollowers.json();
-            console.log("Followers List Data:", window.allFollowerUsers);
-            if (!Array.isArray(window.allFollowerUsers)) window.allFollowerUsers = [];
-            
-            if (window.allFollowerUsers.length === 0) {
-                console.warn("Followers API returned empty list.");
-                showMessage("No connections found to message.", "info");
-            }
-        } else {
-            const err = await respFollowers.text();
-            console.error("Followers fetch failed:", respFollowers.status, err);
-            showMessage("Failed to load followers. Check console for details.", "error");
+        // 1. Fetch Following
+        const respFollowing = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following?t=${Date.now()}`);
+        let following = [];
+        if (respFollowing.ok) {
+            following = await respFollowing.json();
+            if (!Array.isArray(following)) following = [];
+            window.allFollowingUsers = following;
         }
-        displayUsersList('followingList', window.allFollowerUsers, 'No connections found');
-        
-        // Update counts
-        const followerCountEl = document.getElementById('followerCount');
-        if (followerCountEl) followerCountEl.innerText = `${window.allFollowerUsers.length} Followers`;
-        
-        // Load Followers
-        console.log("Loading followers for:", currentUserId);
-        const respFollowers = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers`);
+
+        // 2. Fetch Followers
+        const respFollowers = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers?t=${Date.now()}`);
         let followers = [];
         if (respFollowers.ok) {
             followers = await respFollowers.json();
             if (!Array.isArray(followers)) followers = [];
+            window.allFollowerUsers = followers;
         }
 
-        // Load All Users for global messaging
+        // 3. Calculate Mutuals
+        const followingIds = new Set(following.map(u => String(getUserId(u))));
+        const mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
+        window.allMutualUsers = mutuals;
+
+        // 4. Merge into a unique Connections list (Everyone you can message)
+        const combined = [...following];
+        const combinedIds = new Set(following.map(u => String(getUserId(u))));
+        
+        followers.forEach(u => {
+            const id = String(getUserId(u));
+            if (!combinedIds.has(id)) {
+                combined.push(u);
+                combinedIds.add(id);
+            }
+        });
+        window.allConnections = combined;
+
+        // Update counts in UI
+        if (document.getElementById('followingCount')) document.getElementById('followingCount').innerText = `${following.length} Following`;
+        if (document.getElementById('followerCount')) document.getElementById('followerCount').innerText = `${followers.length} Followers`;
+        if (document.getElementById('mutualCount')) document.getElementById('mutualCount').innerText = `${mutuals.length} Mutual`;
+
+        // Display List
+        filterConnections('all');
+
+        // Global Platform Search initialization
         try {
             const respAll = await fetch(`${API_BASE_URL}/api/profile/search?query=`);
-            if (respAll.ok) {
-                window.allPlatformUsers = await respAll.json();
-            }
-        } catch (e) {
-            console.error("Could not load all users", e);
-            window.allPlatformUsers = window.allFollowingUsers;
-        }
+            if (respAll.ok) window.allPlatformUsers = await respAll.json();
+        } catch (e) { console.warn("Platform search unavailable", e); }
 
-        // Update counts
-        const followingCountEl = document.getElementById('followingCount');
-        if (followingCountEl) followingCountEl.innerText = `${window.allFollowingUsers.length} Following`;
-
-        const followerCountEl = document.getElementById('followerCount');
-        if (followerCountEl) followerCountEl.innerText = `${followers.length} Followers`;
-
-        // Update Mutual count
-        const followingIds = window.allFollowingUsers.map(u => u.id);
-        const mutuals = followers.filter(u => followingIds.includes(u.id));
-        const mutualCountEl = document.getElementById('mutualCount');
-        if (mutualCountEl) mutualCountEl.innerText = `${mutuals.length} Mutual`;
     } catch (error) {
         console.error('Error loading social connections:', error);
         const container = document.getElementById('followingList');
-        if (container) container.innerHTML = '<div style="padding: 10px; color: #f44336; font-size: 11px;">Server unreachable</div>';
+        if (container) container.innerHTML = '<div style="padding: 20px; color: #f44336; font-size: 13px;">Wait! Logic error or server down.</div>';
     }
+}
+
+function filterConnections(type) {
+    connectionFilter = type;
+    let list = window.allConnections || [];
+    let emptyMsg = "No connections found";
+
+    if (type === 'following') {
+        list = window.allFollowingUsers || [];
+        emptyMsg = "You are not following anyone yet";
+    } else if (type === 'followers') {
+        list = window.allFollowerUsers || [];
+        emptyMsg = "No one is following you yet";
+    } else if (type === 'mutual') {
+        list = window.allMutualUsers || [];
+        emptyMsg = "No mutual connections found";
+    }
+
+    displayUsersList('followingList', list, emptyMsg);
+    
+    // UI highlight for pills if wanted, but switching tobacco tab is enough
+    switchSidebarTab('following');
 }
 
 // Generic user list display
@@ -215,13 +241,14 @@ function displayUsersList(elementId, users, emptyMessage) {
     }
 
     container.innerHTML = users.map(user => {
+        const userId = getUserId(user);
         const initials = (user.name || 'U').charAt(0).toUpperCase();
         const color = getRandomColor(user.name);
         
         return `
             <div class="user-row">
                 <div class="initials-avatar" style="background: ${color}">${initials}</div>
-                <div class="user-main" onclick="openConversation(${user.id})">
+                <div class="user-main" onclick="openConversation(${userId})">
                     <div class="user-name-row">
                         <h4>${user.name || 'User'}</h4>
                         <span class="user-time">active now</span>
@@ -230,7 +257,7 @@ function displayUsersList(elementId, users, emptyMessage) {
                         <span class="user-status">${user.role || 'Film Professional'}</span>
                     </div>
                 </div>
-                <button class="message-row-btn" onclick="startNewChat(${user.id})">
+                <button class="message-row-btn" onclick="startNewChat(${userId})">
                     <i class="fa-solid fa-paper-plane"></i> Message
                 </button>
             </div>
@@ -293,27 +320,35 @@ async function displayConversations(listToDisplay = null) {
     }
 
     container.innerHTML = items.map(conv => {
-        const otherUser = conv.user1Id == currentUserId ? conv.user2 : conv.user1;
-        const otherUserId = otherUser?.id;
-        const isActive = selectedConversationUserId == otherUserId;
-        const name = otherUser?.name || 'User';
-        const initials = name.charAt(0).toUpperCase();
-        const color = getRandomColor(name);
+        try {
+            const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
+            const otherUserId = getUserId(otherUser);
+            
+            if (!otherUserId) return ''; // Skip invalid conversations
 
-        return `
-            <div class="user-row ${isActive ? 'active' : ''}" onclick="openConversation(${otherUserId})">
-                <div class="initials-avatar" style="background: ${color}">${initials}</div>
-                <div class="user-main">
-                    <div class="user-name-row">
-                        <h4>${name}</h4>
-                        <span class="user-time">${formatDateShort(conv.updatedAt)}</span>
-                    </div>
-                    <div class="user-status-row">
-                        <span class="user-status">${truncateText(conv.lastMessage || 'Start a conversation...', 40)}</span>
+            const isActive = String(selectedConversationUserId) === String(otherUserId);
+            const name = otherUser?.name || 'User';
+            const initials = name.charAt(0).toUpperCase();
+            const color = getRandomColor(name);
+
+            return `
+                <div class="user-row ${isActive ? 'active' : ''}" onclick="openConversation(${otherUserId})">
+                    <div class="initials-avatar" style="background: ${color}">${initials}</div>
+                    <div class="user-main">
+                        <div class="user-name-row">
+                            <h4>${name}</h4>
+                            <span class="user-time">${formatDateShort(conv.updatedAt)}</span>
+                        </div>
+                        <div class="user-status-row">
+                            <span class="user-status">${truncateText(conv.lastMessage || 'Start a conversation...', 40)}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } catch (e) {
+            console.error("Error rendering conversation row:", e, conv);
+            return '';
+        }
     }).join('');
 }
 
@@ -394,6 +429,7 @@ function getRandomColor(name) {
 
 
 // Load messages
+async function loadMessages() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/messages/${currentUserId}?otherUserId=${selectedConversationUserId}`);
         if (!response.ok) {
@@ -467,16 +503,35 @@ function displayMessages(messages) {
         const isSent = msg.senderId == currentUserId;
         const name = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
         
-        let fileContent = '';
+        let attachmentContent = '';
         if (msg.imageUrl) {
-            fileContent = `<img src="${msg.imageUrl}" alt="Image" style="max-width: 100%; border-radius: 8px; margin-top:5px; cursor:pointer;" onclick="window.open('${msg.imageUrl}')">`;
+            attachmentContent = `<img src="${msg.imageUrl}" alt="Image" style="max-width: 100%; border-radius: 8px; margin-top:5px; cursor:pointer;" onclick="downloadFile('${msg.imageUrl}', 'image_${msg.id}.png')">`;
+        } else if (msg.fileUrl) {
+            const fileName = `attachment_${msg.id}`;
+            attachmentContent = `
+                <div class="file-attachment" onclick="downloadFile('${msg.fileUrl}', '${fileName}')" style="display: flex; align-items: center; gap: 10px; background: rgba(255,136,0,0.1); padding: 12px; border-radius: 8px; margin-top: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
+                    <div style="width: 35px; height: 35px; background: var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fa-solid fa-file-arrow-down"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; font-weight: 700; color: #333;">Download File</div>
+                        <div style="font-size: 10px; color: #888;">${msg.fileType || 'Document'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let avatarHtml = '';
+        if (!isSent && selectedPartnerProfile) {
+            avatarHtml = `<div style="margin-right:10px; align-self: flex-end; margin-bottom: 5px;">${renderAvatar(selectedPartnerProfile, 'nav-avatar')}</div>`;
         }
 
         return `
             <div class="message ${isSent ? 'sent' : 'received'}">
+                ${avatarHtml}
                 <div class="message-text">
                     ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
-                    ${fileContent}
+                    ${attachmentContent}
                     <div class="message-status">
                         ${formatTime(msg.createdAt)}
                         ${isSent ? (msg.isRead ? ' <span style="color:#4fc3f7">✓✓</span>' : ' ✓') : ''}
@@ -533,9 +588,7 @@ async function sendMessage() {
         stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(messagePayload));
         
         input.value = '';
-        selectedImageFile = null;
-        selectedGenericFile = null;
-        selectedFileType = null;
+        clearPreview();
         
         // Optionally load messages immediately for optimistic UI
         // loadMessages();
@@ -559,9 +612,7 @@ async function sendMessage() {
 
             if (response.ok) {
                 input.value = '';
-                selectedImageFile = null;
-                selectedGenericFile = null;
-                selectedFileType = null;
+                clearPreview();
                 loadMessages();
                 loadConversations();
             }
@@ -622,13 +673,13 @@ let selectedImageFile = null;
 document.getElementById('messageImage')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage('File size must be less than 5MB', 'error');
+        if (file.size > 50 * 1024 * 1024) {
+            showMessage('File size must be less than 50MB', 'error');
             return;
         }
         try {
             selectedImageFile = await uploadImage(file);
-            showMessage('Image selected', 'success');
+            showFilePreview(file.name, selectedImageFile, 'image');
         } catch (error) {
             showMessage(error.message, 'error');
         }
@@ -641,16 +692,70 @@ let selectedFileType = null;
 document.getElementById('messageFile')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage('File size must be less than 5MB', 'error');
+        if (file.size > 50 * 1024 * 1024) {
+            showMessage('File size must be less than 50MB', 'error');
             return;
         }
         try {
             selectedGenericFile = await uploadImage(file); 
             selectedFileType = file.type;
-            showMessage('File selected: ' + file.name, 'success');
+            showFilePreview(file.name, null, 'file');
         } catch (error) {
             showMessage(error.message, 'error');
         }
     }
 });
+
+function showFilePreview(name, data, type) {
+    const previewArea = document.getElementById('previewArea');
+    if (!previewArea) return;
+    
+    previewArea.style.display = 'flex';
+    if (type === 'image') {
+        previewArea.innerHTML = `
+            <div style="position: relative; width: 50px; height: 50px;">
+                <img src="${data}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                <div onclick="clearPreview()" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer;">×</div>
+            </div>
+            <span style="font-size: 12px; color: #666;">${truncateText(name, 20)}</span>
+        `;
+    } else {
+        previewArea.innerHTML = `
+            <div style="position: relative; display: flex; align-items: center; gap: 10px; background: #f0f0f0; padding: 5px 10px; border-radius: 4px;">
+                <i class="fa-solid fa-file" style="color: #666;"></i>
+                <span style="font-size: 12px; color: #666;">${truncateText(name, 20)}</span>
+                <div onclick="clearPreview()" style="margin-left: 10px; color: #ff4444; cursor: pointer; font-weight: bold;">×</div>
+            </div>
+        `;
+    }
+}
+
+function clearPreview() {
+    selectedImageFile = null;
+    selectedGenericFile = null;
+    selectedFileType = null;
+    const previewArea = document.getElementById('previewArea');
+    if (previewArea) {
+        previewArea.style.display = 'none';
+        previewArea.innerHTML = '';
+    }
+    // Reset file inputs
+    const imgInput = document.getElementById('messageImage');
+    if(imgInput) imgInput.value = '';
+    const fileInput = document.getElementById('messageFile');
+    if(fileInput) fileInput.value = '';
+}
+function downloadFile(base64, filename) {
+    if (!base64) return;
+    try {
+        const link = document.createElement('a');
+        link.href = base64;
+        link.download = filename || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error("Download failed:", e);
+        window.open(base64); // Fallback
+    }
+}

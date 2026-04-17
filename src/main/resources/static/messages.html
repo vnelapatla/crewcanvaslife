@@ -118,15 +118,15 @@
 
                     <!-- Connection Stats -->
                     <div class="connection-stats">
-                        <div class="stat-pill" onclick="switchSidebarTab('following')">
+                        <div class="stat-pill" onclick="filterConnections('following')">
                             <i class="fa-solid fa-user-plus"></i>
                             <span id="followingCount">0 Following</span>
                         </div>
-                        <div class="stat-pill">
+                        <div class="stat-pill" onclick="filterConnections('followers')">
                             <i class="fa-solid fa-heart"></i>
                             <span id="followerCount">0 Followers</span>
                         </div>
-                        <div class="stat-pill">
+                        <div class="stat-pill" onclick="filterConnections('mutual')">
                             <i class="fa-solid fa-users"></i>
                             <span id="mutualCount">0 Mutual</span>
                         </div>
@@ -171,10 +171,21 @@
                         </div>
                     </header>
                     <div id="messagesArea" class="messages-container"></div>
+                    <div id="previewArea" class="chat-preview-area" style="display: none; padding: 10px 20px; background: #fff; border-top: 1px solid #eee; align-items: center; gap: 15px;">
+                        <!-- Injected by JS -->
+                    </div>
                     <div class="chat-input-area">
                         <div class="input-actions">
                             <i class="fa-regular fa-face-smile"></i>
-                            <i class="fa-solid fa-plus"></i>
+                            <label for="messageImage" style="cursor: pointer; margin: 0;">
+                                <i class="fa-solid fa-image"></i>
+                            </label>
+                            <input type="file" id="messageImage" accept="image/*" style="display: none;">
+                            
+                            <label for="messageFile" style="cursor: pointer; margin: 0;">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </label>
+                            <input type="file" id="messageFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.mp4,.mov,.avi,.mp3,.wav" style="display: none;">
                         </div>
                         <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
                         <button onclick="sendMessage()" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>

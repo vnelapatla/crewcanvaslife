@@ -198,12 +198,17 @@ function createUserCard(user, isFollowing) {
             <div class="actions" style="margin-top: 15px;">
                 <button class="btn-profile" onclick="viewProfile(${userId})">Profile</button>
                 ${isFollowing ? 
-                    `<button class="btn-following" id="follow-btn-${userId}" onclick="unfollowUser(${userId})"><i class="fas fa-user-minus"></i> Unfollow</button>` :
+                    `<button class="btn-message" onclick="startMessage(${userId})"><i class="fas fa-comment"></i></button>
+                     <button class="btn-following" id="follow-btn-${userId}" onclick="unfollowUser(${userId})"><i class="fas fa-user-minus"></i> Unfollow</button>` :
                     `<button class="btn-follow" id="follow-btn-${userId}" onclick="followUser(${userId})"><i class="fas fa-user-plus"></i> Follow</button>`
                 }
             </div>
         </div>
     `;
+}
+
+function startMessage(id) {
+    window.location.href = `messages.html?userId=${id}`;
 }
 
 function viewProfile(id) { window.location.href = `profile.html?userId=${id}`; }
