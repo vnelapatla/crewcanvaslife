@@ -332,12 +332,13 @@
 }
 
 .message-text {
-    padding: 12px 18px;
-    border-radius: 20px;
+    padding: 12px 16px;
+    border-radius: 18px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.4;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    word-break: break-word;
 }
 
 .sent .message-text {
@@ -347,34 +348,63 @@
 }
 
 .received .message-text {
-    background: #fff;
+    background: #f1f3f5;
     color: #333;
-    border: 1px solid #f0f0f0;
+    border: none;
     border-bottom-left-radius: 4px;
 }
 
 .message img {
-    margin-top: 10px;
-    max-width: 100%;
+    margin-top: 8px;
+    max-width: 240px;
+    max-height: 300px;
+    width: auto;
+    height: auto;
     border-radius: 12px;
     display: block;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+    object-fit: contain;
+}
+
+/* Sticker detection (if image only) */
+.message-text:has(img):not(:has(p)) {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border: none !important;
+}
+.message-text:has(img):not(:has(p)) img {
+    max-width: 150px;
 }
 
 .message img:hover {
-    transform: scale(1.02);
+    transform: scale(1.03);
 }
 
 .file-attachment {
-    background: rgba(255,136,0,0.1) !important;
-    border: 1px solid rgba(255,136,0,0.2) !important;
+    background: rgba(255,136,0,0.05) !important;
+    border: 1px solid rgba(255,136,0,0.1) !important;
     transition: all 0.2s ease;
+    max-width: 220px;
 }
 
-.file-attachment:hover {
-    background: rgba(255,136,0,0.15) !important;
-    transform: translateY(-2px);
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .messages-container {
+        padding: 15px;
+    }
+    .message {
+        max-width: 85%;
+    }
+    .message img {
+        max-width: 180px;
+        max-height: 250px;
+    }
+    .file-attachment {
+        max-width: 100%;
+        padding: 10px !important;
+    }
 }
 
 .message-status {
@@ -462,36 +492,53 @@
         bottom: 0;
         z-index: 999999;
         background: #fff;
-        backdrop-filter: none;
+        display: flex;
+        flex-direction: column;
     }
 
     .chat-window {
-        width: 100%;
-        max-width: 100%;
-        height: 100%;
-        border-radius: 0;
-        box-shadow: none;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        display: flex;
+        flex-direction: column;
+        margin: 0 !important;
     }
 
     .chat-header {
         padding: 10px 15px;
-        height: 60px;
+        height: 70px; /* Increased for better touch targets */
         background: #fff;
         border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .chat-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .chat-user h4 {
-        font-size: 14px;
+        font-size: 16px;
+        margin: 0;
     }
 
     .messages-container {
+        flex: 1;
         padding: 15px;
+        background: #fdfdfd;
     }
 
     .chat-input-area {
-        padding: 10px 15px 15px 15px;
+        padding: 10px 15px calc(15px + env(safe-area-inset-bottom, 0)) 15px;
         background: #fff;
         border-top: 1px solid #f0f0f0;
+        margin-bottom: 70px; /* Space for your visible bottom nav */
     }
 
     .chat-input-area input {
