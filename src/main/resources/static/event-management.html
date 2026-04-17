@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Event Management | CrewCanvas</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -76,6 +76,154 @@
         .btn-action:hover {
             border-color: var(--primary-orange);
             color: var(--primary-orange);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-badge {
+            margin-left: auto;
+            background: #fff0e6;
+            color: var(--primary-orange);
+            font-size: 22px;
+            font-weight: 800;
+            padding: 10px 20px;
+            border-radius: 12px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f9f9f9;
+        }
+
+        .feature-info h3 {
+            font-size: 13px;
+            color: #888;
+            margin: 0;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .feature-info p {
+            font-size: 15px;
+            color: #333;
+            margin: 4px 0 0;
+            font-weight: 700;
+        }
+
+        /* Aggressive Responsive Table */
+        @media (max-width: 1080px) {
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            .content-body {
+                padding: 15px 10px !important;
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .management-table {
+                padding: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                margin-top: 10px;
+                border: none !important;
+            }
+
+            .table-controls {
+                flex-direction: column !important;
+                gap: 10px;
+                margin-bottom: 20px !important;
+                padding: 0 5px;
+            }
+
+            .search-box-wrapper {
+                width: 100% !important;
+            }
+
+            table {
+                display: block !important;
+                border: none !important;
+            }
+
+            thead {
+                display: none !important;
+            }
+
+            tbody {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            tr {
+                display: block !important;
+                background: white !important;
+                border-radius: 18px !important;
+                margin-bottom: 25px !important;
+                padding: 20px !important;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05) !important;
+                border: 1px solid #f2f2f2 !important;
+                width: 100% !important;
+            }
+
+            td {
+                display: flex !important;
+                align-items: flex-start !important;
+                flex-direction: column !important;
+                border: none !important;
+                padding: 8px 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                border-bottom: 1px solid #f8f8f8 !important;
+            }
+
+            td:before {
+                content: attr(data-label);
+                font-weight: 800;
+                color: var(--primary-orange);
+                font-size: 10px;
+                text-transform: uppercase;
+                margin-bottom: 4px;
+                letter-spacing: 0.5px;
+                display: block !important;
+            }
+
+            td:last-child {
+                border-bottom: none !important;
+                padding-top: 15px !important;
+            }
+
+            .action-btns {
+                flex-direction: row !important;
+                justify-content: flex-start !important;
+                gap: 15px !important;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                margin-bottom: 25px !important;
+            }
+
+            .section-header {
+                padding: 0 5px 20px 5px !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 15px !important;
+            }
         }
     </style>
 </head>
@@ -165,7 +313,7 @@
             </div>
 
             <div class="management-table">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <div class="table-controls" style="display:flex; justify-content:space-between; margin-bottom:20px;">
                     <div class="search-box-wrapper" style="width:300px;">
                         <input type="text" placeholder="Search applicants..." oninput="EventManagement.filterApplicants(this.value)">
                     </div>

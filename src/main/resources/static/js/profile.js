@@ -164,6 +164,17 @@ function displayProfile(user) {
         bannerBg.style.filter = 'blur(40px) brightness(0.4)';
     }
 
+    // Handle follow button visibility and state
+    const actionButton = document.getElementById('actionButton');
+    if (actionButton) {
+        if (user.id == currentUserId) {
+            actionButton.style.display = 'none';
+        } else {
+            actionButton.style.display = 'inline-flex';
+            checkFollowStatus(user.id);
+        }
+    }
+
     // Notify ProfileHandler for global sync
     if (user.id == getCurrentUserId() && typeof ProfileHandler !== 'undefined') {
         ProfileHandler.user = user;
@@ -171,11 +182,49 @@ function displayProfile(user) {
     }
 }
 
+async function checkFollowStatus(userId) {
+    const actionButton = document.getElementById('actionButton');
+    if (!actionButton) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following`);
+        if (response.ok) {
+            const following = await response.json();
+            const isFollowing = following.some(u => String(u.id || u) === String(userId));
+            updateFollowButtonState(isFollowing);
+        }
+    } catch (e) {
+        console.error("Error checking follow status:", e);
+    }
+}
+
+function updateFollowButtonState(isFollowing) {
+    const actionButton = document.getElementById('actionButton');
+    if (!actionButton) return;
+    
+    if (isFollowing) {
+        actionButton.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+        actionButton.style.background = '#ef4444';
+        actionButton.style.borderColor = '#dc2626';
+        actionButton.style.color = 'white';
+        actionButton.onmouseover = null;
+        actionButton.onmouseout = null;
+    } else {
+        actionButton.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+        actionButton.style.background = '';
+        actionButton.style.borderColor = '';
+        actionButton.style.color = '';
+        actionButton.onmouseover = null;
+        actionButton.onmouseout = null;
+    }
+}
+
 // Handle follow/unfollow
 async function handleAction() {
     const actionButton = document.getElementById('actionButton');
     if (!actionButton) return;
-    const isFollowing = actionButton.textContent === 'Unfollow';
+    const isFollowing = actionButton.textContent.trim().toLowerCase().includes('following') || 
+                       actionButton.textContent.trim().toLowerCase().includes('unfollow');
 
     try {
         const url = `${API_BASE_URL}/api/profile/${profileUserId}/${isFollowing ? 'unfollow' : 'follow'}?followerId=${currentUserId}`;
@@ -184,7 +233,7 @@ async function handleAction() {
         });
 
         if (response.ok) {
-            actionButton.textContent = isFollowing ? 'Follow' : 'Unfollow';
+            updateFollowButtonState(!isFollowing);
             showMessage(isFollowing ? 'Unfollowed successfully' : 'Following!', 'success');
             loadProfile(); // Reload to update follower count
         }

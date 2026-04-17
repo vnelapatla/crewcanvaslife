@@ -79,7 +79,16 @@
                     <div class="count-badge" id="totalCrewCount">0</div>
                 </div>
 
-                <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections')">
+                <div class="feature-card" id="followingCountCard" onclick="switchSearchTab('connections'); switchConnectionTab('following')">
+                    <div class="feature-icon-circle">👤+</div>
+                    <div class="feature-info">
+                        <h3>MY FOLLOWING</h3>
+                        <p>People you follow</p>
+                    </div>
+                    <div class="count-badge" id="myFollowingCount">0</div>
+                </div>
+
+                <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections'); switchConnectionTab('followers')">
                     <div class="feature-icon-circle">🤝</div>
                     <div class="feature-info">
                         <h3>MY FOLLOWERS</h3>

@@ -312,6 +312,27 @@
         .form-control-premium:focus {
             background: #fff;
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .fab {
+                bottom: 85px !important;
+                right: 20px !important;
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 24px !important;
+            }
+            .events-display-grid {
+                grid-template-columns: 1fr !important;
+                padding-bottom: 120px !important;
+            }
+            .horizontal-cards {
+                padding: 10px 15px 20px !important;
+            }
+            .event-feature-card {
+                min-width: 260px !important;
+            }
+        }
     </style>
 </head>
 
@@ -397,6 +418,25 @@
             </div>
         </div>
     </main>
+
+    <!-- Universal Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="feed.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="dashboard.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Home</span>
+        </a>
+        <a href="crew-search.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="icon">💬</span> <span>Chats</span>
+        </a>
+        <a href="event.html" class="nav-item active">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
+    </div>
 
     <button class="fab" onclick="showChoiceModal()">+</button>
 

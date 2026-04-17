@@ -3,12 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Profile | CrewCanvas</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -81,6 +82,14 @@
             <div class="hero-right">
                 <h1 id="profileName">Loading User...</h1>
                 <p id="profileRoleBadge">Film Professional</p>
+                <div id="profileActions" style="margin-top: 15px;">
+                    <button id="actionButton" class="stat-pill" style="display: none; border: none; font-family: inherit;" onclick="handleAction()">
+                        <i class="fas fa-user-plus"></i> Follow
+                    </button>
+                    <button class="stat-pill" onclick="sendMessage()" style="display: inline-flex; border: none; font-family: inherit; margin-left: 10px;">
+                        <i class="fas fa-paper-plane"></i> Message
+                    </button>
+                </div>
             </div>
         </section>
 

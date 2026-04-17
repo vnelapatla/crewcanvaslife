@@ -119,6 +119,28 @@
             transform: scale(1.1);
         }
 
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .fab {
+                bottom: 85px !important;
+                right: 20px !important;
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 26px !important;
+            }
+            .events-grid {
+                grid-template-columns: 1fr !important;
+                padding-bottom: 120px !important;
+            }
+            .horizontal-cards {
+                padding: 10px 15px 25px !important;
+            }
+            .event-feature-card {
+                min-width: 260px !important;
+                padding: 15px 20px !important;
+            }
+        }
+
         /* Choice Modal Styles */
         .choices-grid {
             display: flex;

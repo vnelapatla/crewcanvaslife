@@ -1,235 +1,182 @@
 // Crew Search functionality
 let allUsers = [];
 let followingIds = new Set();
-let currentSearchTab = 'find';
+let currentSearchTab = 'find'; // 'find' or 'connections'
+
+// Helper to get ID regardless of property name (id vs userId)
+function getUserId(user) {
+    if (!user) return null;
+    return user.id || user.userId || user.ID || user.userID || (typeof user !== 'object' ? user : null);
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
-    // Initially hide connection tabs
+    
+    // Initial UI Setup
     const toggleContainer = document.querySelector('.toggle-switch-container');
     if (toggleContainer) toggleContainer.style.display = 'none';
     
+    // Load state and then default view
     await loadFollowingIds();
-    loadAllUsers();
+    await loadAllUsers();
 });
 
-// Load IDs of people the current user follows and update metrics
+// Search input debounce handler
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', debounce(async (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        
+        if (currentSearchTab === 'find') {
+            const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}`);
+            const users = await response.json();
+            displayUsers(users);
+        } else {
+            // Search within Connections list
+            const activeSubTab = document.getElementById('followingTab').classList.contains('active') ? 'following' : 'followers';
+            const userId = getCurrentUserId();
+            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/${activeSubTab}?t=${Date.now()}`);
+            const users = await response.json();
+            
+            const filtered = users.filter(u => 
+                u.name.toLowerCase().includes(query) || 
+                (u.role && u.role.toLowerCase().includes(query)) ||
+                (u.location && u.location.toLowerCase().includes(query))
+            );
+            displayUsers(filtered, activeSubTab === 'following');
+        }
+    }, 500));
+}
+
+// Load Following IDs (The list of people YOU follow)
 async function loadFollowingIds() {
     const userId = getCurrentUserId();
     if (!userId) return;
     try {
-        console.log("Fetching following for user:", userId);
-        const followingResponse = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
-        if (followingResponse.ok) {
-            const followingUsers = await followingResponse.json();
-            // Convert everything to String for bulletproof comparison
-            followingIds = new Set(followingUsers.map(u => String(u.id || u.userId || u)));
-            console.log("Followed IDs populated:", Array.from(followingIds));
+        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
+        if (res.ok) {
+            const users = await res.json();
+            followingIds = new Set();
+            users.forEach(u => {
+                const id = getUserId(u);
+                if (id) followingIds.add(String(id));
+            });
         }
         
-        // Fetch followers count for badge
-        const followersResponse = await fetch(`${API_BASE_URL}/api/profile/${userId}/followers?t=${Date.now()}`);
-        if (followersResponse.ok) {
-            const followers = await followersResponse.json();
-            const badge = document.getElementById('myConnectionsCount');
-            if (badge) badge.innerText = followers.length;
+        // Update Dashboard Stats
+        const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?t=${Date.now()}`);
+        if (profileRes.ok) {
+            const user = await profileRes.json();
+            const followingsBadge = document.getElementById('myFollowingCount');
+            const followersBadge = document.getElementById('myConnectionsCount');
+            if (followingsBadge) followingsBadge.innerText = user.following || 0;
+            if (followersBadge) followersBadge.innerText = user.followers || 0;
         }
-    } catch (error) {
-        console.error('Error loading follower/following data:', error);
-    }
+    } catch (e) { console.error("Error loading relationships:", e); }
 }
 
-// Load all users
+// Load all users for the 'Find Crew' tab
 async function loadAllUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/search?query=`);
-        allUsers = await response.json();
-        
-        // Update the total crew count in the entire database
-        document.getElementById('totalCrewCount').innerText = allUsers.length;
-        
-        const currentUserId = String(getCurrentUserId());
-        // STRICTOR SELF-FILTER: Use String comparison
-        const filteredUsers = allUsers.filter(u => String(u.id) !== currentUserId);
-        
+        const res = await fetch(`${API_BASE_URL}/api/profile/search?query=`);
+        allUsers = await res.json();
         if (currentSearchTab === 'find') {
-            displayUsers(filteredUsers);
+            displayUsers(allUsers);
         }
-    } catch (error) {
-        console.error('Error loading users:', error);
-    }
+        const totalBadge = document.getElementById('totalCrewCount');
+        if (totalBadge) {
+            // Filter out current user from count
+            const currentUserId = String(getCurrentUserId());
+            const realTotal = allUsers.filter(u => String(getUserId(u)) !== currentUserId).length;
+            totalBadge.innerText = realTotal;
+        }
+    } catch (e) { console.error("Error loading all users:", e); }
 }
 
-// Search users
-const searchUsers = debounce(async () => {
-    const queryInput = document.getElementById('searchInput');
-    if (!queryInput) return;
-    const query = queryInput.value.toLowerCase();
-    const currentUserId = getCurrentUserId();
-
-    if (currentSearchTab === 'find') {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}`);
-            const users = await response.json();
-            const filteredUsers = users.filter(u => Number(u.id) != Number(currentUserId));
-            displayUsers(filteredUsers);
-        } catch (error) {
-            console.error('Error searching users:', error);
-        }
-    } else {
-        // Search within connections (Following/Followers)
-        // We can just filter the already displayed list or re-fetch
-        const activeSubTab = document.getElementById('followingTab').classList.contains('active') ? 'following' : 'followers';
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/${activeSubTab}`);
-            const users = await response.json();
-            const filtered = users.filter(u => 
-                u.name.toLowerCase().includes(query) || 
-                (u.role && u.role.toLowerCase().includes(query))
-            );
-            
-            const container = document.getElementById('searchResults');
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><h2>No matching crew in your ${activeSubTab}</h2></div>`;
-                return;
-            }
-            
-            container.innerHTML = filtered.map(user => {
-                const isFollowing = activeSubTab === 'following' || followingIds.has(Number(user.id));
-                return createUserCard(user, isFollowing);
-            }).join('');
-        } catch (error) {
-            console.error('Error searching connections:', error);
-        }
-    }
-}, 500);
-
-// Display users
-function displayUsers(users) {
+// Display users uniformly
+function displayUsers(users, forceFollowingState = false) {
     const container = document.getElementById('searchResults');
     const currentUserId = String(getCurrentUserId());
-
+    
     if (!users || users.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1;">
-                <h2 style="font-size: 20px; color: var(--text-dark);">No crew found</h2>
-                <p style="color: var(--text-muted);">Self-following is not enabled. Look for other creators!</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><h2>No crew found here.</h2></div>`;
         return;
     }
 
-    // Secondary safety filter for self-follow
-    const finalUsers = users.filter(u => String(u.id) !== currentUserId);
+    const finalUsers = [];
+    const seenIds = new Set();
+    
+    users.forEach(u => {
+        const id = String(getUserId(u));
+        if (id !== currentUserId && !seenIds.has(id)) {
+            finalUsers.push(u);
+            seenIds.add(id);
+        }
+    });
 
     container.innerHTML = finalUsers.map(user => {
-        const isFollowing = followingIds.has(String(user.id || user.userId));
-        return createUserCard(user, isFollowing);
+        const isFollowed = forceFollowingState || followingIds.has(String(getUserId(user)));
+        return createUserCard(user, isFollowed);
     }).join('');
 }
 
-// Switch search tab
+// Tab Switching Logic
 function switchSearchTab(tab) {
     currentSearchTab = tab;
-
-    // Update UI active states
+    
+    // UI Classes
     document.getElementById('findCrewCard').classList.remove('active');
+    document.getElementById('followingCountCard').classList.remove('active');
     document.getElementById('connectionsCard').classList.remove('active');
-
+    document.querySelector('.toggle-switch-container').style.display = (tab === 'find' ? 'none' : 'flex');
+    
     if (tab === 'find') {
         document.getElementById('findCrewCard').classList.add('active');
-        document.getElementById('searchInput').placeholder = "Browse all crew...";
-        document.querySelector('.toggle-switch-container').style.display = 'none';
-        loadAllUsers();
+        document.getElementById('searchInput').value = '';
+        displayUsers(allUsers);
     } else {
-        document.getElementById('connectionsCard').classList.add('active');
-        document.getElementById('searchInput').placeholder = "Search your connections...";
-        document.querySelector('.toggle-switch-container').style.display = 'flex';
-        // Set default connection tab to following
-        switchConnectionTab('following');
+        // Highlighting handled by switchConnectionTab
     }
 }
 
-// Switch connection tab
-function switchConnectionTab(tab) {
+function switchConnectionTab(subTab) {
+    currentSearchTab = 'connections';
     document.getElementById('followingTab').classList.remove('active');
     document.getElementById('followersTab').classList.remove('active');
-
-    if (tab === 'following') {
+    document.getElementById('followingCountCard').classList.remove('active');
+    document.getElementById('connectionsCard').classList.remove('active');
+    
+    if (subTab === 'following') {
         document.getElementById('followingTab').classList.add('active');
-        loadFollowing();
+        document.getElementById('followingCountCard').classList.add('active');
+        loadConnections('following');
     } else {
         document.getElementById('followersTab').classList.add('active');
-        loadFollowers();
+        document.getElementById('connectionsCard').classList.add('active');
+        loadConnections('followers');
     }
 }
 
-// Load following
-async function loadFollowing() {
+async function loadConnections(type) {
     const userId = getCurrentUserId();
+    const container = document.getElementById('searchResults');
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading...</div>';
+    
     try {
-        // Refresh followingIds first to be sure
+        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/${type}?t=${Date.now()}`);
+        const users = await res.json();
+        
+        if (currentSearchTab !== 'connections') return;
+        
+        // Ensure accurate button state
         await loadFollowingIds();
-        
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
-        const users = await response.json();
-
-        const container = document.getElementById('searchResults');
-        if (currentSearchTab !== 'connections') return;
-
-        if (users.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1/-1;">
-                    <h2 style="font-size: 20px; color: var(--text-dark);">Not following anyone</h2>
-                    <p style="color: var(--text-muted);">Go to 'Find Crew' to grow your network.</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = users.map(user => {
-            const isFollowing = followingIds.has(String(user.id || user));
-            return createUserCard(user, isFollowing || true); // Always true for following tab
-        }).join('');
-    } catch (error) {
-        console.error('Error loading following:', error);
-    }
+        displayUsers(users, type === 'following');
+    } catch (e) { console.error("Error loading connections:", e); }
 }
 
-// Load followers
-async function loadFollowers() {
-    const userId = getCurrentUserId();
-    try {
-        await loadFollowingIds(); // Ensure we have latest following status
-        
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/followers?t=${Date.now()}`);
-        const users = await response.json();
-
-        const container = document.getElementById('searchResults');
-        if (currentSearchTab !== 'connections') return;
-
-        if (users.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1/-1;">
-                    <h2 style="font-size: 20px; color: var(--text-dark);">No followers yet</h2>
-                    <p style="color: var(--text-muted);">Post updates and connect with others to get followers.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Check if we are following back
-        container.innerHTML = users.map(user => {
-            const isFollowing = followingIds.has(String(user.id || user));
-            return createUserCard(user, isFollowing);
-        }).join('');
-    } catch (error) {
-        console.error('Error loading followers:', error);
-    }
-}
-
-// Create user card
+// User Card Generation
 function createUserCard(user, isFollowing) {
+    const userId = getUserId(user);
     return `
         <div class="crew-card">
             ${renderAvatar(user, 'user-img')}
@@ -237,9 +184,9 @@ function createUserCard(user, isFollowing) {
             <p class="role">${user.role || 'Film Professional'}</p>
             <p class="location">${user.location || 'Location not specified'}</p>
             
-            <div class="stats">
+            <div class="stats" style="margin-top: 15px;">
                 <div class="stat">
-                    <span class="stat-value">${user.followers || 0}</span>
+                    <span class="stat-value" id="followers-count-${userId}">${user.followers || 0}</span>
                     <span class="stat-label">Followers</span>
                 </div>
                 <div class="stat">
@@ -248,84 +195,58 @@ function createUserCard(user, isFollowing) {
                 </div>
             </div>
 
-            <div class="actions">
-                <button class="btn-profile" onclick="viewProfile(${user.id})">Profile</button>
+            <div class="actions" style="margin-top: 15px;">
+                <button class="btn-profile" onclick="viewProfile(${userId})">Profile</button>
                 ${isFollowing ? 
-                    `<button class="btn-following" disabled>Following</button>` :
-                    `<button class="btn-follow" id="follow-btn-${user.id}" onclick="followUser(${user.id})">Follow</button>`
+                    `<button class="btn-following" id="follow-btn-${userId}" onclick="unfollowUser(${userId})"><i class="fas fa-user-minus"></i> Unfollow</button>` :
+                    `<button class="btn-follow" id="follow-btn-${userId}" onclick="followUser(${userId})"><i class="fas fa-user-plus"></i> Follow</button>`
                 }
             </div>
         </div>
     `;
 }
 
-// View profile
-function viewProfile(userId) {
-    window.location.href = `profile.html?userId=${userId}`;
+function viewProfile(id) { window.location.href = `profile.html?userId=${id}`; }
+
+// Action Handlers
+async function followUser(targetId) {
+    const currentId = getCurrentUserId();
+    const res = await fetch(`${API_BASE_URL}/api/profile/${targetId}/follow?followerId=${currentId}`, { method: 'POST' });
+    if (res.ok) {
+        showMessage("Followed successfully!", "success");
+        await loadFollowingIds();
+        updateUI(targetId, true);
+    } else {
+        const msg = await res.text();
+        if (msg.includes("Already")) { updateUI(targetId, true); }
+        else showMessage("Error following user", "error");
+    }
 }
 
-// Follow user
-async function followUser(userId) {
-    const currentUserId = getCurrentUserId();
-    if (!currentUserId) return;
-    
-    // Change UI state immediately (optimistic update)
-    const btn = document.getElementById(`follow-btn-${userId}`);
-    if (btn) {
-        btn.innerText = 'Following';
-        btn.classList.remove('btn-follow');
-        btn.classList.add('btn-following');
-        btn.disabled = true;
-        btn.onclick = null;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/follow?followerId=${currentUserId}`, {
-            method: 'POST'
-        });
-
-        if (response.ok) {
-            showMessage('User followed successfully!', 'success');
-            await loadFollowingIds(); // Update local set
-            // No need to full reload unless we want to update stats counts
-            // loadAllUsers(); 
+async function unfollowUser(targetId) {
+    const currentId = getCurrentUserId();
+    const res = await fetch(`${API_BASE_URL}/api/profile/${targetId}/unfollow?followerId=${currentId}`, { method: 'DELETE' });
+    if (res.ok) {
+        showMessage("Unfollowed", "success");
+        await loadFollowingIds();
+        if (document.getElementById('followingTab').classList.contains('active')) {
+            loadConnections('following'); // Refresh following list to remove the user
         } else {
-            // Revert on error
-            if (btn) {
-                btn.innerText = 'Follow';
-                btn.classList.add('btn-follow');
-                btn.classList.remove('btn-following');
-                btn.onclick = () => followUser(userId);
-                btn.onmouseover = null;
-                btn.onmouseout = null;
-            }
-            showMessage('Could not follow user', 'error');
+            updateUI(targetId, false);
         }
-    } catch (error) {
-        showMessage('Error following user', 'error');
     }
 }
 
-// Unfollow user
-async function unfollowUser(userId) {
-    const currentUserId = getCurrentUserId();
-    if (!currentUserId) return;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/unfollow?followerId=${currentUserId}`, {
-            method: 'DELETE'
-        });
-
-        if (response.ok) {
-            showMessage('Unfollowed successfully', 'success');
-            await loadFollowingIds();
-            if (currentSearchTab === 'connections') {
-                loadFollowing();
-            } else {
-                loadAllUsers();
-            }
-        }
-    } catch (error) {
-        showMessage('Error unfollowing user', 'error');
+function updateUI(id, isFollowing) {
+    const btn = document.getElementById(`follow-btn-${id}`);
+    const count = document.getElementById(`followers-count-${id}`);
+    if (btn) {
+        btn.innerHTML = isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
+        btn.className = isFollowing ? 'btn-following' : 'btn-follow';
+        btn.onclick = () => isFollowing ? unfollowUser(id) : followUser(id);
+    }
+    if (count) {
+        let val = parseInt(count.innerText);
+        count.innerText = isFollowing ? val + 1 : Math.max(0, val - 1);
     }
 }

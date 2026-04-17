@@ -30,7 +30,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
         try {
             org.springframework.data.domain.Page<Post> posts = postService.getAllPosts(page, size);
             return ResponseEntity.ok(posts);

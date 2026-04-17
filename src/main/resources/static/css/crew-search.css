@@ -237,14 +237,14 @@
 }
 
 .btn-following {
-    background: #22c55e !important;
-    color: white !important;
-    border: none !important;
-    cursor: default !important;
+    background: #ef4444;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-following:hover {
-    background: #16a34a !important;
+    background: #dc2626 !important;
 }
 
 .btn-profile:hover {

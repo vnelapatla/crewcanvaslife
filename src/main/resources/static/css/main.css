@@ -27,9 +27,13 @@ body {
 
 /* Global constraint to never allow horizontal scrolling on mobiles */
 html, body {
-    max-width: 100%;
     width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
     overflow-x: hidden;
+    position: relative;
+    -webkit-text-size-adjust: 100%;
 }
 
 /* --- SIDEBAR (Desktop: 1025px+) --- */
@@ -269,10 +273,11 @@ html, body {
     
     .main-content { 
         padding-bottom: 80px; 
-        width: 100%;
-        max-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box;
         overflow-x: hidden;
+        margin-left: 0 !important;
     }
     .top-header {
         padding: 15px 20px;

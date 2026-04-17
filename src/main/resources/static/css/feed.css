@@ -337,10 +337,13 @@
 
 /* Loading Animation */
 .scroll-load {
-    display: none;
+    display: flex;
+    opacity: 0;
     justify-content: center;
     padding: 40px 0;
     width: 100%;
+    min-height: 50px;
+    transition: opacity 0.3s;
 }
 
 .loader-dots {

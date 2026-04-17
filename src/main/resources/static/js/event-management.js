@@ -62,12 +62,12 @@ const EventManagement = {
 
         tbody.innerHTML = data.map(app => `
             <tr>
-                <td><b>${app.applicantName || 'Unknown User'}</b><br><small style="color:#888">${app.applicantEmail || ''}</small></td>
-                <td>${app.role || '-'}</td>
-                <td><div style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${app.experience || ''}">${app.experience || '-'}</div></td>
-                <td>${app.location || '-'}</td>
-                <td><span class="status-badge status-${app.status || 'pending'}">${(app.status || 'pending').toUpperCase()}</span></td>
-                <td class="action-btns">
+                <td data-label="Name"><b>${app.applicantName || 'Unknown User'}</b><br><small style="color:#888">${app.applicantEmail || ''}</small></td>
+                <td data-label="Role">${app.role || '-'}</td>
+                <td data-label="Experience"><div style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${app.experience || ''}">${app.experience || '-'}</div></td>
+                <td data-label="Location">${app.location || '-'}</td>
+                <td data-label="Status"><span class="status-badge status-${app.status || 'pending'}">${(app.status || 'pending').toUpperCase()}</span></td>
+                <td data-label="Actions" class="action-btns">
                     <button class="btn-action" title="Shortlist" onclick="EventManagement.updateStatus(${app.id}, 'shortlisted')">✅</button>
                     <button class="btn-action" title="Reject" onclick="EventManagement.updateStatus(${app.id}, 'rejected')">❌</button>
                 </td>

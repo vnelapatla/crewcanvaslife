@@ -2,7 +2,7 @@
 let currentPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 50;
 let currentUserId = null;
 let selectedImageFiles = []; // Array for multiple images
 
@@ -22,7 +22,7 @@ async function loadFeed(page = 0, refresh = false) {
     const container = document.getElementById('feedContainer');
     const loader = document.querySelector('.scroll-load');
     
-    if (loader) loader.style.display = 'flex';
+    if (loader) loader.style.opacity = '1';
     if (refresh) {
         currentPage = 0;
         hasMore = true;
@@ -78,7 +78,7 @@ async function loadFeed(page = 0, refresh = false) {
         }
     } finally {
         isLoading = false;
-        if (loader) loader.style.display = 'none';
+        if (loader) loader.style.opacity = '0';
     }
 }
 
