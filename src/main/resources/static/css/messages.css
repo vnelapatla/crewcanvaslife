@@ -517,6 +517,49 @@
         flex-shrink: 0;
     }
 
+    .connection-item {
+        padding: 12px 10px;
+        gap: 10px;
+    }
+
+    .chat-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .chat-info h4 {
+        font-size: 15px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-info p {
+        font-size: 12px;
+    }
+
+    .status-text {
+        display: block;
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    .message-btn {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        min-width: 44px;
+        justify-content: center;
+    }
+
+    .message-btn span {
+        display: none; /* Hide 'Message' text on mobile to save space */
+    }
+
+    .message-btn i {
+        margin: 0 !important;
+    }
+
     .chat-user {
         display: flex;
         align-items: center;
