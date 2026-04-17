@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFeed(0, true);
     setupImageUpload();
     setupInfiniteScroll();
+    
+    // Add Load More fallback listener
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            if (!isLoading && hasMore) {
+                loadFeed(currentPage);
+            }
+        });
+    }
 });
 
 // Load feed posts
@@ -79,6 +89,14 @@ async function loadFeed(page = 0, refresh = false) {
     } finally {
         isLoading = false;
         if (loader) loader.style.opacity = '0';
+        updateLoadMoreButton();
+    }
+}
+
+function updateLoadMoreButton() {
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.style.display = (hasMore && !isLoading) ? 'block' : 'none';
     }
 }
 
@@ -180,7 +198,7 @@ function renderPostHTML(post) {
             </a>
             ${post.userId == currentUserId ? `
                 <div class="post-actions-menu">
-                    <button onclick="editPost(${post.id}, '${post.content.replace(/'/g, "\\'")}')" title="Edit">✏️</button>
+                    <button onclick="editPost(${post.id}, '${(post.content || "").replace(/'/g, "\\'")}')" title="Edit">✏️</button>
                     <button onclick="deletePost(${post.id})" title="Delete">🗑️</button>
                 </div>
             ` : ''}

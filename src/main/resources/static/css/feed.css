@@ -219,6 +219,21 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .content-body {
+        padding-top: 80px !important;
+        padding-bottom: 20px !important;
+    }
+    
+    .feed-container {
+        padding: 0 10px;
+    }
+    
+    /* Ensure no clipping occurs on mobile screens */
+    .main-content {
+        overflow-y: visible !important;
+        min-height: 100vh;
+    }
+
     .create-post-card {
         padding: 20px;
     }
