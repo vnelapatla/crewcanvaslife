@@ -36,9 +36,12 @@ jobs:
         script: |
           echo "Connected! Cleaning and Starting..."
           cd ~/app
-          # Kill old
-          PID=$(lsof -t -i:8081)
-          if [ ! -z "$PID" ]; then kill -9 $PID || true; fi
+          # Kill old process on 8081
+          echo "Cleaning port 8081..."
+          fuser -k 8081/tcp || true
+          # Fallback: find PID of any java process running our jar
+          PIDS=$(ps -ef | grep 'crewcanvas-monolith' | grep -v grep | awk '{print $2}')
+          if [ ! -z "$PIDS" ]; then kill -9 $PIDS || true; fi
           # Force remove old JARs to clear space immediately
           rm -f *.jar || true
           # Upload happens in a separate step, but we will wait for it here
@@ -67,8 +70,8 @@ jobs:
           # 1. Start the Java App
           echo "Deep cleaning processes..."
           pkill -f 'crewcanvas-monolith' || true
-          PID=$(lsof -t -i:8081)
-          if [ ! -z "$PID" ]; then kill -9 $PID || true; fi
+          # Kill anything on port 8081 if pkill missed it
+          fuser -k 8081/tcp || true
           
           nohup java -Dserver.port=8081 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 < /dev/null &
           echo "App triggered on port 8081."
