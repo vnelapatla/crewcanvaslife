@@ -68,25 +68,48 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           # 1. Start the Java App
-          echo "Deep cleaning processes..."
-          pkill -f 'crewcanvas-monolith' || true
-          # Kill anything on port 8081 if pkill missed it
-          fuser -k 8081/tcp || true
+          echo "Process cleanup..."
+          # Kill old process on 8081
+          sudo fuser -k 8081/tcp || echo "Port 8081 already free."
+          pkill -f 'crewcanvas-monolith' || echo "No existing monolith process found."
           
-          nohup java -Dserver.port=8081 -jar ~/app/crewcanvas-monolith-0.0.1-SNAPSHOT.jar > ~/app/app.log 2>&1 < /dev/null &
-          echo "App triggered on port 8081."
+          echo "Starting the application..."
+          # Run with nohup, ensure it detaches correctly
+          cd ~/app
+          nohup java -Dserver.port=8081 -jar crewcanvas-monolith-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+          
+          # Small wait to check if it's running
+          sleep 10
+          if ps -ef | grep 'crewcanvas-monolith' | grep -v grep > /dev/null; then
+            echo "Application started successfully."
+          else
+            echo "ERROR: Application failed to start. Check ~/app/app.log for details."
+            cat app.log | tail -n 50
+            exit 1
+          fi
 
           # 2. Fix Nginx Upload Limit (50MB)
           echo "Updating Nginx configuration..."
-          # Check if client_max_body_size is already set
-          if ! sudo grep -q "client_max_body_size" /etc/nginx/nginx.conf; then
-            # Add it to the http block if missing
-            sudo sed -i '/http {/a \    client_max_body_size 50M;' /etc/nginx/nginx.conf
-          else
-            # Update existing line to 50M
-            sudo sed -i 's/client_max_body_size.*/client_max_body_size 50M;/' /etc/nginx/nginx.conf
-          fi
+          NGINX_CONF="/etc/nginx/nginx.conf"
           
-          # Test and Reload Nginx
-          sudo nginx -t && sudo systemctl reload nginx
-          echo "Nginx reloaded with 50MB limit."
+          if [ -f "$NGINX_CONF" ]; then
+            if sudo grep -q "client_max_body_size" "$NGINX_CONF"; then
+              echo "Updating existing client_max_body_size..."
+              sudo sed -i 's/client_max_body_size.*/client_max_body_size 50M;/' "$NGINX_CONF"
+            else
+              echo "Adding client_max_body_size to http block..."
+              sudo sed -i '/http {/a \    client_max_body_size 50M;' "$NGINX_CONF"
+            fi
+            
+            # Test and Reload Nginx
+            echo "Testing Nginx configuration..."
+            if sudo nginx -t; then
+              sudo systemctl reload nginx
+              echo "Nginx reloaded with 50MB limit."
+            else
+              echo "ERROR: Nginx configuration test failed. Reverting changes or check manually."
+              exit 1
+            fi
+          else
+            echo "WARNING: /etc/nginx/nginx.conf not found. Skipping Nginx fix."
+          fi
