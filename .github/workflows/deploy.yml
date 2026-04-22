@@ -86,7 +86,7 @@ jobs:
           -XX:+UseSerialGC \
           -XX:MaxMetaspaceSize=128m \
           -Dserver.port=8080 \
-          -jar crewcanvas-monolith-0.0.1-SNAPSHOT.jar \
+          -jar *.jar \
           > app.log 2>&1 &
 
           sleep 25

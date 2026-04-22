@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.crewcanvas</groupId>
     <artifactId>crewcanvas-monolith</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>CrewCanvas Monolith</name>
     <description>CrewCanvas Monolithic Application</description>
