@@ -70,22 +70,27 @@ jobs:
         script: |
           # 1. Start the Java App
           echo "Process cleanup..."
-          # Kill old process on 8081
-          sudo fuser -k 8081/tcp || echo "Port 8081 already free."
-          pkill -f 'crewcanvas-monolith' || echo "No existing monolith process found."
-          
+          sudo fuser -k 8081/tcp || echo "Port already free."
+
           echo "Starting the application..."
-          # Run with nohup, ensure it detaches correctly
           cd ~/app
-          nohup java -Dserver.port=8081 -jar crewcanvas-monolith-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
-          
-          # Small wait to check if it's running
-          sleep 10
-          if ps -ef | grep 'crewcanvas-monolith' | grep -v grep > /dev/null; then
+
+          nohup java \
+          -Xms64m -Xmx160m \
+          -XX:+UseSerialGC \
+          -XX:MaxMetaspaceSize=128m \
+          -Dserver.port=8081 \
+          -jar crewcanvas-monolith-0.0.1-SNAPSHOT.jar \
+          > app.log 2>&1 &
+
+          sleep 25
+
+          echo "Checking application..."
+          if curl -s http://localhost:8081 > /dev/null; then
             echo "Application started successfully."
           else
-            echo "ERROR: Application failed to start. Check ~/app/app.log for details."
-            cat app.log | tail -n 50
+            echo "ERROR: App failed"
+            tail -50 app.log
             exit 1
           fi
 
