@@ -362,6 +362,34 @@ body {
     width: 100%;
 }
 
+.social-links-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.social-icon-fa {
+    position: absolute;
+    left: 16px;
+    font-size: 1.2rem;
+    color: #64748b;
+    width: 20px;
+    text-align: center;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+@media (max-width: 600px) {
+    .social-links-grid {
+        grid-template-columns: 1fr;
+    }
+    .full-width {
+        grid-column: span 1;
+    }
+}
+
 /* Skills Tags */
 .skills-input-group {
     display: flex;
@@ -569,3 +597,73 @@ body {
 }
 
 
+
+/* --- Project Wizard Specific Adjustments --- */
+.wizard-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.wizard-steps {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.upload-box {
+    border: 2px dashed #e2e8f0;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.upload-box:hover {
+    border-color: var(--orange-primary);
+    background: #fff7ed;
+}
+
+#projImagePreview {
+    max-height: 300px;
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.wizard-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 15px;
+}
+
+.btn-next, .btn-finish {
+    background: var(--accent-gradient);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-back {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}

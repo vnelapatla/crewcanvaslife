@@ -2,9 +2,12 @@ package com.crewcanvas.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
 
     @Id
@@ -60,14 +63,50 @@ public class Post {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({
-        "password", "bio", "skills", "phone", "coverImage",
-        "linkedinProfile", "personalWebsite", "instagram",
-        "authProvider", "providerId", "updatedAt", "following", "followers"
-    })
-    @ManyToOne(fetch = FetchType.EAGER)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
+
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Poll poll;
+
+    public Poll getPoll() {
+        return poll;
+    }
+
+    public void setPoll(Poll poll) {
+        this.poll = poll;
+        if (poll != null) {
+            poll.setPost(this);
+        }
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPoll")
+    public boolean isPoll() {
+        return poll != null;
+    }
+
+    // Proxy methods for frontend compatibility
+    @com.fasterxml.jackson.annotation.JsonProperty("pollQuestion")
+    public String getPollQuestion() {
+        return poll != null ? poll.getQuestion() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("pollOptions")
+    public List<String> getPollOptions() {
+        if (poll == null) return null;
+        List<String> options = new ArrayList<>();
+        for (PollOption opt : poll.getOptions()) {
+            options.add(opt.getOptionText());
+        }
+        return options;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("pollVotes")
+    public java.util.Map<Long, Integer> getPollVotes() {
+        return poll != null ? poll.getPollVotes() : null;
+    }
 
     @PrePersist
     protected void onCreate() {
@@ -134,30 +173,6 @@ public class Post {
         this.imageUrls = imageUrls;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getExternalLink() {
-        return externalLink;
-    }
-
-    public void setExternalLink(String externalLink) {
-        this.externalLink = externalLink;
-    }
-
     public java.util.List<String> getExternalLinks() {
         return externalLinks;
     }
@@ -213,4 +228,5 @@ public class Post {
     public void setUser(User user) {
         this.user = user;
     }
+
 }

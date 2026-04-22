@@ -1,76 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Registration Form Builder</title>
-    <link rel="stylesheet" href="styles/form-builder.css">
+    <title>Form Builder | CrewCanvas</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f7f7; margin: 0; }
-        .builder-container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 32px; }
-        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .builder-title { font-size: 2rem; font-weight: 700; color: #333; }
-        .preview-toggle { font-size: 1rem; cursor: pointer; background: #4a90e2; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; transition: background 0.2s; }
-        .preview-toggle:hover { background: #3577c9; }
-        .fields-section { margin-bottom: 32px; }
-        .fields-section h3 { margin-bottom: 12px; color: #4a90e2; }
-        .default-fields, .custom-fields { margin-bottom: 18px; }
-        .field-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
-        .field-label { font-weight: 500; color: #222; min-width: 120px; }
-        .field-type { color: #888; font-size: 0.95rem; }
-        .field-actions { margin-left: auto; }
-        .add-field-btn { background: #FF8A00; color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-size: 1rem; cursor: pointer; }
-        .add-field-btn:hover { background: #e67600; }
-        .remove-btn { background: none; border: none; color: #e74c3c; font-size: 1.2rem; cursor: pointer; }
-        .remove-btn:hover { color: #c0392b; }
-        .conditional-logic-section { margin-bottom: 32px; }
-        .logic-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-        .logic-label { color: #555; }
-        .save-btn { background: #4a90e2; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-size: 1.1rem; font-weight: 600; cursor: pointer; float: right; }
-        .save-btn:hover { background: #3577c9; }
-        .preview-section { background: #f2f6fa; border-radius: 8px; padding: 24px; margin-top: 24px; }
-        .preview-section h3 { color: #222; }
-        .preview-field { margin-bottom: 18px; }
-        .preview-label { font-weight: 500; color: #333; display: block; margin-bottom: 6px; }
-        .preview-input, .preview-select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        .builder-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 24px;
+            padding: 24px;
+            height: calc(100vh - 100px);
+        }
+
+        .builder-sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .field-item {
+            padding: 12px;
+            border: 2px dashed #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .field-item:hover {
+            border-color: #ff8800;
+            background: rgba(255, 136, 0, 0.05);
+        }
+
+        .field-icon {
+            font-size: 20px;
+        }
+
+        .builder-canvas {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .canvas-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .dropped-field {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .dropped-field:hover {
+            border-color: #ff8800;
+        }
+
+        .field-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: #f5f5f5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn.delete:hover {
+            background: #fee;
+            color: #f44;
+        }
+
+        .builder-preview {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+        }
+
+        .preview-title {
+            color: #ff8800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 260px;
+            right: 0;
+            background: white;
+            padding: 16px 40px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .orange-btn {
+            background: linear-gradient(135deg, #ff8800 0%, #ff2d55 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .orange-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="builder-container">
-        <div class="builder-header">
-            <span class="builder-title">Registration Form Builder</span>
-            <button class="preview-toggle" id="togglePreview">Preview Mode</button>
-        </div>
-        <form id="formBuilderForm">
-            <div class="fields-section">
-                <h3>Default Fields (Always Included)</h3>
-                <div class="default-fields">
-                    <div class="field-row"><span class="field-label">Name</span><span class="field-type">Text</span></div>
-                    <div class="field-row"><span class="field-label">Email</span><span class="field-type">Email</span></div>
-                    <div class="field-row"><span class="field-label">Age</span><span class="field-type">Number</span></div>
-                    <div class="field-row"><span class="field-label">Gender</span><span class="field-type">Dropdown (Male/Female/Other)</span></div>
-                    <div class="field-row"><span class="field-label">Phone Number</span><span class="field-type">Phone</span></div>
-                    <div class="field-row"><span class="field-label">City</span><span class="field-type">Text</span></div>
-                    <div class="field-row"><span class="field-label">State</span><span class="field-type">Text</span></div>
+    <div class="app-container">
+        <!-- Sidebar (Desktop) -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>CrewCanvas</h2>
+                <p>Where all crafts connect</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="feed.html" class="nav-item">
+                    <span class="icon">📰</span> Feed
+                </a>
+                <a href="home.html" class="nav-item">
+                    <span class="icon">🏠</span> Dashboard
+                </a>
+                <a href="crew-search.html" class="nav-item">
+                    <span class="icon">🔍</span> Crew Search
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <span class="icon">💬</span> Messages
+                </a>
+                <a href="event.html" class="nav-item active">
+                    <span class="icon">🎬</span> Events
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="page-title">
+                    <button onclick="history.back()" class="back-btn" style="background: none; border: none; font-size: 20px; cursor: pointer;">←</button>
+                    <h1 style="font-size: 20px; font-weight: 700;">Registration Form Builder</h1>
+                </div>
+                <div class="status-bar">
+                    <button class="orange-btn" style="margin-right: 20px;" onclick="saveForm()">Save Form Configuration</button>
+                    <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                        <div class="user-avatar-small" id="userAvatarSmall" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #ff8c00, #ff4c3b); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                            <img src="" alt="" id="userAvatarImg" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+                            <span id="userInitialsSmall">U</span>
+                        </div>
+                        <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #333; margin-left: 10px;">User</span>
+                        <span class="chevron-down" style="font-size: 10px; opacity: 0.4; margin-left: 5px;">▼</span>
+                        <div class="profile-dropdown-menu" id="profileDropdown">
+                            <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                            <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-file-pen"></i> Edit Profile</a>
+                            <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" onclick="logout()" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="builder-container">
+                <!-- Sidebar: Available Fields -->
+                <div class="builder-sidebar">
+                    <h3 class="preview-title" style="color:#333">Standard Fields</h3>
+                    <div class="field-item" onclick="addField('text', 'Full Name')">
+                        <span class="field-icon">👤</span>
+                        <span>Full Name</span>
+                    </div>
+                    <div class="field-item" onclick="addField('email', 'Email Address')">
+                        <span class="field-icon">📧</span>
+                        <span>Email Address</span>
+                    </div>
+                    <div class="field-item" onclick="addField('number', 'Age')">
+                        <span class="field-icon">🔢</span>
+                        <span>Age</span>
+                    </div>
+                    <div class="field-item" onclick="addField('select', 'Gender')">
+                        <span class="field-icon">🚻</span>
+                        <span>Gender Selection</span>
+                    </div>
+                    <div class="field-item" onclick="addField('file', 'Headshot / Profile')">
+                        <span class="field-icon">📸</span>
+                        <span>Image Upload</span>
+                    </div>
+
+                    <h3 class="preview-title" style="color:#333; margin-top:20px">Custom Fields</h3>
+                    <div class="field-item" onclick="addField('text', 'Custom Question')">
+                        <span class="field-icon">➕</span>
+                        <span>Short Text Box</span>
+                    </div>
+                    <div class="field-item" onclick="addField('textarea', 'Detailed Bio')">
+                        <span class="field-icon">📝</span>
+                        <span>Long Text Area</span>
+                    </div>
+                    <div class="field-item" onclick="addField('file', 'Resume / PDF')">
+                        <span class="field-icon">📄</span>
+                        <span>Document Upload</span>
+                    </div>
+                </div>
+
+                <!-- Main Canvas -->
+                <div class="builder-canvas" id="canvas">
+                    <div class="canvas-header">
+                        <h2 class="form-title" contenteditable="true">Untitled Registration Form</h2>
+                        <p style="color:#666">Click on fields to your left to add them here. Drag to reorder (Coming
+                            soon).</p>
+                    </div>
+                    <div id="form-fields-container">
+                        <!-- Fields will be added here -->
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: Field Settings / Live Preview -->
+                <div class="builder-preview">
+                    <h3 class="preview-title">Live Preview</h3>
+                    <div id="preview-container">
+                        <p style="color:#888; text-align:center; margin-top:50px">Add fields to see preview</p>
+                    </div>
                 </div>
             </div>
-            <div class="fields-section">
-                <h3>Custom Fields</h3>
-                <div class="custom-fields" id="customFieldsContainer"></div>
-                <button type="button" class="add-field-btn" id="addCustomFieldBtn">+ Add Field</button>
-            </div>
-            <div class="conditional-logic-section">
-                <h3>Conditional Logic</h3>
-                <div id="logicContainer"></div>
-                <button type="button" class="add-field-btn" id="addLogicBtn">+ Add Logic</button>
-            </div>
-            <button type="submit" class="save-btn">Save Form</button>
-        </form>
-        <div class="preview-section" id="previewSection" style="display:none;">
-            <h3>Form Preview</h3>
-            <form id="previewForm"></form>
-        </div>
+        </main>
     </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
     <script src="js/form-builder.js"></script>
 </body>
-</html> 
+
+</html>

@@ -101,7 +101,7 @@ public class EventController {
             Event event = eventService.applyToEvent(id, userId);
             return ResponseEntity.ok(event);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -119,19 +119,23 @@ public class EventController {
     }
 
     @GetMapping("/{id}/applicants")
-    public ResponseEntity<?> getApplicants(@PathVariable Long id) {
+    public ResponseEntity<?> getEventApplicants(@PathVariable("id") Long id) {
         try {
-            return ResponseEntity.ok(eventService.getApplicantsForEvent(id));
+            List<com.crewcanvas.model.EventApplication> applicants = eventService.getApplicantsForEvent(id);
+            return ResponseEntity.ok(applicants);
         } catch (Exception e) {
+            System.err.println("Error fetching applicants for event " + id + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }
 
-    @PutMapping("/application/{appId}/status")
-    public ResponseEntity<?> updateApplicationStatus(@PathVariable Long appId, @RequestParam String status) {
+    @PatchMapping("/applications/{applicationId}/status")
+    public ResponseEntity<?> updateApplicationStatus(@PathVariable Long applicationId, @RequestParam String status) {
         try {
-            return ResponseEntity.ok(eventService.updateApplicationStatus(appId, status));
+            return ResponseEntity.ok(eventService.updateApplicationStatus(applicationId, status));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

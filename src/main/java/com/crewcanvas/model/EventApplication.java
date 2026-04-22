@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "event_applications")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class EventApplication {
 
     @Id
@@ -17,16 +18,23 @@ public class EventApplication {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    private String applicantName;
-    private String applicantEmail;
-    private String role;
-    private String experience;
-    private String location;
+    private String status = "PENDING"; // PENDING, SHORTLISTED, REJECTED
 
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
-    private String status = "pending"; // pending, shortlisted, rejected
+    @Column(name = "applicant_name")
+    private String applicantName;
+
+    @Column(name = "applicant_email")
+    private String applicantEmail;
+
+    private String role;
+
+    private String location;
+
+    @Column(length = 1000)
+    private String experience;
 
     @PrePersist
     protected void onCreate() {
@@ -38,85 +46,33 @@ public class EventApplication {
     public EventApplication(Long eventId, Long userId) {
         this.eventId = eventId;
         this.userId = userId;
+        this.status = "PENDING";
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getAppliedAt() { return appliedAt; }
+    public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getApplicantName() { return applicantName; }
+    public void setApplicantName(String applicantName) { this.applicantName = applicantName; }
 
-    public Long getEventId() {
-        return eventId;
-    }
+    public String getApplicantEmail() { return applicantEmail; }
+    public void setApplicantEmail(String applicantEmail) { this.applicantEmail = applicantEmail; }
 
-    public void setEventId(Long eventId) {
-        this.eventId = eventId;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public Long getUserId() {
-        return userId;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getApplicantName() {
-        return applicantName;
-    }
-
-    public void setApplicantName(String applicantName) {
-        this.applicantName = applicantName;
-    }
-
-    public String getApplicantEmail() {
-        return applicantEmail;
-    }
-
-    public void setApplicantEmail(String applicantEmail) {
-        this.applicantEmail = applicantEmail;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getExperience() {
-        return experience;
-    }
-
-    public void setExperience(String experience) {
-        this.experience = experience;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public LocalDateTime getAppliedAt() {
-        return appliedAt;
-    }
-
-    public void setAppliedAt(LocalDateTime appliedAt) {
-        this.appliedAt = appliedAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public String getExperience() { return experience; }
+    public void setExperience(String experience) { this.experience = experience; }
 }

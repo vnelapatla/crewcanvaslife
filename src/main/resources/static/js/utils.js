@@ -105,10 +105,41 @@ function formatDate(dateString) {
     });
 }
 
+function parseSafeDate(dateString) {
+    if (!dateString) return null;
+    
+    // 1. Direct parse
+    let date = new Date(dateString);
+    if (!isNaN(date.getTime())) return date;
+
+    // 2. Try fixing common ISO-like formats
+    let fixed = dateString.replace(' ', 'T');
+    
+    // If it lacks a timezone but has T, try assuming UTC if it looks like a full ISO string
+    if (fixed.includes('T') && !fixed.includes('Z') && !/[+-]\d{2}:\d{2}$/.test(fixed)) {
+        const utcDate = new Date(fixed + 'Z');
+        if (!isNaN(utcDate.getTime())) return utcDate;
+    }
+
+    date = new Date(fixed);
+    if (!isNaN(date.getTime())) return date;
+
+    // 3. Last ditch effort for very weird formats
+    try {
+        const cleaned = dateString.replace(/[^\d-T:.Z+]/g, '');
+        const d = new Date(cleaned);
+        if (!isNaN(d.getTime())) return d;
+    } catch (e) {}
+
+    return null;
+}
+
 // Format time
 function formatTime(timeString) {
     if (!timeString) return '';
-    const date = new Date(timeString);
+    const date = parseSafeDate(timeString);
+    if (!date) return '';
+    
     return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
@@ -236,12 +267,17 @@ function renderAvatarFallback(name, className = '') {
 }
 
 // Initialize Universal Bottom Navigation for Mobile
+// Global path variables for navigation
+const path = window.location.pathname;
+const currentPage = path.split("/").pop() || 'index.html';
+
+// Initialize Universal Bottom Navigation for Mobile
 function initUniversalBottomNav() {
-    const path = window.location.pathname;
-    const currentPage = path.split('/').pop() || 'home.html';
-    
+    // Only show on mobile
+    if (window.innerWidth > 1080) return;
+
     // Do NOT show on login/register or edit profile pages
-    if (currentPage === 'index.html' || currentPage === 'edit-profile.html' || path === '/') return;
+    if (currentPage === 'index.html' || currentPage === 'register.html' || path === '/') return;
 
     // Only proceed if bottom-nav isn't already there
     if (document.querySelector('.bottom-nav')) return;
@@ -249,19 +285,19 @@ function initUniversalBottomNav() {
     const navHtml = `
     <div class="bottom-nav">
         <a href="feed.html" class="nav-item ${currentPage.includes('feed') ? 'active' : ''}">
-            <span class="icon">📰</span> <span>Feed</span>
+            <i class="fa-solid fa-newspaper icon"></i> <span>Feed</span>
         </a>
         <a href="home.html" class="nav-item ${currentPage.includes('home') ? 'active' : ''}">
-            <span class="icon">🏠</span> <span>Dashboard</span>
+            <i class="fa-solid fa-house icon"></i> <span>Dashboard</span>
         </a>
         <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search') ? 'active' : ''}">
-            <span class="icon">🔍</span> <span>Crew Search</span>
+            <i class="fa-solid fa-magnifying-glass icon"></i> <span>Search</span>
         </a>
         <a href="messages.html" class="nav-item ${currentPage.includes('messages') ? 'active' : ''}">
-            <span class="icon">💬</span> <span>Messages</span>
+            <i class="fa-solid fa-message icon"></i> <span>Messages</span>
         </a>
-        <a href="launch-audition.html" class="nav-item ${currentPage.includes('launch-audition') || currentPage.includes('event') ? 'active' : ''}">
-            <span class="icon">🎬</span> <span>Events</span>
+        <a href="event.html" class="nav-item ${currentPage.includes('event') ? 'active' : ''}">
+            <i class="fa-solid fa-clapperboard icon"></i> <span>Events</span>
         </a>
     </div>
     `;
@@ -269,27 +305,80 @@ function initUniversalBottomNav() {
     document.body.insertAdjacentHTML('beforeend', navHtml);
 }
 
-// Sidebar Toggle logic
+// Initialize Universal Header for all pages
+function initUniversalHeader() {
+    const header = document.querySelector('.top-header');
+    if (!header) return;
+
+    // Standardized Header HTML (Matches user screenshot)
+    header.innerHTML = `
+        <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
+            <h2 class="brand-logo" onclick="window.location.href='home.html'" style="color: var(--primary-orange); font-size: 22px; font-weight: 900; margin: 0; cursor: pointer; letter-spacing: -0.5px;">CrewCanvas</h2>
+            <i class="fa-solid fa-bell notification-bell-icon" style="color: #fcd34d; font-size: 20px; cursor: pointer;"></i>
+        </div>
+        <div class="status-bar">
+            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                <div class="user-initials" id="userInitialsSmall">U</div>
+                <img id="userAvatarSmall" src="" alt="" style="display:none; width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                <span id="userNameHeader">User</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px; opacity: 0.5;"></i>
+                <div class="profile-dropdown-menu" id="profileDropdown">
+                    <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
+                    <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
+                    <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Apply standard styles
+    header.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid #f1f5f9; min-height: 65px; position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;";
+    
+    // Re-sync profile data if ProfileHandler is ready
+    if (typeof ProfileHandler !== 'undefined' && ProfileHandler.user) {
+        ProfileHandler.updateGlobalHeader();
+    }
+}
+
+// Sidebar Toggle logic (Used for desktop if needed, but primarily mobile drawer)
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
     if (sidebar) sidebar.classList.toggle('active');
     if (overlay) overlay.classList.toggle('active');
+    
+    // Prevent scrolling when sidebar is open
+    if (sidebar && sidebar.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
 }
 
 function initSidebarToggle() {
-    const header = document.querySelector('.top-header, .profile-top-nav');
-    // For mobile only (based on window width)
-    if (window.innerWidth > 1080) return;
-    
-    if (header && !header.querySelector('.mobile-brand-name')) {
-        const hamburgerHtml = `
-            <div class="header-left-group" id="mobileHeaderLeft">
-                <span class="mobile-brand-name">CrewCanvas</span>
-            </div>
-        `;
-        header.insertAdjacentHTML('afterbegin', hamburgerHtml);
+    // On mobile, we use bottom nav instead of sidebar drawer as per user request
+    if (window.innerWidth <= 1080) {
+        const existingToggle = document.querySelector('.sidebar-toggle');
+        if (existingToggle) existingToggle.remove();
+        return;
     }
+
+    const header = document.querySelector('.top-header');
+    if (!header) return;
+
+    // Check if we already have the toggle
+    if (header.querySelector('.sidebar-toggle')) return;
+
+    // Create the toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'sidebar-toggle';
+    toggleBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+    toggleBtn.onclick = toggleSidebar;
+
+    // Insert at the beginning of the header
+    header.prepend(toggleBtn);
 
     // Ensure sidebar-overlay exists
     if (!document.querySelector('.sidebar-overlay')) {
@@ -298,10 +387,23 @@ function initSidebarToggle() {
         overlay.onclick = toggleSidebar;
         document.body.appendChild(overlay);
     }
+    
+    // Also add close button to sidebar if missing
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar && !sidebar.querySelector('.sidebar-close-btn')) {
+        const closeBtn = document.createElement('div');
+        closeBtn.className = 'sidebar-close-btn';
+        closeBtn.innerHTML = '<i class="fa-solid fa-times"></i>';
+        closeBtn.onclick = toggleSidebar;
+        sidebar.appendChild(closeBtn);
+    }
 }
 
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
+    // Inject standard header
+    initUniversalHeader();
+    
     // Inject bottom nav on mobile if missing
     initUniversalBottomNav();
     
@@ -310,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Listen for resize to handle orientation changes or window resizing
     window.addEventListener('resize', debounce(() => {
+        initUniversalHeader();
         initUniversalBottomNav();
         initSidebarToggle();
     }, 250));

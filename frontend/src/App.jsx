@@ -5,6 +5,7 @@ import EventsPage from './pages/EventsPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import MessagesPage from './pages/MessagesPage';
+import SearchPage from './pages/SearchPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import './index.css';
 
@@ -74,6 +75,19 @@ function App() {
             isAuthenticated ? (
               <DashboardLayout>
                 <ProfilePage />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/auth" />
+            )
+          } 
+        />
+
+        <Route 
+          path="/search" 
+          element={
+            isAuthenticated ? (
+              <DashboardLayout>
+                <SearchPage />
               </DashboardLayout>
             ) : (
               <Navigate to="/auth" />

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industry Events | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/events.css">
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --secondary-orange: #ff4c3b;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --gold: #f59e0b;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --pink: #ec4899;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fafafa;
+        }
+
+        h1, h2, h3, .brand h2 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .horizontal-cards {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0 30px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .horizontal-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        .event-feature-card {
+            min-width: 280px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .event-feature-card.active {
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            border: none;
+        }
+
+        .event-feature-card.active::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .icon-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.3s;
+        }
+
+        .event-feature-card.active .icon-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .info h3 {
+            font-size: 14px;
+            font-weight: 800;
+            margin: 0;
+            color: #1e293b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .event-feature-card.active .info h3 { color: white; }
+
+        .info p {
+            font-size: 11px;
+            color: #94a3b8;
+            margin: 2px 0 0;
+            font-weight: 500;
+        }
+
+        .event-feature-card.active .info p { color: rgba(255, 255, 255, 0.8); }
+
+        .badge {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-left: auto;
+            background: #fff8f1;
+            padding: 4px 10px;
+            border-radius: 10px;
+        }
+
+        .event-feature-card.active .badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Cinematic Events Grid */
+        .events-display-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+            padding: 20px 0 100px;
+        }
+
+        .cinematic-card {
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cinematic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+
+        .card-image-box {
+            height: 180px;
+            background: #111;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            transition: all 0.5s;
+        }
+
+        .cinematic-card:hover .card-image-box img {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+
+        .type-tag {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .tag-audition { background: rgba(59, 130, 246, 0.9); color: white; }
+        .tag-workshop { background: rgba(236, 72, 153, 0.9); color: white; }
+        .tag-course { background: rgba(16, 185, 129, 0.9); color: white; }
+        .tag-contest { background: rgba(245, 158, 11, 0.9); color: white; }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .card-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .meta-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .meta-item i {
+            color: var(--primary-orange);
+            font-size: 14px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .applicants-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .applicants-text span {
+            color: var(--secondary-orange);
+        }
+
+        .apply-btn {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding:10px 22px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .apply-btn:hover {
+            background: var(--primary-orange);
+            transform: scale(1.05);
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 30px rgba(255, 76, 59, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            z-index: 10001;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 14, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 30px 100px rgba(0,0,0,0.25);
+            background: #ffffff;
+            width: 100%;
+            margin: auto;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label-premium {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .form-control-premium {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #0f172a;
+            transition: all 0.2s;
+        }
+
+        .form-control-premium::placeholder {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .form-control-premium:focus {
+            background: #fff;
+            border-color: var(--primary-orange);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .choice-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .choice-item span {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .choice-item:hover {
+            background: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            border-color: var(--primary-orange);
+        }
+
+        .choice-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .choice-icon.pink { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .choice-icon.green { background: linear-gradient(135deg, #10b981, #059669); }
+        .choice-icon.yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .choice-icon.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        .btn-next-premium {
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel-premium {
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-next-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255, 76, 59, 0.2); }
+        .btn-cancel-premium:hover { background: #e2e8f0; }
+
+        @media (max-width: 600px) {
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            .modal-content {
+                border-radius: 16px;
+            }
+            .modal-header {
+                padding: 15px 20px !important;
+            }
+            .content-body-modal {
+                padding: 15px 20px !important;
+            }
+            .choices-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .fab {
+                bottom: 90px !important;
+                right: 20px !important;
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 24px !important;
+            }
+            .events-display-grid {
+                grid-template-columns: 1fr !important;
+                padding-bottom: 120px !important;
+            }
+            .horizontal-cards {
+                padding: 10px 15px 20px !important;
+            }
+            .event-feature-card {
+                min-width: 260px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="event.html" class="nav-item active">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="status-bar">
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-initials" id="userInitialsSmall">U</div>
+                    <img id="userAvatarSmall" src="" alt="" style="display:none; width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                    <span id="userNameHeader">User</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px; opacity: 0.5;"></i>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <a href="profile.html" class="dropdown-item profile-link">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
+                        <a href="settings.html" class="dropdown-item settings-link">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item logout-link" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="horizontal-cards">
+                <div class="event-feature-card active" onclick="switchEventTab('auditions', this)">
+                    <div class="icon-box"><i class="fas fa-video"></i></div>
+                    <div class="info">
+                        <h3>AUDITIONS</h3>
+                        <p>Casting & Roles</p>
+                    </div>
+                    <div class="badge" id="auditionCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('workshops', this)">
+                    <div class="icon-box"><i class="fas fa-tools"></i></div>
+                    <div class="info">
+                        <h3>WORKSHOPS</h3>
+                        <p>Skill Sessions</p>
+                    </div>
+                    <div class="badge" id="workshopCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('courses', this)">
+                    <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="info">
+                        <h3>COURSES</h3>
+                        <p>Long-term Learning</p>
+                    </div>
+                    <div class="badge" id="courseCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('contests', this)">
+                    <div class="icon-box"><i class="fas fa-trophy"></i></div>
+                    <div class="info">
+                        <h3>CONTESTS</h3>
+                        <p>Awards & Glory</p>
+                    </div>
+                    <div class="badge" id="contestCount">0</div>
+                </div>
+            </div>
+
+            <div id="eventsGrid" class="events-display-grid">
+                <!-- Content will load here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation is injected by utils.js -->
+
+    <button class="fab" onclick="showChoiceModal()"><i class="fas fa-plus"></i></button>
+
+    <!-- Choice Modal -->
+    <div id="choiceModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 440px; padding: 25px;">
+            <div class="modal-header" style="padding-bottom: 20px;">
+                <h2 style="font-size: 18px;">Create Opportunity</h2>
+                <span class="close" onclick="closeChoiceModal()">✕</span>
+            </div>
+            <div class="choices-grid">
+                <div class="choice-item" onclick="openCreateForm('Workshop')">
+                    <div class="choice-icon pink">🛠️</div>
+                    <span>Workshop</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Course')">
+                    <div class="choice-icon green">🎓</div>
+                    <span>Course</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Contest')">
+                    <div class="choice-icon yellow">🏆</div>
+                    <span>Contest</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Audition')">
+                    <div class="choice-icon blue">🎬</div>
+                    <span>Audition</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Modal -->
+    <div id="formModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 540px; padding: 0;">
+            <div class="modal-header" style="padding: 15px 25px; border-bottom: 1px solid #f1f5f9;">
+                <h2 id="formTitle" style="font-size: 16px;">✨ Launch Opportunity</h2>
+                <span class="close" onclick="closeFormModal()">✕</span>
+            </div>
+            <div class="content-body-modal" style="padding: 20px 25px;">
+                <div class="form-grid-2">
+                    <div class="form-group full-width">
+                        <label class="form-label-premium">Opportunity Title</label>
+                        <input type="text" id="eventTitle" class="form-control-premium" placeholder="e.g. Lead Actor for Feature Film">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Start Date</label>
+                        <input type="date" id="eventDate" class="form-control-premium">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">End Date</label>
+                        <input type="date" id="eventEndDate" class="form-control-premium">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Time / Duration</label>
+                        <input type="text" id="eventTimeDuration" class="form-control-premium" placeholder="e.g. 10:00 AM - 4:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Location</label>
+                        <input type="text" id="eventLocation" class="form-control-premium" placeholder="City or Studio">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Organizer Name</label>
+                        <input type="text" id="eventOrgName" class="form-control-premium">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Contact Email</label>
+                        <input type="email" id="eventOrgEmail" class="form-control-premium" placeholder="organizer@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Max Capacity</label>
+                        <input type="number" id="eventCapacity" class="form-control-premium" placeholder="e.g. 50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Budget / Price (₹)</label>
+                        <input type="number" id="eventPrice" class="form-control-premium" placeholder="e.g. 5000">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label-premium">Key Skills Required</label>
+                        <input type="text" id="eventSkills" class="form-control-premium" placeholder="e.g. Acting, Dancing, Video Editing">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label-premium">Description & Requirements</label>
+                        <textarea id="eventDescription" class="form-control-premium" style="height: 120px;" placeholder="Describe the role, detailed skills needed, etc."></textarea>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button class="btn-next-premium" style="flex: 2;" onclick="submitEvent()">Launch Now</button>
+                    <button class="btn-cancel-premium" style="flex: 1;" onclick="closeFormModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/events.js"></script>
+    <script>
+        function showChoiceModal() { document.getElementById('choiceModal').style.display = 'flex'; }
+        function closeChoiceModal() { document.getElementById('choiceModal').style.display = 'none'; }
+    </script>
+</body>
+
+</html>

@@ -21,7 +21,14 @@ public class PostController {
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody PostRequest request) {
         try {
-            Post post = postService.createPost(request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks());
+            System.out.println("Creating post. isPoll: " + request.isPoll());
+            Post post;
+            if (request.isPoll()) {
+                System.out.println("Poll question: " + request.getPollQuestion());
+                post = postService.createPoll(request.getUserId(), request.getPollQuestion(), request.getPollOptions());
+            } else {
+                post = postService.createPost(request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks());
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(post);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -30,7 +37,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
+    public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
             org.springframework.data.domain.Page<Post> posts = postService.getAllPosts(page, size);
             return ResponseEntity.ok(posts);
@@ -69,11 +76,10 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody PostRequest request) {
         try {
-            // FIXED Incident BF-303: Added ownership validation for updates
-            Post post = postService.updatePost(id, request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks());
+            Post post = postService.updatePost(id, request.getContent(), request.getImageUrls(), request.getExternalLinks());
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -81,13 +87,10 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
         try {
-            // FIXED Incident BF-303: Passed userId to service for ownership validation
-            postService.deletePost(id, userId);
+            postService.deletePost(id);
             return ResponseEntity.ok("Post deleted successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -121,6 +124,18 @@ public class PostController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/{id}/vote")
+    public ResponseEntity<?> votePoll(@PathVariable Long id, @RequestBody java.util.Map<String, Object> payload) {
+        try {
+            Long userId = payload.get("userId") != null ? Long.valueOf(payload.get("userId").toString()) : -1L;
+            Integer optionIndex = payload.get("optionIndex") != null ? Integer.valueOf(payload.get("optionIndex").toString()) : -1;
+            Post post = postService.votePoll(id, userId, optionIndex);
+            return ResponseEntity.ok(post);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error voting: " + e.getMessage());
+        }
+    }
 }
 
 class PostRequest {
@@ -128,6 +143,9 @@ class PostRequest {
     private String content;
     private List<String> imageUrls;
     private List<String> externalLinks;
+    private boolean isPoll;
+    private String pollQuestion;
+    private List<String> pollOptions;
 
     public Long getUserId() {
         return userId;
@@ -159,5 +177,31 @@ class PostRequest {
 
     public void setExternalLinks(List<String> externalLinks) {
         this.externalLinks = externalLinks;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPoll")
+    public boolean isPoll() {
+        return isPoll;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPoll")
+    public void setPoll(boolean poll) {
+        isPoll = poll;
+    }
+
+    public String getPollQuestion() {
+        return pollQuestion;
+    }
+
+    public void setPollQuestion(String pollQuestion) {
+        this.pollQuestion = pollQuestion;
+    }
+
+    public List<String> getPollOptions() {
+        return pollOptions;
+    }
+
+    public void setPollOptions(List<String> pollOptions) {
+        this.pollOptions = pollOptions;
     }
 }

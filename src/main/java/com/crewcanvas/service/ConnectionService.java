@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class ConnectionService {
@@ -22,11 +21,6 @@ public class ConnectionService {
     private UserRepository userRepository;
 
     public Connection followUser(Long followerId, Long followingId) {
-        // Prevent self-follow
-        if (followerId.equals(followingId)) {
-            throw new RuntimeException("Self-following is not allowed");
-        }
-
         // Check if already following
         if (connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
             throw new RuntimeException("Already following this user");
@@ -37,7 +31,7 @@ public class ConnectionService {
         connectionRepository.save(connection);
 
         // Update follower/following counts
-        updateFollowerCounts(followerId, followingId);
+        updateFollowerCounts(followerId, followingId, true);
 
         return connection;
     }
@@ -48,7 +42,7 @@ public class ConnectionService {
             connectionRepository.delete(connection.get());
 
             // Update follower/following counts
-            updateFollowerCounts(followerId, followingId);
+            updateFollowerCounts(followerId, followingId, false);
         } else {
             throw new RuntimeException("Not following this user");
         }
@@ -58,8 +52,8 @@ public class ConnectionService {
         List<Connection> connections = connectionRepository.findByFollowingId(userId);
         return connections.stream()
                 .map(c -> userRepository.findById(c.getFollowerId()))
-                .filter(opt -> opt.isPresent())
-                .map(opt -> opt.get())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -67,8 +61,8 @@ public class ConnectionService {
         List<Connection> connections = connectionRepository.findByFollowerId(userId);
         return connections.stream()
                 .map(c -> userRepository.findById(c.getFollowingId()))
-                .filter(opt -> opt.isPresent())
-                .map(opt -> opt.get())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -76,22 +70,25 @@ public class ConnectionService {
         return connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId);
     }
 
-    private void updateFollowerCounts(Long followerId, Long followingId) {
-        // FIXED Incident BF-505: Switched to robust repository counting instead of manual increment/decrement.
-        // This ensures the counts are always accurate relative to the actual connections in the database.
-        
-        // Update Following User's Follower Count
-        Long followersCount = connectionRepository.countFollowers(followingId);
-        userRepository.findById(followingId).ifPresent(user -> {
-            user.setFollowers(followersCount.intValue());
-            userRepository.save(user);
-        });
+    private void updateFollowerCounts(Long followerId, Long followingId, boolean increment) {
+        int delta = increment ? 1 : -1;
 
-        // Update Follower User's Following Count
-        Long followingCount = connectionRepository.countFollowing(followerId);
-        userRepository.findById(followerId).ifPresent(user -> {
-            user.setFollowing(followingCount.intValue());
+        // Follower's "Following" count changes
+        Optional<User> followerUser = userRepository.findById(followerId);
+        if (followerUser.isPresent()) {
+            User user = followerUser.get();
+            int currentFollowing = user.getFollowing() != null ? user.getFollowing() : 0;
+            user.setFollowing(Math.max(0, currentFollowing + delta));
             userRepository.save(user);
-        });
+        }
+
+        // Following's "Follower" count changes
+        Optional<User> followingUser = userRepository.findById(followingId);
+        if (followingUser.isPresent()) {
+            User user = followingUser.get();
+            int currentFollowers = user.getFollowers() != null ? user.getFollowers() : 0;
+            user.setFollowers(Math.max(0, currentFollowers + delta));
+            userRepository.save(user);
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "projects")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Project {
 
     @Id
@@ -27,8 +28,7 @@ public class Project {
     @Column(name = "release_year")
     private Integer year;
 
-    @Lob
-    @Column(name = "image_url", columnDefinition = "LONGTEXT")
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Column(name = "video_url")
@@ -37,7 +37,6 @@ public class Project {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;

@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "followers", uniqueConstraints = @UniqueConstraint(columnNames = { "follower_id", "following_id" }))
+@Table(name = "connections", uniqueConstraints = @UniqueConstraint(columnNames = { "follower_id", "following_id" }))
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Connection {
 
     @Id
@@ -20,12 +21,10 @@ public class Connection {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follower_id", insertable = false, updatable = false)
     private User follower;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "following_id", insertable = false, updatable = false)
     private User following;

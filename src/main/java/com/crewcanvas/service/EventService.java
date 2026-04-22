@@ -28,7 +28,7 @@ public class EventService {
     }
 
     public List<Event> getAllEvents() {
-        return eventRepository.findAllByOrderByStartDateDesc();
+        return eventRepository.findAllByOrderByDateDesc();
     }
 
     public List<Event> getUserEvents(Long userId) {
@@ -36,7 +36,7 @@ public class EventService {
     }
 
     public List<Event> getEventsByType(String eventType) {
-        return eventRepository.findByEventTypeOrderByStartDateDesc(eventType);
+        return eventRepository.findByEventTypeOrderByDateDesc(eventType);
     }
 
     public Optional<Event> getEventById(Long id) {
@@ -55,8 +55,8 @@ public class EventService {
                 event.setEventType(updatedEvent.getEventType());
             if (updatedEvent.getLocation() != null)
                 event.setLocation(updatedEvent.getLocation());
-            if (updatedEvent.getStartDate() != null)
-                event.setStartDate(updatedEvent.getStartDate());
+            if (updatedEvent.getDate() != null)
+                event.setDate(updatedEvent.getDate());
             if (updatedEvent.getTime() != null)
                 event.setTime(updatedEvent.getTime());
             if (updatedEvent.getRequirements() != null)

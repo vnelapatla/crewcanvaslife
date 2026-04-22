@@ -4,12 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "events")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Event {
 
     @Id
@@ -30,8 +28,10 @@ public class Event {
 
     private String location;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
+    private LocalDate date;
+    
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     private LocalTime time;
 
@@ -64,11 +64,6 @@ public class Event {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    private LocalDate endDate;
-    private String timeDuration;
-
-
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -82,12 +77,12 @@ public class Event {
     public Event() {
     }
 
-    public Event(Long userId, String title, String eventType, String location, LocalDate startDate) {
+    public Event(Long userId, String title, String eventType, String location, LocalDate date) {
         this.userId = userId;
         this.title = title;
         this.eventType = eventType;
         this.location = location;
-        this.startDate = startDate;
+        this.date = date;
     }
 
     // Getters and Setters
@@ -139,16 +134,20 @@ public class Event {
         this.location = location;
     }
 
-    @JsonProperty("date")
-    @JsonAlias("startDate")
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDate getDate() {
+        return date;
     }
 
-    @JsonProperty("date")
-    @JsonAlias("startDate")
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+    
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
     public LocalTime getTime() {
@@ -253,21 +252,5 @@ public class Event {
 
     public void setSkills(String skills) {
         this.skills = skills;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public String getTimeDuration() {
-        return timeDuration;
-    }
-
-    public void setTimeDuration(String timeDuration) {
-        this.timeDuration = timeDuration;
     }
 }

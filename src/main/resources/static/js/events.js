@@ -1,29 +1,16 @@
 // Events and Auditions functionality
 let currentUserId = null;
 let allEvents = [];
+let userApplications = [];
 let currentFilter = 'all';
 let currentType = ''; // Track currently selected type for creation
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     currentUserId = getCurrentUserId();
-    await loadUserApplications(); // Track what user has registered for
     loadEvents();
     loadCurrentUser();
 });
-
-let userApplications = [];
-async function loadUserApplications() {
-    if (!currentUserId) return;
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
-        if (response.ok) {
-            userApplications = await response.json();
-        }
-    } catch (error) {
-        console.error('Error loading applications:', error);
-    }
-}
 
 // Load current user info for top bar
 async function loadCurrentUser() {
@@ -44,6 +31,12 @@ async function loadCurrentUser() {
 // Load all events
 async function loadEvents() {
     try {
+        // Fetch applications first to check status
+        const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
+        if (appsResponse.ok) {
+            userApplications = await appsResponse.json();
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/events`);
         if (response.ok) {
             allEvents = await response.json();
@@ -103,74 +96,69 @@ function displayEvents(events) {
 
     if (events.length === 0) {
         container.innerHTML = `
-            <div class="no-events">
-                <div class="no-events-icon">🎬</div>
-                <p>No ${currentFilter === 'all' ? '' : currentFilter.toLowerCase()} events found.</p>
+            <div class="no-events" style="grid-column: 1/-1; text-align: center; padding: 100px 0;">
+                <div style="font-size: 60px; margin-bottom: 20px;">🎬</div>
+                <p style="color: #64748b; font-weight: 600;">No ${currentFilter === 'all' ? '' : currentFilter.toLowerCase()} events found.</p>
             </div>
         `;
         return;
     }
 
     container.innerHTML = events.map(event => {
-        const isRegistered = userApplications.some(app => app.eventId == event.id);
+        const typeClass = `tag-${(event.eventType || 'audition').toLowerCase()}`;
+        const placeholderImg = `https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80`;
         
         return `
-        <div class="modern-event-card">
-            <div class="card-header">
-                <h3 class="event-title">🎬 ${event.title}</h3>
-                <div class="date-pill">
-                    <span class="date-label">Event Date</span>
-                    <span class="date-value">${event.date ? event.date : 'TBA'}</span>
+            <div class="cinematic-card">
+                <div class="card-image-box">
+                    <div class="type-tag ${typeClass}">${event.eventType || 'Audition'}</div>
+                    <img src="${event.imageUrl || placeholderImg}" alt="${event.title}">
                 </div>
-            </div>
-            
-            <div class="event-details">
-                <div class="detail-row">
-                    <span class="icon clock-icon">🕒</span>
-                    <span class="detail-text">${formatTime(event.time) || '10:00 AM'} ${event.timeDuration ? '- ' + event.timeDuration : ''}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="icon pin-icon">📍</span>
-                    <span class="detail-text">${event.location || 'Location Not Specified'}</span>
-                </div>
-                
-                <div class="badge-row">
-                    <span class="event-type-pill">${event.eventType || 'Workshop'}</span>
-                </div>
-                
-                <div class="detail-row organizer-row">
-                    <span class="icon user-icon">👤</span>
-                    <span class="detail-text">Organized By : ${event.orgName || 'Crew Canvas'}</span>
-                </div>
-                
-                <div class="contact-row">
-                    <div class="contact-item">
-                        <span class="icon phone-icon">📞</span>
-                        <span class="detail-text">${event.orgPhone || 'N/A'}</span>
-                        <span class="divider">|</span>
+                <div class="card-content">
+                    <h3>${event.title}</h3>
+                    
+                    <div class="meta-group">
+                        <div class="meta-item">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>${formatDate(event.date || event.startDate)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${event.location}</span>
+                        </div>
+                        ${event.timeDuration ? `
+                            <div class="meta-item">
+                                <i class="far fa-clock"></i>
+                                <span>${event.timeDuration}</span>
+                            </div>
+                        ` : ''}
                     </div>
-                    <div class="contact-item">
-                        <span class="icon mail-icon">✉️</span>
-                        <span class="detail-text">${event.orgEmail || 'N/A'}</span>
+                    
+                    <p class="card-desc">
+                        ${event.description || 'No description provided.'}
+                    </p>
+                    
+                    <div class="card-footer">
+                        <div class="applicants-text">
+                            <span>${event.applicants || 0}</span> Registered
+                        </div>
+                        ${event.userId == currentUserId ? `
+                            <button class="apply-btn" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
+                        ` : (userApplications.some(app => app.eventId === event.id) ? `
+                            <button class="apply-btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">Registered</button>
+                        ` : `
+                            <button class="apply-btn" onclick="applyToEvent(${event.id})">Register Now</button>
+                        `)}
                     </div>
                 </div>
             </div>
-            
-            <div class="event-description-modern">
-                ${truncateText(event.description || 'Join this exciting event and explore new opportunities.', 120)}
-            </div>
-            
-            <div class="event-footer-modern">
-                ${event.userId == currentUserId ? `
-                    <button class="btn-register" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
-                ` : isRegistered ? `
-                    <button class="btn-register" style="background-color: #4CAF50; cursor: default;" disabled>Registered</button>
-                ` : `
-                    <button class="btn-register" onclick="applyToEvent(${event.id})">Register</button>
-                `}
-            </div>
-        </div>
-    `}).join('');
+        `;
+    }).join('');
+}
+
+function truncateText(text, length) {
+    if (!text) return '';
+    return text.length > length ? text.substring(0, length) + '...' : text;
 }
 
 // Show/Close Create Event Modal
@@ -192,7 +180,7 @@ function openCreateForm(type) {
     if (choiceModal) choiceModal.style.display = 'none';
     
     const formTitle = document.getElementById('formTitle');
-    if (formTitle) formTitle.innerText = 'Create ' + type;
+    if (formTitle) formTitle.innerHTML = '✨ Create ' + type;
     
     const formModal = document.getElementById('formModal');
     if (formModal) formModal.style.display = 'flex';
@@ -302,9 +290,8 @@ async function applyToEvent(eventId) {
         });
 
         if (response.ok) {
-            showMessage('Application sent successfully!', 'success');
-            await loadUserApplications(); // Refresh my applications
-            loadEvents(); // Refresh grid to update buttons to 'Registered'
+            showMessage('Registration successful!', 'success');
+            loadEvents(); // Refresh to update applicant count
         } else {
             const error = await response.text();
             showMessage(error, 'error');

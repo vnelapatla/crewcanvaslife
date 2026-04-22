@@ -7,7 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -17,17 +22,69 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    @MessageMapping("/chat.sendMessage")
+    public void sendWebSocketMessage(@Payload MessageRequest request) {
+        try {
+            Message savedMessage = messageService.sendMessage(
+                    request.getSenderId(),
+                    request.getReceiverId(),
+                    request.getContent(),
+                    request.getImageUrl(),
+                    request.getFileUrl(),
+                    request.getFileType()
+            );
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", savedMessage.getId());
+            map.put("senderId", savedMessage.getSenderId());
+            map.put("receiverId", savedMessage.getReceiverId());
+            map.put("content", savedMessage.getContent());
+            map.put("imageUrl", savedMessage.getImageUrl());
+            map.put("fileUrl", savedMessage.getFileUrl());
+            map.put("fileType", savedMessage.getFileType());
+            map.put("isRead", savedMessage.getIsRead());
+            map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
+
+            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+
+        } catch (Exception e) {
+            System.err.println("Error sending websocket message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> sendMessage(@RequestBody MessageRequest request) {
         try {
-            Message message = messageService.sendMessage(
+            Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
                     request.getReceiverId(),
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
                     request.getFileType());
-            return ResponseEntity.status(HttpStatus.CREATED).body(message);
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", savedMessage.getId());
+            map.put("senderId", savedMessage.getSenderId());
+            map.put("receiverId", savedMessage.getReceiverId());
+            map.put("content", savedMessage.getContent());
+            map.put("imageUrl", savedMessage.getImageUrl());
+            map.put("fileUrl", savedMessage.getFileUrl());
+            map.put("fileType", savedMessage.getFileType());
+            map.put("isRead", savedMessage.getIsRead());
+            map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
+
+            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error sending message: " + e.getMessage());
@@ -49,7 +106,7 @@ public class MessageController {
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : null);
+                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
@@ -79,7 +136,7 @@ public class MessageController {
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : null);
+                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
@@ -108,7 +165,7 @@ public class MessageController {
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : null);
+                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);

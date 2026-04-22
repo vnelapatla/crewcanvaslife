@@ -3,396 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewCanvas - Messages</title>
-    <link rel="stylesheet" href="styles/home.css">
-    <link rel="stylesheet" href="styles/messages.css">
+    <title>Messages | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/messages.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="js/profile-handler.js"></script>
+    <style>
+
+        .content-body {
+            padding-bottom: 100px !important;
+        }
+    </style>
 </head>
-<body>
-    <div class="dashboard-container">
+<body class="messages-page">
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <div class="logo">
-                <h1>CrewCanvas</h1>
-                <p class="logo-caption">Where all crafts connect</p>
+            <div class="brand">
+                <h2 style="color: var(--primary-orange);">CrewCanvas</h2>
+                <p>Where all crafts connect</p>
             </div>
             <nav class="nav-menu">
                 <a href="feed.html" class="nav-item">
-                    <i class="fas fa-newspaper"></i>
-                    <span>Feed</span>
+                    <span class="icon">📰</span> Feed
                 </a>
                 <a href="home.html" class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
+                    <span class="icon">🏠</span> Dashboard
                 </a>
                 <a href="crew-search.html" class="nav-item">
-                    <i class="fas fa-search"></i>
-                    <span>Crew Search</span>
+                    <span class="icon">🔍</span> Crew Search
                 </a>
                 <a href="messages.html" class="nav-item active">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
+                    <span class="icon">💬</span> Messages
                 </a>
-                <a href="launch-audition.html" class="nav-item">
-                    <i class="fas fa-film"></i>
-                    <span>Events</span>
+                <a href="event.html" class="nav-item">
+                    <span class="icon">🎬</span> Events
                 </a>
-                <!-- <a href="settings.html" class="nav-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a> -->
-                <!-- <a href="#" class="nav-item" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Log Out</span>
-                </a> -->
             </nav>
         </aside>
-        <main class="main-content">
-            <nav class="top-nav">
-                <div class="topbar-logo-mobile">
-                    <span class="topbar-title">CrewCanvas</span>
-                    <span class="topbar-caption">Where all crafts connect</span>
-                </div>
-                <div class="nav-right">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
-                        <span class="user-name"></span>
-                        <div class="profile-dropdown">
-                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
-                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
-                            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
-                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                        </div>
-                        </div>
-                </div>
-            </nav>
-            <div class="messages-container">
-                <!-- Mobile Header -->
-                <div class="mobile-header" style="display: none;">
-                    <h3 id="mobileTitle">Messages</h3>
-                    <button class="mobile-toggle-btn" id="mobileToggleBtn">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-                
-                <div class="conversations-list">
+
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="top-header"></header>
+            <style>
+                .profile-dropdown-menu.active { display: flex !important; }
+                .user-profile-box { cursor: pointer; }
+            </style>
+
+            <!-- Messaging View -->
+            <main class="content-body" id="messagingView">
+                <div class="messages-card">
+                    <!-- Search Header -->
                     <div class="search-section">
                         <div class="search-bar">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search conversations...">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchConversations" placeholder="Search conversations..." oninput="searchConversations()">
                         </div>
                     </div>
-                    
-                    <div class="section-header">
-                        <h3>Messages</h3>
-                        <div class="connection-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-user-plus"></i>
-                                <span>1 Following</span>
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-heart"></i>
-                                <span>1 Followers</span>
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <span>0 Mutual</span>
-                            </span>
+
+                    <!-- Connection Stats -->
+                    <div class="connection-stats">
+                        <div class="stat-pill" onclick="filterConnections('following')">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span id="followingCount">0 Following</span>
+                        </div>
+                        <div class="stat-pill" onclick="filterConnections('followers')">
+                            <i class="fa-solid fa-heart"></i>
+                            <span id="followerCount">0 Followers</span>
+                        </div>
+                        <div class="stat-pill" onclick="filterConnections('mutual')">
+                            <i class="fa-solid fa-users"></i>
+                            <span id="mutualCount">0 Mutual</span>
                         </div>
                     </div>
-                    
-                    <div class="connections-section">
-                        <div class="conversation-item" data-user="Karthikeyan">
-                            <img src="https://ui-avatars.com/api/?name=Karthikeyan&background=E4405F&color=fff&size=56" alt="Karthikeyan">
-                            <div class="conversation-content">
-                                <div class="conversation-header">
-                                    <h4>Karthikeyan</h4>
-                                    <span class="time">2m</span>
-                                </div>
-                                <p class="last-message">Active now</p>
-                            </div>
-                            <div class="conversation-status">
-                                <span class="connection-type following">Following</span>
-                                <div class="online-indicator"></div>
-                            </div>
+
+                    <!-- User Lists (Conversations by default) -->
+                    <div class="lists-wrapper">
+                        <!-- Switch Tabs -->
+                        <div class="list-tabs">
+                            <button class="active" onclick="switchSidebarTab('conversations')">Recent Chats</button>
+                            <button onclick="switchSidebarTab('following')">Connections</button>
                         </div>
-                        
-                        <div class="conversation-item" data-user="crew canvas">
-                            <img src="https://ui-avatars.com/api/?name=crew+canvas&background=833AB4&color=fff&size=56" alt="crew canvas">
-                            <div class="conversation-content">
-                                <div class="conversation-header">
-                                    <h4>crew canvas</h4>
-                                    <span class="time">1h</span>
-                                </div>
-                                <p class="last-message">Thanks for connecting!</p>
-                            </div>
-                            <div class="conversation-status">
-                                <span class="connection-type follower">Follower</span>
-                                <div class="unread-badge">1</div>
-                            </div>
+
+                        <div id="conversationsList" class="user-list">
+                            <!-- Injected by JS -->
+                            <div class="loading-state">Loading your conversations...</div>
+                        </div>
+
+                        <div id="followingList" class="user-list" style="display: none;">
+                            <!-- Injected by JS -->
                         </div>
                     </div>
                 </div>
-                <div class="chat-area">
-                    <div class="chat-header">
-                        <div class="chat-header-left">
-                            <button class="back-btn">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
-                            <div class="chat-user-info">
-                                <div class="default-chat-icon">
-                                    <i class="fas fa-comments"></i>
-                                </div>
-                                <div>
-                                    <h3>Messages</h3>
-                                    <span class="status">Connect with your crew</span>
-                                </div>
+            </main>
+
+            <!-- Chat Modal / Fullscreen Panel (Hidden by default) -->
+            <div id="chatOverlay" class="chat-overlay" style="display: none;">
+                <div class="chat-window">
+                    <header class="chat-header">
+                        <div class="chat-user">
+                            <button class="back-btn" onclick="closeChatArea()"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div id="chatUserAvatar" class="initials-avatar"></div>
+                            <div class="user-info">
+                                <h4 id="chatUserName">User Name</h4>
+                                <span id="chatUserStatus">active now</span>
                             </div>
                         </div>
+                        <div class="chat-actions">
+                            <i class="fa-solid fa-phone"></i>
+                            <i class="fa-solid fa-video"></i>
+                            <i class="fa-solid fa-xmark" onclick="closeChatArea()"></i>
+                        </div>
+                    </header>
+                    <div id="messagesArea" class="messages-container"></div>
+                    <div id="previewArea" class="chat-preview-area" style="display: none; padding: 10px 20px; background: #fff; border-top: 1px solid #eee; align-items: center; gap: 15px;">
+                        <!-- Injected by JS -->
                     </div>
-                    <div class="messages-list">
-                        <div class="no-messages">
-                            <p>Select a conversation to start messaging</p>
-                            <p>Your messages will appear here</p>
+                    <div class="chat-input-area">
+                        <div class="input-actions">
+                            <i class="fa-regular fa-face-smile"></i>
+                            <label for="messageImage" style="cursor: pointer; margin: 0;">
+                                <i class="fa-solid fa-image"></i>
+                            </label>
+                            <input type="file" id="messageImage" accept="image/*" style="display: none;">
+                            
+                            <label for="messageFile" style="cursor: pointer; margin: 0;">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </label>
+                            <input type="file" id="messageFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.mp4,.mov,.avi,.mp3,.wav" style="display: none;">
                         </div>
+                        <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
+                        <button onclick="sendMessage()" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
-                </div>
-                <div class="message-input">
-                    <div class="input-wrapper">
-                        <div class="attachment-container">
-                            <button class="attach-btn">
-                                <i class="fas fa-paperclip"></i>
-                            </button>
-                            <div class="attachment-menu">
-                                <div class="attachment-option" data-type="image">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #FF6B6B, #FF8E8E);">
-                                        <i class="fas fa-image"></i>
-                                    </div>
-                                    <span>Photos</span>
-                                </div>
-                                <div class="attachment-option" data-type="video">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #4ECDC4, #44A08D);">
-                                        <i class="fas fa-video"></i>
-                                    </div>
-                                    <span>Videos</span>
-                                </div>
-                                <div class="attachment-option" data-type="document">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #45B7D1, #96CEB4);">
-                                        <i class="fas fa-file-alt"></i>
-                                    </div>
-                                    <span>Documents</span>
-                                </div>
-                                <div class="attachment-option" data-type="camera">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #F093FB, #F5576C);">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                    <span>Camera</span>
-                                </div>
-                                <div class="attachment-option" data-type="audio">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #FFECD2, #FCB69F);">
-                                        <i class="fas fa-microphone"></i>
-                                    </div>
-                                    <span>Audio</span>
-                                </div>
-                                <div class="attachment-option" data-type="location">
-                                    <div class="attachment-icon" style="background: linear-gradient(45deg, #A8EDEA, #A8EDEA);">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </div>
-                                    <span>Location</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-input-container">
-                            <button class="emoji-btn">😊</button>
-                            <input type="text" placeholder="Type a message..." class="message-input-field">
-                            <div class="emoji-picker">
-                                <div class="emoji-categories">
-                                    <button class="emoji-category active" data-category="smileys">😊</button>
-                                    <button class="emoji-category" data-category="gestures">👋</button>
-                                    <button class="emoji-category" data-category="hearts">❤️</button>
-                                    <button class="emoji-category" data-category="objects">🎉</button>
-                                </div>
-                                <div class="emoji-grid" id="emoji-grid">
-                                    <!-- Smileys & People -->
-                                    <div class="emoji-category-content active" data-category="smileys">
-                                        <span class="emoji-item">😊</span>
-                                        <span class="emoji-item">😂</span>
-                                        <span class="emoji-item">🤣</span>
-                                        <span class="emoji-item">😍</span>
-                                        <span class="emoji-item">🥰</span>
-                                        <span class="emoji-item">😘</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">😎</span>
-                                        <span class="emoji-item">🤔</span>
-                                        <span class="emoji-item">😴</span>
-                                        <span class="emoji-item">😢</span>
-                                        <span class="emoji-item">😭</span>
-                                        <span class="emoji-item">😡</span>
-                                        <span class="emoji-item">🤯</span>
-                                        <span class="emoji-item">😱</span>
-                                        <span class="emoji-item">🥳</span>
-                                        <span class="emoji-item">🤩</span>
-                                        <span class="emoji-item">😇</span>
-                                        <span class="emoji-item">🙄</span>
-                                        <span class="emoji-item">😏</span>
-                                    </div>
-                                    <!-- Gestures -->
-                                    <div class="emoji-category-content" data-category="gestures">
-                                        <span class="emoji-item">👋</span>
-                                        <span class="emoji-item">🤚</span>
-                                        <span class="emoji-item">✋</span>
-                                        <span class="emoji-item">👍</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">👌</span>
-                                        <span class="emoji-item">✌</span>
-                                        <span class="emoji-item">🤞</span>
-                                        <span class="emoji-item">🤟</span>
-                                        <span class="emoji-item">🤘</span>
-                                        <span class="emoji-item">👏</span>
-                                        <span class="emoji-item">🙌</span>
-                                        <span class="emoji-item">🤝</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">💪</span>
-                                        <span class="emoji-item">🤳</span>
-                                        <span class="emoji-item">👉</span>
-                                        <span class="emoji-item">👈</span>
-                                        <span class="emoji-item">👆</span>
-                                        <span class="emoji-item">👇</span>
-                                    </div>
-                                    <!-- Hearts & Symbols -->
-                                    <div class="emoji-category-content" data-category="hearts">
-                                        <span class="emoji-item">❤️</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">💛</span>
-                                        <span class="emoji-item">💚</span>
-                                        <span class="emoji-item">💙</span>
-                                        <span class="emoji-item">💜</span>
-                                        <span class="emoji-item">🖤</span>
-                                        <span class="emoji-item">🤍</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">💕</span>
-                                        <span class="emoji-item">💖</span>
-                                        <span class="emoji-item">💗</span>
-                                        <span class="emoji-item">💘</span>
-                                        <span class="emoji-item">💝</span>
-                                        <span class="emoji-item">💞</span>
-                                        <span class="emoji-item">💟</span>
-                                        <span class="emoji-item">💔</span>
-                                        <span class="emoji-item">❣️</span>
-                                        <span class="emoji-item">💋</span>
-                                        <span class="emoji-item">💯</span>
-                                    </div>
-                                    <!-- Objects & Celebrations -->
-                                    <div class="emoji-category-content" data-category="objects">
-                                        <span class="emoji-item">🎉</span>
-                                        <span class="emoji-item">🎊</span>
-                                        <span class="emoji-item">🎈</span>
-                                        <span class="emoji-item">🎁</span>
-                                        <span class="emoji-item">🎂</span>
-                                        <span class="emoji-item">🎵</span>
-                                        <span class="emoji-item">🎶</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">✨</span>
-                                        <span class="emoji-item">🌟</span>
-                                        <span class="emoji-item">💫</span>
-                                        <span class="emoji-item">🔥</span>
-                                        <span class="emoji-item">⚡</span>
-                                        <span class="emoji-item">💎</span>
-                                        <span class="emoji-item"></span>
-                                        <span class="emoji-item">🥇</span>
-                                        <span class="emoji-item">🎯</span>
-                                        <span class="emoji-item">🚀</span>
-                                        <span class="emoji-item">💡</span>
-                                        <span class="emoji-item">🔔</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="send-button-container">
-                            <button class="send-btn">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Hidden file inputs -->
-                    <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-                    <input type="file" id="videoInput" accept="video/*" multiple style="display: none;">
-                    <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.txt,.xlsx,.pptx" multiple style="display: none;">
-                    <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;">
                 </div>
             </div>
-        </main>
+        </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Get user info from localStorage
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                try {
-                    const user = JSON.parse(userStr);
-                    // Update UI with user info
-                    document.querySelector('.user-name').textContent = user.name;
-                    
-                    // Update profile picture with fallback
-                    const profilePicture = document.querySelector('.user-profile img');
-                    if (profilePicture) {
-                        profilePicture.src = user.picture || '/images/profile.jpg';
-                        profilePicture.alt = user.name;
-                        
-                        // Handle image loading errors
-                        profilePicture.onerror = function() {
-                            console.log('Profile picture failed to load, using default');
-                            this.src = '/images/profile.jpg';
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error parsing user data:', error);
-                }
-            }
 
-            // Handle profile dropdown
-            const userProfile = document.querySelector('.user-profile');
-            if (userProfile) {
-                userProfile.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const dropdown = userProfile.querySelector('.profile-dropdown');
-                    dropdown.classList.toggle('show');
-                });
 
-                // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!userProfile.contains(e.target)) {
-                        const dropdown = userProfile.querySelector('.profile-dropdown');
-                        if (dropdown.classList.contains('show')) {
-                            dropdown.classList.remove('show');
-                        }
-                    }
-                });
-            }
 
-            // Handle logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.clear();
-                    window.location.href = 'index.html';
-                });
-            }
-        });
-    </script>
-    <script src="js/conversation-handler.js"></script>
-    <script src="js/emoji-attachment-handler.js"></script>
-    <script src="js/test-button.js"></script>
-    <script src="js/encryption.js"></script>
-    <script src="js/encrypted-messaging.js"></script>
-    <script src="js/debug-messaging.js"></script>
+    <!-- WebSocket Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/advanced-messaging.js"></script>
     <script src="js/messages.js"></script>
 </body>
-</html> 
+</html>

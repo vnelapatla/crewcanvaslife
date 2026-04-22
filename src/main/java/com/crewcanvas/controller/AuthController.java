@@ -4,12 +4,10 @@ package com.crewcanvas.controller;
 import com.crewcanvas.model.User;
 import com.crewcanvas.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Optional;
 
 @RestController
@@ -19,9 +17,6 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
-
-    @Value("${google.client.id}")
-    private String googleClientId;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -62,42 +57,6 @@ public class AuthController {
                     .body("Signup failed: Something went wrong on our end. Please try again later.");
         }
     }
-
-    @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody TokenRequest request) {
-        try {
-            com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier = 
-                new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
-                    new com.google.api.client.http.javanet.NetHttpTransport(), 
-                    new com.google.api.client.json.gson.GsonFactory())
-                .setAudience(Collections.singletonList(googleClientId))
-                .build();
-
-            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken = verifier.verify(request.getCredential());
-            if (idToken != null) {
-                com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = idToken.getPayload();
-
-                String email = payload.getEmail();
-                String name = (String) payload.get("name");
-                String pictureUrl = (String) payload.get("picture");
-                String googleId = payload.getSubject();
-
-                User user = userService.processGoogleLogin(name, email, googleId, pictureUrl);
-                return ResponseEntity.ok(user);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Google Auth failed: " + e.getMessage());
-        }
-    }
-}
-
-class TokenRequest {
-    private String credential;
-    public String getCredential() { return credential; }
-    public void setCredential(String credential) { this.credential = credential; }
 }
 
 // Request DTOs

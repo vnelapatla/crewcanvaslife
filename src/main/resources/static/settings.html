@@ -3,69 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewCanvas - Settings</title>
-    <link rel="stylesheet" href="styles/home.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="js/profile-handler.js"></script>
+    <title>Settings | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        :root {
+            --bg-dark: #ffffff;
+            --bg-card: #f8fafc;
+            --bg-card-hover: #f1f5f9;
+            --primary: #ff8c00;
+            --primary-hover: #ff9d2e;
+            --accent: #ff4c3b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar is now styled via main.css */
+        .sidebar {
+            width: 280px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 60px;
+            max-width: 1000px;
+        }
+
+        @media (max-width: 1080px) {
+            .main-content {
+                margin-left: 0 !important;
+                padding: 20px !important;
+                padding-bottom: 100px !important;
+            }
+            .section-title { font-size: 24px; margin-bottom: 25px; }
+            .card { padding: 20px; }
+            .setting-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .setting-item select { width: 100%; }
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: var(--text-main);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 40px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 140, 0, 0.2);
+        }
+
+        .card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-main);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input[type="password"], select {
+            width: 100%;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            padding: 14px 20px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="password"]:focus, select:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+        }
+
+        /* Settings Items */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .setting-item h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .setting-item p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* iOS Style Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #e2e8f0;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            background: rgba(244, 67, 54, 0.02);
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="logo">
-                <h1>CrewCanvas</h1>
-                <p class="logo-caption">Where all crafts connect</p>
-            </div>
-            <nav class="nav-menu">
-                <a href="home.html" class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="crew-search.html" class="nav-item active">
-                    <i class="fas fa-search"></i>
-                    <span>Crew Search</span>
-                </a>
-                <a href="messages.html" class="nav-item">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="settings.html" class="nav-item active">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="#" class="nav-item" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Log Out</span>
-                </a>
-            </nav>
-        </aside>
-        <main class="main-content">
-            <nav class="top-nav">
-                 <div class="search-bar">
-                     <i class="fas fa-search"></i>
-                     <input type="text" placeholder="Search settings...">
-                 </div>
-                 <div class="nav-right">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                    </div>  
-                    <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
-                        <span class="user-name"></span>
-                        <div class="profile-dropdown">
-                            <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
-                            <a href="edit-profile.html" class="dropdown-item"><i class="fas fa-edit"></i> Edit Profile</a>
-                            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
-                            <a href="#" class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                        </div>
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CrewCanvas</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item">
+                <span class="icon">📰</span> Feed
+            </a>
+            <a href="home.html" class="nav-item">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item">
+                <span class="icon">🔍</span> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item">
+                <span class="icon">💬</span> Messages
+            </a>
+            <a href="event.html" class="nav-item">
+                <span class="icon">🎬</span> Events
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="top-header">
+            <div class="status-bar">
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-initials" id="userInitialsSmall">U</div>
+                    <img id="userAvatarSmall" src="" alt="" style="display:none; width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                    <span id="userNameHeader">User</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px; opacity: 0.5;"></i>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <a href="profile.html" class="dropdown-item profile-link">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
+                        <a href="settings.html" class="dropdown-item settings-link">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item logout-link" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
                     </div>
                 </div>
-            </nav>
-            <div class="dashboard-content">
-                <h2>Settings</h2>
-                <p>Manage your account and application settings here. (Feature coming soon!)</p>
             </div>
-        </main>
+        </header>
+
+        <h2 class="section-title">Settings</h2>
+        
+        <div class="card">
+            <h3>Account Settings</h3>
+            <div class="form-group">
+                <input type="password" id="currentPassword" placeholder="Current Password">
+                <input type="password" id="newPassword" placeholder="New Password">
+                <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+                <button class="btn-primary" onclick="updatePassword()">Update Password</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Privacy</h3>
+            <div class="setting-item">
+                <div>
+                    <h4>Profile Visibility</h4>
+                    <p>Control who can see your profile</p>
+                </div>
+                <select id="profileVisibility" onchange="updatePrivacy()">
+                    <option value="Everyone">Everyone</option>
+                    <option value="Connections Only">Connections Only</option>
+                    <option value="Private">Private</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <h4>Message Permissions</h4>
+                    <p>Who can send you messages</p>
+                </div>
+                <select id="messagePermissions" onchange="updatePrivacy()">
+                    <option value="Everyone">Everyone</option>
+                    <option value="Connections Only">Connections Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Notifications</h3>
+            <div class="setting-item">
+                <div>
+                    <h4>Email Notifications</h4>
+                    <p>Receive email updates</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="emailNotifications" onchange="updateNotifications()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <h4>New Followers</h4>
+                    <p>Get notified when someone follows you</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="followerNotifications" onchange="updateNotifications()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <h4>Event Reminders</h4>
+                    <p>Reminders for upcoming events</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="eventReminders" onchange="updateNotifications()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card danger-zone">
+            <h3>Danger Zone</h3>
+            <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 10px;">This action cannot be undone and will permanently delete your data.</p>
+        </div>
     </div>
-    <script src="js/home.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
+    <script src="js/settings.js"></script>
 </body>
-</html> 
+</html>

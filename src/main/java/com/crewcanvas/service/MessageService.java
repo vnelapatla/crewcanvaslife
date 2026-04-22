@@ -4,7 +4,6 @@ import com.crewcanvas.model.Message;
 import com.crewcanvas.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,22 +14,12 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
-    @Autowired
-    private ConversationService conversationService;
-
-    @Transactional
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
         message.setFileType(fileType);
-        Message saved = messageRepository.save(message);
-
-        // Update/Create conversation record
-        conversationService.startConversation(senderId, receiverId);
-        conversationService.updateLastMessage(senderId, receiverId, content != null ? content : "Attachment");
-
-        return saved;
+        return messageRepository.save(message);
     }
 
     public List<Message> getConversation(Long userId1, Long userId2) {

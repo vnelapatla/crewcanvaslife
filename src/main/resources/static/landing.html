@@ -1,69 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewCanvas - Film Industry Connection Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/landing.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>CrewCanvas | Professional Film Networking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .hero-banner {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #0c0d0f 0%, #1a1a1a 100%);
+            text-align: center;
+            color: white;
+            width: 100%;
+        }
+
+        .hero-banner h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            background: var(--nav-active-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-banner p {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .cta-btn {
+            background: var(--nav-active-gradient);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 10px 25px rgba(255, 140, 0, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1081px) {
+            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .bottom-nav { display: none !important; }
+        }
+
+        .feature-item {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-premium);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature-item h3 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="landing-container">
-        <div class="landing-content">
-            <div class="logo animate-fade-in">
-                <!-- <img src="images/Screenshot 2025-04-30 at 1.05.11 PM.png" alt="CrewCanvas Logo" class="logo-image"> -->
-                <div class="logo-text">
-                    <h1><span class="c-letter">C</span><span class="remaining-letters">rew</span><span class="c-letter">C</span><span class="remaining-letters">anvas</span></h1>
-                    <!-- <img src="images/Screenshot 2025-04-30 at 1.05.11 PM.png" alt="CrewCanvas Logo" class="logo-image"> -->
-                    <p class="logo-caption">Where all crafts connect</p>
+    <main class="main-content">
+        <section class="hero-banner">
+            <h1>🎬 CrewCanvas</h1>
+            <p>Connect with directors, actors, and film professionals. Find your next project today.</p>
+            <a href="index.html" class="cta-btn">Get Started</a>
+        </section>
+
+        <div class="content-body">
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🤝</span>
+                    <h3>Networking</h3>
+                    <p>Build relationships with industry veterans and newcomers alike.</p>
                 </div>
-            </div>
-            <div class="description animate-slide-up">
-                <p>A ones top platform for all film professionals from lighting and makeup to post production to showcase skills, find gigs, and form cross craft collaborations.</p>
-            </div>
-            <div class="cta-buttons animate-slide-up">
-                <a href="index.html" class="cta-btn primary pulse">
-                    Get Started
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-                <a href="#" class="cta-btn secondary">Learn More</a>
-            </div>
-            <div class="features">
-                <div class="feature animate-fade-in">
-                    <i class="fas fa-users"></i>
-                    <h3>Connect</h3>
-                    <p>Find and connect with industry professionals</p>
+                <div class="feature-item">
+                    <span class="feature-icon">🎥</span>
+                    <h3>Auditions</h3>
+                    <p>Discover real-time casting calls for film and television.</p>
                 </div>
-                <div class="feature animate-fade-in" style="animation-delay: 0.2s;">
-                    <i class="fas fa-briefcase"></i>
-                    <h3>Discover</h3>
-                    <p>Find exciting opportunities and projects</p>
-                </div>
-                <div class="feature animate-fade-in" style="animation-delay: 0.4s;">
-                    <i class="fas fa-handshake"></i>
-                    <h3>Collaborate</h3>
-                    <p>Build your network and create together</p>
+                <div class="feature-item">
+                    <span class="feature-icon">📂</span>
+                    <h3>Portfolio</h3>
+                    <p>Showcase your best work and get noticed by global creators.</p>
                 </div>
             </div>
         </div>
-        <div class="landing-image animate-fade-in">
-            <!-- Background image will be set in CSS -->
-        </div>
+    </main>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="icon">📰</span> <span>Feed</span>
+        </a>
+        <a href="index.html" class="nav-item">
+            <span class="icon">🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="index.html" class="nav-item">
+            <span class="icon">🔍</span> <span>Search</span>
+        </a>
+        <a href="index.html" class="nav-item">
+            <span class="icon">🎬</span> <span>Events</span>
+        </a>
     </div>
-    <script>
-        // Add click event listener to the Get Started button
-        document.querySelector('.cta-btn.primary').addEventListener('click', function(e) {
-            e.preventDefault();
-            // Add fade-out animation to the container
-            document.querySelector('.landing-container').classList.add('fade-out');
-            // Redirect after animation
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 500);
-        });
-    </script>
 </body>
-</html> 
+</html>

@@ -45,12 +45,51 @@ const ProfilePage = () => {
         }
     };
 
+    const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(
+        localStorage.getItem(`premium_unlocked_${displayUserId}`) === 'true' || displayUserId === currentUserId
+    );
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [premiumCode, setPremiumCode] = useState('');
+
+    const handleUnlockPremium = () => {
+        if (premiumCode.toLowerCase() === 'free') {
+            localStorage.setItem(`premium_unlocked_${displayUserId}`, 'true');
+            setIsPremiumUnlocked(true);
+            setShowPremiumModal(false);
+        } else {
+            alert('Invalid code. Use "FREE" for instant access.');
+        }
+    };
+
     if (!user && !loading) return <div className="profile-error">User not found</div>;
 
     const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
 
     return (
         <div className="profile-page-container">
+            {/* Premium Unlock Modal */}
+            {showPremiumModal && (
+                <div className="premium-modal-overlay">
+                    <div className="premium-modal-content">
+                        <button className="close-modal" onClick={() => setShowPremiumModal(false)}>×</button>
+                        <div className="premium-icon-wrap">👑</div>
+                        <h2>Unlock Premium</h2>
+                        <p>Get full access to contact details, budget quotes, and real-time availability.</p>
+                        <div className="code-input-group">
+                            <label>Enter Access Code</label>
+                            <input 
+                                type="text" 
+                                value={premiumCode} 
+                                onChange={(e) => setPremiumCode(e.target.value)}
+                                placeholder="Enter code (e.g. FREE)" 
+                            />
+                        </div>
+                        <button className="activate-btn" onClick={handleUnlockPremium}>ACTIVATE NOW</button>
+                        <p className="hint">Limited time offer: Use code <b>FREE</b></p>
+                    </div>
+                </div>
+            )}
+
             {/* Top Navigation Wrapper */}
             <div className="react-profile-header-wrap">
                 <div className="banner-overlay-blur"></div>
@@ -124,16 +163,46 @@ const ProfilePage = () => {
                         )}
                     </div>
 
-                    <div className="contact-list-react">
-                        <div className="react-contact-pill">
-                            <span className="p-label">EMAIL:</span>
-                            <span className="p-value">{user?.email?.toUpperCase() || 'USER@GMAIL.COM'}</span>
-                            <Mail size={16} className="p-icon" />
-                        </div>
-                        <div className="react-contact-pill">
-                            <span className="p-label">PHONE:</span>
-                            <span className="p-value">{user?.phone || '9951020428'}</span>
-                            <Phone size={16} className="p-icon" />
+                    <div className="premium-lock-box" style={{ 
+                        margin: '20px 0', 
+                        padding: '15px', 
+                        background: isPremiumUnlocked ? 'transparent' : 'rgba(255,140,0,0.1)',
+                        border: isPremiumUnlocked ? '1px solid rgba(255,255,255,0.1)' : '1px dashed #ff8c00',
+                        borderRadius: '16px',
+                        position: 'relative'
+                    }}>
+                        {!isPremiumUnlocked && (
+                            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                <p style={{ fontSize: '12px', color: '#ff8c00', fontWeight: 'bold' }}>PREMIUM DETAILS LOCKED</p>
+                                <button 
+                                    onClick={() => setShowPremiumModal(true)}
+                                    style={{ background: '#ff8c00', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '5px' }}
+                                >
+                                    REVEAL CONTACT & BUDGET
+                                </button>
+                            </div>
+                        )}
+                        <div className="contact-list-react" style={{ filter: isPremiumUnlocked ? 'none' : 'blur(4px)', opacity: isPremiumUnlocked ? 1 : 0.6 }}>
+                            <div className="react-contact-pill">
+                                <span className="p-label">EMAIL:</span>
+                                <span className="p-value">{user?.email?.toUpperCase() || 'USER@GMAIL.COM'}</span>
+                                <Mail size={16} className="p-icon" />
+                            </div>
+                            <div className="react-contact-pill">
+                                <span className="p-label">PHONE:</span>
+                                <span className="p-value">{isPremiumUnlocked ? (user?.phone || '9951020428') : '********'}</span>
+                                <Phone size={16} className="p-icon" />
+                            </div>
+                            <div className="react-contact-pill">
+                                <span className="p-label">BUDGET:</span>
+                                <span className="p-value">{isPremiumUnlocked ? (user?.budgetQuote || '₹ 5.0L - 10.0L') : '********'}</span>
+                                <ExternalLink size={16} className="p-icon" />
+                            </div>
+                            <div className="react-contact-pill">
+                                <span className="p-label">AVAILABILITY:</span>
+                                <span className="p-value">{isPremiumUnlocked ? (user?.availability || 'Available') : '********'}</span>
+                                <MapPin size={16} className="p-icon" />
+                            </div>
                         </div>
                     </div>
 
