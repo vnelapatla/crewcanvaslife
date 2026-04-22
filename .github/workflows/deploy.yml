@@ -35,22 +35,16 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          echo "Connected! Cleaning and Starting..."
+          mkdir -p ~/app
           cd ~/app
+          # Nuclear Kill: Stop ALL Java processes
+          echo "Terminating all Java processes..."
+          sudo killall -9 java || true
           sudo fuser -k 8080/tcp || true
           rm -rf * || true
-          # Kill old process on 8080
-          echo "Cleaning port 8080..."
-          fuser -k 8080/tcp || true
-          # Fallback: find PID of any java process running our jar
-          PIDS=$(ps -ef | grep 'crewcanvas-monolith' | grep -v grep | awk '{print $2}')
-          if [ ! -z "$PIDS" ]; then kill -9 $PIDS || true; fi
-          # Force remove old JARs to clear space immediately
-          rm -f *.jar || true
           # Upload happens in a separate step, but we will wait for it here
           echo "Waiting for new JAR to arrive..."
           sleep 5
-          # Start (This assumes SCP finishes after this step starts - we'll flip the order back to be safe)
 
     - name: Deploy JAR
       uses: appleboy/scp-action@v0.1.4
