@@ -101,6 +101,8 @@ jobs:
           fi
 
           # 2. Fix Nginx Upload Limit (50MB)
+          # Debug Nginx Config
+          sudo cat /etc/nginx/sites-enabled/* || true
           echo "Updating Nginx configuration..."
           NGINX_CONF="/etc/nginx/nginx.conf"
           
