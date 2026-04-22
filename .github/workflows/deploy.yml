@@ -37,9 +37,9 @@ jobs:
         script: |
           echo "Connected! Cleaning and Starting..."
           cd ~/app
-          # Kill old process on 8081
-          echo "Cleaning port 8081..."
-          fuser -k 8081/tcp || true
+          # Kill old process on 8080
+          echo "Cleaning port 8080..."
+          fuser -k 8080/tcp || true
           # Fallback: find PID of any java process running our jar
           PIDS=$(ps -ef | grep 'crewcanvas-monolith' | grep -v grep | awk '{print $2}')
           if [ ! -z "$PIDS" ]; then kill -9 $PIDS || true; fi
@@ -70,7 +70,7 @@ jobs:
         script: |
           # 1. Start the Java App
           echo "Process cleanup..."
-          sudo fuser -k 8081/tcp || echo "Port already free."
+          sudo fuser -k 8080/tcp || echo "Port already free."
 
           echo "Starting the application..."
           cd ~/app
@@ -79,14 +79,14 @@ jobs:
           -Xms64m -Xmx160m \
           -XX:+UseSerialGC \
           -XX:MaxMetaspaceSize=128m \
-          -Dserver.port=8081 \
+          -Dserver.port=8080 \
           -jar crewcanvas-monolith-0.0.1-SNAPSHOT.jar \
           > app.log 2>&1 &
 
           sleep 25
 
           echo "Checking application..."
-          if curl -s http://localhost:8081 > /dev/null; then
+          if curl -s http://localhost:8080 > /dev/null; then
             echo "Application started successfully."
           else
             echo "ERROR: App failed"
