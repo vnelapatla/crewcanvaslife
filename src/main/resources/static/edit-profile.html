@@ -5,607 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile | CrewCanvas</title>
     
-    <!-- Fonts and Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/edit-profile.css">
     <style>
-        .craft-module {
-            animation: fadeIn 0.4s ease-out;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 20px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        #moduleDefault {
-            text-align: center;
-            padding: 40px 0;
+        :root {
+            --primary-orange: #ff8c00;
+            --bg-light: #ffffff;
+            --card-bg: #f8fafc;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
         }
 
-        /* Profile Score Styles (Sync with profile.html) */
-        .profile-score-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .edit-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .card {
             background: white;
-            padding: 6px 18px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .score-circle {
-            position: relative;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        .score-circle svg {
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            outline: none;
+        }
+
+        .btn-save {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .avatar-preview-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .avatar-preview-container img {
             width: 100%;
             height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .score-circle circle {
-            fill: none;
-            stroke-width: 3;
-            stroke-linecap: round;
-        }
-
-        .score-circle .bg {
-            stroke: #f1f5f9;
-        }
-
-        .score-circle .progress {
-            stroke: #ff8c00;
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            transition: stroke-dashoffset 0.5s ease-in-out;
-        }
-
-        .score-text {
-            position: absolute;
-            font-size: 10px;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .score-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .score-title {
-            font-size: 9px;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
-        .score-status {
-            font-size: 11px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        @media (max-width: 600px) {
-            .profile-score-card { display: none; }
+            object-fit: cover;
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar (Desktop) -->
     <nav class="sidebar">
-        <div class="brand">
-            <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
-        </div>
+        <div class="brand"><h2>CrewCanvas</h2></div>
         <div class="nav-menu">
-            <a href="home.html" class="nav-item">
-                <i class="fa-solid fa-house icon"></i>
-                <span>Feed</span>
-            </a>
-            <a href="event-dashboard.html" class="nav-item">
-                <i class="fa-solid fa-gauge-high icon"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="crew-search.html" class="nav-item">
-                <i class="fa-solid fa-magnifying-glass icon"></i>
-                <span>Crew Search</span>
-            </a>
-            <a href="messages.html" class="nav-item">
-                <i class="fa-solid fa-message icon"></i>
-                <span>Messages</span>
-            </a>
-            <a href="event.html" class="nav-item">
-                <i class="fa-solid fa-calendar-days icon"></i>
-                <span>Events</span>
-            </a>
-            <a href="profile.html" class="nav-item active">
-                <i class="fa-solid fa-user icon"></i>
-                <span>Profile</span>
-            </a>
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Feed</span></a>
+            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
     <main class="main-content">
-        <!-- Top Header (Standardized) -->
-        <header class="top-header">
-            <div class="status-bar">
-                <!-- Profile Score -->
-                <div class="profile-score-card" id="profileScoreContainer">
-                    <div class="score-circle">
-                        <svg viewBox="0 0 36 36">
-                            <circle class="bg" cx="18" cy="18" r="16"></circle>
-                            <circle class="progress" id="scoreProgressCircle" cx="18" cy="18" r="16"></circle>
-                        </svg>
-                        <span class="score-text" id="scorePercentageText">0%</span>
+        <div class="edit-container">
+            <h1 style="margin-bottom: 30px;">Edit Profile</h1>
+
+            <!-- Basic Identity -->
+            <div class="card">
+                <h3>Basic Information</h3>
+                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px;">
+                    <div class="avatar-preview-container" id="profilePicPreview">
+                        <img id="currentAvatar" src="https://via.placeholder.com/120" alt="Avatar">
                     </div>
-                    <div class="score-details">
-                        <span class="score-title">Profile Strength</span>
-                        <span class="score-status" id="scoreStatusText">Incomplete</span>
+                    <div>
+                        <button class="btn-upload" onclick="document.getElementById('profilePicInput').click()" style="background: #f1f5f9; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 700;">Change Photo</button>
+                        <input type="file" id="profilePicInput" style="display: none" accept="image/*">
                     </div>
                 </div>
 
-                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                    <div class="user-initials" id="userInitialsSmall">U</div>
-                    <img id="userAvatarSmall" src="" alt="" style="display:none; width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                    <span id="userNameHeader" class="user-name-label">User</span>
-                    <i class="fa-solid fa-chevron-down"></i>
-                    
-                    <!-- Dropdown Menu -->
-                    <div class="profile-dropdown-menu" id="profileDropdown">
-                        <a href="profile.html" class="dropdown-item profile-link">
-                            <i class="fa-solid fa-user"></i> My Profile
-                        </a>
-                        <a href="edit-profile.html" class="dropdown-item edit-link">
-                            <i class="fa-solid fa-user-edit"></i> Edit Profile
-                        </a>
-                        <a href="settings.html" class="dropdown-item settings-link">
-                            <i class="fa-solid fa-gear"></i> Settings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="logout()" class="dropdown-item logout-link">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </a>
-                    </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="editEmail" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="editLocation" placeholder="City, Country">
                 </div>
             </div>
-        </header>
 
-        <div class="content-body">
-            <div class="edit-profile-container">
-                
-                <!-- Page Header -->
-                <div class="page-title-section" style="margin-bottom: 25px;">
-                    <h1 style="color: white; margin-bottom: 5px; font-size: clamp(24px, 6vw, 32px);">Edit Your Profile</h1>
-                    <p style="color: #94a3b8; font-size: clamp(12px, 3vw, 14px);">Manage your professional information and portfolio</p>
+            <!-- Professional Details -->
+            <div class="card">
+                <h3>Professional Overview</h3>
+                <div class="form-group">
+                    <label>Primary Role</label>
+                    <select id="editRole">
+                        <option value="Director">Director</option>
+                        <option value="Actor">Actor</option>
+                        <option value="DOP">DOP</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Music Director">Music Director</option>
+                        <option value="Writer">Writer</option>
+                        <option value="VFX Artist">VFX Artist</option>
+                    </select>
                 </div>
-
-                <!-- 1. Profile Identity Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Profile Identity</h3>
-                    </div>
-                    <div class="profile-pic-row">
-                        <div class="avatar-preview-container" id="profilePicPreview" onclick="document.getElementById('profilePicInput').click()" style="cursor: pointer;">
-                            <img id="currentAvatar" src="https://via.placeholder.com/150" alt="Avatar">
-                        </div>
-                        <div class="pic-upload-actions">
-                            <button class="btn-upload" onclick="document.getElementById('profilePicInput').click()">
-                                <i class="fa-solid fa-camera"></i> Change Photo
-                            </button>
-                            <input type="file" id="profilePicInput" style="display: none" accept="image/*" onchange="handleProfilePic(event)">
-                            <p class="upload-hint">JPG, PNG or GIF. Max 2MB.</p>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="editName" placeholder="Enter your full name">
-                        </div>
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" id="editEmail" placeholder="email@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="text" id="editPhone" placeholder="+1 (555) 000-0000">
-                        </div>
-                        <div class="form-group">
-                            <label>Location</label>
-                            <input type="text" id="editLocation" placeholder="City, Country">
-                        </div>
-                        <div class="form-group">
-                            <label>Languages (comma separated)</label>
-                            <input type="text" id="editLanguages" placeholder="e.g. English, Hindi, Telugu">
-                        </div>
-                        <div class="form-group">
-                            <label>Availability</label>
-                            <select id="editAvailability">
-                                <option value="Available">Available</option>
-                                <option value="Busy">Busy</option>
-                                <option value="Not looking">Not looking</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Availability Dates</label>
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <input type="date" id="editAvailableFrom" title="Available From" style="flex: 1; min-width: 140px;">
-                                <input type="date" id="editAvailableTo" title="Available To" style="flex: 1; min-width: 140px;">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Budget Quote (Per Project)</label>
-                            <input type="text" id="editBudgetQuote" placeholder="e.g. ₹5,000 - ₹10,000">
-                        </div>
-                        <div class="form-group" style="grid-column: span 3; display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px; background: rgba(255,140,0,0.05); border-radius: 8px;">
-                            <input type="checkbox" id="contactVisible" style="width: 20px; height: 20px; cursor: pointer; margin: 0;">
-                            <label for="contactVisible" style="margin: 0; cursor: pointer; font-size: 13px; color: #475569;">Show my contact info to verified recruiters</label>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label>Experience Level</label>
+                    <select id="editExperience">
+                        <option value="Fresher">Fresher</option>
+                        <option value="1-3 Years">1-3 Years</option>
+                        <option value="4-7 Years">4-7 Years</option>
+                        <option value="8+ Years">8+ Years (Pro)</option>
+                    </select>
                 </div>
-
-                <!-- 2. Professional Details Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Professional Details</h3>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Primary Role</label>
-                            <select id="editRole">
-                                <option value="">Select your craft</option>
-                                <option value="Actor">Actor</option>
-                                <option value="Director">Director</option>
-                                <option value="DOP">DOP (Cinematographer)</option>
-                                <option value="Editor">Editor</option>
-                                <option value="Music Director">Music Director</option>
-                                <option value="Producer">Producer</option>
-                                <option value="Screenwriter">Screenwriter</option>
-                                <option value="Art Director">Art Director</option>
-                                <option value="Costume Designer">Costume Designer</option>
-                                <option value="Makeup Artist">Makeup Artist</option>
-                                <option value="Sound Engineer">Sound Engineer</option>
-                                <option value="VFX Artist">VFX Artist</option>
-                                <option value="Choreographer">Choreographer</option>
-                                <option value="Production Manager">Production Manager</option>
-                                <option value="Script Supervisor">Script Supervisor</option>
-                                <option value="Colorist">Colorist</option>
-                                <option value="Stunt Coordinator">Stunt Coordinator</option>
-                                <option value="Casting Director">Casting Director</option>
-                                <option value="Location Manager">Location Manager</option>
-                                <option value="Gaffer">Gaffer</option>
-                                <option value="Grip">Grip</option>
-                                <option value="Still Photographer">Still Photographer</option>
-                                <option value="Animator">Animator</option>
-                                <option value="Storyboard Artist">Storyboard Artist</option>
-                                <option value="Others">Others</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Experience</label>
-                            <select id="editExperience">
-                                <option value="Fresher">Fresher / Student</option>
-                                <option value="1-3 Years">1-3 Years</option>
-                                <option value="4-7 Years">4-7 Years</option>
-                                <option value="8+ Years">8+ Years (Pro)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Actor Specific Specs -->
-                    <div id="moduleActor" class="craft-module" style="display: none; margin-top: 15px;">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Gender</label>
-                                <select id="editGender">
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Age</label>
-                                <input type="text" id="editAge" placeholder="e.g. 25">
-                            </div>
-                            <div class="form-group">
-                                <label>Skin Tone</label>
-                                <input type="text" id="editSkinTone" placeholder="e.g. Fair, Dusky">
-                            </div>
-                            <div class="form-group">
-                                <label>Height</label>
-                                <input type="text" id="editHeight" placeholder="e.g. 5'10">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Short Bio</label>
-                        <textarea id="editBio" rows="4" placeholder="Tell the world about your journey and what you're looking for..."></textarea>
-                    </div>
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Skills & Specializations</label>
-                        <div class="skills-input-wrapper">
-                            <input type="text" id="skillInput" placeholder="Add a skill (e.g. Adobe Premiere, Method Acting)">
-                            <button onclick="addSkill()" class="btn-add-skill"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <div id="skillsContainer" class="skills-tags-list"></div>
-                        <input type="hidden" id="editSkills">
-                    </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="editBio" rows="4" placeholder="Tell us about yourself..."></textarea>
                 </div>
-
-                <!-- 3. Craft Specific Details (Dynamic) -->
-                <div class="card" id="craftSpecificCard" style="display: none;">
-                    <div class="card-header">
-                        <h3 id="craftSpecificTitle">Craft Specific Details</h3>
+                <div class="form-group">
+                    <label>Skills (Add one by one)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="skillInput" placeholder="e.g. Adobe Premiere">
+                        <button onclick="addSkill()" style="background: #0f172a; color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer;">Add</button>
                     </div>
-                    
-                    <!-- Director Module -->
-                    <div id="moduleDirector" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Genres</label><input type="text" id="dirGenres" placeholder="e.g. Thriller, Drama"></div>
-                            <div class="form-group"><label>Projects Directed</label><input type="text" id="dirProjects"></div>
-                            <div class="form-group"><label>Budget Handled</label><input type="text" id="dirBudget"></div>
-                            <div class="form-group"><label>Team Size Handled</label><input type="text" id="dirTeamSize"></div>
-                        </div>
-                        <div class="form-group" style="margin-top: 15px;"><label>Vision Statement</label><textarea id="dirVision" rows="3"></textarea></div>
-                    </div>
-
-                    <!-- Editor Module -->
-                    <div id="moduleEditor" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Software Expertise</label><input type="text" id="editSoftware" placeholder="Premiere, DaVinci, FCP"></div>
-                            <div class="form-group"><label>Editing Style</label><input type="text" id="editStyle"></div>
-                            <div class="form-group"><label>Portfolio Videos</label><input type="text" id="editVideos" placeholder="Links"></div>
-                            <div class="form-group"><label>Turnaround Time</label><input type="text" id="editTurnaround"></div>
-                        </div>
-                    </div>
-
-                    <!-- DOP Module -->
-                    <div id="moduleDOP" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Camera Expertise</label><input type="text" id="dopCamera"></div>
-                            <div class="form-group"><label>Lighting Style</label><input type="text" id="dopLighting"></div>
-                        </div>
-                    </div>
-
-                    <!-- Music Director Module -->
-                    <div id="moduleMusicDirector" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>DAWs Used</label><input type="text" id="musicDaws" placeholder="FL Studio, Logic Pro"></div>
-                            <div class="form-group"><label>Instruments</label><input type="text" id="musicInstruments"></div>
-                            <div class="form-group"><label>Sample Tracks</label><input type="text" id="musicTracks" placeholder="Links"></div>
-                        </div>
-                    </div>
-
-                    <!-- Colorist Module -->
-                    <div id="moduleColorist" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Grading Software</label><input type="text" id="colorSoftware" placeholder="DaVinci Resolve, Baselight"></div>
-                            <div class="form-group"><label>Hardware Panel</label><input type="text" id="colorPanel"></div>
-                            <div class="form-group"><label>Reference Monitor</label><input type="text" id="colorMonitor"></div>
-                        </div>
-                    </div>
-
-                    <!-- Screenwriter Module -->
-                    <div id="moduleScreenwriter" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Primary Genre</label><input type="text" id="writerGenre"></div>
-                            <div class="form-group"><label>Writing Software</label><input type="text" id="writerSoftware" placeholder="Final Draft, Fade In"></div>
-                        </div>
-                        <div class="form-group" style="margin-top: 15px;"><label>Script Portfolio (Links)</label><textarea id="writerScripts" rows="2"></textarea></div>
-                    </div>
-
-                    <!-- VFX & Animator Module -->
-                    <div id="moduleVFX" class="craft-module" style="display: none;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Software Stack</label><input type="text" id="vfxSoftware" placeholder="Maya, Houdini, Nuke, Blender"></div>
-                            <div class="form-group"><label>Specialization</label><input type="text" id="vfxSpecialty" placeholder="Compositing, 3D Modeling, Rigging"></div>
-                        </div>
-                    </div>
+                    <div id="skillsContainer" style="margin-top: 15px;"></div>
                 </div>
+            </div>
 
-
-                <!-- 3. Movie Projects Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Movie Portfolio / Projects</h3>
-                        <button class="btn-add-new" onclick="startNewProjectWizard()">
-                            <i class="fa-solid fa-plus"></i> Add Project
-                        </button>
-                    </div>
-                    <div id="projectsListContainer" class="projects-horizontal-list">
-                        <!-- Projects loaded via JS -->
-                    </div>
-                </div>
-
-                <!-- 4. Social Links Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Connect & Socials</h3>
-                    </div>
-                    <div class="form-grid social-links-grid">
-                        <div class="form-group">
-                            <label>Instagram</label>
-                            <div class="social-input-wrapper">
-                                <i class="fa-brands fa-instagram"></i>
-                                <input type="text" id="editInstagram" placeholder="instagram.com/handle">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>YouTube</label>
-                            <div class="social-input-wrapper">
-                                <i class="fa-brands fa-youtube"></i>
-                                <input type="text" id="editYoutube" placeholder="youtube.com/@handle">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Facebook</label>
-                            <div class="social-input-wrapper">
-                                <i class="fa-brands fa-facebook"></i>
-                                <input type="text" id="editFacebook" placeholder="facebook.com/handle">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>X (Twitter)</label>
-                            <div class="social-input-wrapper">
-                                <i class="fa-brands fa-x-twitter"></i>
-                                <input type="text" id="editTwitter" placeholder="x.com/handle">
-                            </div>
-                        </div>
-                        <input type="hidden" id="editProjects" value="0">
-                    </div>
-                </div>
-
-                <!-- Footer Actions -->
-                <div class="edit-footer">
-                    <button class="btn-cancel" onclick="window.location.href='profile.html'">Discard Changes</button>
-                    <button class="btn-save" onclick="saveProfile()">Save Changes</button>
-                </div>
-
+            <div style="text-align: right; margin-top: 30px;">
+                <button class="btn-cancel" onclick="window.location.href='profile.html'" style="background: none; border: none; margin-right: 20px; font-weight: 700; cursor: pointer;">Cancel</button>
+                <button class="btn-save" onclick="saveProfile()">Save Changes</button>
             </div>
         </div>
     </main>
 
-    <!-- Project Wizard Modal -->
-    <div id="projectWizard" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close" onclick="closeProjectWizard()">&times;</span>
-            <div class="wizard-header">
-                <h2>Add Movie Project</h2>
-                <div class="wizard-steps">
-                    <span id="step1-indicator" class="progress-step active">1</span>
-                    <span id="step2-indicator" class="progress-step">2</span>
-                </div>
-            </div>
-
-            <!-- Step 1: Basic Info -->
-            <div id="wizardStep1">
-                <div class="form-group">
-                    <label>Project Title</label>
-                    <input type="text" id="projTitle" placeholder="e.g. Inception 2">
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Your Role</label>
-                        <input type="text" id="projRole" placeholder="e.g. Lead Actor">
-                    </div>
-                    <div class="form-group">
-                        <label>Release Year</label>
-                        <input type="number" id="projYear" placeholder="2024">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Genre</label>
-                    <input type="text" id="projGenre" placeholder="e.g. Action, Drama, Sci-Fi">
-                </div>
-                <button class="btn-next" onclick="goToStep(2)">Next: Add Poster <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
-
-            <!-- Step 2: Poster & Description -->
-            <div id="wizardStep2" style="display: none;">
-                <div class="form-group">
-                    <label>Project Poster / Image</label>
-                    <div class="upload-box" onclick="document.getElementById('projImageInput').click()">
-                        <div id="projImagePreviewContainer" style="display:none">
-                            <img id="projImagePreview" src="" alt="Preview">
-                        </div>
-                        <div id="projImagePlaceholder" onclick="document.getElementById('projImageInput').click()" style="cursor: pointer;">
-                            <i class="fa-solid fa-image" id="projUploadIcon"></i>
-                            <p id="projImageStatus">Click to upload poster</p>
-                        </div>
-                    </div>
-                    <button id="removeProjImageBtn" type="button" style="display:none; margin-top: 10px; background: #fee2e2; color: #ef4444; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="removeProjectImage()">
-                        <i class="fa-solid fa-trash"></i> Remove Image
-                    </button>
-                    <input type="file" id="projImageInput" style="display:none" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label>Trailer / Video Link (YouTube, Vimeo)</label>
-                    <input type="text" id="projVideoUrl" placeholder="https://youtube.com/watch?v=...">
-                </div>
-                <div class="form-group">
-                    <label>Brief Description</label>
-                    <textarea id="projDesc" rows="3" placeholder="Tell us about the project..."></textarea>
-                </div>
-                <div class="wizard-buttons">
-                    <button class="btn-back" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <button class="btn-finish" onclick="saveNewProject()">Save Project</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
     <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
     <script src="js/edit-profile.js"></script>
-    <script>
-        // Simple logout for now
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-
-        // Skills tag logic
-        function addSkill() {
-            const input = document.getElementById('skillInput');
-            const skill = input.value.trim();
-            if (skill && !skillsList.includes(skill)) {
-                skillsList.push(skill);
-                input.value = '';
-                renderSkills();
-            }
-        }
-
-        function removeSkill(index) {
-            skillsList.splice(index, 1);
-            renderSkills();
-        }
-
-        function renderSkills() {
-            const container = document.getElementById('skillsContainer');
-            if (!container) return;
-            container.innerHTML = skillsList.map((skill, index) => `
-                <div class="skill-tag">
-                    ${skill}
-                    <span class="remove" onclick="removeSkill(${index})">&times;</span>
-                </div>
-            `).join('');
-        }
-
-        // Handle profile pic preview
-        function handleProfilePic(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('currentAvatar').src = e.target.result;
-                    selectedProfilePic = e.target.result;
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-    </script>
 </body>
 </html>

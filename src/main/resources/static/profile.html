@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile | CrewCanvas</title>
     
-    <!-- Fonts and Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
@@ -28,12 +26,11 @@
         }
 
         .profile-container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 40px 20px 100px; /* Added bottom padding for mobile nav */
+            padding: 40px 20px 100px;
         }
 
-        /* --- Hero Section --- */
         .profile-hero {
             display: flex;
             align-items: center;
@@ -58,15 +55,13 @@
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid var(--primary-orange);
-            box-shadow: 0 0 25px rgba(255, 140, 0, 0.2);
         }
 
         .profile-info h1 {
-            font-size: 42px;
+            font-size: 36px;
             font-weight: 900;
-            text-transform: uppercase;
             margin: 0 0 10px 0;
-            letter-spacing: -1px;
+            text-transform: uppercase;
         }
 
         .role-badge {
@@ -81,55 +76,6 @@
             margin-bottom: 20px;
         }
 
-        .btn-message {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #f1f5f9;
-            color: var(--text-dark);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-message:hover {
-            background: #e2e8f0;
-        }
-
-        /* --- Stats Row --- */
-        .stats-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-
-        .stat-pill {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #fff;
-            border: 1px solid var(--border-color);
-            padding: 12px 25px;
-            border-radius: 40px;
-            font-weight: 800;
-            font-size: 13px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            transition: transform 0.2s ease;
-        }
-
-        .stat-pill:hover { transform: translateY(-2px); }
-
-        .stat-pill i {
-            color: #8b5cf6; /* Soft purple from screenshot */
-            font-size: 16px;
-        }
-
-        /* --- Info Cards Grid --- */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -142,67 +88,17 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-        }
-
-        .info-card h3 {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 25px;
-            color: var(--text-dark);
-        }
-
-        .info-card h3 i { color: #8b5cf6; }
-
-        .info-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
         }
 
         .info-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             background: #f8fafc;
-            padding: 18px 20px;
+            padding: 15px 20px;
             border-radius: 16px;
-            border: 1px solid #f1f5f9;
+            margin-bottom: 10px;
         }
 
-        .info-item .label {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .info-item .value {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        /* Skill Tags */
-        .role-pill {
-            background: #0f172a; /* Dark skills tags from screenshot */
-            color: white;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: capitalize;
-        }
-
-        .profile-top-section {
-            margin-bottom: 50px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* SECTION 2 & 3: Projects and Posts Side-by-Side */
         .tabs-container {
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 30px;
@@ -215,523 +111,91 @@
             background: none;
             border: none;
             padding: 15px 20px;
-            font-size: 14px;
             font-weight: 800;
-            color: var(--text-muted);
             cursor: pointer;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             text-transform: uppercase;
+            color: var(--text-muted);
         }
 
         .tab-btn.active {
             color: var(--primary-orange);
+            border-bottom: 3px solid var(--primary-orange);
         }
 
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--primary-orange);
-            border-radius: 3px;
-        }
-
-        .profile-content-area {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        /* --- Compact Cards --- */
-        .compact-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            width: 100%;
-        }
-
-        .compact-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-
-        .card-header-small {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .icon-circle-small {
-            width: 32px;
-            height: 32px;
+        .role-pill {
             background: #f1f5f9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .card-title-small {
-            font-size: 15px;
-            font-weight: 800;
-            margin: 0;
-            color: var(--text-dark);
-        }
-
-        .card-subtitle-small {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        .compact-role-badge {
-            display: inline-block;
-            background: #fff7ed;
-            color: #c2410c;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin: 8px 0;
-        }
-
-        /* Compact Text with Line Clamping for Symmetry */
-        .compact-text {
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3; /* Limit to 3 lines */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 58px; /* Fixed height for text block consistency */
-        }
-
-        .compact-image {
-            width: 100%;
-            height: 200px; /* Standardized height */
-            border-radius: 12px;
-            overflow: hidden;
-            background: #f1f5f9;
-            margin-top: 10px;
-        }
-
-        .compact-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .card-footer-small {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid #f1f5f9;
-            font-size: 10px;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-        }
-
-        .project-image img {
-            width: 100%;
-            display: block;
-        }
-
-        /* --- Post Cards (Legacy support) --- */
-        .post-card {
-            background: white;
-            border: 1px solid var(--border-color);
+            color: #334155;
+            padding: 6px 15px;
             border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 1024px) {
-            .content-split-grid { grid-template-columns: 1fr; }
-            .profile-hero { flex-direction: column; text-align: center; gap: 20px; padding: 30px 20px; }
-            .info-grid { grid-template-columns: 1fr; }
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
         }
 
         @media (max-width: 768px) {
-            .profile-container { padding: 20px 15px 100px; }
-            .profile-info h1 { font-size: 28px; }
-            .stats-row { justify-content: center; gap: 10px; }
-            .stat-pill { padding: 10px 15px; font-size: 11px; flex: 1; min-width: 140px; justify-content: center; }
-            .top-header { padding: 10px 15px !important; }
+            .profile-hero { flex-direction: column; text-align: center; }
             .profile-avatar-wrapper { width: 140px; height: 140px; }
-            .hero-meta-row { flex-direction: column; gap: 10px; }
-            .tabs-container { gap: 10px; }
-            .tab-btn { padding: 10px; font-size: 12px; }
-        }
-
-        /* Profile Score Styles */
-        .profile-score-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: white;
-            padding: 6px 18px;
-            border-radius: 40px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
-        }
-
-        .profile-score-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-        }
-
-        .score-circle {
-            position: relative;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .score-circle svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .score-circle circle {
-            fill: none;
-            stroke-width: 3;
-            stroke-linecap: round;
-        }
-
-        .score-circle .bg {
-            stroke: #f1f5f9;
-        }
-
-        .score-circle .progress {
-            stroke: var(--primary-orange);
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            transition: stroke-dashoffset 1s ease-in-out;
-        }
-
-        .score-text {
-            position: absolute;
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        .profile-info {
-            text-align: center;
-            flex: 1;
-        }
-
-        .profile-info h1 {
-            font-size: 32px;
-            font-weight: 900;
-            margin: 0 0 10px 0;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-        }
-
-        .hero-meta-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .score-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .score-title {
-            font-size: 9px;
-            font-weight: 800;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
-        .score-status {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        @media (max-width: 600px) {
-            .profile-score-card { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar (Desktop) -->
     <nav class="sidebar">
         <div class="brand">
             <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
         </div>
         <div class="nav-menu">
-            <a href="home.html" class="nav-item">
-                <i class="fa-solid fa-house icon"></i>
-                <span>Feed</span>
-            </a>
-            <a href="event-dashboard.html" class="nav-item">
-                <i class="fa-solid fa-gauge-high icon"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="crew-search.html" class="nav-item">
-                <i class="fa-solid fa-magnifying-glass icon"></i>
-                <span>Crew Search</span>
-            </a>
-            <a href="messages.html" class="nav-item">
-                <i class="fa-solid fa-message icon"></i>
-                <span>Messages</span>
-            </a>
-            <a href="event.html" class="nav-item">
-                <i class="fa-solid fa-calendar-days icon"></i>
-                <span>Events</span>
-            </a>
-            <a href="profile.html" class="nav-item active">
-                <i class="fa-solid fa-user icon"></i>
-                <span>Profile</span>
-            </a>
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Feed</span></a>
+            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+            <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
+            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
         </div>
     </nav>
 
     <main class="main-content">
-        <!-- Top Header is now managed by utils.js initUniversalHeader() -->
         <header class="top-header"></header>
 
         <div class="profile-container">
-            <!-- Profile Score (Moved from Header) -->
-            <div class="profile-score-card" id="profileScoreContainer" style="display: none; margin-bottom: 20px; width: fit-content; background: white; padding: 15px 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
-                <div class="score-circle">
-                    <svg viewBox="0 0 36 36">
-                        <circle class="bg" cx="18" cy="18" r="16"></circle>
-                        <circle class="progress" id="scoreProgressCircle" cx="18" cy="18" r="16"></circle>
-                    </svg>
-                    <span class="score-text" id="scorePercentageText">0%</span>
+            <div class="profile-hero">
+                <div class="profile-avatar-wrapper">
+                    <img id="profileImage" src="https://via.placeholder.com/180" alt="Profile">
                 </div>
-                <div class="score-details">
-                    <span class="score-title">Profile Strength</span>
-                    <span class="score-status" id="scoreStatusText">Incomplete</span>
-                </div>
-            </div>
-            
-            <!-- SECTION 1: Profile Details -->
-            <div class="profile-top-section">
-                <!-- Hero Section -->
-                <div class="profile-hero">
-                    <div class="profile-avatar-wrapper">
-                        <img id="profileImage" src="https://via.placeholder.com/180" alt="Profile">
-                    </div>
-                    <div class="profile-info">
-                        <h1 id="profileName">NAME</h1>
-                        <div class="hero-meta-row">
-                            <div class="role-badge" id="profileRoleBadge" style="margin: 0;">ROLE</div>
-                            <div id="profileQuickStats" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-                        </div>
-                        <p id="profileBio" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px; max-width: 600px;">No bio added yet.</p>
-                        <div style="display: flex; gap: 15px;">
-                            <button class="btn-message" onclick="openMessage()">
-                                <i class="fa-solid fa-paper-plane"></i> Message
-                            </button>
-                            <button class="btn-message" id="actionButton" style="background: var(--primary-orange); color: white;" onclick="handleAction()">
-                                <i class="fa-solid fa-user-plus"></i> Follow
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Row -->
-                <div class="stats-row">
-                    <div class="stat-pill">
-                        <i class="fa-solid fa-users"></i>
-                        <span id="followerCount">0</span> Followers
-                    </div>
-                    <div class="stat-pill">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span id="followingCount">0</span> Following
-                    </div>
-                    <div class="stat-pill">
-                        <i class="fa-solid fa-clapperboard"></i>
-                        <span id="projectsCount">0</span> Projects
-                    </div>
-                    <div class="stat-pill">
-                        <i class="fa-solid fa-hammer"></i>
-                        <span id="skillsCount">0</span> Skills
-                    </div>
-                    <div class="stat-pill">
-                        <i class="fa-solid fa-file-lines"></i>
-                        <span id="postsCount">0</span> Posts
-                    </div>
-                </div>
-
-                <!-- Info Grid -->
-                <div class="info-grid">
-                    <!-- Personal Information -->
-                    <div class="info-card">
-                        <h3><i class="fa-solid fa-user"></i> Personal Information</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="label">Email</span>
-                                <span class="value" id="profileEmail">loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Location</span>
-                                <span class="value" id="profileLocation">loading...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Professional Overview -->
-                    <div class="info-card">
-                        <h3><i class="fa-solid fa-briefcase"></i> Professional Overview</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="label">Experience</span>
-                                <span class="value" id="profileExperience">loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Languages</span>
-                                <span class="value" id="profileLanguages">loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Primary Role</span>
-                                <span class="value" id="profileRoleDetail">loading...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Premium Details (New Card) -->
-                    <div class="info-card premium-card" style="position: relative; border: 2px solid #ff8c0022; background: linear-gradient(to bottom, #ffffff, #fffbf0);">
-                        <div style="position: absolute; top: 15px; right: 20px; background: var(--primary-orange); color: white; font-size: 9px; font-weight: 900; padding: 3px 10px; border-radius: 10px;">PREMIUM</div>
-                        <h3><i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Premium Details</h3>
-                        <div id="premiumOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border-radius: 24px; text-align: center; padding: 20px; transition: opacity 0.3s ease;">
-                            <i class="fa-solid fa-lock" style="font-size: 32px; color: var(--primary-orange); margin-bottom: 15px;"></i>
-                            <p style="font-weight: 800; font-size: 14px; margin-bottom: 5px;">Locked Information</p>
-                            <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Budget, Contact & Availability are hidden.</p>
-                            <button onclick="showPremiumModal()" style="background: var(--primary-orange); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);">REVEAL NOW</button>
-                        </div>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="label">Phone</span>
-                                <span class="value premium-val" id="profilePhone">********</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Availability</span>
-                                <span class="value premium-val" id="profileAvailability">********</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Budget Quote</span>
-                                <span class="value premium-val" id="profileBudget">********</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Skills, Social & Craft Details -->
-                    <div class="info-card">
-                        <h3><i class="fa-solid fa-screwdriver-wrench"></i> Skills, Social & Specs</h3>
-                        <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-                            <!-- Skill tags -->
-                        </div>
-                        <div id="socialLinks" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
-                            <!-- Social icons loaded here -->
-                        </div>
-
-                        <div class="info-list" style="margin-bottom: 20px;">
-                            <div class="info-item" id="specGender" style="display:none;">
-                                <span class="label">Gender</span>
-                                <span class="value" id="profileGender">Not Specified</span>
-                            </div>
-                            <div class="info-item" id="specAge" style="display:none;">
-                                <span class="label">Age</span>
-                                <span class="value" id="profileAge">Not Specified</span>
-                            </div>
-                            <div class="info-item" id="specSkin" style="display:none;">
-                                <span class="label">Skin Tone</span>
-                                <span class="value" id="profileSkinTone">Not Specified</span>
-                            </div>
-                            <div class="info-item" id="specHeight" style="display:none;">
-                                <span class="label">Height</span>
-                                <span class="value" id="profileHeight">Not Specified</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Craft Specifics injected here -->
-                        <div id="craftDetailsList" class="info-list" style="margin-top: 10px;">
-                            <!-- Dynamic content based on role -->
-                        </div>
+                <div class="profile-info">
+                    <h1 id="profileName">Creative Professional</h1>
+                    <div class="role-badge" id="profileRoleBadge">Film Professional</div>
+                    <p id="profileBio" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">No bio added yet.</p>
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button id="actionButton" style="background: var(--primary-orange); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; cursor: pointer;">Edit Profile</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Premium Modal -->
-            <div id="premiumModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;">
-                <div style="background: white; width: 90%; max-width: 400px; padding: 40px; border-radius: 30px; text-align: center; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                    <button onclick="hidePremiumModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
-                    <div style="width: 80px; height: 80px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--primary-orange); font-size: 32px;">
-                        <i class="fa-solid fa-crown"></i>
-                    </div>
-                    <h2 style="font-weight: 900; margin-bottom: 10px; text-transform: uppercase; letter-spacing: -0.5px;">Unlock Premium</h2>
-                    <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">Get full access to contact details, budget quotes, and real-time availability.</p>
-                    <div style="margin-bottom: 25px; text-align: left;">
-                        <label style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 8px; padding-left: 10px;">Enter Access Code</label>
-                        <input type="text" id="premiumCode" placeholder="Enter code (e.g. FREE)" style="width: 100%; padding: 15px 20px; border-radius: 15px; border: 2px solid #f1f5f9; background: #f8fafc; font-weight: 700; outline: none; transition: border-color 0.3s ease;">
-                    </div>
-                    <button onclick="unlockPremium()" style="width: 100%; background: var(--primary-orange); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; transition: transform 0.2s ease;">ACTIVATE NOW</button>
-                    <p style="margin-top: 20px; font-size: 12px; color: #94a3b8;">Limited time offer: Use code <b>FREE</b></p>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>About</h3>
+                    <div class="info-item"><span class="label">Location</span><span class="value" id="profileLocation">Unknown</span></div>
+                    <div class="info-item"><span class="label">Experience</span><span class="value" id="profileExperience">Professional</span></div>
+                    <div class="info-item"><span class="label">Email</span><span class="value" id="profileEmail">Not shared</span></div>
+                </div>
+                <div class="info-card">
+                    <h3>Skills</h3>
+                    <div id="skillsContainer"></div>
                 </div>
             </div>
 
-            <!-- TABS & CONTENT (From Screenshot) -->
             <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('projects', this)">
-                    <i class="fa-solid fa-clapperboard"></i> Projects
-                </button>
-                <button class="tab-btn" onclick="switchTab('posts', this)">
-                    <i class="fa-solid fa-file-lines"></i> Posts
-                </button>
+                <button class="tab-btn active" onclick="switchTab('posts', this)">Posts</button>
+                <button class="tab-btn" onclick="switchTab('projects', this)">Portfolio</button>
             </div>
 
-            <div class="profile-content-area">
-                <div id="projectsContent">
-                    <!-- Project cards loaded here -->
-                </div>
-                <div id="postsContent" style="display: none;">
-                    <!-- Post cards loaded here -->
-                </div>
-            </div>
-
+            <div id="postsContent"></div>
+            <div id="projectsContent" style="display: none;"></div>
         </div>
     </main>
 
-    <!-- Scripts -->
     <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/profile.js?v=1.0.3"></script>
-    <script>
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-    </script>
+    <script src="js/profile.js"></script>
 </body>
 </html>
