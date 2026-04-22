@@ -26,7 +26,7 @@
         }
 
         .profile-container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 40px 20px 100px;
         }
@@ -78,7 +78,7 @@
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
             margin-bottom: 50px;
         }
@@ -88,15 +88,39 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
         }
+
+        .info-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 25px;
+        }
+
+        .info-card h3 i { color: var(--primary-orange); }
 
         .info-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             background: #f8fafc;
             padding: 15px 20px;
             border-radius: 16px;
             margin-bottom: 10px;
+        }
+
+        .info-item .label {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .info-item .value {
+            font-weight: 700;
+            font-size: 14px;
         }
 
         .tabs-container {
@@ -115,6 +139,7 @@
             cursor: pointer;
             text-transform: uppercase;
             color: var(--text-muted);
+            transition: all 0.3s ease;
         }
 
         .tab-btn.active {
@@ -137,6 +162,7 @@
         @media (max-width: 768px) {
             .profile-hero { flex-direction: column; text-align: center; }
             .profile-avatar-wrapper { width: 140px; height: 140px; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -158,35 +184,55 @@
         <header class="top-header"></header>
 
         <div class="profile-container">
+            <!-- Hero -->
             <div class="profile-hero">
                 <div class="profile-avatar-wrapper">
                     <img id="profileImage" src="https://via.placeholder.com/180" alt="Profile">
                 </div>
                 <div class="profile-info">
-                    <h1 id="profileName">Creative Professional</h1>
-                    <div class="role-badge" id="profileRoleBadge">Film Professional</div>
-                    <p id="profileBio" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">No bio added yet.</p>
+                    <h1 id="profileName">Loading...</h1>
+                    <div class="role-badge" id="profileRoleBadge">Professional</div>
+                    <p id="profileBio" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 25px; max-width: 600px;">No bio added yet.</p>
                     <div style="display: flex; gap: 15px; justify-content: center;">
                         <button id="actionButton" style="background: var(--primary-orange); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; cursor: pointer;">Edit Profile</button>
                     </div>
                 </div>
             </div>
 
+            <!-- Content Grid -->
             <div class="info-grid">
+                <!-- Contact & Bio -->
                 <div class="info-card">
-                    <h3>About</h3>
+                    <h3><i class="fa-solid fa-address-card"></i> About</h3>
                     <div class="info-item"><span class="label">Location</span><span class="value" id="profileLocation">Unknown</span></div>
                     <div class="info-item"><span class="label">Experience</span><span class="value" id="profileExperience">Professional</span></div>
                     <div class="info-item"><span class="label">Email</span><span class="value" id="profileEmail">Not shared</span></div>
+                    <div class="info-item"><span class="label">Phone</span><span class="value" id="profilePhone">Not provided</span></div>
                 </div>
+
+                <!-- Professional Specs (RESTORED) -->
                 <div class="info-card">
-                    <h3>Skills</h3>
-                    <div id="skillsContainer"></div>
+                    <h3><i class="fa-solid fa-briefcase"></i> Professional Details</h3>
+                    <div id="craftDetailsContainer" class="info-list">
+                        <!-- Dynamic craft details injected here -->
+                    </div>
+                    <div id="skillsContainer" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                        <!-- Skill tags -->
+                    </div>
+                </div>
+
+                <!-- Social Media (RESTORED) -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-share-nodes"></i> Social Links</h3>
+                    <div id="socialLinks" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <!-- Social icons injected here -->
+                    </div>
                 </div>
             </div>
 
+            <!-- Tabs -->
             <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('posts', this)">Posts</button>
+                <button class="tab-btn active" onclick="switchTab('posts', this)">Activity</button>
                 <button class="tab-btn" onclick="switchTab('projects', this)">Portfolio</button>
             </div>
 

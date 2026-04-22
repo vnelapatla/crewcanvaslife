@@ -2,7 +2,6 @@
 let profileUserId = null;
 let currentUserId = null;
 let profileUserData = null; 
-let currentTab = 'posts';
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
@@ -16,10 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadProfile();
     loadUserPosts();
-    loadUserProjects();
 });
 
-// Load profile data
 async function loadProfile() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}`);
@@ -30,117 +27,86 @@ async function loadProfile() {
             window.location.href = 'home.html';
         }
     } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error('Error:', error);
     }
 }
 
-// Display profile data
 function displayProfile(user) {
     if (!user) return;
     
-    // Set Profile Identity
-    const nameEl = document.getElementById('profileName');
-    if (nameEl) nameEl.textContent = user.name || 'Anonymous User';
-    
-    const roleBadge = document.getElementById('profileRoleBadge');
-    if (roleBadge) roleBadge.textContent = user.role || 'Film Professional';
+    document.getElementById('profileName').textContent = user.name || 'Anonymous User';
+    document.getElementById('profileRoleBadge').textContent = user.role || 'Film Professional';
+    document.getElementById('profileBio').textContent = user.bio || 'No bio added yet.';
+    document.getElementById('profileLocation').textContent = user.location || 'Unknown';
+    document.getElementById('profileExperience').textContent = user.experience || 'Professional';
+    document.getElementById('profileEmail').textContent = user.email || 'Not shared';
+    document.getElementById('profilePhone').textContent = user.phone || 'Not provided';
+    document.getElementById('profileImage').src = user.profilePicture || 'https://via.placeholder.com/180';
 
-    const bioEl = document.getElementById('profileBio');
-    if (bioEl) bioEl.textContent = user.bio || 'No bio added yet.';
-    
-    const emailEl = document.getElementById('profileEmail');
-    if (emailEl) emailEl.textContent = user.email || 'Not Provided';
-    
-    const locationEl = document.getElementById('profileLocation');
-    if (locationEl) locationEl.textContent = (user.location || 'Not Specified').toUpperCase();
-
-    const imgEl = document.getElementById('profileImage');
-    if (imgEl) imgEl.src = user.profilePicture || 'https://via.placeholder.com/180';
-
-    const expEl = document.getElementById('profileExperience');
-    if (expEl) expEl.textContent = user.experience || 'Professional';
-
-    // Render Skills Tags
+    // Skills
     const skillsContainer = document.getElementById('skillsContainer');
-    if (skillsContainer) {
-        if (user.skills && user.skills.trim() !== '') {
-            const skillsArr = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
-            skillsContainer.innerHTML = skillsArr.map(s => `
-                <span class="role-pill" style="background: #f1f5f9; color: #334155; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${s}</span>
-            `).join('');
-        } else {
-            skillsContainer.innerHTML = '<span style="color: #94a3b8; font-size: 13px; font-style: italic;">No skills added yet</span>';
-        }
+    if (user.skills) {
+        const skillsArr = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
+        skillsContainer.innerHTML = skillsArr.map(s => `<span class="role-pill">${s}</span>`).join('');
     }
 
-    // Basic Stats
-    const followersEl = document.getElementById('followerCount');
-    if (followersEl) followersEl.textContent = user.followers || '0';
+    // Craft Specific Details (RESTORED)
+    const craftContainer = document.getElementById('craftDetailsContainer');
+    let craftHtml = '';
+    const role = (user.role || '').toLowerCase();
+
+    if (role.includes('director')) {
+        craftHtml += `<div class="info-item"><span class="label">Genres</span><span class="value">${user.genres || 'Not Specified'}</span></div>`;
+        craftHtml += `<div class="info-item"><span class="label">Projects</span><span class="value">${user.projectsDirected || '0'}</span></div>`;
+        craftHtml += `<div class="info-item"><span class="label">Budget Handled</span><span class="value">${user.budgetHandled || 'Not Specified'}</span></div>`;
+    } else if (role.includes('editor')) {
+        craftHtml += `<div class="info-item"><span class="label">Software</span><span class="value">${user.editingSoftware || 'Not Specified'}</span></div>`;
+        craftHtml += `<div class="info-item"><span class="label">Portfolio</span><span class="value">${user.portfolioVideos ? `<a href="${user.portfolioVideos}" target="_blank">View</a>` : 'None'}</span></div>`;
+    }
     
-    const followingEl = document.getElementById('followingCount');
-    if (followingEl) followingEl.textContent = user.following || '0';
+    craftContainer.innerHTML = craftHtml || '<p style="color:#888; font-size:12px;">No extra details provided.</p>';
+
+    // Social Links (RESTORED)
+    const socialLinks = document.getElementById('socialLinks');
+    const platforms = [
+        { key: 'instagram', icon: 'fa-brands fa-instagram', color: '#e4405f' },
+        { key: 'youtube', icon: 'fa-brands fa-youtube', color: '#ff0000' },
+        { key: 'tiktok', icon: 'fa-brands fa-tiktok', color: '#000' },
+        { key: 'twitter', icon: 'fa-brands fa-x-twitter', color: '#000' }
+    ];
+
+    socialLinks.innerHTML = platforms
+        .filter(p => user[p.key])
+        .map(p => `<a href="${user[p.key]}" target="_blank" style="color: ${p.color}; font-size: 24px;"><i class="${p.icon}"></i></a>`)
+        .join('') || '<span style="color:#888; font-size:12px;">No social links</span>';
 
     // Action Button
     const actionBtn = document.getElementById('actionButton');
-    const isOwnProfile = String(profileUserId) === String(currentUserId);
-    
-    if (actionBtn) {
-        if (isOwnProfile) {
-            actionBtn.textContent = 'Edit Profile';
-            actionBtn.onclick = () => window.location.href = 'edit-profile.html';
-        } else {
-            actionBtn.textContent = 'Follow';
-            // Follow logic would go here
-        }
+    if (String(profileUserId) === String(currentUserId)) {
+        actionBtn.textContent = 'Edit Profile';
+        actionBtn.onclick = () => window.location.href = 'edit-profile.html';
+    } else {
+        actionBtn.textContent = 'Follow';
     }
 }
 
-// Load user posts
 async function loadUserPosts() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts/user/${profileUserId}`);
         const posts = await response.json();
         const container = document.getElementById('postsContent');
-        if (!container) return;
-        
         if (posts.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No posts yet.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No activity yet.</div>';
             return;
         }
-
         container.innerHTML = posts.map(post => `
-            <div class="post-card legacy-post-style" style="margin-bottom: 20px; padding: 20px;">
-                <p style="color: #fff;">${post.content}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" style="width: 100%; border-radius: 12px; margin-top: 10px;">` : ''}
+            <div class="post-card legacy-post-style" style="margin-bottom: 20px; padding: 25px;">
+                <p style="color: #fff; font-size: 15px; line-height:1.6;">${post.content}</p>
+                ${post.imageUrl ? `<img src="${post.imageUrl}" style="width: 100%; border-radius: 12px; margin-top: 15px;">` : ''}
             </div>
         `).join('');
     } catch (error) {
         console.error('Error loading posts:', error);
-    }
-}
-
-// Load user projects
-async function loadUserProjects() {
-    const container = document.getElementById('projectsContent');
-    if (!container) return;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/projects/user/${profileUserId}`);
-        const projects = await response.json();
-        
-        if (projects.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No projects yet.</div>';
-            return;
-        }
-
-        container.innerHTML = projects.map(p => `
-            <div class="post-card legacy-post-style" style="margin-bottom: 20px; padding: 20px;">
-                <h4 style="color: #fff; margin: 0;">${p.title}</h4>
-                <p style="color: #888; font-size: 13px;">${p.role} • ${p.year}</p>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading projects:', error);
     }
 }
 

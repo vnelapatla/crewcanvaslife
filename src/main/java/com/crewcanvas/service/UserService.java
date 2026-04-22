@@ -26,7 +26,7 @@ public class UserService {
 
     public User registerUser(String name, String email, String password) {
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already registered. Please use a different email or login.");
+            throw new RuntimeException("Email already registered.");
         }
         User user = new User(name, email, password);
         return userRepository.save(user);
@@ -50,14 +50,12 @@ public class UserService {
 
     @Transactional
     public User updateProfile(User updatedUser) {
-        if (updatedUser.getId() == null) {
-            throw new RuntimeException("User ID is required for update");
-        }
+        if (updatedUser.getId() == null) throw new RuntimeException("User ID is required");
         
         User existingUser = userRepository.findById(updatedUser.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Basic Info Only
+        // Basic Info
         if (updatedUser.getName() != null) existingUser.setName(updatedUser.getName());
         if (updatedUser.getEmail() != null) existingUser.setEmail(updatedUser.getEmail());
         if (updatedUser.getBio() != null) existingUser.setBio(updatedUser.getBio());
@@ -65,6 +63,24 @@ public class UserService {
         if (updatedUser.getLocation() != null) existingUser.setLocation(updatedUser.getLocation());
         if (updatedUser.getSkills() != null) existingUser.setSkills(updatedUser.getSkills());
         if (updatedUser.getExperience() != null) existingUser.setExperience(updatedUser.getExperience());
+        if (updatedUser.getPhone() != null) existingUser.setPhone(updatedUser.getPhone());
+        if (updatedUser.getAvailability() != null) existingUser.setAvailability(updatedUser.getAvailability());
+        
+        // Social Media
+        if (updatedUser.getInstagram() != null) existingUser.setInstagram(updatedUser.getInstagram());
+        if (updatedUser.getYoutube() != null) existingUser.setYoutube(updatedUser.getYoutube());
+        if (updatedUser.getTiktok() != null) existingUser.setTiktok(updatedUser.getTiktok());
+        if (updatedUser.getTwitter() != null) existingUser.setTwitter(updatedUser.getTwitter());
+
+        // Craft Specifics
+        if (updatedUser.getGenres() != null) existingUser.setGenres(updatedUser.getGenres());
+        if (updatedUser.getProjectsDirected() != null) existingUser.setProjectsDirected(updatedUser.getProjectsDirected());
+        if (updatedUser.getBudgetHandled() != null) existingUser.setBudgetHandled(updatedUser.getBudgetHandled());
+        if (updatedUser.getVisionStatement() != null) existingUser.setVisionStatement(updatedUser.getVisionStatement());
+        if (updatedUser.getEditingSoftware() != null) existingUser.setEditingSoftware(updatedUser.getEditingSoftware());
+        if (updatedUser.getPortfolioVideos() != null) existingUser.setPortfolioVideos(updatedUser.getPortfolioVideos());
+        if (updatedUser.getCameraExpertise() != null) existingUser.setCameraExpertise(updatedUser.getCameraExpertise());
+        if (updatedUser.getSampleTracks() != null) existingUser.setSampleTracks(updatedUser.getSampleTracks());
         
         // Images
         if (updatedUser.getProfilePicture() != null) existingUser.setProfilePicture(updatedUser.getProfilePicture());
@@ -80,33 +96,18 @@ public class UserService {
                     boolean matches = true;
                     if (query != null && !query.isEmpty()) {
                         matches = user.getName().toLowerCase().contains(query.toLowerCase()) ||
-                                (user.getEmail() != null && user.getEmail().toLowerCase().contains(query.toLowerCase()))
-                                ||
                                 (user.getSkills() != null && user.getSkills().toLowerCase().contains(query.toLowerCase()));
                     }
                     if (role != null && !role.isEmpty() && user.getRole() != null) {
                         matches = matches && user.getRole().equalsIgnoreCase(role);
-                    }
-                    if (location != null && !location.isEmpty() && user.getLocation() != null) {
-                        matches = matches && user.getLocation().toLowerCase().contains(location.toLowerCase());
                     }
                     return matches;
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<User> getTopUsers() {
-        return userRepository.findTop3ByOrderByFollowersDesc();
-    }
-
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    public void updatePassword(Long id, String newPassword) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setPassword(newPassword);
-        userRepository.save(user);
     }
 
     @Transactional

@@ -23,13 +23,49 @@ public class User {
     @Column(nullable = true)
     private String password;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String bio;
 
     private String role; 
     private String location;
+    
+    @Column(columnDefinition = "TEXT")
     private String skills; 
+    
     private String experience;
+    private String phone;
+    private String availability;
+
+    // --- Craft Specific Fields (Safe TEXT storage) ---
+    @Column(columnDefinition = "TEXT")
+    private String genres;
+    
+    @Column(columnDefinition = "TEXT")
+    private String projectsDirected;
+    
+    @Column(columnDefinition = "TEXT")
+    private String budgetHandled;
+    
+    @Column(columnDefinition = "TEXT")
+    private String visionStatement;
+    
+    @Column(columnDefinition = "TEXT")
+    private String editingSoftware;
+    
+    @Column(columnDefinition = "TEXT")
+    private String portfolioVideos;
+    
+    @Column(columnDefinition = "TEXT")
+    private String cameraExpertise;
+    
+    @Column(columnDefinition = "TEXT")
+    private String sampleTracks;
+
+    // --- Social Links ---
+    private String instagram;
+    private String youtube;
+    private String tiktok;
+    private String twitter;
 
     @Lob
     @Column(name = "profile_picture", columnDefinition = "LONGTEXT")
@@ -53,12 +89,6 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime updatedAt;
 
-    @Column(name = "auth_provider")
-    private String authProvider; 
-
-    @Column(name = "provider_id")
-    private String providerId;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -78,7 +108,7 @@ public class User {
         this.password = password;
     }
 
-    // Basic Getters and Setters
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -97,6 +127,39 @@ public class User {
     public void setSkills(String skills) { this.skills = skills; }
     public String getExperience() { return experience; }
     public void setExperience(String experience) { this.experience = experience; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAvailability() { return availability; }
+    public void setAvailability(String availability) { this.availability = availability; }
+    
+    // Craft Getters/Setters
+    public String getGenres() { return genres; }
+    public void setGenres(String genres) { this.genres = genres; }
+    public String getProjectsDirected() { return projectsDirected; }
+    public void setProjectsDirected(String projectsDirected) { this.projectsDirected = projectsDirected; }
+    public String getBudgetHandled() { return budgetHandled; }
+    public void setBudgetHandled(String budgetHandled) { this.budgetHandled = budgetHandled; }
+    public String getVisionStatement() { return visionStatement; }
+    public void setVisionStatement(String visionStatement) { this.visionStatement = visionStatement; }
+    public String getEditingSoftware() { return editingSoftware; }
+    public void setEditingSoftware(String editingSoftware) { this.editingSoftware = editingSoftware; }
+    public String getPortfolioVideos() { return portfolioVideos; }
+    public void setPortfolioVideos(String portfolioVideos) { this.portfolioVideos = portfolioVideos; }
+    public String getCameraExpertise() { return cameraExpertise; }
+    public void setCameraExpertise(String cameraExpertise) { this.cameraExpertise = cameraExpertise; }
+    public String getSampleTracks() { return sampleTracks; }
+    public void setSampleTracks(String sampleTracks) { this.sampleTracks = sampleTracks; }
+
+    // Social Getters/Setters
+    public String getInstagram() { return instagram; }
+    public void setInstagram(String instagram) { this.instagram = instagram; }
+    public String getYoutube() { return youtube; }
+    public void setYoutube(String youtube) { this.youtube = youtube; }
+    public String getTiktok() { return tiktok; }
+    public void setTiktok(String tiktok) { this.tiktok = tiktok; }
+    public String getTwitter() { return twitter; }
+    public void setTwitter(String twitter) { this.twitter = twitter; }
+
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
     public String getCoverImage() { return coverImage; }
@@ -109,13 +172,4 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public String getAuthProvider() { return authProvider; }
-    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
-    public String getProviderId() { return providerId; }
-    public void setProviderId(String providerId) { this.providerId = providerId; }
-
-    @Override
-    public String toString() {
-        return "User{id=" + id + ", name='" + name + "', email='" + email + "'}";
-    }
 }
