@@ -1,3 +1,4 @@
+# Force trigger deployment - 2026-04-22 16:28
 name: Deploy to AWS EC2
 
 on:
