@@ -37,6 +37,8 @@ jobs:
         script: |
           echo "Connected! Cleaning and Starting..."
           cd ~/app
+          sudo fuser -k 8080/tcp || true
+          rm -rf * || true
           # Kill old process on 8080
           echo "Cleaning port 8080..."
           fuser -k 8080/tcp || true
