@@ -23,19 +23,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Hardcoded bypass as requested for troubleshooting
-            if (request.getEmail().equals("venkatesh2@gmail.com") && request.getPassword().equals("12345678")) {
-                // Try to find the user in DB to return full object if possible, else return success message
-                Optional<User> dbUser = userService.loginUser(request.getEmail(), request.getPassword());
-                if (dbUser.isPresent()) {
-                    return ResponseEntity.ok(dbUser.get());
-                }
-                
-                Map<String, String> response = new HashMap<>();
-                response.put("status", "success");
-                response.put("message", "Login successful (Bypass)");
-                return ResponseEntity.ok(response);
-            }
+
 
             Optional<User> user = userService.loginUser(request.getEmail(), request.getPassword());
 
