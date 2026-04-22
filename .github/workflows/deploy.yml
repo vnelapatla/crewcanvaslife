@@ -70,7 +70,8 @@ jobs:
         script: |
           # 1. Start the Java App
           echo "Applying database migrations..."
-          mysql -u root -proot crewcanvas_db < ~/app/UPDATE_SCHEMA.sql || echo "Migration notice: Continue if MySQL not directly accessible or already updated."
+          sudo mysql crewcanvas_db < ~/app/UPDATE_SCHEMA.sql || echo "Migration notice: sudo mysql failed, trying with password..."
+          mysql -u root -proot crewcanvas_db < ~/app/UPDATE_SCHEMA.sql || echo "All migration attempts failed. Please check MySQL credentials on the server."
 
           echo "Process cleanup..."
           sudo fuser -k 8080/tcp || echo "Port already free."
