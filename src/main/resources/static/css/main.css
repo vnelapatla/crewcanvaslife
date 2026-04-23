@@ -17,6 +17,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Inter', -apple-system, sans-serif;
+    font-display: swap;
 }
 
 body {
@@ -326,7 +327,8 @@ img, video, iframe {
     }
     
     .main-content { 
-        padding-bottom: 80px; 
+        padding-top: 80px; /* Space for sticky header */
+        padding-bottom: 90px; /* Space for bottom nav */
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box;
@@ -513,7 +515,7 @@ img, video, iframe {
     background: rgba(10, 11, 14, 0.85);
     backdrop-filter: blur(8px);
     z-index: 20000;
-    display: flex;
+    display: none; /* Hidden by default */
     align-items: flex-start; /* Changed from center to allow scrolling from top */
     justify-content: center;
     padding: 40px 20px;

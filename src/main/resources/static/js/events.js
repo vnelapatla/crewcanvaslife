@@ -1,5 +1,7 @@
 // Events and Auditions functionality
 let currentUserId = null;
+let currentUser = null;
+let pendingEventId = null;
 let allEvents = [];
 let userApplications = [];
 let currentFilter = 'all';
@@ -15,12 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load current user info for top bar
 async function loadCurrentUser() {
     try {
+        if (!currentUserId) return;
         const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
         if (response.ok) {
-            const user = await response.json();
-            document.getElementById('currentUserName').textContent = user.name;
-            if (user.profilePicture) {
-                document.getElementById('currentUserPic').src = user.profilePicture;
+            currentUser = await response.json();
+            
+            // Handle multiple potential ID names for flexibility across pages
+            const nameEle = document.getElementById('currentUserName') || document.getElementById('userNameHeader');
+            if (nameEle) {
+                nameEle.textContent = currentUser.name;
+            }
+            
+            const picEle = document.getElementById('currentUserPic') || document.getElementById('userAvatarSmall');
+            if (picEle && currentUser.profilePicture) {
+                picEle.src = currentUser.profilePicture;
+                picEle.style.display = 'block'; // Ensure it's visible if it was hidden
             }
         }
     } catch (error) {
@@ -283,7 +294,21 @@ async function submitEvent() {
 }
 
 // Apply to event (continued)
+// Apply to event
 async function applyToEvent(eventId) {
+    // Check if user has required details
+    if (!currentUser || !currentUser.name || !currentUser.phone || !currentUser.location) {
+        pendingEventId = eventId;
+        
+        // Pre-fill what we have
+        if (document.getElementById('completeName')) document.getElementById('completeName').value = currentUser?.name || '';
+        if (document.getElementById('completePhone')) document.getElementById('completePhone').value = currentUser?.phone || '';
+        if (document.getElementById('completeLocation')) document.getElementById('completeLocation').value = currentUser?.location || '';
+        
+        document.getElementById('profileCompletionModal').style.display = 'flex';
+        return;
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/apply?userId=${currentUserId}`, {
             method: 'POST'
@@ -299,6 +324,55 @@ async function applyToEvent(eventId) {
     } catch (error) {
         console.error('Error applying to event:', error);
         showMessage('Error applying to event', 'error');
+    }
+}
+
+// Profile Completion Functions
+function closeProfileModal() {
+    document.getElementById('profileCompletionModal').style.display = 'none';
+    pendingEventId = null;
+}
+
+async function submitProfileAndRegister() {
+    const name = document.getElementById('completeName').value.trim();
+    const phone = document.getElementById('completePhone').value.trim();
+    const location = document.getElementById('completeLocation').value.trim();
+
+    if (!name || !phone || !location) {
+        showMessage('Please fill in all details', 'error');
+        return;
+    }
+
+    try {
+        // Update user profile first
+        const updateData = { ...currentUser, id: currentUserId, name, phone, location };
+        const response = await fetch(`${API_BASE_URL}/api/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+            currentUser = updateData; // Update local state
+            
+            // Update UI elements in header
+            const nameEle = document.getElementById('currentUserName') || document.getElementById('userNameHeader');
+            if (nameEle) nameEle.textContent = name;
+
+            const eventId = pendingEventId;
+            closeProfileModal();
+            
+            // Now proceed with registration
+            if (eventId) {
+                await applyToEvent(eventId);
+            }
+        } else {
+            const error = await response.text();
+            showMessage('Error updating profile: ' + error, 'error');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showMessage('Error updating profile', 'error');
     }
 }
 

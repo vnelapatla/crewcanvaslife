@@ -12,23 +12,27 @@
     <style>
         :root {
             --primary-orange: #ff8c00;
-            --bg-light: #ffffff;
-            --card-bg: #f8fafc;
+            --bg-light: #f1f5f9;
+            --card-bg: #ffffff;
             --text-dark: #0f172a;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
         }
 
         body {
-            background-color: #f1f5f9;
+            background-color: var(--bg-light);
             color: var(--text-dark);
             font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
         }
 
         .edit-container {
             max-width: 900px;
             margin: 40px auto;
-            padding: 20px 20px 100px;
+            width: 95%;
         }
 
         .card {
@@ -56,9 +60,7 @@
             gap: 20px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
 
         .form-group label {
             display: block;
@@ -99,18 +101,6 @@
             box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
         }
 
-        .skill-tag {
-            display: inline-block;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 6px 15px;
-            border-radius: 20px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
         .avatar-preview {
             width: 120px;
             height: 120px;
@@ -118,21 +108,115 @@
             object-fit: cover;
             border: 3px solid var(--primary-orange);
         }
+
+        .project-item-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .add-project-form {
+            background: #fffaf5;
+            border: 1px dashed var(--primary-orange);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        /* Profile Strength */
+        .profile-strength-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            border: 1px solid rgba(255, 140, 0, 0.3);
+        }
+
+        .strength-info { flex: 1; }
+        .strength-info h4 { margin: 0 0 5px; font-size: 16px; font-weight: 800; }
+        .strength-info p { margin: 0 0 15px; font-size: 12px; color: #94a3b8; }
+
+        .strength-progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .strength-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8c00, #ff4d4d);
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .strength-percentage {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary-orange);
+        }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
-        <div class="brand"><h2>CrewCanvas</h2></div>
-        <div class="nav-menu">
-            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Feed</span></a>
-            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>CC</h2>
+            <p>Where all crafts connect</p>
         </div>
-    </nav>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item"><i class="fa-solid fa-newspaper"></i><span>Feed</span></a>
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Crew Search</span></a>
+            <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
+            <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
+            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>My Profile</span></a>
+        </nav>
+    </aside>
 
     <main class="main-content">
+        <header class="top-header">
+            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                <div id="userAvatarContainer">
+                     <img id="userAvatarImg" src="https://via.placeholder.com/32" class="nav-avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover; display:none;">
+                     <div id="userInitialsSmall" class="user-initials">?</div>
+                </div>
+                <span id="currentUserName" class="user-name-label">loading...</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #888;"></i>
+                
+                <div id="profileDropdown" class="profile-dropdown-menu">
+                    <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+                    <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </header>
+
         <div class="edit-container">
             <h1 style="font-weight: 900; margin-bottom: 30px;">Edit Professional Profile</h1>
+            
+            <div class="profile-strength-card" id="editProfileStrength" style="display: none;">
+                <div class="strength-percentage" id="editStrengthText">0%</div>
+                <div class="strength-info">
+                    <h4>Profile Strength</h4>
+                    <p>Complete your profile to get 3x more visibility in crew searches.</p>
+                    <div class="strength-progress-container">
+                        <div class="strength-progress-fill" id="editStrengthBar"></div>
+                    </div>
+                </div>
+            </div>
 
             <!-- 1. Identity -->
             <div class="card">
@@ -184,20 +268,47 @@
                     <textarea id="editBio" rows="4"></textarea>
                 </div>
 
-                <!-- Dynamic Craft Modules (RESTORED) -->
+                <!-- Dynamic Craft Modules -->
                 <div id="moduleDirector" class="craft-module">
                     <div class="form-grid">
                         <div class="form-group"><label>Genres</label><input type="text" id="dirGenres" placeholder="e.g. Thriller, Drama"></div>
-                        <div class="form-group"><label>Projects Count</label><input type="text" id="dirProjects"></div>
-                        <div class="form-group"><label>Vision Statement</label><textarea id="dirVision"></textarea></div>
+                        <div class="form-group"><label>Projects Directed</label><input type="text" id="dirProjects"></div>
+                        <div class="form-group"><label>Budget Handled</label><input type="text" id="dirBudget"></div>
+                        <div class="form-group"><label>Team Size Handled</label><input type="text" id="dirTeamSize"></div>
+                        <div class="form-group"><label>Showreel Link</label><input type="text" id="dirShowreel"></div>
+                    </div>
+                    <div class="form-group"><label>Vision Statement</label><textarea id="dirVision" rows="3"></textarea></div>
+                </div>
+
+                <div id="moduleActor" class="craft-module">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Height (cm)</label><input type="text" id="actHeight"></div>
+                        <div class="form-group"><label>Weight (kg)</label><input type="text" id="actWeight"></div>
+                        <div class="form-group"><label>Age Range</label><input type="text" id="actAgeRange" placeholder="e.g. 20-25"></div>
+                        <div class="form-group"><label>Gender</label><input type="text" id="actGender"></div>
+                        <div class="form-group"><label>Body Type</label><input type="text" id="actBodyType"></div>
+                        <div class="form-group"><label>Languages Spoken</label><input type="text" id="actLanguages"></div>
                     </div>
                 </div>
 
                 <div id="moduleEditor" class="craft-module">
                     <div class="form-grid">
-                        <div class="form-group"><label>Editing Software</label><input type="text" id="editSoftware" placeholder="Premiere, DaVinci"></div>
-                        <div class="form-group"><label>Portfolio Links</label><input type="text" id="editVideos"></div>
+                        <div class="form-group"><label>Editing Software</label><input type="text" id="editSoftware" placeholder="Premiere, DaVinci, FCP"></div>
+                        <div class="form-group"><label>Editing Style</label><input type="text" id="editStyle" placeholder="e.g. Narrative, Fast-paced"></div>
+                        <div class="form-group"><label>Movie Project Videos</label><input type="text" id="editVideos"></div>
+                        <div class="form-group"><label>Turnaround Time</label><input type="text" id="editTurnaround"></div>
                     </div>
+                    <div class="form-group"><label>Experience Details</label><textarea id="editExpDetails" rows="3"></textarea></div>
+                </div>
+
+                <div id="moduleMusic" class="craft-module">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Genres</label><input type="text" id="musGenres"></div>
+                        <div class="form-group"><label>DAWs</label><input type="text" id="musDaws" placeholder="FL Studio, Logic Pro"></div>
+                        <div class="form-group"><label>Instruments</label><input type="text" id="musInstruments"></div>
+                        <div class="form-group"><label>Sample Tracks Link</label><input type="text" id="musTracks"></div>
+                    </div>
+                    <div class="form-group"><label>Experience in Music</label><textarea id="musExperience" rows="3"></textarea></div>
                 </div>
 
                 <div class="form-group" style="margin-top: 25px;">
@@ -207,7 +318,38 @@
                 </div>
             </div>
 
-            <!-- 3. Socials -->
+            <!-- 3. Movie Projects -->
+            <div class="card">
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa-solid fa-film"></i> Movie Projects</span>
+                </h3>
+                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Manage your filmography and project posters.</p>
+                
+                <div id="projectsListContainer">
+                    <!-- Loaded via JS -->
+                </div>
+
+                <div class="add-project-form">
+                    <h4 style="font-size: 14px; margin-bottom: 15px; font-weight: 700;">+ Add New Movie Project</h4>
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <div style="width: 100px; height: 140px; background: #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative;" onclick="document.getElementById('projPosterInput').click()">
+                            <img id="projPosterPreview" src="https://via.placeholder.com/100x140?text=Poster" style="width: 100%; height: 100%; object-fit: cover;">
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; text-align: center; padding: 4px;">Upload</div>
+                        </div>
+                        <input type="file" id="projPosterInput" style="display: none;" accept="image/*">
+                        <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group"><label>Movie Name</label><input type="text" id="projTitle" placeholder="Project Title"></div>
+                            <div class="form-group"><label>Year</label><input type="number" id="projYear" placeholder="YYYY"></div>
+                            <div class="form-group"><label>Your Role</label><input type="text" id="projRole" placeholder="e.g. Lead Actor"></div>
+                            <div class="form-group"><label>Video Link</label><input type="text" id="projLink" placeholder="YouTube/Vimeo Link"></div>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>About Project</label><textarea id="projAbout" rows="2" placeholder="Briefly describe your work..."></textarea></div>
+                    <button onclick="addNewProject(event)" style="background: var(--primary-orange); color: white; border: none; padding: 12px 25px; border-radius: 30px; font-weight: 800; font-size: 13px; cursor: pointer; width: 100%;">ADD PROJECT</button>
+                </div>
+            </div>
+
+            <!-- 4. Social Presence -->
             <div class="card">
                 <h3><i class="fa-solid fa-hashtag"></i> Social Presence</h3>
                 <div class="form-grid">
@@ -217,8 +359,20 @@
                     <div class="form-group"><label>Twitter</label><input type="text" id="editTwitter" placeholder="@handle"></div>
                 </div>
             </div>
+            
+            <div class="card" style="border: 1px solid #fee2e2; background: #fff5f5;">
+                <h3 style="color: #ef4444;"><i class="fa-solid fa-lock"></i> Private Quotes & Availability</h3>
+                <p style="font-size: 11px; color: #991b1b; margin-bottom: 20px; font-weight: 600;">* Hidden details unlockable with code.</p>
+                
+                <div class="form-grid">
+                    <div class="form-group"><label>Availability From</label><input type="date" id="editAvailFrom"></div>
+                    <div class="form-group"><label>Availability To</label><input type="date" id="editAvailTo"></div>
+                    <div class="form-group"><label>Budget Quote (Movie)</label><input type="text" id="editBudgetMovie"></div>
+                    <div class="form-group"><label>Budget Quote (Webseries)</label><input type="text" id="editBudgetWeb"></div>
+                </div>
+            </div>
 
-            <div style="text-align: right; margin-top: 30px;">
+            <div style="text-align: right; margin-top: 30px; margin-bottom: 100px;">
                 <button onclick="window.location.href='profile.html'" style="background: none; border: none; margin-right: 25px; font-weight: 700; cursor: pointer; color: #64748b;">Cancel</button>
                 <button class="btn-save" onclick="saveProfile()">Save Professional Profile</button>
             </div>
@@ -226,6 +380,7 @@
     </main>
 
     <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
     <script src="js/edit-profile.js"></script>
 </body>
 </html>

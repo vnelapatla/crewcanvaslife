@@ -111,10 +111,8 @@ async function initMessaging() {
     });
 
     try {
-        await Promise.all([
-            loadConversations(),
-            loadFollowing()
-        ]);
+        await loadFollowing(); // Load allowed contacts first
+        await loadConversations(); // Then load and filter conversations
         console.log("Messaging initialized successfully");
     } catch (e) {
         console.error("Failed to initialize messaging:", e);
@@ -174,18 +172,8 @@ async function loadFollowing() {
         const mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
         window.allMutualUsers = mutuals;
 
-        // 4. Merge into a unique Connections list (Everyone you can message)
-        const combined = [...following];
-        const combinedIds = new Set(following.map(u => String(getUserId(u))));
-        
-        followers.forEach(u => {
-            const id = String(getUserId(u));
-            if (!combinedIds.has(id)) {
-                combined.push(u);
-                combinedIds.add(id);
-            }
-        });
-        window.allConnections = combined;
+        // 4. Merge into a unique Connections list (ONLY people who follow you can be messaged)
+        window.allConnections = [...followers];
 
         // Update counts in UI
         if (document.getElementById('followingCount')) document.getElementById('followingCount').innerText = `${following.length} Following`;
@@ -193,13 +181,9 @@ async function loadFollowing() {
         if (document.getElementById('mutualCount')) document.getElementById('mutualCount').innerText = `${mutuals.length} Mutual`;
 
         // Display List
-        filterConnections('all');
+        filterConnections('followers');
 
-        // Global Platform Search initialization
-        try {
-            const respAll = await fetch(`${API_BASE_URL}/api/profile/search?query=`);
-            if (respAll.ok) window.allPlatformUsers = await respAll.json();
-        } catch (e) { console.warn("Platform search unavailable", e); }
+        // Messaging restricted to followers only. No need to fetch all platform users.
 
     } catch (error) {
         console.error('Error loading social connections:', error);
@@ -211,12 +195,9 @@ async function loadFollowing() {
 function filterConnections(type) {
     connectionFilter = type;
     let list = window.allConnections || [];
-    let emptyMsg = "No connections found";
+    let emptyMsg = "No contacts found";
 
-    if (type === 'following') {
-        list = window.allFollowingUsers || [];
-        emptyMsg = "You are not following anyone yet";
-    } else if (type === 'followers') {
+    if (type === 'followers') {
         list = window.allFollowerUsers || [];
         emptyMsg = "No one is following you yet";
     } else if (type === 'mutual') {
@@ -226,7 +207,6 @@ function filterConnections(type) {
 
     displayUsersList('followingList', list, emptyMsg);
     
-    // UI highlight for pills if wanted, but switching tobacco tab is enough
     switchSidebarTab('following');
 }
 
@@ -267,6 +247,15 @@ function displayUsersList(elementId, users, emptyMessage) {
 
 async function startNewChat(receiverId) {
     if (!currentUserId || !receiverId) return;
+    
+    // Check if user is allowed to message (must be a follower or mutual)
+    const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(receiverId));
+    
+    if (!isAllowed) {
+        console.warn(`Messaging restricted: User ${receiverId} is not a follower.`);
+        showMessage("You can only message your followers or mutual connections.", "error");
+        return;
+    }
     
     console.log(`Starting conversation with ${receiverId}`);
     try {
@@ -319,7 +308,17 @@ async function displayConversations(listToDisplay = null) {
         console.warn("Could not fetch unread counts:", e);
     }
 
-    container.innerHTML = items.map(conv => {
+    // Filter conversations: Only show those where the other user is in our allowed connections (followers)
+    const allowedItems = items.filter(conv => {
+        const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
+        const otherUserId = getUserId(otherUser);
+        if (!otherUserId) return false;
+        
+        // If they follow us, they are in window.allConnections
+        return window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(otherUserId));
+    });
+
+    container.innerHTML = allowedItems.map(conv => {
         try {
             const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
             const otherUserId = getUserId(otherUser);
@@ -590,6 +589,13 @@ async function sendMessage() {
         return;
     }
 
+    // Check if user is allowed to message
+    const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(selectedConversationUserId));
+    if (!isAllowed) {
+        showMessage("You can only message your followers or mutual connections.", "error");
+        return;
+    }
+
     // Always use REST to send message so we can await it synchronously
     try {
         const response = await fetch(`${API_BASE_URL}/api/messages`, {
@@ -652,15 +658,15 @@ function searchConversations() {
     });
     displayConversations(filtered);
     
-    // Instagram-like: Search all users on the platform automatically
-    if (window.allPlatformUsers) {
+    // Restricted: Search ONLY within followers/mutuals
+    if (window.allConnections) {
         if (query.trim().length > 0) {
-            switchSidebarTab('following'); // auto switch to connections tab while searching
-            const filteredAll = window.allPlatformUsers.filter(u => (u.name || '').toLowerCase().includes(query) && u.id != currentUserId);
-            displayUsersList('followingList', filteredAll, 'No users found matching search');
+            switchSidebarTab('following'); 
+            const filteredAllowed = window.allConnections.filter(u => (u.name || '').toLowerCase().includes(query));
+            displayUsersList('followingList', filteredAllowed, 'No followers found matching search');
         } else {
-            switchSidebarTab('conversations'); // switch back
-            displayUsersList('followingList', window.allFollowingUsers, 'Not following anyone yet');
+            switchSidebarTab('conversations');
+            displayUsersList('followingList', window.allConnections, 'No followers yet');
         }
     }
 }

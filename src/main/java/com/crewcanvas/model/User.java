@@ -3,6 +3,7 @@ package com.crewcanvas.model;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,18 +24,40 @@ public class User {
     @Column(nullable = true)
     private String password;
 
+    @Column(name = "google_id", unique = true, length = 191)
+    private String googleId;
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 
+    @Column(columnDefinition = "TEXT")
     private String role; 
+    @Column(columnDefinition = "TEXT")
     private String location;
     
     @Column(columnDefinition = "TEXT")
     private String skills; 
     
+    @Column(columnDefinition = "TEXT")
     private String experience;
+    @Column(columnDefinition = "TEXT")
     private String phone;
+    @Column(columnDefinition = "TEXT")
     private String availability;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private java.time.LocalDate availabilityFrom;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private java.time.LocalDate availabilityTo;
+
+    @Column(name = "budget_movie", columnDefinition = "TEXT")
+    @JsonProperty("budgetMovie")
+    private String budgetMovie;
+
+    @Column(name = "budget_webseries", columnDefinition = "TEXT")
+    @JsonProperty("budgetWebseries")
+    private String budgetWebseries;
 
     // --- Craft Specific Fields (Safe TEXT storage) ---
     @Column(columnDefinition = "TEXT")
@@ -61,10 +84,53 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String sampleTracks;
 
+    // --- New Role-Specific Fields (Stored as TEXT to avoid row size limits) ---
+    @Column(columnDefinition = "TEXT")
+    private String height;
+    @Column(columnDefinition = "TEXT")
+    private String weight;
+    @Column(columnDefinition = "TEXT")
+    private String ageRange;
+    @Column(columnDefinition = "TEXT")
+    private String gender;
+    @Column(columnDefinition = "TEXT")
+    private String bodyType;
+
+    @Column(columnDefinition = "TEXT")
+    private String languages;
+    
+    @Column(columnDefinition = "TEXT")
+    private String teamSize;
+
+    @Column(columnDefinition = "TEXT")
+    private String showreel;
+
+    @Column(columnDefinition = "TEXT")
+    private String editingStyle;
+
+    @Column(columnDefinition = "TEXT")
+    private String experienceDetails;
+
+    @Column(columnDefinition = "TEXT")
+    private String turnaroundTime;
+
+    @Column(columnDefinition = "TEXT")
+    private String daws;
+
+    @Column(columnDefinition = "TEXT")
+    private String instruments;
+
+    @Column(columnDefinition = "TEXT")
+    private String musicExperience;
+
     // --- Social Links ---
+    @Column(columnDefinition = "TEXT")
     private String instagram;
+    @Column(columnDefinition = "TEXT")
     private String youtube;
+    @Column(columnDefinition = "TEXT")
     private String tiktok;
+    @Column(columnDefinition = "TEXT")
     private String twitter;
 
     @Lob
@@ -81,6 +147,9 @@ public class User {
     @Column(nullable = false)
     private Integer following = 0;
 
+    @Column(name = "profile_score", nullable = false)
+    private Integer profileScore = 0;
+
     @Column(name = "created_at")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime createdAt;
@@ -93,11 +162,13 @@ public class User {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        this.profileScore = calculateProfileScore();
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        this.profileScore = calculateProfileScore();
     }
 
     public User() {}
@@ -117,6 +188,8 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getGoogleId() { return googleId; }
+    public void setGoogleId(String googleId) { this.googleId = googleId; }
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
     public String getRole() { return role; }
@@ -131,8 +204,15 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAvailability() { return availability; }
     public void setAvailability(String availability) { this.availability = availability; }
+    public java.time.LocalDate getAvailabilityFrom() { return availabilityFrom; }
+    public void setAvailabilityFrom(java.time.LocalDate availabilityFrom) { this.availabilityFrom = availabilityFrom; }
+    public java.time.LocalDate getAvailabilityTo() { return availabilityTo; }
+    public void setAvailabilityTo(java.time.LocalDate availabilityTo) { this.availabilityTo = availabilityTo; }
+    public String getBudgetMovie() { return budgetMovie; }
+    public void setBudgetMovie(String budgetMovie) { this.budgetMovie = budgetMovie; }
+    public String getBudgetWebseries() { return budgetWebseries; }
+    public void setBudgetWebseries(String budgetWebseries) { this.budgetWebseries = budgetWebseries; }
     
-    // Craft Getters/Setters
     public String getGenres() { return genres; }
     public void setGenres(String genres) { this.genres = genres; }
     public String getProjectsDirected() { return projectsDirected; }
@@ -150,7 +230,38 @@ public class User {
     public String getSampleTracks() { return sampleTracks; }
     public void setSampleTracks(String sampleTracks) { this.sampleTracks = sampleTracks; }
 
-    // Social Getters/Setters
+    public String getHeight() { return height; }
+    public void setHeight(String height) { this.height = height; }
+    public String getWeight() { return weight; }
+    public void setWeight(String weight) { this.weight = weight; }
+    public String getAgeRange() { return ageRange; }
+    public void setAgeRange(String ageRange) { this.ageRange = ageRange; }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    public String getBodyType() { return bodyType; }
+    public void setBodyType(String bodyType) { this.bodyType = bodyType; }
+    public String getLanguages() { return languages; }
+    public void setLanguages(String languages) { this.languages = languages; }
+    
+    public String getTeamSize() { return teamSize; }
+    public void setTeamSize(String teamSize) { this.teamSize = teamSize; }
+    public String getShowreel() { return showreel; }
+    public void setShowreel(String showreel) { this.showreel = showreel; }
+    
+    public String getEditingStyle() { return editingStyle; }
+    public void setEditingStyle(String editingStyle) { this.editingStyle = editingStyle; }
+    public String getExperienceDetails() { return experienceDetails; }
+    public void setExperienceDetails(String experienceDetails) { this.experienceDetails = experienceDetails; }
+    public String getTurnaroundTime() { return turnaroundTime; }
+    public void setTurnaroundTime(String turnaroundTime) { this.turnaroundTime = turnaroundTime; }
+    
+    public String getDaws() { return daws; }
+    public void setDaws(String daws) { this.daws = daws; }
+    public String getInstruments() { return instruments; }
+    public void setInstruments(String instruments) { this.instruments = instruments; }
+    public String getMusicExperience() { return musicExperience; }
+    public void setMusicExperience(String musicExperience) { this.musicExperience = musicExperience; }
+
     public String getInstagram() { return instagram; }
     public void setInstagram(String instagram) { this.instagram = instagram; }
     public String getYoutube() { return youtube; }
@@ -172,4 +283,37 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getProfileScore() {
+        return profileScore;
+    }
+
+    public void setProfileScore(Integer profileScore) {
+        this.profileScore = profileScore;
+    }
+
+    private int calculateProfileScore() {
+        int score = 0;
+        
+        // Identity (Max 25)
+        if (name != null && !name.isEmpty()) score += 10;
+        if (phone != null && !phone.isEmpty()) score += 5;
+        if (location != null && !location.isEmpty()) score += 5;
+        if (bio != null && !bio.isEmpty()) score += 5;
+        
+        // Visuals (Max 20)
+        if (profilePicture != null && !profilePicture.isEmpty()) score += 10;
+        if (coverImage != null && !coverImage.isEmpty()) score += 10;
+        
+        // Professional (Max 30)
+        if (role != null && !role.isEmpty()) score += 10;
+        if (skills != null && !skills.isEmpty()) score += 10;
+        if (experience != null && !experience.isEmpty()) score += 10;
+        
+        // Portfolio & Social (Max 25)
+        if (showreel != null && !showreel.isEmpty() || portfolioVideos != null && !portfolioVideos.isEmpty()) score += 15;
+        if (instagram != null || youtube != null || twitter != null || tiktok != null) score += 10;
+        
+        return Math.min(score, 100);
+    }
 }

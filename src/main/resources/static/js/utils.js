@@ -1,4 +1,9 @@
-const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+let API_BASE_URL = ''; // Use relative paths by default for better compatibility
+
+// Fallback for local file opening (file://) or if we need to force a specific backend
+if (window.location.protocol === 'file:') {
+    API_BASE_URL = 'http://localhost:8080';
+}
 
 // Check if user is authenticated
 function checkAuth() {
@@ -234,33 +239,37 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Get initials from name
+// Get initials from name (First initial + Last initial)
 function getAvatarFallback(name) {
     if (!name) return '?';
     const words = name.trim().split(/\s+/);
     if (words.length === 0) return '?';
     if (words.length === 1) return words[0].charAt(0).toUpperCase();
-    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+    
+    // First letter of first word + First letter of last word
+    const firstInitial = words[0].charAt(0);
+    const lastInitial = words[words.length - 1].charAt(0);
+    return (firstInitial + lastInitial).toUpperCase();
 }
 
 // Render avatar or fallback
-function renderAvatar(user, className = '') {
-    const style = className.includes('nav-avatar') ? 'width: 40px; height: 40px; object-fit: cover; border-radius: 50%;' : '';
-    if (user.profilePicture && user.profilePicture.length > 50) { // Check if it's a real image/base64 and not a short placeholder string
-        return `<img src="${user.profilePicture}" alt="${user.name}" class="${className}" style="${style}" onerror="this.onerror=null; this.outerHTML=renderAvatarFallback('${user.name}', '${className}')">`;
+function renderAvatar(user, className = '', size = '40px') {
+    const style = `width: ${size}; height: ${size}; min-width: ${size}; min-height: ${size}; object-fit: cover; border-radius: 50%;`;
+    if (user && user.profilePicture && user.profilePicture.length > 50) { 
+        return `<img src="${user.profilePicture}" alt="${user.name}" class="${className}" style="${style}" onerror="this.onerror=null; this.outerHTML=renderAvatarFallback('${user.name}', '${className}', '${size}')">`;
     } else {
-        return renderAvatarFallback(user.name, className);
+        return renderAvatarFallback(user ? user.name : 'User', className, size);
     }
 }
 
 // Render initials fallback
-function renderAvatarFallback(name, className = '') {
+function renderAvatarFallback(name, className = '', size = '40px') {
     const initials = getAvatarFallback(name);
-    // Use application theme orange
     const background = 'var(--primary-orange, #ff8c00)';
+    const fontSize = parseInt(size) * 0.4;
     
     return `
-        <div class="avatar-fallback ${className}" style="background: ${background}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; width: 40px; height: 40px; min-width: 40px; min-height: 40px; border-radius: 50% !important; text-transform: uppercase; font-size: 14px; margin: 0 auto;">
+        <div class="avatar-fallback ${className}" style="background: ${background}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; width: ${size}; height: ${size}; min-width: ${size}; min-height: ${size}; border-radius: 50% !important; text-transform: uppercase; font-size: ${fontSize}px; margin: 0 auto;">
             ${initials}
         </div>
     `;
@@ -332,9 +341,8 @@ function initUniversalHeader() {
             </div>
         </div>
     `;
-    
-    // Apply standard styles
-    header.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid #f1f5f9; min-height: 65px; position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;";
+    // Styles are now handled in main.css for better performance
+    header.classList.add('top-header');
     
     // Re-sync profile data if ProfileHandler is ready
     if (typeof ProfileHandler !== 'undefined' && ProfileHandler.user) {
@@ -399,22 +407,61 @@ function initSidebarToggle() {
     }
 }
 
+/**
+ * Calculates profile completion score on the client side as a fallback
+ */
+function calculateProfileScore(user) {
+    if (!user) return 0;
+    let score = 0;
+    
+    // Identity (Max 25)
+    if (user.name) score += 10;
+    if (user.phone) score += 5;
+    if (user.location) score += 5;
+    if (user.bio) score += 5;
+    
+    // Visuals (Max 20)
+    if (user.profilePicture) score += 10;
+    if (user.coverImage) score += 10;
+    
+    // Professional (Max 30)
+    if (user.role) score += 10;
+    if (user.skills) score += 10;
+    if (user.experience) score += 10;
+    
+    // Portfolio & Social (Max 25)
+    if (user.showreel || user.portfolioVideos) score += 15;
+    if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 10;
+    
+    return Math.min(score, 100);
+}
+
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
-    // Inject standard header
-    initUniversalHeader();
+    try {
+        // Inject standard header immediately
+        initUniversalHeader();
+    } catch (e) { console.error("Header init failed:", e); }
     
-    // Inject bottom nav on mobile if missing
-    initUniversalBottomNav();
+    try {
+        // Inject bottom nav on mobile if missing
+        initUniversalBottomNav();
+    } catch (e) { console.error("Bottom nav init failed:", e); }
     
-    // Initialize sidebar toggle
-    initSidebarToggle();
+    try {
+        // Defer non-critical initialization to avoid blocking the main thread
+        setTimeout(() => {
+            initSidebarToggle();
+        }, 0);
+    } catch (e) { console.error("Sidebar toggle init failed:", e); }
     
     // Listen for resize to handle orientation changes or window resizing
     window.addEventListener('resize', debounce(() => {
-        initUniversalHeader();
-        initUniversalBottomNav();
-        initSidebarToggle();
+        try {
+            initUniversalHeader();
+            initUniversalBottomNav();
+            initSidebarToggle();
+        } catch (e) {}
     }, 250));
 });
 
@@ -435,9 +482,9 @@ if (typeof module !== 'undefined' && module.exports) {
         truncateText,
         debounce,
         getUserProfile,
-        getAvatarFallback,
         renderAvatar,
         renderAvatarFallback,
+        calculateProfileScore,
         initUniversalBottomNav
     };
 }

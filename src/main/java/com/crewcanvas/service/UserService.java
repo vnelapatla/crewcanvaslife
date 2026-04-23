@@ -82,6 +82,28 @@ public class UserService {
         if (updatedUser.getCameraExpertise() != null) existingUser.setCameraExpertise(updatedUser.getCameraExpertise());
         if (updatedUser.getSampleTracks() != null) existingUser.setSampleTracks(updatedUser.getSampleTracks());
         
+        // New Role Fields
+        if (updatedUser.getHeight() != null) existingUser.setHeight(updatedUser.getHeight());
+        if (updatedUser.getWeight() != null) existingUser.setWeight(updatedUser.getWeight());
+        if (updatedUser.getAgeRange() != null) existingUser.setAgeRange(updatedUser.getAgeRange());
+        if (updatedUser.getGender() != null) existingUser.setGender(updatedUser.getGender());
+        if (updatedUser.getBodyType() != null) existingUser.setBodyType(updatedUser.getBodyType());
+        if (updatedUser.getLanguages() != null) existingUser.setLanguages(updatedUser.getLanguages());
+        if (updatedUser.getTeamSize() != null) existingUser.setTeamSize(updatedUser.getTeamSize());
+        if (updatedUser.getShowreel() != null) existingUser.setShowreel(updatedUser.getShowreel());
+        if (updatedUser.getEditingStyle() != null) existingUser.setEditingStyle(updatedUser.getEditingStyle());
+        if (updatedUser.getExperienceDetails() != null) existingUser.setExperienceDetails(updatedUser.getExperienceDetails());
+        if (updatedUser.getTurnaroundTime() != null) existingUser.setTurnaroundTime(updatedUser.getTurnaroundTime());
+        if (updatedUser.getDaws() != null) existingUser.setDaws(updatedUser.getDaws());
+        if (updatedUser.getInstruments() != null) existingUser.setInstruments(updatedUser.getInstruments());
+        if (updatedUser.getMusicExperience() != null) existingUser.setMusicExperience(updatedUser.getMusicExperience());
+        
+        // Private Info
+        if (updatedUser.getBudgetMovie() != null) existingUser.setBudgetMovie(updatedUser.getBudgetMovie());
+        if (updatedUser.getBudgetWebseries() != null) existingUser.setBudgetWebseries(updatedUser.getBudgetWebseries());
+        if (updatedUser.getAvailabilityFrom() != null) existingUser.setAvailabilityFrom(updatedUser.getAvailabilityFrom());
+        if (updatedUser.getAvailabilityTo() != null) existingUser.setAvailabilityTo(updatedUser.getAvailabilityTo());
+
         // Images
         if (updatedUser.getProfilePicture() != null) existingUser.setProfilePicture(updatedUser.getProfilePicture());
         if (updatedUser.getCoverImage() != null) existingUser.setCoverImage(updatedUser.getCoverImage());

@@ -23,6 +23,9 @@ public class EventApplication {
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
+    @Transient
+    private Integer matchScore = 0;
+
     @Column(name = "applicant_name")
     private String applicantName;
 
@@ -75,4 +78,7 @@ public class EventApplication {
 
     public String getExperience() { return experience; }
     public void setExperience(String experience) { this.experience = experience; }
+
+    public Integer getMatchScore() { return matchScore; }
+    public void setMatchScore(Integer matchScore) { this.matchScore = matchScore; }
 }

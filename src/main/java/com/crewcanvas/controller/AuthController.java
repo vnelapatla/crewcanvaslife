@@ -12,6 +12,15 @@ import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.crewcanvas.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -19,6 +28,64 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Value("${google.client.id}")
+    private String googleClientId;
+
+    @PostMapping({"/google", "/app/google"})
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
+        try {
+            String idTokenString = payload.get("credential");
+            
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken != null) {
+                GoogleIdToken.Payload googlePayload = idToken.getPayload();
+
+                // Get user information from payload
+                String email = googlePayload.getEmail();
+                String name = (String) googlePayload.get("name");
+                String googleId = googlePayload.getSubject();
+                String pictureUrl = (String) googlePayload.get("picture");
+
+                // Find or create user
+                Optional<User> existingUser = userService.findByEmail(email);
+                User user;
+                
+                if (existingUser.isPresent()) {
+                    user = existingUser.get();
+                    // Update google ID if not set
+                    if (user.getGoogleId() == null) {
+                        user.setGoogleId(googleId);
+                        userService.updateProfile(user);
+                    }
+                } else {
+                    // Create new user for Google login
+                    user = new User();
+                    user.setEmail(email);
+                    user.setName(name);
+                    user.setGoogleId(googleId);
+                    user.setProfilePicture(pictureUrl);
+                    // Save directly via repository or a new service method
+                    user = userRepository.save(user);
+                }
+
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error during Google authentication: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

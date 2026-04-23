@@ -10,6 +10,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+import com.crewcanvas.model.User;
 
 @Service
 public class EventService {
@@ -124,22 +131,74 @@ public class EventService {
 
     public List<EventApplication> getApplicantsForEvent(Long eventId) {
         List<EventApplication> applications = applicationRepository.findByEventId(eventId);
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
         
-        // Populate missing details if any (for existing records)
+        if (eventOpt.isEmpty()) return applications;
+        Event event = eventOpt.get();
+        
+        // Populate and calculate match scores
         for (EventApplication app : applications) {
-            if (app.getApplicantName() == null) {
-                userRepository.findById(app.getUserId()).ifPresent(u -> {
-                    app.setApplicantName(u.getName());
-                    app.setApplicantEmail(u.getEmail());
-                    app.setRole(u.getRole());
-                    app.setLocation(u.getLocation());
-                    app.setExperience(u.getBio());
-                    applicationRepository.save(app); // Persist the fix
-                });
+            userRepository.findById(app.getUserId()).ifPresent(user -> {
+                // Ensure basic details are synced
+                if (app.getApplicantName() == null) {
+                    app.setApplicantName(user.getName());
+                    app.setApplicantEmail(user.getEmail());
+                    app.setRole(user.getRole());
+                    app.setLocation(user.getLocation());
+                    app.setExperience(user.getBio());
+                    applicationRepository.save(app);
+                }
+                
+                app.setMatchScore(calculateMatchScore(event, user));
+            });
+        }
+        
+        // Sort based on priority logic
+        Collections.sort(applications, (a, b) -> {
+            // Priority 1-3 are captured in matchScore
+            int scoreCompare = b.getMatchScore().compareTo(a.getMatchScore());
+            if (scoreCompare != 0) return scoreCompare;
+            
+            // Priority 4: Apply time (Earlier first if scores are equal)
+            if (a.getAppliedAt() != null && b.getAppliedAt() != null) {
+                return a.getAppliedAt().compareTo(b.getAppliedAt());
+            }
+            return 0;
+        });
+        
+        return applications;
+    }
+
+    private int calculateMatchScore(Event event, User user) {
+        int score = 0;
+        
+        // Priority 1: Skill match (Max 1000)
+        if (event.getSkills() != null && user.getSkills() != null) {
+            Set<String> eventSkills = new HashSet<>(Arrays.asList(event.getSkills().toLowerCase().split("\\s*,\\s*")));
+            Set<String> userSkills = new HashSet<>(Arrays.asList(user.getSkills().toLowerCase().split("\\s*,\\s*")));
+            
+            long matchCount = userSkills.stream().filter(eventSkills::contains).count();
+            if (eventSkills.size() > 0) {
+                score += (int) ((matchCount * 1000) / eventSkills.size());
             }
         }
         
-        return applications;
+        // Priority 2: Portfolio strength (Max 500)
+        if (user.getShowreel() != null && !user.getShowreel().isEmpty()) score += 200;
+        if (user.getPortfolioVideos() != null && !user.getPortfolioVideos().isEmpty()) score += 150;
+        if (user.getInstagram() != null || user.getYoutube() != null) score += 150;
+        
+        // Priority 3: Profile completeness (Max 250)
+        int profileScore = user.getProfileScore();
+        score += (profileScore * 250) / 100;
+        
+        // Additional Rule: Users with profile completeness < 70 put them in next order
+        // We do this by heavily penalizing their score so they drop below others
+        if (profileScore < 70) {
+            score -= 5000; 
+        }
+        
+        return score;
     }
 
     public EventApplication updateApplicationStatus(Long appId, String status) {

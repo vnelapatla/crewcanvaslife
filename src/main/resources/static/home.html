@@ -137,6 +137,15 @@
                 <div class="action-card" onclick="location.href='event.html'"><div class="action-icon" style="background:#3b82f6"><i class="fa-solid fa-calendar-plus"></i></div><b>Create Event</b></div>
             </div>
 
+            <h2 style="font-size: 18px; font-weight: 800; margin: 40px 0 20px;">Organization Dashboard</h2>
+            <div id="hostedEventsContainer" class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 50px;">
+                <!-- Hosted events with applicant lists will appear here -->
+                <p style="color: #64748b; font-size: 14px; text-align: center; padding: 40px; background: #fff; border-radius: 24px; border: 1px dashed #cbd5e1;">
+                    You haven't hosted any events yet. Create one to find crew!
+                </p>
+            </div>
+
+            <h2 style="font-size: 18px; font-weight: 800; margin: 40px 0 20px;">My Applications</h2>
             <div class="stats-grid">
                 <!-- Total Events Card -->
                 <div class="stat-card">
@@ -238,8 +247,97 @@
                         </div>`;
                     }).join('');
                 }
-            } catch(e) {}
+                }
+
+                // Load Hosted Events
+                const hRes = await fetch(`${API_BASE_URL}/api/events/user/${userId}`);
+                if (hRes.ok) {
+                    const hostedEvents = await hRes.json();
+                    const container = document.getElementById('hostedEventsContainer');
+                    
+                    if (hostedEvents.length > 0) {
+                        container.innerHTML = '';
+                        for (const event of hostedEvents) {
+                            const eventCard = document.createElement('div');
+                            eventCard.className = 'stat-card';
+                            eventCard.innerHTML = `
+                                <div class="card-bar" style="background:#8b5cf6"></div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <div class="stat-header">
+                                        <div class="stat-icon-box" style="background: #f5f3ff; color: #8b5cf6;">
+                                            <i class="fa-solid fa-clapperboard"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3>${event.eventType}</h3>
+                                            <b>${event.title}</b>
+                                            <p style="font-size:12px; color:#64748b; margin-top:5px;">${event.applicants} Applicants</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="toggleApplicants(${event.id})" style="background:#1e293b; color:white; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        View Ranked Applicants
+                                    </button>
+                                </div>
+                                <div id="applicantsList_${event.id}" style="display:none; margin-top:20px; border-top:1px solid #f1f5f9; padding-top:20px;">
+                                    <div class="loading-applicants" style="text-align:center; padding:20px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading ranked candidates...
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(eventCard);
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Dashboard error:", e);
+            }
         });
+
+        async function toggleApplicants(eventId) {
+            const listDiv = document.getElementById(`applicantsList_${eventId}`);
+            if (listDiv.style.display === 'block') {
+                listDiv.style.display = 'none';
+                return;
+            }
+            
+            listDiv.style.display = 'block';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/events/${eventId}/applicants`);
+                if (res.ok) {
+                    const applicants = await res.json();
+                    if (applicants.length === 0) {
+                        listDiv.innerHTML = '<p style="text-align:center; font-size:13px; color:#64748b; padding:20px;">No applications received yet.</p>';
+                        return;
+                    }
+                    
+                    listDiv.innerHTML = applicants.map((app, index) => {
+                        const isLowCompleteness = app.matchScore < -2000; // Penalized score
+                        const rankLabel = isLowCompleteness ? 'NEXT ORDER' : `#${index + 1} MATCH`;
+                        const rankColor = isLowCompleteness ? '#94a3b8' : '#ff8c00';
+                        
+                        return `
+                            <div style="display:flex; align-items:center; gap:15px; padding:15px; background:#f8fafc; border-radius:16px; margin-bottom:10px; border:1px solid ${isLowCompleteness ? '#e2e8f0' : 'rgba(255,140,0,0.1)'}">
+                                <div style="width:40px; height:40px; background:${rankColor}; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; flex-shrink:0;">
+                                    ${isLowCompleteness ? '!' : index + 1}
+                                </div>
+                                <div style="flex:1">
+                                    <div style="display:flex; justify-content:space-between;">
+                                        <b style="font-size:14px; color:#1e293b;">${app.applicantName}</b>
+                                        <span style="font-size:10px; font-weight:800; color:${rankColor}; text-transform:uppercase;">${rankLabel}</span>
+                                    </div>
+                                    <div style="font-size:12px; color:#64748b;">${app.role} • ${app.location}</div>
+                                    <div style="margin-top:8px; display:flex; gap:10px;">
+                                        <button onclick="window.location.href='profile.html?userId=${app.userId}'" style="background:white; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">View Profile</button>
+                                        <button onclick="location.href='messages.html?contactId=${app.userId}'" style="background:white; border:1px solid #ff8c00; color:#ff8c00; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Message</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                listDiv.innerHTML = '<p style="color:red; font-size:12px; padding:10px;">Failed to load applicants.</p>';
+            }
+        }
     </script>
 </body>
 </html>

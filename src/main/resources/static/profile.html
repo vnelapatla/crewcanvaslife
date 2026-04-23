@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Profile | CrewCanvas</title>
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,236 +18,773 @@
     <style>
         :root {
             --primary-orange: #ff8c00;
-            --bg-light: #ffffff;
-            --card-bg: #f8fafc;
-            --text-dark: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
+            --accent-red: #ff4d4d;
+            --bg-black: #0a0a0a;
+            --card-bg: #141414;
+            --item-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --border-dim: #222222;
+            --sidebar-width: 260px;
         }
 
         body {
-            background-color: var(--bg-light);
-            color: var(--text-dark);
+            background-color: var(--bg-black);
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
         }
 
-        .profile-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px 100px;
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #000;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid var(--border-dim);
+            padding: 30px 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
         }
 
-        .profile-hero {
+        .brand h2 {
+            color: var(--primary-orange);
+            font-size: 28px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .brand p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 5px 0 40px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 15px 20px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 40px;
-            margin-bottom: 50px;
-            padding: 40px;
-            background: white;
-            border-radius: 30px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.04);
+            gap: 15px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
         }
 
-        .profile-avatar-wrapper {
+        .nav-item i { font-size: 18px; width: 24px; text-align: center; }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active {
+            background: var(--primary-orange);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
+        }
+
+        /* --- Main Content Layout --- */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Top Header --- */
+        .top-header {
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid var(--border-dim);
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 8px 15px;
+            border-radius: 50px;
+            border: 1px solid var(--border-dim);
+            cursor: pointer;
+            transition: 0.3s;
             position: relative;
+        }
+
+        .user-profile-box:hover {
+            border-color: var(--primary-orange);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .mini-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .user-name-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* --- Profile Dropdown --- */
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 220px;
+            background: #fff; /* White as per reference image 1 */
+            border-radius: 15px;
+            margin-top: 15px;
+            padding: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+        }
+
+        .profile-dropdown.active { display: flex; }
+
+        .dropdown-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            transition: 0.2s;
+        }
+
+        .dropdown-item:hover { background: #f5f5f5; }
+
+        .dropdown-item i { font-size: 16px; width: 24px; text-align: center; }
+        .dropdown-item.profile i { color: #6366f1; } /* Purple */
+        .dropdown-item.edit i { color: #f43f5e; } /* Red/Orange */
+        .dropdown-item.settings i { color: #64748b; } /* Gray */
+        .dropdown-item.logout { border-top: 1px solid #eee; margin-top: 5px; color: #f43f5e; }
+        .dropdown-item.logout i { color: #3b82f6; } /* Blue */
+
+        /* --- Profile Page Content --- */
+        .profile-container {
+            max-width: 1200px;
+            width: 95%;
+            margin: 40px auto;
+        }
+
+        /* Hero Section */
+        .profile-hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .avatar-glow-wrapper {
             width: 180px;
             height: 180px;
+            margin: 0 auto 25px;
+            position: relative;
         }
 
-        .profile-avatar-wrapper img {
+        .avatar-glow-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            background: linear-gradient(45deg, #ff8c00, #ff4c3b);
+            border-radius: 50%;
+            z-index: 0;
+            filter: blur(10px);
+            opacity: 0.7;
+            animation: pulse 3s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.5; transform: scale(1); }
+            to { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        .main-avatar {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid var(--primary-orange);
+            position: relative;
+            z-index: 1;
+            background: #111;
         }
 
-        .profile-info h1 {
-            font-size: 36px;
+        #profileName {
+            font-size: 42px;
             font-weight: 900;
-            margin: 0 0 10px 0;
+            margin: 0;
+            letter-spacing: -1px;
+            text-transform: lowercase;
+        }
+
+        #profileBio {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* Profile Strength */
+        .profile-strength-container {
+            max-width: 300px;
+            margin: 20px auto 0;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border-dim);
+        }
+
+        .strength-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
-        .role-badge {
-            display: inline-block;
-            background: var(--primary-orange);
-            color: white;
-            padding: 6px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 20px;
+        .strength-value { color: var(--primary-orange); }
+
+        .progress-bar-bg {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8c00, #ff4d4d);
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Stats Pills */
+        .stats-pills {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
             margin-bottom: 50px;
         }
 
+        .stat-pill {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .stat-pill:hover {
+            border-color: var(--primary-orange);
+            background: rgba(255, 140, 0, 0.05);
+        }
+
+        .stat-pill i {
+            color: var(--primary-orange);
+            font-size: 14px;
+        }
+
+        /* Grid System */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
         .info-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
+            background: var(--card-bg);
+            border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            border: 1px solid var(--border-dim);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
 
         .info-card h3 {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
-            margin-bottom: 25px;
+            text-transform: uppercase;
+            margin: 0 0 25px;
+            letter-spacing: 0.5px;
         }
 
         .info-card h3 i { color: var(--primary-orange); }
 
-        .info-item {
+        .card-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .card-content::-webkit-scrollbar { width: 4px; }
+        .card-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .data-row {
+            background: rgba(255,255,255,0.03);
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8fafc;
-            padding: 15px 20px;
-            border-radius: 16px;
-            margin-bottom: 10px;
         }
 
-        .info-item .label {
-            color: var(--text-muted);
-            font-weight: 600;
+        .data-row .label { color: #666; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .data-row .value { color: #fff; font-size: 13px; font-weight: 700; }
+
+        /* Private Card Special Styling */
+        #privateInfoCard {
+            border: 1px dashed #ff4d4d;
+            background: rgba(255, 77, 77, 0.02);
+        }
+
+        #privateInfoCard h3 { color: #ff4d4d; }
+        #privateInfoCard h3 i { color: #ff4d4d; }
+
+        .private-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
             font-size: 13px;
         }
 
-        .info-item .value {
-            font-weight: 700;
-            font-size: 14px;
+        .private-row .label { color: #fff; font-weight: 500; }
+        .private-row .value { color: #ff4d4d; font-weight: 700; }
+
+        /* Portfolio & Feed Grid */
+        .portfolio-feed-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 50px;
         }
 
-        .tabs-container {
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 30px;
+        .uniform-card { height: 700px !important; }
+
+        .project-item {
+            background: #111;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #222;
+            margin-bottom: 20px;
+        }
+
+        .project-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .project-meta { padding: 15px; }
+        .project-meta h4 { margin: 0; font-size: 14px; font-weight: 800; }
+        .project-meta p { margin: 5px 0 0; font-size: 11px; color: var(--primary-orange); font-weight: 600; }
+
+        .post-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-dim);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .post-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--primary-orange);
+        }
+
+        .post-header {
             display: flex;
-            justify-content: center;
-            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
 
-        .tab-btn {
+        .post-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .post-actions-menu {
+            display: flex;
+            gap: 8px;
+        }
+
+        .post-actions-menu button {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-dim);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .post-actions-menu button:hover {
+            background: var(--primary-orange);
+            border-color: var(--primary-orange);
+        }
+
+        .post-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px solid var(--border-dim);
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .post-action-btn {
             background: none;
             border: none;
-            padding: 15px 20px;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
             color: var(--text-muted);
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn.active {
-            color: var(--primary-orange);
-            border-bottom: 3px solid var(--primary-orange);
-        }
-
-        .role-pill {
-            background: #f1f5f9;
-            color: #334155;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            display: inline-block;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
         }
 
-        @media (max-width: 768px) {
-            .profile-hero { flex-direction: column; text-align: center; }
-            .profile-avatar-wrapper { width: 140px; height: 140px; }
-            .info-grid { grid-template-columns: 1fr; }
+        .post-action-btn:hover {
+            color: var(--primary-orange);
+        }
+
+        .post-action-btn.liked {
+            color: var(--accent-red);
+        }
+
+        /* Poll Styles */
+        .poll-container {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid var(--border-dim);
+        }
+
+        .poll-question {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .poll-option {
+            position: relative;
+            padding: 12px;
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .poll-progress {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            background: rgba(255, 140, 0, 0.1);
+            z-index: 0;
+            transition: width 1s;
+        }
+
+        .poll-option-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        /* Slider Styles */
+        .post-slider-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .post-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+
+        .post-slider::-webkit-scrollbar { display: none; }
+
+        .post-slider-item {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+        }
+
+        .post-slider-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .slider-nav-btn {
+            position: absolute;
+            top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .slider-nav-btn.prev { left: 10px; }
+        .slider-nav-btn.next { right: 10px; }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .sidebar { width: 80px; padding: 30px 10px; }
+            .sidebar .brand p, .sidebar .nav-item span { display: none; }
+            .main-content { margin-left: 80px; }
+        }
+
+        @media (max-width: 900px) {
+            .profile-grid, .portfolio-feed-grid { grid-template-columns: 1fr; }
+            .uniform-card { height: auto !important; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
+    <aside class="sidebar">
         <div class="brand">
-            <h2>CrewCanvas</h2>
+            <h2>CC</h2>
+            <p>Where all crafts connect</p>
         </div>
-        <div class="nav-menu">
-            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Feed</span></a>
-            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item"><i class="fa-solid fa-newspaper"></i><span>Feed</span></a>
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Crew Search</span></a>
             <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
-            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
-        </div>
-    </nav>
+            <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
+            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>My Profile</span></a>
+        </nav>
+    </aside>
 
     <main class="main-content">
-        <header class="top-header"></header>
+        <header class="top-header">
+            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                <img id="userAvatarSmall" src="https://via.placeholder.com/32" class="mini-avatar" alt="User">
+                <span id="userNameHeader" class="user-name-label">loading...</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #888;"></i>
+                
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="profile.html" class="dropdown-item profile"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="edit-profile.html" class="dropdown-item edit"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+                    <a href="settings.html" class="dropdown-item settings"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <a href="logout.html" class="dropdown-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </header>
 
         <div class="profile-container">
             <!-- Hero -->
             <div class="profile-hero">
-                <div class="profile-avatar-wrapper">
-                    <img id="profileImage" src="https://via.placeholder.com/180" alt="Profile">
+                <div class="avatar-glow-wrapper" id="profileAvatarContainer">
+                    <!-- Injected by JS -->
                 </div>
-                <div class="profile-info">
-                    <h1 id="profileName">Loading...</h1>
-                    <div class="role-badge" id="profileRoleBadge">Professional</div>
-                    <p id="profileBio" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 25px; max-width: 600px;">No bio added yet.</p>
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="actionButton" style="background: var(--primary-orange); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; cursor: pointer;">Edit Profile</button>
+                <h1 id="profileName">Loading...</h1>
+                <p id="profileBio">Loading bio...</p>
+                
+                <div class="profile-strength-container" id="profileStrengthBox" style="display: none;">
+                    <div class="strength-header">
+                        <span>Profile Strength</span>
+                        <span class="strength-value" id="strengthText">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="strengthBar"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content Grid -->
-            <div class="info-grid">
-                <!-- Contact & Bio -->
+            <!-- Stats Bar -->
+            <div class="stats-pills">
+                <div class="stat-pill">
+                    <i class="fa-solid fa-clapperboard"></i>
+                    <span id="projectCount">0</span> Projects
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span id="postCount">0</span> Posts
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-users"></i>
+                    <span id="followerCount">0</span> Followers
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-wrench"></i>
+                    <span id="skillCount">0</span> Skills
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-star"></i>
+                    <span id="profileExperience">Fresher</span> Experience
+                </div>
+            </div>
+
+            <!-- Row 1: Personal & Craft -->
+            <div class="profile-grid">
                 <div class="info-card">
-                    <h3><i class="fa-solid fa-address-card"></i> About</h3>
-                    <div class="info-item"><span class="label">Location</span><span class="value" id="profileLocation">Unknown</span></div>
-                    <div class="info-item"><span class="label">Experience</span><span class="value" id="profileExperience">Professional</span></div>
-                    <div class="info-item"><span class="label">Email</span><span class="value" id="profileEmail">Not shared</span></div>
-                    <div class="info-item"><span class="label">Phone</span><span class="value" id="profilePhone">Not provided</span></div>
+                    <h3><i class="fa-solid fa-user"></i> Personal Information</h3>
+                    <div class="data-row">
+                        <span class="label">Email</span>
+                        <span class="value" id="profileEmail">Data Not Available</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="label">Phone</span>
+                        <span class="value" id="profilePhone">Data Not Available</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="label">Location</span>
+                        <span class="value" id="profileLocation">Data Not Available</span>
+                    </div>
                 </div>
 
-                <!-- Professional Specs (RESTORED) -->
                 <div class="info-card">
-                    <h3><i class="fa-solid fa-briefcase"></i> Professional Details</h3>
-                    <div id="craftDetailsContainer" class="info-list">
-                        <!-- Dynamic craft details injected here -->
-                    </div>
-                    <div id="skillsContainer" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                        <!-- Skill tags -->
-                    </div>
-                </div>
-
-                <!-- Social Media (RESTORED) -->
-                <div class="info-card">
-                    <h3><i class="fa-solid fa-share-nodes"></i> Social Links</h3>
-                    <div id="socialLinks" style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <!-- Social icons injected here -->
+                    <h3><i class="fa-solid fa-briefcase"></i> Craft Specifications</h3>
+                    <div id="craftSpecsContainer">
+                        <!-- Dynamic fields injected here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Tabs -->
-            <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('posts', this)">Activity</button>
-                <button class="tab-btn" onclick="switchTab('projects', this)">Portfolio</button>
+            <!-- Row 2: Private & Skills -->
+            <div class="profile-grid">
+                <div class="info-card" id="privateInfoCard">
+                    <h3><i class="fa-solid fa-lock"></i> Private Quotes</h3>
+                    <div id="privateLockedState">
+                        <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Enter code to view budget & availability:</p>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="unlockCodeInput" placeholder="Enter Code" style="flex: 1; padding: 10px; border: 1px solid #333; border-radius: 8px; background: #000; color: #fff; font-size: 12px;">
+                            <button onclick="unlockPrivateInfo()" style="background: #ff4d4d; color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 11px;">Unlock</button>
+                        </div>
+                    </div>
+                    <div id="privateUnlockedState" style="display: none;">
+                        <div class="private-row">
+                            <span class="label">Movie Budget</span>
+                            <span class="value" id="profileBudgetMovie">Data Not Available</span>
+                        </div>
+                        <div class="private-row">
+                            <span class="label">Webseries Budget</span>
+                            <span class="value" id="profileBudgetWeb">Data Not Available</span>
+                        </div>
+                        <div class="private-row">
+                            <span class="label">Available From</span>
+                            <span class="value" id="profileAvailFrom">Data Not Available</span>
+                        </div>
+                        <div class="private-row">
+                            <span class="label">Available To</span>
+                            <span class="value" id="profileAvailTo">Data Not Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-wrench"></i> Skills & Social</h3>
+                    <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;"></div>
+                    <div id="socialLinks" style="display: flex; gap: 20px; font-size: 24px;"></div>
+                </div>
             </div>
 
-            <div id="postsContent"></div>
-            <div id="projectsContent" style="display: none;"></div>
+            <!-- Row 3: Portfolio & Feed -->
+            <div class="portfolio-feed-grid">
+                <div class="info-card uniform-card">
+                    <h3><i class="fa-solid fa-film"></i> Movie Projects</h3>
+                    <div class="card-content" id="projectsGrid"></div>
+                </div>
+
+                <div class="info-card uniform-card">
+                    <h3><i class="fa-solid fa-newspaper"></i> My Posts</h3>
+                    <div class="card-content" id="postsContent"></div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script src="js/utils.js"></script>
+    <script src="js/profile-handler.js"></script>
     <script src="js/profile.js"></script>
 </body>
 </html>

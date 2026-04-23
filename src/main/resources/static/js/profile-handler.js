@@ -216,10 +216,18 @@ const ProfileHandler = {
                 if (initialsEl) initialsEl.innerText = initials;
 
                 const imgEl = container.querySelector('img');
-                if (imgEl && this.user.profilePicture) {
-                    imgEl.src = this.user.profilePicture;
-                    imgEl.style.display = 'block';
-                    if (initialsEl) initialsEl.style.display = 'none';
+                if (imgEl) {
+                    if (this.user.profilePicture && this.user.profilePicture.length > 50) {
+                        imgEl.src = this.user.profilePicture;
+                        imgEl.style.display = 'block';
+                        if (initialsEl) initialsEl.style.display = 'none';
+                    } else {
+                        imgEl.style.display = 'none';
+                        if (initialsEl) {
+                            initialsEl.style.display = 'flex';
+                            initialsEl.innerText = initials;
+                        }
+                    }
                 }
             } else if (container.classList.contains('profile-btn')) {
                 const icon = container.querySelector('i');

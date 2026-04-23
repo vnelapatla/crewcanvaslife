@@ -344,4 +344,52 @@
 }
 
 /* Redesign stats pill */
-.profile-stats-pill { display: none; } /* Not in image */
+/* --- Responsive Mobile Optimizations --- */
+@media (max-width: 1080px) {
+    .profile-split-container {
+        flex-direction: column;
+    }
+
+    .profile-left-col {
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 40px 20px;
+    }
+
+    .profile-right-col {
+        width: 100%;
+        padding: 40px 20px;
+    }
+
+    #profileName {
+        font-size: 36px;
+    }
+
+    .search-bar-container {
+        display: none; /* Hide in header on mobile as per standard practice */
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .project-thumb {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    #profileName {
+        font-size: 28px;
+    }
+    
+    .contact-box {
+        padding: 10px 15px;
+    }
+    
+    .contact-box .label {
+        width: 50px;
+        font-size: 10px;
+    }
+}

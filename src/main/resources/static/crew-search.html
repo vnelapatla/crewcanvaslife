@@ -58,15 +58,6 @@
                     <div class="count-badge" id="totalCrewCount">0</div>
                 </div>
 
-                <div class="feature-card" id="followingCountCard" onclick="switchSearchTab('connections'); switchConnectionTab('following')">
-                    <div class="feature-icon-circle">👤+</div>
-                    <div class="feature-info">
-                        <h3>MY FOLLOWING</h3>
-                        <p>People you follow</p>
-                    </div>
-                    <div class="count-badge" id="myFollowingCount">0</div>
-                </div>
-
                 <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections'); switchConnectionTab('followers')">
                     <div class="feature-icon-circle">🤝</div>
                     <div class="feature-info">
@@ -79,11 +70,11 @@
 
             <!-- Toggle Switch Tabs -->
             <div class="toggle-switch-container">
-                <div class="toggle-btn active" id="followingTab" onclick="switchConnectionTab('following')">
-                    <span class="icon">👤+</span> Following
-                </div>
-                <div class="toggle-btn" id="followersTab" onclick="switchConnectionTab('followers')">
+                <div class="toggle-btn active" id="followersTab" onclick="switchConnectionTab('followers')">
                     <span class="icon">👥</span> Followers
+                </div>
+                <div class="toggle-btn" id="followingTab" onclick="switchConnectionTab('following')">
+                    <span class="icon">👤</span> Following
                 </div>
             </div>
 
@@ -92,24 +83,7 @@
                 <div class="custom-search-bar">
                     <input type="text" id="searchInput" placeholder="Search people by name or craft...">
                     <div class="search-actions">
-                        <button class="image-search-trigger" onclick="document.getElementById('imageSearchInput').click()" title="Search by Image">
-                            <i class="fa-solid fa-camera"></i>
-                        </button>
                         <span class="search-person-icon">👤</span>
-                    </div>
-                    <input type="file" id="imageSearchInput" style="display:none" accept="image/*" onchange="handleImageSearch(this)">
-                </div>
-                
-                <!-- Visual Search Result/Scanning UI -->
-                <div id="visualSearchOverlay" class="visual-search-container" style="display:none">
-                    <div class="scanning-preview">
-                        <img id="scannedImagePreview" src="" alt="Scanning...">
-                        <div class="scanning-bar"></div>
-                    </div>
-                    <div class="scanning-info">
-                        <h4>AI Biometric Search</h4>
-                        <p id="scanningStatusText">Analyzing facial features...</p>
-                        <button class="btn-cancel-search" onclick="cancelImageSearch()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -134,8 +108,6 @@
 
     <script src="js/utils.js"></script>
     <script src="js/profile-handler.js"></script>
-    <!-- face-api.js for advanced facial recognition -->
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="js/crew-search.js"></script>
 </body>
 

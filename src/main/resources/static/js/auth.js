@@ -94,10 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+const GOOGLE_CLIENT_ID = "804092739623-3khsc57mme7lgb0n7ugj2lg9r43fb1n5.apps.googleusercontent.com";
+
 // Google Login Handler
 function handleGoogleLogin() {
     google.accounts.id.initialize({
-        client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Replace with your actual Client ID
+        client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse
     });
     google.accounts.id.prompt(); // also display the One Tap dialog
@@ -107,6 +109,7 @@ async function handleCredentialResponse(response) {
     console.log("Encoded JWT ID token: " + response.credential);
     
     try {
+        console.log("Calling Google Auth API at:", `${API_BASE_URL}/api/auth/google`);
         const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
             method: 'POST',
             headers: {

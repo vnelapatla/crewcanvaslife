@@ -64,10 +64,6 @@
 
                     <!-- Connection Stats -->
                     <div class="connection-stats">
-                        <div class="stat-pill" onclick="filterConnections('following')">
-                            <i class="fa-solid fa-user-plus"></i>
-                            <span id="followingCount">0 Following</span>
-                        </div>
                         <div class="stat-pill" onclick="filterConnections('followers')">
                             <i class="fa-solid fa-heart"></i>
                             <span id="followerCount">0 Followers</span>
@@ -83,7 +79,7 @@
                         <!-- Switch Tabs -->
                         <div class="list-tabs">
                             <button class="active" onclick="switchSidebarTab('conversations')">Recent Chats</button>
-                            <button onclick="switchSidebarTab('following')">Connections</button>
+                            <button onclick="switchSidebarTab('followers')">Contacts</button>
                         </div>
 
                         <div id="conversationsList" class="user-list">
