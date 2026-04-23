@@ -54,6 +54,10 @@ public class PostService {
         return posts;
     }
 
+    public List<Post> getUserPosts(Long userId) {
+        return populatePollData(postRepository.findByUserIdOrderByCreatedAtDesc(userId));
+    }
+
     public Optional<Post> getPostById(Long id) {
         return postRepository.findById(id).map(this::populatePollData);
     }

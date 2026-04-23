@@ -34,6 +34,10 @@ public class MessageService {
         return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId, org.springframework.data.domain.PageRequest.of(page, size));
     }
 
+    public List<Message> getUserMessages(Long userId) {
+        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId);
+    }
+
     public List<Message> getUnreadMessages(Long userId) {
         return messageRepository.findUnreadMessages(userId);
     }
