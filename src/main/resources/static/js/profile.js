@@ -237,7 +237,7 @@ async function loadUserProjects() {
 
 async function loadUserPosts() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/posts/user/${profileUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/posts/user/${profileUserId}?size=10`);
         if (response.ok) {
             const data = await response.json();
             const posts = data.content || data; // Handle both paginated and direct list

@@ -2,7 +2,7 @@
 let currentFeedPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 let currentUserId = null;
 let selectedImageFiles = []; // Array for multiple images
 let isPollMode = false;
