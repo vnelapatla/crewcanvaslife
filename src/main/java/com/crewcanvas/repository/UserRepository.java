@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     java.util.List<User> findTop3ByOrderByFollowersDesc();
+    
+    java.util.List<User> findTop10ByOrderByProfileScoreDesc();
 }

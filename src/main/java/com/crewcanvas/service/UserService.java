@@ -138,4 +138,8 @@ public class UserService {
         pollVoteRepository.deleteByUserId(id);
         userRepository.deleteById(id);
     }
+
+    public List<User> getTopUsers() {
+        return userRepository.findTop10ByOrderByProfileScoreDesc();
+    }
 }
