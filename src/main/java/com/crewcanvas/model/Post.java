@@ -68,8 +68,19 @@ public class Post {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
+    @Transient
+    private java.util.Map<String, Object> userDetails;
+
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Poll poll;
+
+    public java.util.Map<String, Object> getUserDetails() {
+        return userDetails;
+    }
+
+    public void setUserDetails(java.util.Map<String, Object> userDetails) {
+        this.userDetails = userDetails;
+    }
 
     public Poll getPoll() {
         return poll;

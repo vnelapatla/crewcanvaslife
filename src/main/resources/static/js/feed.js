@@ -46,6 +46,12 @@ async function loadFeed(page = 0, refresh = false) {
             let data = await response.json();
             const posts = data.content ? data.content : data;
             
+            // Map backend 'userDetails' to frontend 'user' property for compatibility
+            posts.forEach(p => {
+                if (p.userDetails && !p.user) {
+                    p.user = p.userDetails;
+                }
+            });
             if (posts.length < PAGE_SIZE) {
                 hasMore = false;
             }

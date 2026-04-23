@@ -21,6 +21,9 @@ public class PostService {
     @Autowired
     private com.crewcanvas.repository.PollVoteRepository pollVoteRepository;
 
+    @Autowired
+    private com.crewcanvas.repository.UserRepository userRepository;
+
     public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks) {
         Post post = new Post(userId, content, imageUrls, externalLinks);
         return postRepository.save(post);
@@ -138,6 +141,18 @@ public class PostService {
     }
 
     private Post populatePollData(Post post) {
+        // Populate User Details for frontend speed (avoid separate API calls)
+        if (post.getUserId() != null) {
+            userRepository.findById(post.getUserId()).ifPresent(user -> {
+                java.util.Map<String, Object> details = new java.util.HashMap<>();
+                details.put("id", user.getId());
+                details.put("name", user.getName());
+                details.put("role", user.getRole());
+                details.put("profilePicture", user.getProfilePicture());
+                post.setUserDetails(details);
+            });
+        }
+        
         if (post.getPoll() != null) {
             com.crewcanvas.model.Poll poll = post.getPoll();
             List<com.crewcanvas.model.PollVote> votes = pollVoteRepository.findByPollId(poll.getId());
