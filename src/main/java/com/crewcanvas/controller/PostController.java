@@ -63,9 +63,9 @@ public class PostController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserPosts(@PathVariable Long userId) {
+    public ResponseEntity<?> getUserPosts(@PathVariable Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Post> posts = postService.getUserPosts(userId);
+            org.springframework.data.domain.Page<Post> posts = postService.getUserPosts(userId, page, size);
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

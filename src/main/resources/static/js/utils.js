@@ -157,24 +157,59 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-// Upload image to base64 (for demo purposes)
-async function uploadImage(file) {
+// Upload image with automatic compression (Max 200KB target)
+async function uploadImage(file, maxWidth = 1200, quality = 0.7) {
     return new Promise((resolve, reject) => {
         if (!file) {
             resolve(null);
             return;
         }
 
-        // Check file size (max 50MB)
+        // Check file size (hard limit 50MB for safety)
         if (file.size > 50 * 1024 * 1024) {
             showMessage('File size must be less than 50MB', 'error');
             return;
         }
 
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = async (e) => {
+            try {
+                const compressed = await compressImage(e.target.result, maxWidth, quality);
+                resolve(compressed);
+            } catch (err) {
+                console.error("Compression failed, using original:", err);
+                resolve(e.target.result);
+            }
+        };
         reader.onerror = (e) => reject(e);
         reader.readAsDataURL(file);
+    });
+}
+
+// Compress image using Canvas
+async function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Scale down if too large
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Output as JPEG with specified quality
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
     });
 }
 

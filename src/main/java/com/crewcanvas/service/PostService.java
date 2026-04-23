@@ -48,8 +48,10 @@ public class PostService {
         return populatePollData(postRepository.findAllByOrderByCreatedAtDesc());
     }
 
-    public List<Post> getUserPosts(Long userId) {
-        return populatePollData(postRepository.findByUserIdOrderByCreatedAtDesc(userId));
+    public org.springframework.data.domain.Page<Post> getUserPosts(Long userId, int page, int size) {
+        org.springframework.data.domain.Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, org.springframework.data.domain.PageRequest.of(page, size));
+        posts.getContent().forEach(this::populatePollData);
+        return posts;
     }
 
     public Optional<Post> getPostById(Long id) {

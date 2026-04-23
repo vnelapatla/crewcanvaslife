@@ -239,9 +239,12 @@ async function loadUserPosts() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts/user/${profileUserId}`);
         if (response.ok) {
-            const posts = await response.json();
+            const data = await response.json();
+            const posts = data.content || data; // Handle both paginated and direct list
+            const totalElements = data.totalElements !== undefined ? data.totalElements : posts.length;
+            
             const postCountEl = document.getElementById('postCount');
-            if (postCountEl) postCountEl.textContent = posts.length;
+            if (postCountEl) postCountEl.textContent = totalElements;
             
             const container = document.getElementById('postsContent');
             
