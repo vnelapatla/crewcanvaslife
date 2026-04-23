@@ -51,13 +51,13 @@ public class User {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private java.time.LocalDate availabilityTo;
 
-    @Column(name = "budget_movie", columnDefinition = "TEXT")
-    @JsonProperty("budgetMovie")
-    private String budgetMovie;
+    @Column(name = "expected_movie_remuneration", columnDefinition = "TEXT")
+    @JsonProperty("expectedMovieRemuneration")
+    private String expectedMovieRemuneration;
 
-    @Column(name = "budget_webseries", columnDefinition = "TEXT")
-    @JsonProperty("budgetWebseries")
-    private String budgetWebseries;
+    @Column(name = "expected_webseries_remuneration", columnDefinition = "TEXT")
+    @JsonProperty("expectedWebseriesRemuneration")
+    private String expectedWebseriesRemuneration;
 
     // --- Craft Specific Fields (Safe TEXT storage) ---
     @Column(columnDefinition = "TEXT")
@@ -208,10 +208,10 @@ public class User {
     public void setAvailabilityFrom(java.time.LocalDate availabilityFrom) { this.availabilityFrom = availabilityFrom; }
     public java.time.LocalDate getAvailabilityTo() { return availabilityTo; }
     public void setAvailabilityTo(java.time.LocalDate availabilityTo) { this.availabilityTo = availabilityTo; }
-    public String getBudgetMovie() { return budgetMovie; }
-    public void setBudgetMovie(String budgetMovie) { this.budgetMovie = budgetMovie; }
-    public String getBudgetWebseries() { return budgetWebseries; }
-    public void setBudgetWebseries(String budgetWebseries) { this.budgetWebseries = budgetWebseries; }
+    public String getExpectedMovieRemuneration() { return expectedMovieRemuneration; }
+    public void setExpectedMovieRemuneration(String expectedMovieRemuneration) { this.expectedMovieRemuneration = expectedMovieRemuneration; }
+    public String getExpectedWebseriesRemuneration() { return expectedWebseriesRemuneration; }
+    public void setExpectedWebseriesRemuneration(String expectedWebseriesRemuneration) { this.expectedWebseriesRemuneration = expectedWebseriesRemuneration; }
     
     public String getGenres() { return genres; }
     public void setGenres(String genres) { this.genres = genres; }

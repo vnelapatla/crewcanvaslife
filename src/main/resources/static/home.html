@@ -155,7 +155,7 @@
                             <i class="fa-solid fa-calendar-days"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>Total Events</h3>
+                            <h3>Events Hosted</h3>
                             <b id="totalEvents">0</b>
                         </div>
                     </div>
@@ -202,31 +202,35 @@
             const userId = localStorage.getItem('userId');
             if(!userId) return;
             try {
-                const [eRes, aRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/events`), 
-                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`)
+                // Fetch hosted events and made applications in parallel
+                const [eRes, aRes, allRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/events/user/${userId}`), 
+                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`),
+                    fetch(`${API_BASE_URL}/api/events`)
                 ]);
-                if(eRes.ok && aRes.ok) {
-                    const events = await eRes.json(); 
-                    const apps = await aRes.json();
-                    
-                    document.getElementById('totalEvents').innerText = events.length;
-                    document.getElementById('totalApps').innerText = apps.length;
-                    
-                    // Breakdown counts
-                    const counts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
-                    events.forEach(e => { if(counts[e.eventType] !== undefined) counts[e.eventType]++; });
-                    
-                    document.getElementById('countCourses').innerText = counts['Course'];
-                    document.getElementById('countAuditions').innerText = counts['Audition'];
-                    document.getElementById('countContests').innerText = counts['Contest'];
-                    document.getElementById('countWorkshops').innerText = counts['Workshop'];
 
-                    // App Breakdown
+                if(eRes.ok && aRes.ok && allRes.ok) {
+                    const hostedEvents = await eRes.json(); 
+                    const apps = await aRes.json();
+                    const allEvents = await allRes.json();
+                    
+                    // Stat 1: Hosted Events
+                    document.getElementById('totalEvents').innerText = hostedEvents.length;
+                    const hostedCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
+                    hostedEvents.forEach(e => { if(hostedCounts[e.eventType] !== undefined) hostedCounts[e.eventType]++; });
+                    
+                    document.getElementById('countCourses').innerText = hostedCounts['Course'];
+                    document.getElementById('countAuditions').innerText = hostedCounts['Audition'];
+                    document.getElementById('countContests').innerText = hostedCounts['Contest'];
+                    document.getElementById('countWorkshops').innerText = hostedCounts['Workshop'];
+
+                    // Stat 2: Applications Made
+                    document.getElementById('totalApps').innerText = apps.length;
                     const appCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     let shortlisted = 0;
+                    
                     apps.forEach(app => {
-                        const event = events.find(e => e.id === app.eventId);
+                        const event = allEvents.find(e => e.id === app.eventId);
                         if(event && appCounts[event.eventType] !== undefined) appCounts[event.eventType]++;
                         if(app.status === 'SHORTLISTED' || app.status === 'ACCEPTED') shortlisted++;
                     });
@@ -237,24 +241,19 @@
                     document.getElementById('appWorkshops').innerText = appCounts['Workshop'];
                     document.getElementById('shortlistedCount').innerText = shortlisted;
 
+                    // Render Application List
                     const list = document.getElementById('appList');
                     list.innerHTML = apps.map(app => {
-                        const event = events.find(e => e.id === app.eventId) || {title: 'Unknown'};
+                        const event = allEvents.find(e => e.id === app.eventId) || {title: 'Unknown'};
                         return `<div style="background:#fff; border:1px solid #eee; border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:20px;">
                             <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:20px;"></i>
                             <div style="flex:1"><b>${event.title}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
                             <span style="background:#f1f5f9; color:#64748b; padding:4px 12px; border-radius:15px; font-size:10px; font-weight:800;">${app.status || 'PENDING'}</span>
                         </div>`;
                     }).join('');
-                }
-                }
 
-                // Load Hosted Events
-                const hRes = await fetch(`${API_BASE_URL}/api/events/user/${userId}`);
-                if (hRes.ok) {
-                    const hostedEvents = await hRes.json();
+                    // Render Hosted Events (Organizer Dashboard)
                     const container = document.getElementById('hostedEventsContainer');
-                    
                     if (hostedEvents.length > 0) {
                         container.innerHTML = '';
                         for (const event of hostedEvents) {

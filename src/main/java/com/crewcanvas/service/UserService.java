@@ -99,8 +99,8 @@ public class UserService {
         if (updatedUser.getMusicExperience() != null) existingUser.setMusicExperience(updatedUser.getMusicExperience());
         
         // Private Info
-        if (updatedUser.getBudgetMovie() != null) existingUser.setBudgetMovie(updatedUser.getBudgetMovie());
-        if (updatedUser.getBudgetWebseries() != null) existingUser.setBudgetWebseries(updatedUser.getBudgetWebseries());
+        if (updatedUser.getExpectedMovieRemuneration() != null) existingUser.setExpectedMovieRemuneration(updatedUser.getExpectedMovieRemuneration());
+        if (updatedUser.getExpectedWebseriesRemuneration() != null) existingUser.setExpectedWebseriesRemuneration(updatedUser.getExpectedWebseriesRemuneration());
         if (updatedUser.getAvailabilityFrom() != null) existingUser.setAvailabilityFrom(updatedUser.getAvailabilityFrom());
         if (updatedUser.getAvailabilityTo() != null) existingUser.setAvailabilityTo(updatedUser.getAvailabilityTo());
 

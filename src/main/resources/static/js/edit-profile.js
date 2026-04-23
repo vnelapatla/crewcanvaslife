@@ -67,8 +67,8 @@ async function loadProfileData() {
             // Private Info
             if (user.availabilityFrom) document.getElementById('editAvailFrom').value = user.availabilityFrom;
             if (user.availabilityTo) document.getElementById('editAvailTo').value = user.availabilityTo;
-            document.getElementById('editBudgetMovie').value = user.budgetMovie || '';
-            document.getElementById('editBudgetWeb').value = user.budgetWebseries || '';
+            document.getElementById('editBudgetMovie').value = user.expectedMovieRemuneration || user.budgetMovie || '';
+            document.getElementById('editBudgetWeb').value = user.expectedWebseriesRemuneration || user.budgetWebseries || '';
 
             if (user.skills) {
                 skillsList = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
@@ -223,8 +223,8 @@ async function saveProfile() {
             // Private Info
             availabilityFrom: document.getElementById('editAvailFrom').value || null,
             availabilityTo: document.getElementById('editAvailTo').value || null,
-            budgetMovie: document.getElementById('editBudgetMovie').value.trim(),
-            budgetWebseries: document.getElementById('editBudgetWeb').value.trim()
+            expectedMovieRemuneration: document.getElementById('editBudgetMovie').value.trim(),
+            expectedWebseriesRemuneration: document.getElementById('editBudgetWeb').value.trim()
         };
 
         if (selectedProfilePic) updatedUser.profilePicture = selectedProfilePic;

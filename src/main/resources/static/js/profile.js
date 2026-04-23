@@ -109,8 +109,8 @@ function displayProfile(user) {
     const availFrom = document.getElementById('profileAvailFrom');
     const availTo = document.getElementById('profileAvailTo');
 
-    if (budgetMovie) budgetMovie.textContent = user.budgetMovie || 'Data Not Available';
-    if (budgetWeb) budgetWeb.textContent = user.budgetWebseries || 'Data Not Available';
+    if (budgetMovie) budgetMovie.textContent = user.expectedMovieRemuneration || user.budgetMovie || 'Data Not Available';
+    if (budgetWeb) budgetWeb.textContent = user.expectedWebseriesRemuneration || user.budgetWebseries || 'Data Not Available';
     if (availFrom) availFrom.textContent = user.availabilityFrom || 'Data Not Available';
     if (availTo) availTo.textContent = user.availabilityTo || 'Data Not Available';
 

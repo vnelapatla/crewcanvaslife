@@ -49,8 +49,8 @@ public class DatabaseFixerConfig {
                     "google_id VARCHAR(191) UNIQUE",
                     "availability_from DATE",
                     "availability_to DATE",
-                    "budget_movie TEXT",
-                    "budget_webseries TEXT",
+                    "expected_movie_remuneration TEXT",
+                    "expected_webseries_remuneration TEXT",
                     "profile_picture LONGTEXT",
                     "cover_image LONGTEXT"
                 };
@@ -60,6 +60,14 @@ public class DatabaseFixerConfig {
                     try {
                         jdbcTemplate.execute("ALTER TABLE users ADD COLUMN " + colDef);
                         System.out.println("SUCCESS: Added column " + colName);
+                        
+                        // Data Migration: If we just added the new column, try to copy data from the old one if it exists
+                        if (colName.equals("expected_movie_remuneration")) {
+                            try { jdbcTemplate.execute("UPDATE users SET expected_movie_remuneration = budget_movie WHERE expected_movie_remuneration IS NULL"); } catch (Exception e) {}
+                        }
+                        if (colName.equals("expected_webseries_remuneration")) {
+                            try { jdbcTemplate.execute("UPDATE users SET expected_webseries_remuneration = budget_webseries WHERE expected_webseries_remuneration IS NULL"); } catch (Exception e) {}
+                        }
                     } catch (Exception e) {
                         if (e.getMessage().contains("Duplicate column name") || e.getMessage().contains("already exists")) {
                             // Column already exists, ignore
@@ -67,6 +75,15 @@ public class DatabaseFixerConfig {
                             System.err.println("NOTE: Could not add " + colName + ": " + e.getMessage());
                         }
                     }
+                }
+                
+                // Perform Data Migration for remuneration fields if old data exists
+                try {
+                    jdbcTemplate.execute("UPDATE users SET expected_movie_remuneration = budget_movie WHERE expected_movie_remuneration IS NULL AND budget_movie IS NOT NULL");
+                    jdbcTemplate.execute("UPDATE users SET expected_webseries_remuneration = budget_webseries WHERE expected_webseries_remuneration IS NULL AND budget_webseries IS NOT NULL");
+                    System.out.println("SUCCESS: Migrated existing remuneration data.");
+                } catch (Exception e) {
+                    // Ignore if budget_movie doesn't exist
                 }
                 
                 System.out.println("Database maintenance completed.");
