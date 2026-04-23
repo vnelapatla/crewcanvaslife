@@ -109,6 +109,8 @@ function displayProfile(user) {
     const availFrom = document.getElementById('profileAvailFrom');
     const availTo = document.getElementById('profileAvailTo');
 
+    if (budgetMovie) budgetMovie.textContent = user.budgetMovie || 'Data Not Available';
+    if (budgetWeb) budgetWeb.textContent = user.budgetWebseries || 'Data Not Available';
     if (availFrom) availFrom.textContent = user.availabilityFrom || 'Data Not Available';
     if (availTo) availTo.textContent = user.availabilityTo || 'Data Not Available';
 
@@ -183,12 +185,14 @@ function displayCraftSpecs(user) {
     let fields = [];
     for (const [key, val] of Object.entries(craftMapping)) {
         if (role.toLowerCase().includes(key.toLowerCase())) {
-            fields = val;
-            break;
+            fields = fields.concat(val);
         }
     }
 
-    const activeFields = fields.filter(f => user[f.key]);
+    // De-duplicate fields by key
+    fields = Array.from(new Map(fields.map(item => [item['key'], item])).values());
+
+    const activeFields = fields.filter(f => user[f.key] && user[f.key].toString().trim() !== '');
 
     if (activeFields.length > 0) {
         card.style.display = 'block';
