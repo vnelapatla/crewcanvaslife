@@ -109,10 +109,75 @@ public class DatabaseFixerConfig {
                     // Ignore if budget_movie doesn't exist
                 }
                 
+                // --- DATA COMPRESSION: Shrink existing large images to fix 10s delay ---
+                System.out.println("Checking for oversized images to compress...");
+                compressExistingImages(jdbcTemplate, "users", "profile_picture", "id");
+                compressExistingImages(jdbcTemplate, "users", "cover_image", "id");
+                compressExistingImages(jdbcTemplate, "posts", "image_url", "id");
+                
                 System.out.println("Database maintenance completed.");
             } catch (Exception e) {
                 System.err.println("Database fix error: " + e.getMessage());
             }
         };
+    }
+
+    private void compressExistingImages(JdbcTemplate jdbcTemplate, String table, String column, String idCol) {
+        try {
+            // Only find images that are actually large (> 100KB in base64 is ~75KB raw)
+            java.util.List<java.util.Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT " + idCol + ", " + column + " FROM " + table + " WHERE " + column + " IS NOT NULL AND LENGTH(" + column + ") > 100000 LIMIT 50"
+            );
+
+            if (rows.isEmpty()) return;
+            System.out.println("Optimizing " + rows.size() + " large images in " + table + "...");
+
+            for (java.util.Map<String, Object> row : rows) {
+                Object id = row.get(idCol);
+                String base64 = (String) row.get(column);
+                if (base64 == null || !base64.startsWith("data:image")) continue;
+
+                try {
+                    String optimized = compressBase64Image(base64);
+                    jdbcTemplate.update("UPDATE " + table + " SET " + column + " = ? WHERE " + idCol + " = ?", optimized, id);
+                } catch (Exception e) {
+                    System.err.println("Failed to compress image for " + table + " ID " + id + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error in image optimization for " + table + ": " + e.getMessage());
+        }
+    }
+
+    private String compressBase64Image(String base64Str) throws Exception {
+        // Extract the actual base64 part
+        String[] parts = base64Str.split(",");
+        String header = parts[0];
+        String content = parts[1];
+        byte[] bytes = java.util.Base64.getDecoder().decode(content);
+
+        // Read image
+        java.io.ByteArrayInputStream bis = new java.io.ByteArrayInputStream(bytes);
+        java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(bis);
+        if (img == null) return base64Str;
+
+        // Target size: Max 400px width/height for thumbnails/profiles
+        int targetWidth = 400;
+        if (img.getWidth() <= targetWidth) return base64Str;
+        
+        int targetHeight = (int) (img.getHeight() * ((double) targetWidth / img.getWidth()));
+        java.awt.Image scaled = img.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH);
+        java.awt.image.BufferedImage output = new java.awt.image.BufferedImage(targetWidth, targetHeight, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        
+        java.awt.Graphics2D g2d = output.createGraphics();
+        g2d.drawImage(scaled, 0, 0, null);
+        g2d.dispose();
+
+        // Write back to base64
+        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(output, "jpg", bos);
+        String newContent = java.util.Base64.getEncoder().encodeToString(bos.toByteArray());
+        
+        return header.replace("png", "jpeg").replace("webp", "jpeg") + "," + newContent;
     }
 }
