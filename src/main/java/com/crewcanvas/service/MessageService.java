@@ -26,8 +26,12 @@ public class MessageService {
         return messageRepository.findConversation(userId1, userId2);
     }
 
-    public List<Message> getUserMessages(Long userId) {
-        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId);
+    public org.springframework.data.domain.Page<Message> getConversation(Long userId1, Long userId2, int page, int size) {
+        return messageRepository.findConversation(userId1, userId2, org.springframework.data.domain.PageRequest.of(page, size));
+    }
+
+    public org.springframework.data.domain.Page<Message> getUserMessages(Long userId, int page, int size) {
+        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId, org.springframework.data.domain.PageRequest.of(page, size));
     }
 
     public List<Message> getUnreadMessages(Long userId) {

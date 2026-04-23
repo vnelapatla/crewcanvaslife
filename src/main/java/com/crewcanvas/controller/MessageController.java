@@ -92,11 +92,12 @@ public class MessageController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getConversation(@PathVariable Long userId, @RequestParam Long otherUserId) {
+    public ResponseEntity<?> getConversation(@PathVariable Long userId, @RequestParam Long otherUserId, 
+                                            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         try {
-            List<Message> messages = messageService.getConversation(userId, otherUserId);
+            org.springframework.data.domain.Page<Message> messages = messageService.getConversation(userId, otherUserId, page, size);
             java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
-            for (Message m : messages) {
+            for (Message m : messages.getContent()) {
                 java.util.Map<String, Object> map = new java.util.HashMap<>();
                 map.put("id", m.getId());
                 map.put("senderId", m.getSenderId());
@@ -118,15 +119,15 @@ public class MessageController {
 
 
     @GetMapping("/conversations")
-    public ResponseEntity<?> getUserMessages(@RequestParam Long userId) {
+    public ResponseEntity<?> getUserMessages(@RequestParam Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
         if (userId == null) {
             return ResponseEntity.badRequest().body("Error: userId parameter is required");
         }
         try {
-            List<Message> messages = messageService.getUserMessages(userId);
+            org.springframework.data.domain.Page<Message> messages = messageService.getUserMessages(userId, page, size);
             // Bulletproof test: convert to simple maps to avoid entity proxy issues
             java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
-            for (Message m : messages) {
+            for (Message m : messages.getContent()) {
                 java.util.Map<String, Object> map = new java.util.HashMap<>();
                 map.put("id", m.getId());
                 map.put("senderId", m.getSenderId());

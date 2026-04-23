@@ -112,20 +112,7 @@ public class UserService {
     }
 
     public List<User> searchUsers(String query, String role, String location) {
-        List<User> allUsers = userRepository.findAll();
-        return allUsers.stream()
-                .filter(user -> {
-                    boolean matches = true;
-                    if (query != null && !query.isEmpty()) {
-                        matches = user.getName().toLowerCase().contains(query.toLowerCase()) ||
-                                (user.getSkills() != null && user.getSkills().toLowerCase().contains(query.toLowerCase()));
-                    }
-                    if (role != null && !role.isEmpty() && user.getRole() != null) {
-                        matches = matches && user.getRole().equalsIgnoreCase(role);
-                    }
-                    return matches;
-                })
-                .collect(Collectors.toList());
+        return userRepository.searchUsers(query, role, location);
     }
 
     public List<User> getAllUsers() {
