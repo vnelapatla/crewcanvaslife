@@ -29,16 +29,43 @@ public class DatabaseFixerConfig {
                     }
                 }
 
-                // Manually add google_id if Hibernate failed to do so
-                // Using 191 instead of 255 to stay safe within InnoDB index limits if needed
-                try {
-                    jdbcTemplate.execute("ALTER TABLE users ADD COLUMN google_id VARCHAR(191) UNIQUE");
-                    System.out.println("SUCCESS: google_id column added to 'users' table.");
-                } catch (Exception e) {
-                    if (e.getMessage().contains("Duplicate column name") || e.getMessage().contains("already exists")) {
-                        System.out.println("NOTE: google_id column already exists.");
-                    } else {
-                        System.err.println("ERROR adding google_id: " + e.getMessage());
+                // Manually add missing columns that Hibernate might fail to create in Production
+                String[] columnsToAdd = {
+                    "age_range TEXT",
+                    "profile_score INT DEFAULT 0",
+                    "height TEXT",
+                    "weight TEXT",
+                    "gender TEXT",
+                    "body_type TEXT",
+                    "languages TEXT",
+                    "team_size TEXT",
+                    "showreel TEXT",
+                    "editing_style TEXT",
+                    "experience_details TEXT",
+                    "turnaround_time TEXT",
+                    "daws TEXT",
+                    "instruments TEXT",
+                    "music_experience TEXT",
+                    "google_id VARCHAR(191) UNIQUE",
+                    "availability_from DATE",
+                    "availability_to DATE",
+                    "budget_movie TEXT",
+                    "budget_webseries TEXT",
+                    "profile_picture LONGTEXT",
+                    "cover_image LONGTEXT"
+                };
+
+                for (String colDef : columnsToAdd) {
+                    String colName = colDef.split(" ")[0];
+                    try {
+                        jdbcTemplate.execute("ALTER TABLE users ADD COLUMN " + colDef);
+                        System.out.println("SUCCESS: Added column " + colName);
+                    } catch (Exception e) {
+                        if (e.getMessage().contains("Duplicate column name") || e.getMessage().contains("already exists")) {
+                            // Column already exists, ignore
+                        } else {
+                            System.err.println("NOTE: Could not add " + colName + ": " + e.getMessage());
+                        }
                     }
                 }
                 
