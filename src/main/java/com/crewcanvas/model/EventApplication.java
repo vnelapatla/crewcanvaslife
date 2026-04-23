@@ -39,6 +39,12 @@ public class EventApplication {
     @Column(length = 1000)
     private String experience;
 
+    @Column(name = "event_title")
+    private String eventTitle;
+
+    @Column(name = "event_type")
+    private String eventType;
+
     @PrePersist
     protected void onCreate() {
         appliedAt = LocalDateTime.now();
@@ -81,4 +87,10 @@ public class EventApplication {
 
     public Integer getMatchScore() { return matchScore; }
     public void setMatchScore(Integer matchScore) { this.matchScore = matchScore; }
+
+    public String getEventTitle() { return eventTitle; }
+    public void setEventTitle(String eventTitle) { this.eventTitle = eventTitle; }
+
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
 }

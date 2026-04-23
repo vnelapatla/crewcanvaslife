@@ -203,16 +203,14 @@
             if(!userId) return;
             try {
                 // Fetch hosted events and made applications in parallel
-                const [eRes, aRes, allRes] = await Promise.all([
+                const [eRes, aRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/api/events/user/${userId}`), 
-                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`),
-                    fetch(`${API_BASE_URL}/api/events`)
+                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`)
                 ]);
 
-                if(eRes.ok && aRes.ok && allRes.ok) {
+                if(eRes.ok && aRes.ok) {
                     const hostedEvents = await eRes.json(); 
                     const apps = await aRes.json();
-                    const allEvents = await allRes.json();
                     
                     // Stat 1: Hosted Events
                     document.getElementById('totalEvents').innerText = hostedEvents.length;
@@ -230,8 +228,7 @@
                     let shortlisted = 0;
                     
                     apps.forEach(app => {
-                        const event = allEvents.find(e => e.id === app.eventId);
-                        if(event && appCounts[event.eventType] !== undefined) appCounts[event.eventType]++;
+                        if(app.eventType && appCounts[app.eventType] !== undefined) appCounts[app.eventType]++;
                         if(app.status === 'SHORTLISTED' || app.status === 'ACCEPTED') shortlisted++;
                     });
 
@@ -244,10 +241,9 @@
                     // Render Application List
                     const list = document.getElementById('appList');
                     list.innerHTML = apps.map(app => {
-                        const event = allEvents.find(e => e.id === app.eventId) || {title: 'Unknown'};
                         return `<div style="background:#fff; border:1px solid #eee; border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:20px;">
                             <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:20px;"></i>
-                            <div style="flex:1"><b>${event.title}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
+                            <div style="flex:1"><b>${app.eventTitle || 'Event'}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
                             <span style="background:#f1f5f9; color:#64748b; padding:4px 12px; border-radius:15px; font-size:10px; font-weight:800;">${app.status || 'PENDING'}</span>
                         </div>`;
                     }).join('');

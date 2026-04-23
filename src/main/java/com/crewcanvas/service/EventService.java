@@ -115,6 +115,10 @@ public class EventService {
                 application.setLocation(user.getLocation());
                 application.setExperience(user.getBio()); // Using bio as experience summary
             });
+            
+            // Populate event details
+            application.setEventTitle(event.getTitle());
+            application.setEventType(event.getEventType());
 
             applicationRepository.save(application);
 
@@ -126,7 +130,18 @@ public class EventService {
     }
 
     public List<EventApplication> getUserApplications(Long userId) {
-        return applicationRepository.findByUserId(userId);
+        List<EventApplication> apps = applicationRepository.findByUserId(userId);
+        // Fallback for old apps missing title/type
+        for (EventApplication app : apps) {
+            if (app.getEventTitle() == null) {
+                eventRepository.findById(app.getEventId()).ifPresent(e -> {
+                    app.setEventTitle(e.getTitle());
+                    app.setEventType(e.getEventType());
+                    applicationRepository.save(app);
+                });
+            }
+        }
+        return apps;
     }
 
     public List<EventApplication> getApplicantsForEvent(Long eventId) {

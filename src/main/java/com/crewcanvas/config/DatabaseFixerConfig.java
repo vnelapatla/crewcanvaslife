@@ -77,6 +77,29 @@ public class DatabaseFixerConfig {
                     }
                 }
                 
+                // --- Optimize Event Applications ---
+                String[] appCols = { "event_title TEXT", "event_type TEXT" };
+                for (String colDef : appCols) {
+                    try { jdbcTemplate.execute("ALTER TABLE event_applications ADD COLUMN " + colDef); } catch (Exception e) {}
+                }
+
+                // --- Performance Optimization: Add Database Indexes ---
+                String[] indexFixes = {
+                    "CREATE INDEX idx_users_email ON users(email)",
+                    "CREATE INDEX idx_events_user ON events(user_id)",
+                    "CREATE INDEX idx_events_type ON events(event_type)",
+                    "CREATE INDEX idx_events_date ON events(date)",
+                    "CREATE INDEX idx_app_user ON event_applications(user_id)",
+                    "CREATE INDEX idx_app_event ON event_applications(event_id)",
+                    "CREATE INDEX idx_posts_user ON posts(user_id)",
+                    "CREATE INDEX idx_posts_date ON posts(created_at)"
+                };
+                
+                System.out.println("Optimizing database indexes for speed...");
+                for (String idxSql : indexFixes) {
+                    try { jdbcTemplate.execute(idxSql); } catch (Exception e) {}
+                }
+                
                 // Perform Data Migration for remuneration fields if old data exists
                 try {
                     jdbcTemplate.execute("UPDATE users SET expected_movie_remuneration = budget_movie WHERE expected_movie_remuneration IS NULL AND budget_movie IS NOT NULL");
