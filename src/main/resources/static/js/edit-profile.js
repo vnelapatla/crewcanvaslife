@@ -26,6 +26,17 @@ async function loadProfileData() {
             document.getElementById('editRole').value = user.role || 'Director';
             document.getElementById('editExperience').value = user.experience || 'Professional';
             document.getElementById('editBio').value = user.bio || '';
+            
+            // User Category & Verification
+            document.getElementById('editUserType').value = user.userType || 'Explorer';
+            if (user.isVerifiedProfessional) {
+                document.getElementById('verifiedStatusContainer').style.display = 'block';
+                document.getElementById('categoryGroup').style.display = 'block';
+                document.getElementById('categoryLockMessage').style.display = 'none';
+            } else {
+                document.getElementById('categoryGroup').style.display = 'none';
+                document.getElementById('categoryLockMessage').style.display = 'block';
+            }
 
             // Role-specific fields
             // Director
@@ -57,6 +68,12 @@ async function loadProfileData() {
             document.getElementById('musInstruments').value = user.instruments || '';
             document.getElementById('musTracks').value = user.sampleTracks || '';
             document.getElementById('musExperience').value = user.musicExperience || '';
+
+            // General Details
+            document.getElementById('genInterests').value = user.interests || '';
+            document.getElementById('genOccupation').value = user.occupation || '';
+            document.getElementById('genGoals').value = user.goals || '';
+            document.getElementById('genLearning').value = user.learningResources || '';
 
             // Socials
             document.getElementById('editInstagram').value = user.instagram || '';
@@ -113,6 +130,8 @@ function handleRoleChange() {
         document.getElementById('moduleEditor').style.display = 'block';
     } else if (role.includes('music')) {
         document.getElementById('moduleMusic').style.display = 'block';
+    } else if (role.includes('aspirant') || role.includes('content creator') || role.includes('explorer')) {
+        document.getElementById('moduleGeneral').style.display = 'block';
     }
 }
 
@@ -183,6 +202,7 @@ async function saveProfile() {
             role: document.getElementById('editRole').value,
             experience: document.getElementById('editExperience').value,
             bio: document.getElementById('editBio').value.trim(),
+            userType: document.getElementById('editUserType').value,
             skills: skillsList.join(','),
             
             // Director Fields
@@ -214,6 +234,12 @@ async function saveProfile() {
             instruments: document.getElementById('musInstruments').value.trim(),
             sampleTracks: document.getElementById('musTracks').value.trim(),
             musicExperience: document.getElementById('musExperience').value.trim(),
+
+            // General Details
+            interests: document.getElementById('genInterests').value.trim(),
+            occupation: document.getElementById('genOccupation').value.trim(),
+            goals: document.getElementById('genGoals').value.trim(),
+            learningResources: document.getElementById('genLearning').value.trim(),
 
             instagram: document.getElementById('editInstagram').value.trim(),
             youtube: document.getElementById('editYoutube').value.trim(),
@@ -268,14 +294,16 @@ function renderProjectsList(projects) {
         <div class="project-item-card">
             <img src="${p.imageUrl || 'https://via.placeholder.com/80x110'}" alt="Poster">
             <div class="project-info">
-                <h4>${p.title} (${p.year})</h4>
+                <h4>${p.title} (${p.year}) ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                 <p><strong>Role:</strong> ${p.role}</p>
                 <p style="margin-top:5px; font-size:12px;">${p.description || 'No description'}</p>
                 ${p.videoUrl ? `<a href="${p.videoUrl}" target="_blank" style="font-size:12px; color:var(--primary-orange); text-decoration:none;">Project Link <i class="fa-solid fa-external-link"></i></a>` : ''}
             </div>
-            <button class="btn-delete-project" onclick="deleteProject(${p.id})">
-                <i class="fa-solid fa-trash"></i>
-            </button>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-delete-project" onclick="deleteProject(${p.id})" style="color:#ff4d4d; border:none; background:none; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
         </div>
     `).join('');
 }

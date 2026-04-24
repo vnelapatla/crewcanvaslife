@@ -111,16 +111,7 @@
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="brand"><h2>CrewCanvas</h2><p>Where all crafts connect</p></div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item"><span class="icon">📰</span> Feed</a>
-            <a href="home.html" class="nav-item active"><span class="icon">🏠</span> Dashboard</a>
-            <a href="crew-search.html" class="nav-item"><span class="icon">🔍</span> Crew Search</a>
-            <a href="messages.html" class="nav-item"><span class="icon">💬</span> Messages</a>
-            <a href="event.html" class="nav-item"><span class="icon">🎬</span> Events</a>
-        </nav>
-    </aside>
+    <!-- Sidebar is dynamically injected by utils.js -->
 
     <main class="main-content">
         <header class="top-header"></header>
@@ -203,16 +194,14 @@
             if(!userId) return;
             try {
                 // Fetch hosted events and made applications in parallel
-                const [eRes, aRes] = await Promise.all([
+                const [eRes, aRes] = await Promise.allSettled([
                     fetch(`${API_BASE_URL}/api/events/user/${userId}`), 
                     fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`)
                 ]);
 
-                if(eRes.ok && aRes.ok) {
-                    const hostedEvents = await eRes.json(); 
-                    const apps = await aRes.json();
-                    
-                    // Stat 1: Hosted Events
+                // Handle Hosted Events
+                if(eRes.status === 'fulfilled' && eRes.value.ok) {
+                    const hostedEvents = await eRes.value.json(); 
                     document.getElementById('totalEvents').innerText = hostedEvents.length;
                     const hostedCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     hostedEvents.forEach(e => { if(hostedCounts[e.eventType] !== undefined) hostedCounts[e.eventType]++; });
@@ -221,32 +210,6 @@
                     document.getElementById('countAuditions').innerText = hostedCounts['Audition'];
                     document.getElementById('countContests').innerText = hostedCounts['Contest'];
                     document.getElementById('countWorkshops').innerText = hostedCounts['Workshop'];
-
-                    // Stat 2: Applications Made
-                    document.getElementById('totalApps').innerText = apps.length;
-                    const appCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
-                    let shortlisted = 0;
-                    
-                    apps.forEach(app => {
-                        if(app.eventType && appCounts[app.eventType] !== undefined) appCounts[app.eventType]++;
-                        if(app.status === 'SHORTLISTED' || app.status === 'ACCEPTED') shortlisted++;
-                    });
-
-                    document.getElementById('appCourses').innerText = appCounts['Course'];
-                    document.getElementById('appAuditions').innerText = appCounts['Audition'];
-                    document.getElementById('appContests').innerText = appCounts['Contest'];
-                    document.getElementById('appWorkshops').innerText = appCounts['Workshop'];
-                    document.getElementById('shortlistedCount').innerText = shortlisted;
-
-                    // Render Application List
-                    const list = document.getElementById('appList');
-                    list.innerHTML = apps.map(app => {
-                        return `<div style="background:#fff; border:1px solid #eee; border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:20px;">
-                            <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:20px;"></i>
-                            <div style="flex:1"><b>${app.eventTitle || 'Event'}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
-                            <span style="background:#f1f5f9; color:#64748b; padding:4px 12px; border-radius:15px; font-size:10px; font-weight:800;">${app.status || 'PENDING'}</span>
-                        </div>`;
-                    }).join('');
 
                     // Render Hosted Events (Organizer Dashboard)
                     const container = document.getElementById('hostedEventsContainer');
@@ -281,6 +244,35 @@
                             container.appendChild(eventCard);
                         }
                     }
+                }
+
+                // Handle Applications
+                if(aRes.status === 'fulfilled' && aRes.value.ok) {
+                    const apps = await aRes.value.json();
+                    document.getElementById('totalApps').innerText = apps.length;
+                    const appCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
+                    let shortlisted = 0;
+                    
+                    apps.forEach(app => {
+                        if(app.eventType && appCounts[app.eventType] !== undefined) appCounts[app.eventType]++;
+                        if(app.status === 'SHORTLISTED' || app.status === 'ACCEPTED') shortlisted++;
+                    });
+
+                    document.getElementById('appCourses').innerText = appCounts['Course'];
+                    document.getElementById('appAuditions').innerText = appCounts['Audition'];
+                    document.getElementById('appContests').innerText = appCounts['Contest'];
+                    document.getElementById('appWorkshops').innerText = appCounts['Workshop'];
+                    document.getElementById('shortlistedCount').innerText = shortlisted;
+
+                    // Render Application List
+                    const list = document.getElementById('appList');
+                    list.innerHTML = apps.map(app => {
+                        return `<div style="background:#fff; border:1px solid #eee; border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:20px;">
+                            <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:20px;"></i>
+                            <div style="flex:1"><b>${app.eventTitle || 'Event'}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
+                            <span style="background:#f1f5f9; color:#64748b; padding:4px 12px; border-radius:15px; font-size:10px; font-weight:800;">${app.status || 'PENDING'}</span>
+                        </div>`;
+                    }).join('');
                 }
             } catch(e) {
                 console.error("Dashboard error:", e);

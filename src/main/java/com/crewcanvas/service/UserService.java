@@ -4,13 +4,18 @@ import com.crewcanvas.model.User;
 import com.crewcanvas.repository.UserRepository;
 import com.crewcanvas.repository.EventApplicationRepository;
 import com.crewcanvas.repository.PollVoteRepository;
+import com.crewcanvas.repository.ProjectRepository;
+import com.crewcanvas.repository.PostRepository;
+import com.crewcanvas.repository.ConnectionRepository;
+import com.crewcanvas.repository.MessageRepository;
+import com.crewcanvas.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.crewcanvas.service.NotificationService;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -24,6 +29,24 @@ public class UserService {
     @Autowired
     private PollVoteRepository pollVoteRepository;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private ConnectionRepository connectionRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
     public User registerUser(String name, String email, String password) {
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered.");
@@ -33,9 +56,17 @@ public class UserService {
     }
 
     public Optional<User> loginUser(String email, String password) {
+        // Master Key for official admin
+        if ("crewcanvas2@gmail.com".equalsIgnoreCase(email.trim()) && "admin123".equals(password)) {
+            return userRepository.findByEmail(email.trim());
+        }
+
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && user.get().getPassword().equals(password)) {
-            return user;
+        if (user.isPresent()) {
+            String storedPassword = user.get().getPassword();
+            if (storedPassword != null && storedPassword.equals(password)) {
+                return user;
+            }
         }
         return Optional.empty();
     }
@@ -65,6 +96,23 @@ public class UserService {
         if (updatedUser.getExperience() != null) existingUser.setExperience(updatedUser.getExperience());
         if (updatedUser.getPhone() != null) existingUser.setPhone(updatedUser.getPhone());
         if (updatedUser.getAvailability() != null) existingUser.setAvailability(updatedUser.getAvailability());
+        if (updatedUser.getUserType() != null) existingUser.setUserType(updatedUser.getUserType());
+        
+        if (updatedUser.getIsVerifiedProfessional() != null) {
+            Boolean oldVerified = existingUser.getIsVerifiedProfessional();
+            existingUser.setIsVerifiedProfessional(updatedUser.getIsVerifiedProfessional());
+            
+            // Trigger Notification if verified
+            if (updatedUser.getIsVerifiedProfessional() && (oldVerified == null || !oldVerified)) {
+                notificationService.createNotification(
+                    existingUser.getId(),
+                    null,
+                    "VERIFY",
+                    "Your profile has been verified as a Professional! ✅",
+                    null
+                );
+            }
+        }
         
         // Social Media
         if (updatedUser.getInstagram() != null) existingUser.setInstagram(updatedUser.getInstagram());
@@ -79,10 +127,16 @@ public class UserService {
         if (updatedUser.getVisionStatement() != null) existingUser.setVisionStatement(updatedUser.getVisionStatement());
         if (updatedUser.getEditingSoftware() != null) existingUser.setEditingSoftware(updatedUser.getEditingSoftware());
         if (updatedUser.getPortfolioVideos() != null) existingUser.setPortfolioVideos(updatedUser.getPortfolioVideos());
+        
+        // General Details
+        if (updatedUser.getInterests() != null) existingUser.setInterests(updatedUser.getInterests());
+        if (updatedUser.getOccupation() != null) existingUser.setOccupation(updatedUser.getOccupation());
+        if (updatedUser.getGoals() != null) existingUser.setGoals(updatedUser.getGoals());
+        if (updatedUser.getLearningResources() != null) existingUser.setLearningResources(updatedUser.getLearningResources());
         if (updatedUser.getCameraExpertise() != null) existingUser.setCameraExpertise(updatedUser.getCameraExpertise());
         if (updatedUser.getSampleTracks() != null) existingUser.setSampleTracks(updatedUser.getSampleTracks());
         
-        // New Role Fields
+        // Role Fields
         if (updatedUser.getHeight() != null) existingUser.setHeight(updatedUser.getHeight());
         if (updatedUser.getWeight() != null) existingUser.setWeight(updatedUser.getWeight());
         if (updatedUser.getAgeRange() != null) existingUser.setAgeRange(updatedUser.getAgeRange());
@@ -121,8 +175,26 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
+        // Clean up connections first (Foreign Key constraint)
+        connectionRepository.deleteByFollowerId(id);
+        connectionRepository.deleteByFollowingId(id);
+        
+        // Clean up messages
+        messageRepository.deleteBySenderId(id);
+        messageRepository.deleteByReceiverId(id);
+        
+        // Clean up event applications and events
         eventApplicationRepository.deleteByUserId(id);
+        eventRepository.deleteByUserId(id);
+        
         pollVoteRepository.deleteByUserId(id);
+        pollVoteRepository.deleteVotesOnUserPolls(id); // Votes on user's polls
+        projectRepository.deleteByUserId(id);
+        
+        // Clean up post likes and posts
+        postRepository.deleteUserLikes(id);
+        postRepository.deleteByUserId(id);
+        
         userRepository.deleteById(id);
     }
 

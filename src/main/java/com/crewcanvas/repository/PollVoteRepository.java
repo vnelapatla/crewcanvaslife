@@ -13,4 +13,9 @@ public interface PollVoteRepository extends JpaRepository<PollVote, Long> {
     
     @org.springframework.transaction.annotation.Transactional
     void deleteByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM poll_votes WHERE poll_id IN (SELECT p.id FROM polls p JOIN posts ps ON p.post_id = ps.id WHERE ps.user_id = ?1)", nativeQuery = true)
+    void deleteVotesOnUserPolls(Long userId);
 }

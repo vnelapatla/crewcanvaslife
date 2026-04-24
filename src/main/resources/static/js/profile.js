@@ -30,19 +30,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Load all data in parallel for "reactive fast" performance
-        Promise.all([
-            loadProfile(),
-            loadUserProjects(),
-            loadUserPosts(),
-            loadFollowers()
-        ]).catch(err => {
-            console.error("Profile parallel load error:", err);
-            showMessage("Some data failed to load. Please refresh.", "info");
-        });
+        refreshProfileData();
     } catch (globalError) {
         console.error("Critical Profile Init Error:", globalError);
     }
 });
+
+async function refreshProfileData() {
+    return Promise.all([
+        loadProfile(),
+        loadUserProjects(),
+        loadUserPosts(),
+        loadFollowers(),
+        loadFollowing()
+    ]).catch(err => {
+        console.error("Profile parallel load error:", err);
+    });
+}
 
 async function loadProfile() {
     try {
@@ -62,11 +66,28 @@ function displayProfile(user) {
     if (!user) return;
     
     document.getElementById('profileName').textContent = user.name || 'Anonymous User';
+    
+    const statusEl = document.getElementById('profileStatus');
+    if (statusEl) {
+        const tier = (user.userType || 'Explorer').toUpperCase();
+        if (user.isVerifiedProfessional) {
+            statusEl.innerHTML = `${tier} <i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Film Professional"></i>`;
+            statusEl.style.color = 'var(--primary-orange)';
+        } else {
+            statusEl.textContent = tier;
+            statusEl.style.color = 'var(--text-muted)';
+        }
+    }
+
     document.getElementById('profileBio').textContent = user.bio || 'Add a short bio about yourself and your film industry experience.';
     document.getElementById('profileLocation').textContent = user.location || 'Unknown';
     document.getElementById('profileExperience').textContent = user.experience || 'Junior';
     document.getElementById('profileEmail').textContent = user.email || 'Data Not Available';
     document.getElementById('profilePhone').textContent = user.phone || 'Data Not Available';
+    
+    // Followers & Following counts from user object
+    if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = user.followers || 0;
+    if (document.getElementById('followingCount')) document.getElementById('followingCount').textContent = user.following || 0;
 
     const avatarContainer = document.getElementById('profileAvatarContainer');
     if (avatarContainer) {
@@ -140,9 +161,28 @@ function displayCraftSpecs(user) {
     if (!container || !card) return;
 
     const role = user.role || '';
+    const isCurrentUser = profileUserId === currentUserId;
     
     if (!role) {
-        card.style.display = 'none';
+        card.style.display = 'block';
+        if (isCurrentUser) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; background:rgba(255,140,0,0.05); border-radius:15px; border:1px dashed var(--primary-orange);">
+                    <i class="fa-solid fa-briefcase" style="font-size:30px; color:var(--primary-orange); margin-bottom:15px; opacity:0.8;"></i>
+                    <h4 style="font-size:15px; margin-bottom:8px; color:#fff;">Craft Not Selected</h4>
+                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px; line-height:1.4;">Select your professional role to unlock craft-specific fields and gain more visibility.</p>
+                    <a href="edit-profile.html" style="display:inline-block; background:var(--primary-orange); color:white; padding:10px 25px; border-radius:30px; text-decoration:none; font-size:12px; font-weight:800; transition:0.3s; box-shadow: 0 4px 15px rgba(255,140,0,0.3);">CHOOSE CRAFT</a>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px; opacity:0.6;">
+                    <i class="fa-solid fa-user-clock" style="font-size:30px; color:var(--text-muted); margin-bottom:15px;"></i>
+                    <h4 style="font-size:14px; margin-bottom:8px; color:#fff;">Not Specified</h4>
+                    <p style="font-size:12px; color:var(--text-muted);">This user has not yet specified their primary craft in the film industry.</p>
+                </div>
+            `;
+        }
         return;
     }
 
@@ -179,6 +219,22 @@ function displayCraftSpecs(user) {
         'DOP': [
             { label: 'Camera Expertise', key: 'cameraExpertise' },
             { label: 'Showreel', key: 'showreel', isLink: true }
+        ],
+        'Aspirant': [
+            { label: 'Interests', key: 'interests' },
+            { label: 'Occupation', key: 'occupation' },
+            { label: 'Industry Goals', key: 'goals' },
+            { label: 'Learning', key: 'learningResources' }
+        ],
+        'Content Creator': [
+            { label: 'Interests', key: 'interests' },
+            { label: 'Occupation', key: 'occupation' },
+            { label: 'Goals', key: 'goals' },
+            { label: 'Resources', key: 'learningResources' }
+        ],
+        'Explorer': [
+            { label: 'Interests', key: 'interests' },
+            { label: 'Occupation', key: 'occupation' }
         ]
     };
 
@@ -203,7 +259,22 @@ function displayCraftSpecs(user) {
             </div>
         `).join('');
     } else {
-        card.style.display = 'none';
+        // If role exists but no specs are filled
+        card.style.display = 'block';
+        if (isCurrentUser) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px;">
+                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">You have selected <b>${role}</b> as your role, but haven't filled in the specific details yet.</p>
+                    <a href="edit-profile.html" style="color:var(--primary-orange); text-decoration:none; font-size:12px; font-weight:700;">Complete ${role} Profile →</a>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; opacity:0.6;">
+                    <p style="font-size:12px; color:var(--text-muted);">No specific details provided for this role.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -220,15 +291,23 @@ async function loadUserProjects() {
                 return;
             }
 
-            grid.innerHTML = projects.map(p => `
-                <div class="project-item">
+            grid.innerHTML = projects.map(p => {
+                const userEmail = getCurrentUserEmail();
+                const isAdmin = getCurrentUserIsAdmin() || userEmail === 'crewcanvas2@gmail.com';
+                const verifyBtn = (isAdmin && !p.verified) ? 
+                    `<button onclick="verifyProject(${p.id})" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:1px solid var(--primary-orange); color:var(--primary-orange); padding:4px 10px; border-radius:15px; font-size:10px; font-weight:800; cursor:pointer; z-index:10;">VERIFY</button>` : '';
+
+                return `
+                <div class="project-item" style="position:relative;">
+                    ${verifyBtn}
                     <img src="${p.imageUrl || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${p.title}" loading="lazy">
                     <div class="project-meta">
-                        <h4>${p.title}</h4>
+                        <h4>${p.title} ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                         <p>${p.role} • ${p.year || ''}</p>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
     } catch (error) {
         console.error('Error loading projects:', error);
@@ -489,10 +568,24 @@ async function loadFollowers() {
         const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}/followers`);
         if (response.ok) {
             const followers = await response.json();
-            document.getElementById('followerCount').textContent = followers.length;
+            const el = document.getElementById('followerCount');
+            if (el) el.textContent = followers.length;
         }
     } catch (error) {
         console.error('Error loading followers:', error);
+    }
+}
+
+async function loadFollowing() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}/following`);
+        if (response.ok) {
+            const following = await response.json();
+            const el = document.getElementById('followingCount');
+            if (el) el.textContent = following.length;
+        }
+    } catch (error) {
+        console.error('Error loading following:', error);
     }
 }
 
@@ -504,5 +597,22 @@ function unlockPrivateInfo() {
         showMessage('Private information unlocked!', 'success');
     } else {
         alert('Invalid access code.');
+    }
+}
+
+async function verifyProject(projectId) {
+    if (!confirm('Verify this project as official? This will also promote the user to Film Professional status.')) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/verify`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            alert('Project verified successfully! User is now a Film Professional.');
+            location.reload();
+        }
+    } catch (err) {
+        console.error('Error verifying project:', err);
     }
 }

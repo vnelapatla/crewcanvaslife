@@ -15,4 +15,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     org.springframework.data.domain.Page<Post> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 
     List<Post> findAllByOrderByCreatedAtDesc();
+    
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM post_likes_users WHERE user_id = ?1", nativeQuery = true)
+    void deleteUserLikes(Long userId);
 }

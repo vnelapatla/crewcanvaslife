@@ -112,10 +112,11 @@ public class PostController {
     }
 
     @PostMapping("/{id}/comment")
-    public ResponseEntity<?> addComment(@PathVariable Long id, @RequestBody(required = false) java.util.Map<String, String> payload) {
+    public ResponseEntity<?> addComment(@PathVariable Long id, @RequestBody(required = false) java.util.Map<String, Object> payload) {
         try {
-            String text = payload != null ? payload.get("text") : "";
-            Post post = postService.addComment(id, text);
+            String text = payload != null ? (String) payload.get("text") : "";
+            Long userId = payload != null && payload.get("userId") != null ? Long.valueOf(payload.get("userId").toString()) : null;
+            Post post = postService.addComment(id, userId, text);
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

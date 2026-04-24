@@ -27,6 +27,15 @@ public class User {
     @Column(name = "google_id", unique = true, length = 191)
     private String googleId;
 
+    @Column(name = "user_type", columnDefinition = "TEXT")
+    private String userType = "Explorer";
+
+    @Column(name = "is_verified_professional")
+    private Boolean isVerifiedProfessional = false;
+
+    @Column(name = "is_admin")
+    private Boolean isAdmin = false;
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 
@@ -122,6 +131,18 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String musicExperience;
+
+    @Column(columnDefinition = "TEXT")
+    private String interests;
+
+    @Column(columnDefinition = "TEXT")
+    private String occupation;
+
+    @Column(columnDefinition = "TEXT")
+    private String goals;
+
+    @Column(columnDefinition = "TEXT")
+    private String learningResources;
 
     // --- Social Links ---
     @Column(columnDefinition = "TEXT")
@@ -283,6 +304,24 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getInterests() { return interests; }
+    public void setInterests(String interests) { this.interests = interests; }
+    public String getOccupation() { return occupation; }
+    public void setOccupation(String occupation) { this.occupation = occupation; }
+    public String getGoals() { return goals; }
+    public void setGoals(String goals) { this.goals = goals; }
+    public String getLearningResources() { return learningResources; }
+    public void setLearningResources(String learningResources) { this.learningResources = learningResources; }
+
+    public String getUserType() { return userType; }
+    public void setUserType(String userType) { this.userType = userType; }
+
+    public Boolean getIsVerifiedProfessional() { return isVerifiedProfessional; }
+    public void setIsVerifiedProfessional(Boolean isVerifiedProfessional) { this.isVerifiedProfessional = isVerifiedProfessional; }
+
+    public Boolean getIsAdmin() { return isAdmin; }
+    public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
 
     public Integer getProfileScore() {
         return profileScore;

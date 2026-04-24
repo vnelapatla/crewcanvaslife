@@ -18,10 +18,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggleContainer = document.querySelector('.toggle-switch-container');
     if (toggleContainer) toggleContainer.style.display = 'none';
     
-    // Load state sequentially (Original behavior)
-    await loadFollowingIds();
-    await loadFollowerIds();
-    await loadAllUsers();
+    // Load state in parallel for better performance
+    Promise.all([
+        loadFollowingIds(),
+        loadFollowerIds(),
+        loadAllUsers()
+    ]).catch(e => console.error("Parallel load failed:", e));
 });
 
 // Search input debounce handler
@@ -118,12 +120,19 @@ async function loadAllUsers() {
         if (currentSearchTab === 'find') {
             displayUsers(allUsers);
         }
-        // Filter out current user from count
+        
+        // Count visibility logic: Only admin sees total count
         const totalBadge = document.getElementById('totalCrewCount');
         if (totalBadge) {
-            const currentUserId = String(getCurrentUserId());
-            const realTotal = allUsers.filter(u => String(getUserId(u)) !== currentUserId).length;
-            totalBadge.innerText = realTotal;
+            const isAdmin = getCurrentUserIsAdmin();
+            if (isAdmin) {
+                const currentUserId = String(getCurrentUserId());
+                const realTotal = allUsers.filter(u => String(getUserId(u)) !== currentUserId).length;
+                totalBadge.innerText = realTotal;
+                totalBadge.style.display = 'flex'; // Show for admin
+            } else {
+                totalBadge.style.display = 'none'; // Hide for others
+            }
         }
     } catch (e) { console.error("Error loading all users:", e); }
 }
@@ -186,13 +195,20 @@ function switchConnectionTab(subTab) {
     
     const followersTab = document.getElementById('followersTab');
     const followingTab = document.getElementById('followingTab');
-    const connectionsCard = document.getElementById('connectionsCard');
+    const followersCard = document.getElementById('connectionsCard'); // This is the followers card
+    const followingCard = document.getElementById('followingCard');
     const findCrewCard = document.getElementById('findCrewCard');
     
-    if (subTab === 'followers' && followersTab) followersTab.classList.add('active');
-    if (subTab === 'following' && followingTab) followingTab.classList.add('active');
+    if (subTab === 'followers') {
+        if (followersTab) followersTab.classList.add('active');
+        if (followersCard) followersCard.classList.add('active');
+        if (followingCard) followingCard.classList.remove('active');
+    } else {
+        if (followingTab) followingTab.classList.add('active');
+        if (followingCard) followingCard.classList.add('active');
+        if (followersCard) followersCard.classList.remove('active');
+    }
     
-    if (connectionsCard) connectionsCard.classList.add('active');
     if (findCrewCard) findCrewCard.classList.remove('active');
     
     loadConnections(subTab);
@@ -223,7 +239,9 @@ function createUserCard(user, isFollowing, canMessage) {
         <div class="crew-card">
             ${renderAvatar(user, 'user-img')}
             <h3>${user.name}</h3>
-            <p class="role">${user.role || 'Film Professional'}</p>
+            <p class="role" style="color: ${user.isVerifiedProfessional === true ? '#ff8c00' : '#64748b'}; font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-bottom: 5px;">
+                ${user.isVerifiedProfessional === true ? 'FILM PROFESSIONAL' : (user.userType || 'Explorer')}
+            </p>
             <p class="location">${user.location || 'Location not specified'}</p>
             
             <div class="stats" style="margin-top: 15px;">

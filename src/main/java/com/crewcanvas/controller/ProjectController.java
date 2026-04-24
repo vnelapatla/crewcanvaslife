@@ -78,4 +78,17 @@ public class ProjectController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/{id}/verify")
+    public ResponseEntity<?> verifyProject(@PathVariable Long id) {
+        try {
+            Project verifiedProject = projectService.verifyProject(id);
+            return ResponseEntity.ok(verifiedProject);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

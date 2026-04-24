@@ -13,30 +13,7 @@
 </head>
 
 <body>
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CrewCanvas</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item">
-                <span class="icon">📰</span> Feed
-            </a>
-            <a href="home.html" class="nav-item">
-                <span class="icon">🏠</span> Dashboard
-            </a>
-            <a href="crew-search.html" class="nav-item active">
-                <span class="icon">🔍</span> Crew Search
-            </a>
-            <a href="messages.html" class="nav-item">
-                <span class="icon"><i class="fa-solid fa-message"></i></span> Messages
-            </a>
-            <a href="event.html" class="nav-item">
-                <span class="icon">🎬</span> Events
-            </a>
-        </nav>
-    </aside>
+    <!-- Sidebar is dynamically injected by utils.js -->
 
     <!-- Main Content -->
     <main class="main-content">
@@ -53,9 +30,9 @@
                 <div class="feature-card active" id="findCrewCard" onclick="switchSearchTab('find')">
                     <div class="feature-icon-circle">👥</div>
                     <div class="feature-info">
-                        <h3>TOTAL CREW</h3>
+                        <h3>FIND CREW</h3>
                     </div>
-                    <div class="count-badge" id="totalCrewCount">0</div>
+                    <div class="count-badge" id="totalCrewCount" style="display: none;">0</div>
                 </div>
 
                 <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections'); switchConnectionTab('followers')">
@@ -65,6 +42,15 @@
                         <p>People following you</p>
                     </div>
                     <div class="count-badge" id="myConnectionsCount">0</div>
+                </div>
+
+                <div class="feature-card" id="followingCard" onclick="switchSearchTab('connections'); switchConnectionTab('following')">
+                    <div class="feature-icon-circle">👤</div>
+                    <div class="feature-info">
+                        <h3>MY FOLLOWING</h3>
+                        <p>People you follow</p>
+                    </div>
+                    <div class="count-badge" id="myFollowingCount">0</div>
                 </div>
             </div>
 

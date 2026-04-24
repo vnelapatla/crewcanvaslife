@@ -14,4 +14,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByEventTypeOrderByDateDesc(String eventType);
 
     List<Event> findAllByOrderByDateDesc();
+    
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByUserId(Long userId);
 }

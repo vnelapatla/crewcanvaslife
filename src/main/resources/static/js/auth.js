@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('userId', user.id);
                 localStorage.setItem('userEmail', user.email);
                 localStorage.setItem('userName', user.name);
+                
+                // Force Admin flag for the official account
+                const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
+                localStorage.setItem('isAdmin', isAdmin);
 
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => window.location.href = 'home.html', 1500);
@@ -123,6 +127,7 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userEmail', user.email);
             localStorage.setItem('userName', user.name);
+            localStorage.setItem('isAdmin', user.isAdmin);
 
             showMessage('Google Login successful! Redirecting...', 'success');
             setTimeout(() => window.location.href = 'home.html', 1500);

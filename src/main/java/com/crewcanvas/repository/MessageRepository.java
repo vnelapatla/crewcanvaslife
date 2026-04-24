@@ -24,5 +24,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT m FROM Message m WHERE m.senderId = ?1 OR m.receiverId = ?2 ORDER BY m.createdAt DESC")
     org.springframework.data.domain.Page<Message> findBySenderIdOrReceiverIdOrderByCreatedAtDesc(Long senderId, Long receiverId, org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteBySenderId(Long senderId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByReceiverId(Long receiverId);
 }
 

@@ -169,40 +169,10 @@
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CC</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item"><i class="fa-solid fa-newspaper"></i><span>Feed</span></a>
-            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Crew Search</span></a>
-            <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
-            <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
-            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>My Profile</span></a>
-        </nav>
-    </aside>
+    <!-- Sidebar is dynamically injected by utils.js -->
 
     <main class="main-content">
-        <header class="top-header">
-            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                <div id="userAvatarContainer">
-                     <img id="userAvatarImg" src="https://via.placeholder.com/32" class="nav-avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover; display:none;">
-                     <div id="userInitialsSmall" class="user-initials">?</div>
-                </div>
-                <span id="currentUserName" class="user-name-label">loading...</span>
-                <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #888;"></i>
-                
-                <div id="profileDropdown" class="profile-dropdown-menu">
-                    <a href="profile.html" class="dropdown-item profile-link"><i class="fa-solid fa-user"></i> My Profile</a>
-                    <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
-                    <a href="settings.html" class="dropdown-item settings-link"><i class="fa-solid fa-gear"></i> Settings</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="logout.html" class="dropdown-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-                </div>
-            </div>
-        </header>
+        <header class="top-header"></header>
 
         <div class="edit-container">
             <h1 style="font-weight: 900; margin-bottom: 30px;">Edit Professional Profile</h1>
@@ -240,7 +210,26 @@
             <!-- 2. Role & Specs -->
             <div class="card">
                 <h3><i class="fa-solid fa-clapperboard"></i> Professional Information</h3>
+                
+                <div class="form-group" id="verifiedStatusContainer" style="display: none; background: #fffaf5; padding: 12px 18px; border-radius: 12px; border: 1px solid var(--primary-orange); margin-bottom: 25px;">
+                    <span style="color: var(--primary-orange); font-weight: 800; font-size: 13px;"><i class="fa-solid fa-certificate"></i> VERIFIED FILM PROFESSIONAL</span>
+                </div>
+
                 <div class="form-grid">
+                    <div class="form-group" id="categoryGroup" style="display: none;">
+                        <label>Profile Category</label>
+                        <select id="editUserType">
+                            <option value="Explorer">Explorer</option>
+                            <option value="Aspirant">Aspirant</option>
+                            <option value="Content Creator">Content Creator</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="categoryLockMessage">
+                        <label>Profile Category</label>
+                        <div style="background: #f8fafc; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 13px;">
+                            <i class="fa-solid fa-lock"></i> Explorer (Upload projects for verification)
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Primary Role</label>
                         <select id="editRole" onchange="handleRoleChange()">
@@ -250,6 +239,9 @@
                             <option value="Editor">Editor</option>
                             <option value="Music Director">Music Director</option>
                             <option value="Colorist">Colorist</option>
+                            <option value="Aspirant">Aspirant</option>
+                            <option value="Content Creator">Content Creator</option>
+                            <option value="Explorer">Explorer</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -278,6 +270,15 @@
                         <div class="form-group"><label>Showreel Link</label><input type="text" id="dirShowreel"></div>
                     </div>
                     <div class="form-group"><label>Vision Statement</label><textarea id="dirVision" rows="3"></textarea></div>
+                </div>
+
+                <div id="moduleGeneral" class="craft-module">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Primary Interests</label><input type="text" id="genInterests" placeholder="e.g. Acting, Writing, Technical"></div>
+                        <div class="form-group"><label>Current Occupation</label><input type="text" id="genOccupation"></div>
+                        <div class="form-group"><label>Industry Goals</label><input type="text" id="genGoals" placeholder="What do you want to achieve?"></div>
+                        <div class="form-group"><label>Learning Resources Used</label><input type="text" id="genLearning"></div>
+                    </div>
                 </div>
 
                 <div id="moduleActor" class="craft-module">

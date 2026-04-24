@@ -8,9 +8,13 @@ const MessagingUI = {
 let connectionFilter = 'all'; // 'all', 'following', 'followers', 'mutual'
 
 // Helper for robust ID retrieval
-function getUserId(user) {
-    if (!user) return null;
-    return user.id || user.userId || user.ID || user.userID || (typeof user !== 'object' ? user : null);
+// Helper for robust ID retrieval (Handled in utils.js, but keeping a local alias for safety)
+if (typeof getUserId === 'undefined') {
+    window.getUserId = function(user) {
+        if (!user) return null;
+        if (typeof user !== 'object') return user;
+        return user.id || user.userId || user.ID || user.userID;
+    };
 }
 
 function switchSidebarTab(tabName) {
@@ -35,6 +39,7 @@ let currentUserId = null;
 let selectedConversationUserId = null;
 let conversations = [];
 let stompClient = null;
+let isSending = false;
 
 const WS_ENDPOINT = '/ws-chat';
 
@@ -75,6 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initMessaging();
     connectWebSocket();
+    
+    // Initialize Emoji Picker from advanced-messaging.js
+    if (typeof AdvancedMessaging !== 'undefined' && typeof AdvancedMessaging.initEmojiPicker === 'function') {
+        AdvancedMessaging.initEmojiPicker('messageInput', 'emojiBtn');
+    }
 });
 
 function connectWebSocket() {
@@ -96,6 +106,22 @@ function connectWebSocket() {
 }
 
 function onMessageReceived(msg) {
+    // Check for Call Signaling
+    if (msg.content && msg.content.startsWith('__CALL_SIGNAL__:')) {
+        // Security check: Only process if they follow us (mutual is better, but at least follower)
+        const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(msg.senderId));
+        if (!isAllowed) {
+            console.warn("Ignoring call from non-follower:", msg.senderId);
+            return;
+        }
+
+        const signalData = msg.content.replace('__CALL_SIGNAL__:', '');
+        if (typeof CallSystem !== 'undefined') {
+            CallSystem.handleIncomingSignal(msg.senderId, signalData);
+        }
+        return; // Don't show signal messages in chat
+    }
+
     if (String(selectedConversationUserId) === String(msg.senderId) || String(selectedConversationUserId) === String(msg.receiverId)) {
         loadMessages(); 
     }
@@ -170,7 +196,7 @@ async function loadFollowing() {
         // 3. Calculate Mutuals
         const followingIds = new Set(following.map(u => String(getUserId(u))));
         const mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
-        window.allMutualUsers = mutuals;
+        window.allMutualUsers = mutuals || [];
 
         // 4. Merge into a unique Connections list (ONLY people who follow you can be messaged)
         window.allConnections = [...followers];
@@ -329,6 +355,14 @@ async function displayConversations(listToDisplay = null) {
             const name = otherUser?.name || 'User';
             const initials = name.charAt(0).toUpperCase();
             const color = getRandomColor(name);
+            
+            // Format preview text
+            let previewText = conv.lastMessage || 'Start a conversation...';
+            if (previewText.startsWith('__CALL_SIGNAL__:')) {
+                previewText = 'Incoming Call...';
+            } else if (previewText.startsWith('[STICKER:')) {
+                previewText = 'Sticker';
+            }
 
             return `
                 <div class="user-row ${isActive ? 'active' : ''}" onclick="openConversation(${otherUserId})">
@@ -339,7 +373,7 @@ async function displayConversations(listToDisplay = null) {
                             <span class="user-time">${formatDateShort(conv.updatedAt)}</span>
                         </div>
                         <div class="user-status-row">
-                            <span class="user-status">${truncateText(conv.lastMessage || 'Start a conversation...', 40)}</span>
+                            <span class="user-status">${truncateText(previewText, 40)}</span>
                         </div>
                     </div>
                 </div>
@@ -473,6 +507,17 @@ async function loadMessages() {
             });
         }
 
+        // Check for recent call signals in the message history (last 1 minute)
+        const recentSignal = messages.find(m => 
+            m.receiverId == currentUserId && 
+            m.content && m.content.startsWith('__CALL_SIGNAL__:') && 
+            (new Date() - new Date(m.createdAt)) < 60000
+        );
+        if (recentSignal && typeof CallSystem !== 'undefined' && !CallSystem.isCalling) {
+            const signalData = recentSignal.content.replace('__CALL_SIGNAL__:', '');
+            CallSystem.handleIncomingSignal(recentSignal.senderId, signalData);
+        }
+
         displayMessages(messages);
     } catch (error) {
         console.error('Error loading messages:', error);
@@ -487,6 +532,9 @@ let lastLoadedConversationId = null;
 function displayMessages(messages) {
     const container = document.getElementById('messagesArea');
     if (!container) return;
+    
+    // Filter out signaling messages completely from the chat bubble area
+    messages = messages.filter(m => !m.content || !m.content.startsWith('__CALL_SIGNAL__:'));
     
     // Check if we actually need to re-render everything
     // This prevents the "not moving" or "jumping" feeling when polling
@@ -521,7 +569,7 @@ function displayMessages(messages) {
         
         let attachmentContent = '';
         if (msg.imageUrl) {
-            attachmentContent = `<img src="${msg.imageUrl}" alt="Image" style="max-width: 100%; border-radius: 8px; margin-top:5px; cursor:pointer;" onclick="downloadFile('${msg.imageUrl}', 'image_${msg.id}.png')">`;
+            attachmentContent = `<img src="${msg.imageUrl}" alt="Image" style="max-width: 100%; border-radius: 8px; margin-top:5px;">`;
         } else if (msg.fileUrl) {
             const fileName = `attachment_${msg.id}`;
             attachmentContent = `
@@ -577,10 +625,12 @@ function displayMessages(messages) {
 // Send message
 async function sendMessage() {
     const input = document.getElementById('messageInput');
-    if (!input) return;
+    if (!input || isSending) return;
+    
     const content = input.value.trim();
+    const hasAttachments = selectedImageFile || selectedGenericFile;
 
-    if (!content && !selectedImageFile && !selectedGenericFile) {
+    if (!content && !hasAttachments) {
         return;
     }
 
@@ -596,33 +646,47 @@ async function sendMessage() {
         return;
     }
 
-    // Always use REST to send message so we can await it synchronously
+    // Capture files and clear state immediately to allow typing next message
+    const payload = {
+        senderId: currentUserId,
+        receiverId: selectedConversationUserId,
+        content: content,
+        imageUrl: selectedImageFile || '',
+        fileUrl: selectedGenericFile || '',
+        fileType: selectedFileType || ''
+    };
+
+    // Clear input and previews immediately for snappy UI
+    input.value = '';
+    clearPreview();
+    isSending = true;
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/messages`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                senderId: currentUserId,
-                receiverId: selectedConversationUserId,
-                content: content,
-                imageUrl: selectedImageFile || '',
-                fileUrl: selectedGenericFile || '',
-                fileType: selectedFileType || ''
-            })
+            body: JSON.stringify(payload)
         });
 
         if (response.ok) {
-            input.value = '';
-            clearPreview();
+            // Load messages and conversations in background
             loadMessages();
             loadConversations();
+            // Re-focus input
+            input.focus();
         } else {
-            console.error('Error sending message:', await response.text());
+            const err = await response.text();
+            console.error('Error sending message:', err);
+            // Restore content if failed? Or just show error
+            showMessage('Failed to send message', 'error');
         }
     } catch (error) {
         console.error('Error sending message:', error);
+        showMessage('Connection error', 'error');
+    } finally {
+        isSending = false;
     }
 }
 
@@ -646,10 +710,14 @@ async function markAsRead(messageId) {
     }
 }
 
-// Search conversations
-function searchConversations() {
-    const query = document.getElementById('searchConversations').value.toLowerCase();
+// Search conversations (Debounced for better performance)
+const searchConversations = debounce(() => {
+    const input = document.getElementById('searchConversations');
+    if (!input) return;
     
+    const query = input.value.toLowerCase().trim();
+    
+    // Filter existing conversations
     const filtered = conversations.filter(conv => {
         const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
         const nameMatch = (otherUser?.name || 'User').toLowerCase().includes(query);
@@ -658,9 +726,9 @@ function searchConversations() {
     });
     displayConversations(filtered);
     
-    // Restricted: Search ONLY within followers/mutuals
+    // Search within connections (followers/mutuals)
     if (window.allConnections) {
-        if (query.trim().length > 0) {
+        if (query.length > 0) {
             switchSidebarTab('following'); 
             const filteredAllowed = window.allConnections.filter(u => (u.name || '').toLowerCase().includes(query));
             displayUsersList('followingList', filteredAllowed, 'No followers found matching search');
@@ -669,7 +737,10 @@ function searchConversations() {
             displayUsersList('followingList', window.allConnections, 'No followers yet');
         }
     }
-}
+}, 300);
+
+// Also expose to window for the oninput attribute
+window.searchConversations = searchConversations;
 
 // Image upload for messages
 let selectedImageFile = null;

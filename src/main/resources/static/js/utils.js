@@ -24,7 +24,15 @@ function getCurrentUserId() {
 
 // Get current user email
 function getCurrentUserEmail() {
-    return localStorage.getItem('userEmail');
+    const email = localStorage.getItem('userEmail');
+    return email ? email.toLowerCase().trim() : '';
+}
+
+// Get current user admin status
+function getCurrentUserIsAdmin() {
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isHardcodedAdmin = getCurrentUserEmail() === 'crewcanvas2@gmail.com';
+    return isAdmin || isHardcodedAdmin;
 }
 
 // Fetch user profile by ID (Cached)
@@ -151,13 +159,78 @@ function formatTime(timeString) {
     });
 }
 
+// Get User ID from various object structures
+function getUserId(user) {
+    if (!user) return null;
+    if (typeof user !== 'object') return user;
+    return user.id || user.userId || user.senderId || user.receiverId || user.ID || user.userID;
+}
+
+// Debounce function to limit frequent calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Truncate text with ellipsis
+function truncateText(text, length = 30) {
+    if (!text || text.length <= length) return text;
+    return text.substring(0, length) + '...';
+}
+
+// Show a toast message
+function showMessage(msg, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast-message ${type}`;
+    toast.style = `
+        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+        padding: 12px 24px; border-radius: 30px; color: white; font-size: 14px;
+        z-index: 10000000; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        background: ${type === 'error' ? '#ff4444' : 'var(--primary-orange, #ff8800)'};
+        animation: fadeInOut 3s forwards;
+    `;
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Format date to readable string
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    
+    return date.toLocaleDateString();
+}
+
+// Render a colored circle with initials as an avatar fallback
+function renderAvatarFallback(name, className = '', size = '40px') {
+    const initials = (name || 'U').charAt(0).toUpperCase();
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#4caf50', '#ffc107', '#ff9800', '#ff5722'];
+    const charCode = initials.charCodeAt(0);
+    const color = colors[charCode % colors.length];
+    
+    return `<div class="${className}" style="width: ${size}; height: ${size}; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: calc(${size} * 0.4); flex-shrink: 0;">${initials}</div>`;
+}
+
 // Get query parameter from URL
 function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
     return params.get(name);
 }
 
-// Upload image with automatic compression (Max 200KB target)
 async function uploadImage(file, maxWidth = 1200, quality = 0.7) {
     return new Promise((resolve, reject) => {
         if (!file) {
@@ -173,12 +246,19 @@ async function uploadImage(file, maxWidth = 1200, quality = 0.7) {
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-            try {
-                const compressed = await compressImage(e.target.result, maxWidth, quality);
-                resolve(compressed);
-            } catch (err) {
-                console.error("Compression failed, using original:", err);
-                resolve(e.target.result);
+            const result = e.target.result;
+            // Only compress if it's an image
+            if (file.type.startsWith('image/')) {
+                try {
+                    const compressed = await compressImage(result, maxWidth, quality);
+                    resolve(compressed);
+                } catch (err) {
+                    console.error("Compression failed, using original:", err);
+                    resolve(result);
+                }
+            } else {
+                // For non-images (PDF, docs), just return the raw base64
+                resolve(result);
             }
         };
         reader.onerror = (e) => reject(e);
@@ -188,7 +268,7 @@ async function uploadImage(file, maxWidth = 1200, quality = 0.7) {
 
 // Compress image using Canvas
 async function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = base64Str;
         img.onload = () => {
@@ -196,7 +276,6 @@ async function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
             let width = img.width;
             let height = img.height;
 
-            // Scale down if too large
             if (width > maxWidth) {
                 height = Math.round((height * maxWidth) / width);
                 width = maxWidth;
@@ -206,10 +285,9 @@ async function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            
-            // Output as JPEG with specified quality
             resolve(canvas.toDataURL('image/jpeg', quality));
         };
+        img.onerror = (err) => reject(err);
     });
 }
 
@@ -310,7 +388,6 @@ function renderAvatarFallback(name, className = '', size = '40px') {
     `;
 }
 
-// Initialize Universal Bottom Navigation for Mobile
 // Global path variables for navigation
 const path = window.location.pathname;
 const currentPage = path.split("/").pop() || 'index.html';
@@ -318,9 +395,9 @@ const currentPage = path.split("/").pop() || 'index.html';
 // Initialize Universal Bottom Navigation for Mobile
 function initUniversalBottomNav() {
     // Only show on mobile
-    if (window.innerWidth > 1080) return;
+    if (window.innerWidth > 1024) return;
 
-    // Do NOT show on login/register or edit profile pages
+    // Do NOT show on login/register pages
     if (currentPage === 'index.html' || currentPage === 'register.html' || path === '/') return;
 
     // Only proceed if bottom-nav isn't already there
@@ -328,19 +405,19 @@ function initUniversalBottomNav() {
 
     const navHtml = `
     <div class="bottom-nav">
-        <a href="feed.html" class="nav-item ${currentPage.includes('feed') ? 'active' : ''}">
+        <a href="feed.html" class="nav-item ${currentPage.includes('feed.html') ? 'active' : ''}">
             <i class="fa-solid fa-newspaper icon"></i> <span>Feed</span>
         </a>
-        <a href="home.html" class="nav-item ${currentPage.includes('home') ? 'active' : ''}">
+        <a href="home.html" class="nav-item ${currentPage.includes('home.html') ? 'active' : ''}">
             <i class="fa-solid fa-house icon"></i> <span>Dashboard</span>
         </a>
-        <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search') ? 'active' : ''}">
+        <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search.html') ? 'active' : ''}">
             <i class="fa-solid fa-magnifying-glass icon"></i> <span>Search</span>
         </a>
-        <a href="messages.html" class="nav-item ${currentPage.includes('messages') ? 'active' : ''}">
+        <a href="messages.html" class="nav-item ${currentPage.includes('messages.html') ? 'active' : ''}">
             <i class="fa-solid fa-message icon"></i> <span>Messages</span>
         </a>
-        <a href="event.html" class="nav-item ${currentPage.includes('event') ? 'active' : ''}">
+        <a href="event.html" class="nav-item ${currentPage.includes('event.html') ? 'active' : ''}">
             <i class="fa-solid fa-clapperboard icon"></i> <span>Events</span>
         </a>
     </div>
@@ -349,39 +426,100 @@ function initUniversalBottomNav() {
     document.body.insertAdjacentHTML('beforeend', navHtml);
 }
 
+// Initialize Universal Sidebar for Desktop
+function initUniversalSidebar() {
+    // Only show on desktop
+    if (window.innerWidth <= 1024) return;
+
+    // Do NOT show on login/register pages
+    if (currentPage === 'index.html' || currentPage === 'register.html' || path === '/') return;
+
+    let sidebar = document.querySelector('.sidebar');
+    
+    // If sidebar doesn't exist, create it
+    if (!sidebar) {
+        sidebar = document.createElement('aside');
+        sidebar.className = 'sidebar';
+        document.body.prepend(sidebar);
+    }
+
+    const navHtml = `
+        <div class="brand">
+            <h2>CC</h2>
+            <p>Where all crafts connect</p>
+        </div>
+        <nav class="nav-menu">
+            <a href="feed.html" class="nav-item ${currentPage.includes('feed.html') ? 'active' : ''}">
+                <i class="fa-solid fa-newspaper"></i> Feed
+            </a>
+            <a href="home.html" class="nav-item ${currentPage.includes('home.html') ? 'active' : ''}">
+                <i class="fa-solid fa-house"></i> Dashboard
+            </a>
+            <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search.html') ? 'active' : ''}">
+                <i class="fa-solid fa-magnifying-glass"></i> Crew Search
+            </a>
+            <a href="messages.html" class="nav-item ${currentPage.includes('messages.html') ? 'active' : ''}">
+                <i class="fa-solid fa-message"></i> Messages
+            </a>
+            <a href="event.html" class="nav-item ${currentPage.includes('event.html') ? 'active' : ''}">
+                <i class="fa-solid fa-clapperboard"></i> Events
+            </a>
+            <a href="profile.html" class="nav-item ${currentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
+                <i class="fa-solid fa-user"></i> My Profile
+            </a>
+        </nav>
+    `;
+
+    sidebar.innerHTML = navHtml;
+    
+    // Add class to body to handle main-content margins
+    document.body.classList.add('with-sidebar');
+}
+
 // Initialize Universal Header for all pages
 function initUniversalHeader() {
     const header = document.querySelector('.top-header');
     if (!header) return;
 
+    const userName = localStorage.getItem('userName') || 'User';
+    const userAvatar = localStorage.getItem('userAvatar');
+    const userEmail = getCurrentUserEmail();
+    const isAdmin = getCurrentUserIsAdmin();
+    
+    // Get initials for fallback
+    const initials = getAvatarFallback(userName);
+    const adminBadge = isAdmin ? '<span style="background:var(--primary-orange); color:#fff; font-size:9px; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:800; vertical-align:middle; text-transform:uppercase;">ADMIN</span>' : '';
+
     // Standardized Header HTML (Matches user screenshot)
     header.innerHTML = `
         <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
             <h2 class="brand-logo" onclick="window.location.href='home.html'" style="color: var(--primary-orange); font-size: 22px; font-weight: 900; margin: 0; cursor: pointer; letter-spacing: -0.5px;">CrewCanvas</h2>
-            <i class="fa-solid fa-bell notification-bell-icon" style="color: #fcd34d; font-size: 20px; cursor: pointer;"></i>
         </div>
         <div class="status-bar">
             <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                <div class="user-initials" id="userInitialsSmall">U</div>
-                <img id="userAvatarSmall" src="" alt="" style="display:none; width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                <span id="userNameHeader">User</span>
+                <div class="user-initials" id="userInitialsSmall" style="${(userAvatar && userAvatar.length > 10) ? 'display:none' : 'display:flex'}">${initials}</div>
+                <img id="userAvatarSmall" src="${(userAvatar && userAvatar.length > 10) ? userAvatar : ''}" alt="" loading="lazy" style="${(userAvatar && userAvatar.length > 10) ? 'display:block' : 'display:none'}; width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                <span id="userNameHeader">${userName}${adminBadge}</span>
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px; opacity: 0.5;"></i>
                 <div class="profile-dropdown-menu" id="profileDropdown">
                     <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
                     <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                     <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="notifications.html" class="dropdown-item notifications-link">
+                        <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
+                        <span id="notifBadge" class="notif-pill" style="display:none;">0</span>
+                    </a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
     `;
-    // Styles are now handled in main.css for better performance
     header.classList.add('top-header');
     
-    // Re-sync profile data if ProfileHandler is ready
-    if (typeof ProfileHandler !== 'undefined' && ProfileHandler.user) {
-        ProfileHandler.updateGlobalHeader();
+    // Sync with ProfileHandler if it exists
+    if (typeof ProfileHandler !== 'undefined' && typeof ProfileHandler.updateHeader === 'function') {
+        ProfileHandler.updateHeader();
     }
 }
 
@@ -471,32 +609,327 @@ function calculateProfileScore(user) {
     return Math.min(score, 100);
 }
 
+/**
+ * NotificationHandler - Manages real-time notifications via WebSocket
+ */
+const NotificationHandler = {
+    stompClient: null,
+    unreadCount: 0,
+    notifications: [],
+
+    init: async function() {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        // 1. Fetch existing unread count
+        this.updateBadge();
+
+        // 2. Setup WebSocket connection
+        this.connectWebSocket(userId);
+        
+        // 3. Global click listener to close dropdown
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notificationsDropdown');
+            const bell = document.querySelector('.notification-bell-icon');
+            if (dropdown && dropdown.classList.contains('active') && !dropdown.contains(e.target) && e.target !== bell) {
+                dropdown.classList.remove('active');
+            }
+        });
+    },
+
+    connectWebSocket: function(userId) {
+        // Only load if not already present
+        if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+            const sockScript = document.createElement('script');
+            sockScript.src = "https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js";
+            document.head.appendChild(sockScript);
+
+            const stompScript = document.createElement('script');
+            stompScript.src = "https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js";
+            document.head.appendChild(stompScript);
+
+            stompScript.onload = () => this.establishConnection(userId);
+        } else {
+            this.establishConnection(userId);
+        }
+    },
+
+    establishConnection: function(userId) {
+        try {
+            const socket = new SockJS(`${API_BASE_URL}/ws-chat`);
+            this.stompClient = Stomp.over(socket);
+            this.stompClient.debug = null; // Disable logging
+
+            this.stompClient.connect({}, (frame) => {
+                // Standard Notifications
+                this.stompClient.subscribe(`/user/${userId}/queue/notifications`, (message) => {
+                    try {
+                        const notification = JSON.parse(message.body);
+                        this.handleIncomingNotification(notification);
+                    } catch (e) {
+                        console.error('Error parsing notification:', e);
+                    }
+                });
+
+                // Real-time Call Signals (even when not on messages page)
+                if (!window.location.pathname.includes('messages.html')) {
+                    this.stompClient.subscribe(`/topic/messages/${userId}`, (message) => {
+                        try {
+                            const msg = JSON.parse(message.body);
+                            if (msg.content && msg.content.startsWith('__CALL_SIGNAL__:')) {
+                                const signalData = msg.content.replace('__CALL_SIGNAL__:', '');
+                                
+                                // Dynamically load CallSystem if not present
+                                if (typeof CallSystem === 'undefined') {
+                                    console.log("Loading CallSystem dynamically...");
+                                    const script = document.createElement('script');
+                                    script.src = 'js/advanced-messaging.js';
+                                    script.onload = () => {
+                                        if (typeof CallSystem !== 'undefined') {
+                                            CallSystem.handleIncomingSignal(msg.senderId, signalData);
+                                        }
+                                    };
+                                    document.head.appendChild(script);
+                                } else {
+                                    CallSystem.handleIncomingSignal(msg.senderId, signalData);
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error parsing global message:', e);
+                        }
+                    });
+                }
+            }, (error) => {
+                // Only retry if not already connected
+                if (this.stompClient && !this.stompClient.connected) {
+                    setTimeout(() => this.establishConnection(userId), 10000); // Back off to 10s
+                }
+            });
+        } catch (e) {
+            console.error('WebSocket connection failed:', e);
+        }
+    },
+
+    handleIncomingNotification: function(notification) {
+        this.unreadCount++;
+        this.updateBadge();
+        
+        // Show a temporary toast
+        if (notification.type === 'CALL') {
+            showMessage(`Incoming Call: ${notification.actorName || 'Someone'} is calling you`, 'info');
+        } else {
+            showMessage(`New ${notification.type.toLowerCase()}: ${notification.content}`);
+        }
+        
+        // If on notifications page, refresh it
+        if (window.location.pathname.includes('notifications.html') && typeof loadNotifications === 'function') {
+            loadNotifications();
+        }
+    },
+
+    updateBadge: async function() {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count`);
+            if (res.ok) {
+                const data = await res.json();
+                this.unreadCount = data.count;
+                const badge = document.getElementById('notifBadge');
+                if (badge) {
+                    if (this.unreadCount > 0) {
+                        badge.textContent = this.unreadCount;
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+        } catch (e) {}
+    },
+
+    toggleDropdown: function(event) {
+        // Redirection handled by link href="notifications.html"
+        // But if called manually, just redirect
+        window.location.href = 'notifications.html';
+    },
+
+    fetchNotifications: async function() {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        const list = document.getElementById('notificationsList');
+        if (!list) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/${userId}`);
+            if (res.ok) {
+                const notifications = await res.json();
+                this.renderNotifications(notifications);
+            }
+        } catch (e) {
+            list.innerHTML = '<div class="notif-empty">Failed to load notifications</div>';
+        }
+    },
+
+    renderNotifications: function(notifications) {
+        const list = document.getElementById('notificationsList');
+        if (!list) return;
+
+        if (notifications.length === 0) {
+            list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i> No notifications yet</div>';
+            return;
+        }
+
+        list.innerHTML = notifications.map(n => `
+            <div class="notification-item ${n.read ? '' : 'unread'}" onclick="NotificationHandler.handleNotificationClick(${n.id}, '${n.type}', '${n.targetId}')">
+                ${n.actorAvatar ? 
+                    `<img src="${n.actorAvatar}" class="notif-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(n.actorName || 'User')}?background=random'">` : 
+                    renderAvatarFallback(n.actorName || 'System', 'notif-avatar', '45px')
+                }
+                <div class="notification-content">
+                    <p><strong>${n.actorName || 'System'}</strong> ${n.content}</p>
+                    <span class="notif-time">${formatDate(n.createdAt)}</span>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    handleNotificationClick: async function(id, type, targetId) {
+        // Mark as read
+        try {
+            await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, { method: 'POST' });
+        } catch (e) {}
+
+        // Navigate based on type
+        switch(type) {
+            case 'FOLLOW':
+                window.location.href = `profile.html?userId=${targetId}`;
+                break;
+            case 'LIKE':
+                window.location.href = `feed.html?postId=${targetId}`;
+                break;
+            case 'COMMENT':
+                window.location.href = `feed.html?postId=${targetId}`;
+                break;
+            case 'CALL':
+            case 'MESSAGE':
+                window.location.href = `messages.html?userId=${targetId}`;
+                break;
+            case 'SHORTLIST':
+            case 'REJECT':
+            case 'APPLICATION':
+                window.location.href = `event.html`; // Or a specific application page if it exists
+                break;
+            case 'VERIFY':
+                window.location.href = `profile.html`;
+                break;
+            default:
+                this.updateBadge(); // Just refresh badge
+        }
+    },
+
+    markAllAsRead: async function() {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/user/${userId}/read-all`, { method: 'POST' });
+            if (res.ok) {
+                this.unreadCount = 0;
+                this.updateBadge();
+                this.fetchNotifications();
+            }
+        } catch (e) {}
+    },
+
+    clearAllNotifications: async function() {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        if (!confirm('Are you sure you want to clear all notifications?')) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/user/${userId}`, { method: 'DELETE' });
+            if (res.ok) {
+                this.unreadCount = 0;
+                this.updateBadge();
+                showMessage('Notifications cleared');
+                
+                // If on notifications page, refresh it
+                if (window.location.pathname.includes('notifications.html') && typeof loadNotifications === 'function') {
+                    loadNotifications();
+                } else {
+                    this.fetchNotifications();
+                }
+            }
+        } catch (e) {
+            console.error('Error clearing notifications:', e);
+        }
+    }
+};
+
+// Global state to track width category
+let currentWidthCategory = window.innerWidth <= 1024 ? 'mobile' : 'desktop';
+
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
+    // Show a slim progress bar at the top to indicate page is loading
+    const loadingBar = document.createElement('div');
+    loadingBar.id = 'global-loading-bar';
+    loadingBar.style.cssText = `
+        position: fixed; top: 0; left: 0; height: 3px; 
+        background: var(--primary-orange, #ff8c00); 
+        width: 0%; z-index: 100000; transition: width 0.4s ease;
+    `;
+    document.body.prepend(loadingBar);
+    
+    // Simulate progress
+    setTimeout(() => { if(loadingBar) loadingBar.style.width = '30%'; }, 100);
+    setTimeout(() => { if(loadingBar) loadingBar.style.width = '60%'; }, 500);
+
     try {
         // Inject standard header immediately
         initUniversalHeader();
+        // Init notifications
+        NotificationHandler.init();
     } catch (e) { console.error("Header init failed:", e); }
     
     try {
         // Inject bottom nav on mobile if missing
         initUniversalBottomNav();
-    } catch (e) { console.error("Bottom nav init failed:", e); }
+        // Inject sidebar on desktop
+        initUniversalSidebar();
+    } catch (e) { console.error("Nav init failed:", e); }
     
     try {
-        // Defer non-critical initialization to avoid blocking the main thread
+        // Defer non-critical initialization
         setTimeout(() => {
             initSidebarToggle();
-        }, 0);
+            // Complete loading bar
+            if(loadingBar) {
+                loadingBar.style.width = '100%';
+                setTimeout(() => {
+                    loadingBar.style.opacity = '0';
+                    setTimeout(() => loadingBar.remove(), 400);
+                }, 200);
+            }
+        }, 300);
     } catch (e) { console.error("Sidebar toggle init failed:", e); }
     
-    // Listen for resize to handle orientation changes or window resizing
+    // Listen for resize but only re-init if category changed to avoid flickering on mobile
     window.addEventListener('resize', debounce(() => {
-        try {
-            initUniversalHeader();
-            initUniversalBottomNav();
-            initSidebarToggle();
-        } catch (e) {}
+        const newCategory = window.innerWidth <= 1024 ? 'mobile' : 'desktop';
+        if (newCategory !== currentWidthCategory) {
+            currentWidthCategory = newCategory;
+            try {
+                initUniversalHeader();
+                initUniversalBottomNav();
+                initUniversalSidebar();
+                initSidebarToggle();
+            } catch (e) { console.error("Resize init failed:", e); }
+        }
     }, 250));
 });
 
@@ -520,6 +953,7 @@ if (typeof module !== 'undefined' && module.exports) {
         renderAvatar,
         renderAvatarFallback,
         calculateProfileScore,
-        initUniversalBottomNav
+        initUniversalBottomNav,
+        NotificationHandler
     };
 }

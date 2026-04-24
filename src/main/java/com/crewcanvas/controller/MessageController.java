@@ -25,6 +25,9 @@ public class MessageController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private com.crewcanvas.service.NotificationService notificationService;
+
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     @MessageMapping("/chat.sendMessage")
@@ -83,6 +86,8 @@ public class MessageController {
 
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
             messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+
+
 
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
         } catch (Exception e) {

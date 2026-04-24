@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.HashSet;
 import com.crewcanvas.model.User;
+import com.crewcanvas.service.NotificationService;
 
 @Service
 public class EventService {
@@ -29,6 +29,9 @@ public class EventService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     public Event createEvent(Event event) {
         return eventRepository.save(event);
@@ -124,7 +127,20 @@ public class EventService {
 
             // Increment count
             event.setApplicants(event.getApplicants() + 1);
-            return eventRepository.save(event);
+            Event savedEvent = eventRepository.save(event);
+
+            // Trigger Notification to Event Owner
+            if (event.getUserId() != null && !event.getUserId().equals(userId)) {
+                notificationService.createNotification(
+                    event.getUserId(),
+                    userId,
+                    "APPLICATION",
+                    "applied to your event: " + event.getTitle(),
+                    event.getId().toString()
+                );
+            }
+
+            return savedEvent;
         }
         throw new RuntimeException("Event not found");
     }
@@ -220,8 +236,31 @@ public class EventService {
         Optional<EventApplication> appOpt = applicationRepository.findById(appId);
         if (appOpt.isPresent()) {
             EventApplication application = appOpt.get();
+            String oldStatus = application.getStatus();
             application.setStatus(status);
-            return applicationRepository.save(application);
+            EventApplication savedApp = applicationRepository.save(application);
+
+            // Trigger Notification to Applicant if status changed to Shortlisted or Rejected
+            if (!status.equals(oldStatus)) {
+                String type = status.equalsIgnoreCase("Shortlisted") ? "SHORTLIST" : 
+                             status.equalsIgnoreCase("Rejected") ? "REJECT" : "UPDATE";
+                
+                String content = status.equalsIgnoreCase("Shortlisted") ? 
+                                "Congratulations! You've been shortlisted for: " + application.getEventTitle() :
+                                status.equalsIgnoreCase("Rejected") ?
+                                "Status update for " + application.getEventTitle() + ": " + status :
+                                "Your application status for " + application.getEventTitle() + " was updated to " + status;
+
+                notificationService.createNotification(
+                    application.getUserId(),
+                    null, // System or Admin usually
+                    type,
+                    content,
+                    application.getEventId().toString()
+                );
+            }
+
+            return savedApp;
         }
         throw new RuntimeException("Application not found");
     }

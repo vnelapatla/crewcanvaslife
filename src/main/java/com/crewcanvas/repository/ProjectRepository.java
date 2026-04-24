@@ -10,4 +10,7 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByUserIdOrderByYearDesc(Long userId);
+    
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByUserId(Long userId);
 }

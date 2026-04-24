@@ -20,6 +20,9 @@ public class ConnectionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public Connection followUser(Long followerId, Long followingId) {
         // Check if already following
         if (connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
@@ -32,6 +35,15 @@ public class ConnectionService {
 
         // Update follower/following counts
         updateFollowerCounts(followerId, followingId, true);
+
+        // Trigger Notification
+        notificationService.createNotification(
+            followingId, 
+            followerId, 
+            "FOLLOW", 
+            "started following you.", 
+            followerId.toString()
+        );
 
         return connection;
     }

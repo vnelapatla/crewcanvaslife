@@ -14,12 +14,37 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
         message.setFileType(fileType);
-        return messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
+
+        // Trigger Notification
+        String notificationType = "MESSAGE";
+        String notificationContent = content != null && !content.isEmpty() ? content : 
+                                    imageUrl != null ? "Sent an image" : 
+                                    fileUrl != null ? "Sent a file" : "Sent a message";
+        
+        // Special handling for call signals
+        if (content != null && content.startsWith("__CALL_SIGNAL__:")) {
+            notificationType = "CALL";
+            notificationContent = "is calling you";
+        }
+        
+        notificationService.createNotification(
+            receiverId,
+            senderId,
+            notificationType,
+            notificationContent,
+            senderId.toString()
+        );
+
+        return savedMessage;
     }
 
     public List<Message> getConversation(Long userId1, Long userId2) {

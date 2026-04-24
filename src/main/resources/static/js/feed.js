@@ -23,6 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Auto-scroll to post if postId is in URL
+    const postId = getQueryParam('postId');
+    if (postId) {
+        setTimeout(() => {
+            const postEl = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+            if (postEl) {
+                postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                postEl.style.boxShadow = "0 0 20px var(--primary-orange)";
+                setTimeout(() => postEl.style.boxShadow = "", 3000);
+            }
+        }, 1500); // Wait for load
+    }
 });
 
 // Load feed posts
@@ -518,7 +531,10 @@ async function commentPost(postId) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({text: finalComment})
+            body: JSON.stringify({
+                text: finalComment,
+                userId: currentUserId
+            })
         });
         if (response.ok) {
             const updatedPost = await response.json();

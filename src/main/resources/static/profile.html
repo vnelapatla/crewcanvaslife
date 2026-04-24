@@ -38,66 +38,6 @@
             min-height: 100vh;
         }
 
-        /* --- Sidebar Styles --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: #000;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid var(--border-dim);
-            padding: 30px 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand h2 {
-            color: var(--primary-orange);
-            font-size: 28px;
-            font-weight: 900;
-            margin: 0;
-            letter-spacing: -1px;
-        }
-
-        .brand p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin: 5px 0 40px;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .nav-item {
-            text-decoration: none;
-            color: var(--text-muted);
-            padding: 15px 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        .nav-item i { font-size: 18px; width: 24px; text-align: center; }
-
-        .nav-item:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .nav-item.active {
-            background: var(--primary-orange);
-            color: #fff;
-            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
-        }
 
         /* --- Main Content Layout --- */
         .main-content {
@@ -246,9 +186,11 @@
         #profileName {
             font-size: 42px;
             font-weight: 900;
-            margin: 0;
-            letter-spacing: -1px;
+            margin: 10px 0;
+            letter-spacing: -1.5px;
             text-transform: lowercase;
+            line-height: 1.1;
+            word-wrap: break-word;
         }
 
         #profileBio {
@@ -260,12 +202,14 @@
 
         /* Profile Strength */
         .profile-strength-container {
-            max-width: 300px;
+            width: 100%;
+            max-width: 320px;
             margin: 20px auto 0;
             background: rgba(255,255,255,0.03);
             border-radius: 12px;
             padding: 15px;
             border: 1px solid var(--border-dim);
+            box-sizing: border-box;
         }
 
         .strength-header {
@@ -615,50 +559,36 @@
         .slider-nav-btn.next { right: 10px; }
 
         /* Responsive */
-        @media (max-width: 1100px) {
-            .sidebar { width: 80px; padding: 30px 10px; }
-            .sidebar .brand p, .sidebar .nav-item span { display: none; }
-            .main-content { margin-left: 80px; }
+        @media (max-width: 1080px) {
+            body { display: block; }
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding-top: 60px; padding-bottom: 80px; }
+            .top-header { padding: 0 15px; height: 60px; }
+            .profile-container { width: 92%; margin: 20px auto; }
+            #profileName { font-size: 28px; }
+            .avatar-glow-wrapper { width: 140px; height: 140px; margin-bottom: 15px; }
+            .stats-pills { gap: 8px; margin-bottom: 30px; }
+            .stat-pill { padding: 8px 12px; font-size: 11px; }
+            .profile-grid, .portfolio-feed-grid { grid-template-columns: 1fr; gap: 15px; }
+            .info-card { padding: 20px; }
+            .uniform-card { height: auto !important; }
+            .data-row { flex-wrap: wrap; gap: 5px; }
+            .data-row .value { word-break: break-all; text-align: left; width: 100%; margin-top: 2px; }
         }
 
-        @media (max-width: 900px) {
-            .profile-grid, .portfolio-feed-grid { grid-template-columns: 1fr; }
-            .uniform-card { height: auto !important; }
+        @media (max-width: 480px) {
+            #profileName { font-size: 24px; }
+            .stat-pill span { display: inline; }
+            .data-row { padding: 10px 12px; }
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="brand">
-            <h2>CC</h2>
-            <p>Where all crafts connect</p>
-        </div>
-        <nav class="nav-menu">
-            <a href="feed.html" class="nav-item"><i class="fa-solid fa-newspaper"></i><span>Feed</span></a>
-            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-            <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Crew Search</span></a>
-            <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
-            <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
-            <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>My Profile</span></a>
-        </nav>
-    </aside>
+    <!-- Sidebar is dynamically injected by utils.js -->
 
     <main class="main-content">
-        <header class="top-header">
-            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                <img id="userAvatarSmall" src="https://via.placeholder.com/32" class="mini-avatar" alt="User">
-                <span id="userNameHeader" class="user-name-label">loading...</span>
-                <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #888;"></i>
-                
-                <div id="profileDropdown" class="profile-dropdown">
-                    <a href="profile.html" class="dropdown-item profile"><i class="fa-solid fa-user"></i> My Profile</a>
-                    <a href="edit-profile.html" class="dropdown-item edit"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
-                    <a href="settings.html" class="dropdown-item settings"><i class="fa-solid fa-gear"></i> Settings</a>
-                    <a href="logout.html" class="dropdown-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-                </div>
-            </div>
-        </header>
+        <header class="top-header"></header>
 
         <div class="profile-container">
             <!-- Hero -->
@@ -666,8 +596,9 @@
                 <div class="avatar-glow-wrapper" id="profileAvatarContainer">
                     <!-- Injected by JS -->
                 </div>
-                <h1 id="profileName">Loading...</h1>
-                <p id="profileBio">Loading bio...</p>
+                <h1 id="profileName">...</h1>
+                <div id="profileStatus" style="font-weight: 800; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;"></div>
+                <p id="profileBio"></p>
                 
                 <div class="profile-strength-container" id="profileStrengthBox" style="display: none;">
                     <div class="strength-header">
@@ -693,6 +624,10 @@
                 <div class="stat-pill">
                     <i class="fa-solid fa-users"></i>
                     <span id="followerCount">0</span> Followers
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span id="followingCount">0</span> Following
                 </div>
                 <div class="stat-pill">
                     <i class="fa-solid fa-wrench"></i>
@@ -782,6 +717,14 @@
             </div>
         </div>
     </main>
+
+    <nav class="bottom-nav">
+        <a href="feed.html" class="nav-item"><i class="fa-solid fa-newspaper"></i><span>Feed</span></a>
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+        <a href="crew-search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+        <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Messages</span></a>
+        <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
+    </nav>
 
     <script src="js/utils.js"></script>
     <script src="js/profile-handler.js"></script>

@@ -14,6 +14,9 @@ public class ProjectService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private UserService userService;
+
     public Project createProject(Project project) {
         return projectRepository.save(project);
     }
@@ -51,5 +54,21 @@ public class ProjectService {
 
     public void deleteProject(Long id) {
         projectRepository.deleteById(id);
+    }
+
+    public Project verifyProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        
+        project.setVerified(true);
+        Project saved = projectRepository.save(project);
+
+        // Promote user to Film Professional status upon verification of a project
+        userService.findById(project.getUserId()).ifPresent(user -> {
+            user.setIsVerifiedProfessional(true);
+            userService.updateProfile(user);
+        });
+
+        return saved;
     }
 }

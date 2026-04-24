@@ -24,6 +24,9 @@ public class PostService {
     @Autowired
     private com.crewcanvas.repository.UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks) {
         Post post = new Post(userId, content, imageUrls, externalLinks);
         return postRepository.save(post);
@@ -94,19 +97,41 @@ public class PostService {
             } else {
                 post.getLikedByUsers().add(userId);
                 post.setLikes(post.getLikes() + 1);
+                
+                // Trigger Notification
+                if (!post.getUserId().equals(userId)) {
+                    notificationService.createNotification(
+                        post.getUserId(),
+                        userId,
+                        "LIKE",
+                        "liked your post.",
+                        post.getId().toString()
+                    );
+                }
             }
             return postRepository.save(post);
         }
         throw new RuntimeException("Post not found");
     }
 
-    public Post addComment(Long id, String text) {
+    public Post addComment(Long id, Long userId, String text) {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
             post.setComments(post.getComments() + 1);
             if (text != null && !text.isEmpty()) {
                 post.getActualComments().add(text);
+                
+                // Trigger Notification
+                if (userId != null && !post.getUserId().equals(userId)) {
+                    notificationService.createNotification(
+                        post.getUserId(),
+                        userId,
+                        "COMMENT",
+                        "commented on your post: " + (text.length() > 30 ? text.substring(0, 30) + "..." : text),
+                        post.getId().toString()
+                    );
+                }
             }
             return postRepository.save(post);
         }

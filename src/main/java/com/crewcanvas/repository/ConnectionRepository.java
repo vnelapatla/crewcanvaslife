@@ -24,4 +24,10 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
     Long countFollowing(Long userId);
 
     boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByFollowerId(Long followerId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByFollowingId(Long followingId);
 }
