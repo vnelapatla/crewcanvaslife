@@ -56,7 +56,7 @@ function renderEventList(events) {
                 <h3>${event.title}</h3>
                 <div class="event-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; background: #f8fafc; padding: 12px; border-radius: 12px; font-size: 13px;">
                     <div><b style="width: auto;">Type:</b> ${event.eventType}</div>
-                    <div><b style="width: auto;">Date:</b> ${formatDate(event.date || event.startDate)}${event.endDate ? ` - ${formatDate(event.endDate)}` : ''}</div>
+                    <div><b style="width: auto;">Date:</b> ${formatDate(event.date || event.startDate)}${event.endDate ? ` to ${formatDate(event.endDate)}` : ''}</div>
                     <div><b style="width: auto;">Loc:</b> ${event.location}</div>
                     <div><b style="width: auto;">Price:</b> ${event.price === 0 ? 'Free' : `₹${event.price || 0}`}</div>
                     <div><b style="width: auto;">Seats:</b> ${event.capacity || 'Unlimited'}</div>
@@ -98,7 +98,7 @@ async function showManagementView() {
             // Enrich header with more details if they were missing
             const detailsHtml = `
                 <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
-                    <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date || currentEvent.startDate)}${currentEvent.endDate ? ` - ${formatDate(currentEvent.endDate)}` : ''}</span>
+                    <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date || currentEvent.startDate)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
                     <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
                     ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
                 </div>
@@ -264,9 +264,27 @@ async function saveEventEdits() {
         if (res.ok) {
             showMessage('Event updated successfully', 'success');
             closeEditModal();
-            // Refresh details
+            // Refresh local state
             currentEvent = { ...currentEvent, ...updatedData };
+            
+            // Update UI elements
             document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
+            
+            const detailsContainer = document.getElementById('mgmtEventDetails');
+            if (detailsContainer) {
+                detailsContainer.innerHTML = `
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
+                        <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date || currentEvent.startDate)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
+                        ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
+                    </div>
+                `;
+            }
+            
+            // Also update in cache for list view consistency
+            const idx = eventsCache.findIndex(e => e.id == currentEventId);
+            if (idx > -1) eventsCache[idx] = currentEvent;
+            
         } else {
             showMessage('Failed to update event', 'error');
         }

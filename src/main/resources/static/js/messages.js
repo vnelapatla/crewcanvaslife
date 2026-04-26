@@ -72,11 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check if opening conversation with specific user
-    const targetUserId = getQueryParam('userId');
+    const targetUserId = getQueryParam('chatWith') || getQueryParam('userId');
     if (targetUserId) {
         console.log("Redirected with target user ID:", targetUserId);
         // Using setTimeout to ensure initMessaging runs first
-        setTimeout(() => startNewChat(targetUserId), 500);
+        setTimeout(() => startNewChat(targetUserId), 800);
     }
 
     initMessaging();

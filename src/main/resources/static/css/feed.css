@@ -217,6 +217,8 @@
     padding: 60px 20px;
     color: #999;
     font-size: 16px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 /* Responsive */

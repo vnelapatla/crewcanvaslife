@@ -178,6 +178,33 @@
                     </div>
                     <div><span class="badge-shortlisted">Shortlisted: <span id="shortlistedCount">0</span></span></div>
                 </div>
+
+                <!-- Connections Card (New) -->
+                <div class="stat-card" id="connectionsCard" style="cursor: pointer;" onclick="location.href='crew-search.html'">
+                    <div class="card-bar" style="background:#10b981"></div>
+                    <div class="stat-header">
+                        <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Connections</h3>
+                            <b id="totalConnections">0</b>
+                        </div>
+                    </div>
+                    <div class="stat-breakdown">
+                        <div class="breakdown-item">
+                            <span><span class="dot" style="background:#10b981"></span>Followers</span> 
+                            <span id="followerCount">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span><span class="dot" style="background:#6366f1"></span>Following</span> 
+                            <span id="followingCount">0</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 11px; color: #10b981; font-weight: 700; text-transform: uppercase;">
+                        Grow your network <i class="fa-solid fa-arrow-right" style="margin-left: 4px;"></i>
+                    </div>
+                </div>
             </div>
 
             <div style="margin-top: 30px;" id="appList" class="app-list"></div>
@@ -193,11 +220,22 @@
             const userId = localStorage.getItem('userId');
             if(!userId) return;
             try {
-                // Fetch hosted events and made applications in parallel
-                const [eRes, aRes] = await Promise.allSettled([
+                // Fetch hosted events, applications, and profile in parallel
+                const [eRes, aRes, pRes] = await Promise.allSettled([
                     fetch(`${API_BASE_URL}/api/events/user/${userId}`), 
-                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`)
+                    fetch(`${API_BASE_URL}/api/events/applications/user/${userId}`),
+                    fetch(`${API_BASE_URL}/api/profile/${userId}`)
                 ]);
+
+                // Handle Profile / Connections
+                if(pRes.status === 'fulfilled' && pRes.value.ok) {
+                    const user = await pRes.value.json();
+                    const followers = user.followers || 0;
+                    const following = user.following || 0;
+                    document.getElementById('followerCount').innerText = followers;
+                    document.getElementById('followingCount').innerText = following;
+                    document.getElementById('totalConnections').innerText = followers + following;
+                }
 
                 // Handle Hosted Events
                 if(eRes.status === 'fulfilled' && eRes.value.ok) {

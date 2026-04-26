@@ -38,6 +38,11 @@ async function updatePassword() {
         return;
     }
 
+    if (newPass === currentPass) {
+        showMessage("New password cannot be the same as the current password!", "error");
+        return;
+    }
+
     try {
         const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/password`, {
             method: 'POST',
@@ -52,7 +57,8 @@ async function updatePassword() {
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
         } else {
-            showMessage("We couldn't update your password. Please ensure all fields are correct.", "error");
+            const errorMsg = await res.text();
+            showMessage(errorMsg || "We couldn't update your password. Please ensure all fields are correct.", "error");
         }
     } catch (error) {
         console.error('Error updating password:', error);

@@ -1,8 +1,7 @@
 // Crew Search functionality
 let allUsers = [];
-let followingIds = new Set();
-let followerIds = new Set(); // People who follow ME
 let currentSearchTab = 'find'; // 'find' or 'connections'
+let currentUserId = null;
 
 // Helper to get ID regardless of property name (id vs userId)
 function getUserId(user) {
@@ -18,13 +17,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggleContainer = document.querySelector('.toggle-switch-container');
     if (toggleContainer) toggleContainer.style.display = 'none';
     
-    // Load state in parallel for better performance
-    Promise.all([
-        loadFollowingIds(),
-        loadFollowerIds(),
-        loadAllUsers()
-    ]).catch(e => console.error("Parallel load failed:", e));
+    // Load ProfileHandler first to ensure relationship data is ready
+    try {
+        await ProfileHandler.init();
+        currentUserId = getCurrentUserId();
+        await loadAllUsers();
+        await updateDashboardStats(); // Fetch and display the counts
+    } catch (e) { 
+        console.error("Initial load failed:", e); 
+    }
 });
+
+// Callback for ProfileHandler to refresh counts
+function refreshProfileData() {
+    updateDashboardStats();
+}
 
 // Search input debounce handler
 const searchInput = document.getElementById('searchInput');
@@ -44,7 +51,7 @@ async function searchUsers() {
     
     try {
         if (currentSearchTab === 'find') {
-            const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}`);
+            const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}&t=${Date.now()}`);
             if (response.ok) {
                 const users = await response.json();
                 displayUsers(users);
@@ -69,22 +76,11 @@ async function searchUsers() {
     }
 }
 
-// Load Following IDs (The list of people YOU follow)
-async function loadFollowingIds() {
+// Dashboard stats update helper
+async function updateDashboardStats() {
     const userId = getCurrentUserId();
     if (!userId) return;
     try {
-        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
-        if (res.ok) {
-            const users = await res.json();
-            followingIds = new Set();
-            users.forEach(u => {
-                const id = getUserId(u);
-                if (id) followingIds.add(String(id));
-            });
-        }
-        
-        // Update Dashboard Stats
         const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?t=${Date.now()}`);
         if (profileRes.ok) {
             const user = await profileRes.json();
@@ -93,29 +89,13 @@ async function loadFollowingIds() {
             if (followingsBadge) followingsBadge.innerText = user.following || 0;
             if (followersBadge) followersBadge.innerText = user.followers || 0;
         }
-    } catch (e) { console.error("Error loading relationships:", e); }
-}
-
-// Load Follower IDs (The list of people who follow YOU)
-async function loadFollowerIds() {
-    const userId = getCurrentUserId();
-    if (!userId) return;
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/followers?t=${Date.now()}`);
-        if (res.ok) {
-            const users = await res.json();
-            followerIds = new Set();
-            users.forEach(u => {
-                const id = getUserId(u);
-                if (id) followerIds.add(String(id));
-            });
-        }
-    } catch (e) { console.error("Error loading followers:", e); }
+    } catch (e) { console.error("Error updating stats:", e); }
 }
 
 async function loadAllUsers() {
     try {
-        const res = await fetch(`${API_BASE_URL}/api/profile/search?query=`);
+        // Add cache busting to ensure we get latest follower counts
+        const res = await fetch(`${API_BASE_URL}/api/profile/search?query=&t=${Date.now()}`);
         allUsers = await res.json();
         if (currentSearchTab === 'find') {
             displayUsers(allUsers);
@@ -151,17 +131,23 @@ function displayUsers(users, forceFollowingState = false) {
     const seenIds = new Set();
     
     users.forEach(u => {
-        const id = String(getUserId(u));
-        if (id !== currentUserId && !seenIds.has(id)) {
+        const id = parseInt(getUserId(u));
+        // Filter out self
+        if (id == currentUserId) return;
+        
+        // If in 'find' tab, filter out people we already follow
+        if (currentSearchTab === 'find' && ProfileHandler.isFollowing(id)) return;
+        
+        if (!seenIds.has(id)) {
             finalUsers.push(u);
             seenIds.add(id);
         }
     });
 
     container.innerHTML = finalUsers.map(user => {
-        const id = String(getUserId(user));
-        const isFollowed = forceFollowingState || followingIds.has(id);
-        const canMessage = followerIds.has(id);
+        const id = parseInt(getUserId(user));
+        const isFollowed = forceFollowingState || ProfileHandler.isFollowing(id);
+        const canMessage = ProfileHandler.isFollower(id);
         return createUserCard(user, isFollowed, canMessage);
     }).join('');
 }
@@ -225,7 +211,7 @@ async function loadConnections(type) {
         
         if (currentSearchTab !== 'connections') return;
         
-        await loadFollowingIds();
+        await ProfileHandler.init();
         displayUsers(users, type === 'following');
     } catch (e) { console.error("Error loading connections:", e); }
 }
@@ -259,8 +245,8 @@ function createUserCard(user, isFollowing, canMessage) {
                 <button class="btn-profile" onclick="viewProfile(${userId})">Profile</button>
                 ${messageBtn}
                 ${isFollowing ? 
-                    `<button class="btn-following" id="follow-btn-${userId}" onclick="unfollowUser(${userId})"><i class="fas fa-user-minus"></i> Unfollow</button>` :
-                    `<button class="btn-follow" id="follow-btn-${userId}" onclick="followUser(${userId})"><i class="fas fa-user-plus"></i> Follow</button>`
+                    `<button class="btn-following" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow(${userId}, this)"><i class="fas fa-user-minus"></i> Unfollow</button>` :
+                    `<button class="btn-follow" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow(${userId}, this)"><i class="fas fa-user-plus"></i> Follow</button>`
                 }
             </div>
         </div>
@@ -273,30 +259,7 @@ function startMessage(id) {
 
 function viewProfile(id) { window.location.href = `profile.html?userId=${id}`; }
 
-// Action Handlers
-async function followUser(targetId) {
-    const currentId = getCurrentUserId();
-    const res = await fetch(`${API_BASE_URL}/api/profile/${targetId}/follow?followerId=${currentId}`, { method: 'POST' });
-    if (res.ok) {
-        showMessage("You are now following!", "success");
-        await loadFollowingIds();
-        updateUI(targetId, true);
-    } else {
-        const msg = await res.text();
-        if (msg.includes("Already")) { updateUI(targetId, true); }
-        else showMessage("We couldn't follow this user right now. Please try again.", "error");
-    }
-}
-
-async function unfollowUser(targetId) {
-    const currentId = getCurrentUserId();
-    const res = await fetch(`${API_BASE_URL}/api/profile/${targetId}/unfollow?followerId=${currentId}`, { method: 'DELETE' });
-    if (res.ok) {
-        showMessage("Unfollowed", "success");
-        await loadFollowingIds();
-        updateUI(targetId, false);
-    }
-}
+// These are now handled by ProfileHandler
 
 
 function updateUI(id, isFollowing) {

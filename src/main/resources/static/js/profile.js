@@ -56,6 +56,12 @@ async function loadProfile() {
         const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}`);
         if (response.ok) {
             profileUserData = await response.json();
+            
+            // Ensure ProfileHandler is initialized before displaying
+            if (typeof ProfileHandler !== 'undefined') {
+                await ProfileHandler.init();
+            }
+            
             displayProfile(profileUserData);
         } else {
             window.location.href = 'home.html';
@@ -169,17 +175,38 @@ function displayProfile(user) {
             `;
         } else {
             const isFollowing = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollowing(profileUserId) : false;
-            actionsContainer.innerHTML = `
+            const isFollower = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollower(profileUserId) : false;
+            const isAdmin = getCurrentUserIsAdmin();
+            
+            // Logic: Admin can message anyone. Others need to be mutual followers OR messaging their own followers.
+            // Both "mutual" and "send to followers" effectively mean the profile user must follow the current user.
+            const canMessage = isAdmin || isFollower;
+
+            let followBtnHtml = `
                 <button class="action-btn btn-primary btn-follow ${isFollowing ? 'following' : ''}" 
                         data-user-id="${profileUserId}" 
                         onclick="ProfileHandler.toggleFollow('${profileUserId}', this)">
                     <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> 
                     ${isFollowing ? 'Following' : 'Follow'}
                 </button>
-                <a href="messages.html?chatWith=${profileUserId}" class="action-btn btn-secondary">
-                    <i class="fa-solid fa-envelope"></i> Message
-                </a>
             `;
+
+            let messageBtnHtml = '';
+            if (canMessage) {
+                messageBtnHtml = `
+                    <a href="messages.html?chatWith=${profileUserId}" class="action-btn btn-secondary">
+                        <i class="fa-solid fa-envelope"></i> Message
+                    </a>
+                `;
+            } else {
+                messageBtnHtml = `
+                    <button class="action-btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;" onclick="showMessage('You can only message your followers or mutual connections.', 'info')">
+                        <i class="fa-solid fa-lock"></i> Message
+                    </button>
+                `;
+            }
+
+            actionsContainer.innerHTML = followBtnHtml + messageBtnHtml;
         }
     }
 }

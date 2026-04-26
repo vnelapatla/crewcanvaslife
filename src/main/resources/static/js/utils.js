@@ -91,35 +91,42 @@ function showMessage(message, type = 'info') {
     }, 4000);
 }
 
-// Format date to readable string
+// Format date to readable string (Robust version)
 function formatDate(dateString) {
     if (!dateString) return '';
-    const date = new Date(dateString);
+    
+    // Try to use parseSafeDate if available
+    let date;
+    if (typeof parseSafeDate === 'function') {
+        date = parseSafeDate(dateString);
+    } else {
+        date = new Date(dateString);
+    }
+    
+    if (!date || isNaN(date.getTime())) return dateString;
+    
     const now = new Date();
     const diff = now - date;
 
-    // Less than 1 minute
-    if (diff < 60000) return 'Just now';
-
-    // Less than 1 hour
-    if (diff < 3600000) {
-        const minutes = Math.floor(diff / 60000);
-        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    }
-
-    // Less than 1 day
-    if (diff < 86400000) {
-        const hours = Math.floor(diff / 3600000);
-        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    }
-
-    // Less than 1 week
-    if (diff < 604800000) {
+    // Relative time ONLY for past events within the last 7 days
+    if (diff > 0 && diff < 604800000) {
+        if (diff < 60000) return 'Just now';
+        
+        if (diff < 3600000) {
+            const minutes = Math.floor(diff / 60000);
+            return `${minutes}m ago`;
+        }
+        
+        if (diff < 86400000) {
+            const hours = Math.floor(diff / 3600000);
+            return `${hours}h ago`;
+        }
+        
         const days = Math.floor(diff / 86400000);
-        return `${days} day${days > 1 ? 's' : ''} ago`;
+        return `${days}d ago`;
     }
 
-    // Default format
+    // Absolute format for future dates or older past dates
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -194,20 +201,6 @@ function truncateText(text, length = 30) {
     return text.substring(0, length) + '...';
 }
 
-
-// Format date to readable string
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
-    
-    return date.toLocaleDateString();
-}
 
 // Render a colored circle with initials as an avatar fallback
 function renderAvatarFallback(name, className = '', size = '40px') {
@@ -331,14 +324,28 @@ style.textContent = `
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 50px;
+        border-radius: 16px;
         color: white;
         font-size: 13px;
         font-weight: 500;
+        line-height: 1.4;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
         animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        white-space: nowrap;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        max-width: 85vw;
         pointer-events: auto;
+        text-align: left;
+    }
+
+    .premium-toast .toast-msg {
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .premium-toast.success i { color: #10b981; }

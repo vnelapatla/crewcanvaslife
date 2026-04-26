@@ -4,14 +4,43 @@
  */
 const ProfileHandler = {
     followingIds: [],
+    followerIds: [],
+    isInitialized: false,
+    initPromise: null,
     
     async init() {
-        // Update header immediately from cache
-        this.updateHeader();
+        if (this.initPromise) return this.initPromise;
         
-        // Then load dynamic data
-        await this.loadFollowings();
-        this.syncFollowButtons();
+        this.initPromise = (async () => {
+            // Update header immediately from cache
+            this.updateHeader();
+            
+            // Then load dynamic data
+            await Promise.all([
+                this.loadFollowings(),
+                this.loadFollowers()
+            ]);
+            
+            this.isInitialized = true;
+            this.syncFollowButtons();
+        })();
+        
+        return this.initPromise;
+    },
+
+    async loadFollowers() {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/followers?t=${Date.now()}`);
+            if (response.ok) {
+                const followers = await response.json();
+                this.followerIds = followers.map(u => parseInt(getUserId(u)));
+            }
+        } catch (error) {
+            console.error('Error loading followers:', error);
+        }
     },
 
     async loadFollowings() {
@@ -19,10 +48,10 @@ const ProfileHandler = {
         if (!userId) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/following`);
+            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
             if (response.ok) {
-                const following = await response.json();
-                this.followingIds = following.map(u => u.id);
+                const followings = await response.json();
+                this.followingIds = followings.map(u => parseInt(getUserId(u)));
             }
         } catch (error) {
             console.error('Error loading followings:', error);
@@ -33,14 +62,26 @@ const ProfileHandler = {
         return this.followingIds.includes(parseInt(userId));
     },
 
+    isFollower(userId) {
+        return this.followerIds.includes(parseInt(userId));
+    },
+
+    isMutual(userId) {
+        const id = parseInt(userId);
+        return this.followingIds.includes(id) && this.followerIds.includes(id);
+    },
+
     syncFollowButtons() {
-        document.querySelectorAll('.follow-btn').forEach(btn => {
+        document.querySelectorAll('.follow-btn, .btn-follow').forEach(btn => {
             const userId = btn.getAttribute('data-user-id');
-            if (this.isFollowing(userId)) {
-                btn.innerHTML = '<i class="fas fa-check"></i> Following';
+            if (!userId) return;
+            
+            const following = this.isFollowing(userId);
+            if (following) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Following';
                 btn.classList.add('following');
             } else {
-                btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Follow';
                 btn.classList.remove('following');
             }
         });
@@ -70,6 +111,19 @@ const ProfileHandler = {
                     if (typeof showMessage === 'function') showMessage('You are now following!', 'success');
                 }
                 this.syncFollowButtons();
+                
+                // If on crew-search page, we might need to refresh UI
+                if (typeof switchSearchTab === 'function' && typeof currentSearchTab !== 'undefined') {
+                    if (currentSearchTab === 'find' && !isFollowing) {
+                        // In find tab, follow means user should disappear
+                        const btn = document.getElementById(`follow-btn-${userId}`);
+                        const card = btn ? btn.closest('.crew-card') : null;
+                        if (card) {
+                            card.style.opacity = '0';
+                            setTimeout(() => card.remove(), 300);
+                        }
+                    }
+                }
                 if (typeof refreshProfileData === 'function') {
                     refreshProfileData();
                 } else if (typeof loadProfile === 'function') {

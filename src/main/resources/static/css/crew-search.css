@@ -285,12 +285,22 @@
 @media (max-width: 1024px) {
     .features-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
         margin-bottom: 30px;
     }
 
     .feature-card {
-        padding: 20px;
+        padding: 16px 20px;
+        border-radius: 16px;
+    }
+
+    .feature-card .count-badge {
+        background: #fff8f1;
+        padding: 4px 12px;
+        border-radius: 10px;
+        font-size: 18px;
+        min-width: 40px;
+        text-align: center;
     }
 
     .crew-grid {
@@ -347,7 +357,17 @@
     }
 
     .crew-card .stats {
-        display: none !important;
+        display: flex !important;
+        padding: 10px 5px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .crew-card .stat-value {
+        font-size: 14px !important;
+    }
+    
+    .crew-card .stat-label {
+        font-size: 9px !important;
     }
 
     .crew-card .actions {

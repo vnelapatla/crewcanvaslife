@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -46,6 +47,28 @@ public class ProfileController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error updating profile: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/{id}/password")
+    public ResponseEntity<?> updatePassword(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+        try {
+            String newPassword = payload.get("newPassword");
+            if (newPassword == null || newPassword.isEmpty()) {
+                return ResponseEntity.badRequest().body("New password is required");
+            }
+            
+            Optional<User> userOptional = userService.findById(id);
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            
+            userService.changeUserPassword(userOptional.get(), newPassword);
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 

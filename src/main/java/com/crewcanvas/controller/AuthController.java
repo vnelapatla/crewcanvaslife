@@ -175,8 +175,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token.");
         }
 
-        userService.changeUserPassword(userOptional.get(), newPassword);
-        return ResponseEntity.ok(Map.of("message", "Password has been reset successfully."));
+        try {
+            userService.changeUserPassword(userOptional.get(), newPassword);
+            return ResponseEntity.ok(Map.of("message", "Password has been reset successfully."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }
 

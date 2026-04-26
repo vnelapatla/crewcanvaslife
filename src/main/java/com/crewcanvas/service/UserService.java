@@ -287,6 +287,9 @@ public class UserService {
 
     @Transactional
     public void changeUserPassword(User user, String newPassword) {
+        if (user.getPassword() != null && user.getPassword().equals(newPassword)) {
+            throw new RuntimeException("New password cannot be the same as the old password");
+        }
         user.setPassword(newPassword);
         userRepository.save(user);
         tokenRepository.deleteByUser(user); // Invalidate token after use
