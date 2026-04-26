@@ -2,7 +2,7 @@ let API_BASE_URL = ''; // Use relative paths by default for better compatibility
 
 // Fallback for local file opening (file://) or if we need to force a specific backend
 if (window.location.protocol === 'file:') {
-    API_BASE_URL = 'http://localhost:8080';
+    API_BASE_URL = 'http://localhost:8081';
 }
 
 // Check if user is authenticated
@@ -54,32 +54,41 @@ async function getUserProfile(userId) {
     return null;
 }
 
-// Show toast notification
+// Show a premium toast notification
 function showMessage(message, type = 'info') {
-    // Create toast element
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 10000000; display: flex; flex-direction: column; align-items: center; gap: 8px;
+            pointer-events: none; width: auto; max-width: 90vw;
+        `;
+        document.body.appendChild(container);
+    }
+
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#ff8800'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
+    toast.className = `premium-toast ${type}`;
+    toast.style.pointerEvents = 'auto';
+    
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'circle-xmark';
+    if (type === 'warning') icon = 'triangle-exclamation';
+
+    toast.innerHTML = `
+        <i class="fa-solid fa-${icon}"></i>
+        <span class="toast-msg">${message}</span>
     `;
+    
+    container.appendChild(toast);
 
-    document.body.appendChild(toast);
-
-    // Remove after 3 seconds
+    // Auto-remove after 4 seconds
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        toast.classList.add('out');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
 }
 
 // Format date to readable string
@@ -185,21 +194,6 @@ function truncateText(text, length = 30) {
     return text.substring(0, length) + '...';
 }
 
-// Show a toast message
-function showMessage(msg, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast-message ${type}`;
-    toast.style = `
-        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-        padding: 12px 24px; border-radius: 30px; color: white; font-size: 14px;
-        z-index: 10000000; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        background: ${type === 'error' ? '#ff4444' : 'var(--primary-orange, #ff8800)'};
-        animation: fadeInOut 3s forwards;
-    `;
-    toast.innerText = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
 
 // Format date to readable string
 function formatDate(dateStr) {
@@ -325,28 +319,59 @@ function debounce(func, wait) {
     };
 }
 
-// Add CSS animations
+// Add CSS animations and Premium Toast Styles
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    .premium-toast {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        white-space: nowrap;
+        pointer-events: auto;
     }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
+
+    .premium-toast.success i { color: #10b981; }
+    .premium-toast.error i { color: #ef4444; }
+    .premium-toast.warning i { color: #f59e0b; }
+    .premium-toast.info i { color: #3b82f6; }
+
+    .premium-toast.out {
+        animation: toastSlideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes toastSlideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes toastSlideOut {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-20px); opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+        #toast-container {
+            top: auto !important;
+            bottom: 90px !important;
         }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
+        @keyframes toastSlideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(20px); opacity: 0; }
         }
     }
 `;
@@ -392,13 +417,19 @@ function renderAvatarFallback(name, className = '', size = '40px') {
 const path = window.location.pathname;
 const currentPage = path.split("/").pop() || 'index.html';
 
+// Helper to check if current page is an authentication page
+function isAuthPage() {
+    const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html'];
+    return authPages.includes(currentPage) || path === '/' || path === '';
+}
+
 // Initialize Universal Bottom Navigation for Mobile
 function initUniversalBottomNav() {
     // Only show on mobile
     if (window.innerWidth > 1024) return;
 
-    // Do NOT show on login/register pages
-    if (currentPage === 'index.html' || currentPage === 'register.html' || path === '/') return;
+    // Do NOT show on auth pages
+    if (isAuthPage()) return;
 
     // Only proceed if bottom-nav isn't already there
     if (document.querySelector('.bottom-nav')) return;
@@ -431,8 +462,8 @@ function initUniversalSidebar() {
     // Only show on desktop
     if (window.innerWidth <= 1024) return;
 
-    // Do NOT show on login/register pages
-    if (currentPage === 'index.html' || currentPage === 'register.html' || path === '/') return;
+    // Do NOT show on auth pages
+    if (isAuthPage()) return;
 
     let sidebar = document.querySelector('.sidebar');
     
@@ -478,6 +509,9 @@ function initUniversalSidebar() {
 
 // Initialize Universal Header for all pages
 function initUniversalHeader() {
+    // Do NOT show on auth pages
+    if (isAuthPage()) return;
+
     const header = document.querySelector('.top-header');
     if (!header) return;
 
@@ -492,15 +526,16 @@ function initUniversalHeader() {
 
     // Standardized Header HTML (Matches user screenshot)
     header.innerHTML = `
-        <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
-            <h2 class="brand-logo" onclick="window.location.href='home.html'" style="color: var(--primary-orange); font-size: 22px; font-weight: 900; margin: 0; cursor: pointer; letter-spacing: -0.5px;">CrewCanvas</h2>
+        <div class="header-left">
+            <h2 class="brand-logo">CrewCanvas</h2>
         </div>
         <div class="status-bar">
             <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
                 <div class="user-initials" id="userInitialsSmall" style="${(userAvatar && userAvatar.length > 10) ? 'display:none' : 'display:flex'}">${initials}</div>
-                <img id="userAvatarSmall" src="${(userAvatar && userAvatar.length > 10) ? userAvatar : ''}" alt="" loading="lazy" style="${(userAvatar && userAvatar.length > 10) ? 'display:block' : 'display:none'}; width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                <span id="userNameHeader">${userName}${adminBadge}</span>
-                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px; opacity: 0.5;"></i>
+                <img id="userAvatarSmall" src="${(userAvatar && userAvatar.length > 10) ? userAvatar : ''}" alt="" loading="lazy" style="${(userAvatar && userAvatar.length > 10) ? 'display:block' : 'display:none'}; width:28px; height:28px; border-radius:50%; object-fit:cover; border: 1px solid #f1f5f9;">
+                <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #1e293b; margin-left: 2px;">${userName}${adminBadge}</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px; opacity: 0.4;"></i>
+                
                 <div class="profile-dropdown-menu" id="profileDropdown">
                     <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
                     <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
@@ -619,7 +654,7 @@ const NotificationHandler = {
 
     init: async function() {
         const userId = getCurrentUserId();
-        if (!userId) return;
+        if (!userId || isAuthPage()) return;
 
         // 1. Fetch existing unread count
         this.updateBadge();
@@ -670,35 +705,6 @@ const NotificationHandler = {
                         console.error('Error parsing notification:', e);
                     }
                 });
-
-                // Real-time Call Signals (even when not on messages page)
-                if (!window.location.pathname.includes('messages.html')) {
-                    this.stompClient.subscribe(`/topic/messages/${userId}`, (message) => {
-                        try {
-                            const msg = JSON.parse(message.body);
-                            if (msg.content && msg.content.startsWith('__CALL_SIGNAL__:')) {
-                                const signalData = msg.content.replace('__CALL_SIGNAL__:', '');
-                                
-                                // Dynamically load CallSystem if not present
-                                if (typeof CallSystem === 'undefined') {
-                                    console.log("Loading CallSystem dynamically...");
-                                    const script = document.createElement('script');
-                                    script.src = 'js/advanced-messaging.js';
-                                    script.onload = () => {
-                                        if (typeof CallSystem !== 'undefined') {
-                                            CallSystem.handleIncomingSignal(msg.senderId, signalData);
-                                        }
-                                    };
-                                    document.head.appendChild(script);
-                                } else {
-                                    CallSystem.handleIncomingSignal(msg.senderId, signalData);
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Error parsing global message:', e);
-                        }
-                    });
-                }
             }, (error) => {
                 // Only retry if not already connected
                 if (this.stompClient && !this.stompClient.connected) {
@@ -715,11 +721,7 @@ const NotificationHandler = {
         this.updateBadge();
         
         // Show a temporary toast
-        if (notification.type === 'CALL') {
-            showMessage(`Incoming Call: ${notification.actorName || 'Someone'} is calling you`, 'info');
-        } else {
-            showMessage(`New ${notification.type.toLowerCase()}: ${notification.content}`);
-        }
+        showMessage(`New ${notification.type.toLowerCase()}: ${notification.content}`);
         
         // If on notifications page, refresh it
         if (window.location.pathname.includes('notifications.html') && typeof loadNotifications === 'function') {
@@ -813,7 +815,6 @@ const NotificationHandler = {
             case 'COMMENT':
                 window.location.href = `feed.html?postId=${targetId}`;
                 break;
-            case 'CALL':
             case 'MESSAGE':
                 window.location.href = `messages.html?userId=${targetId}`;
                 break;

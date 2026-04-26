@@ -1,4 +1,5 @@
 const MessagingUI = {
+    version: '1.1',
     switchTab: function(tabName) {
         // Redirection to the new tab switching logic
         switchSidebarTab(tabName);
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!currentUserId || currentUserId === 'undefined' || currentUserId === 'null') {
         console.error("CRITICAL: userId is null or undefined!");
-        showMessage("No user session found. Please login again.", "error");
+        showMessage("Your session has expired. Please log in again to continue.", "error");
         // Show error in lists
         ['conversationsList', 'followingList', 'followersList'].forEach(id => {
             const el = document.getElementById(id);
@@ -106,22 +107,6 @@ function connectWebSocket() {
 }
 
 function onMessageReceived(msg) {
-    // Check for Call Signaling
-    if (msg.content && msg.content.startsWith('__CALL_SIGNAL__:')) {
-        // Security check: Only process if they follow us (mutual is better, but at least follower)
-        const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(msg.senderId));
-        if (!isAllowed) {
-            console.warn("Ignoring call from non-follower:", msg.senderId);
-            return;
-        }
-
-        const signalData = msg.content.replace('__CALL_SIGNAL__:', '');
-        if (typeof CallSystem !== 'undefined') {
-            CallSystem.handleIncomingSignal(msg.senderId, signalData);
-        }
-        return; // Don't show signal messages in chat
-    }
-
     if (String(selectedConversationUserId) === String(msg.senderId) || String(selectedConversationUserId) === String(msg.receiverId)) {
         loadMessages(); 
     }
@@ -198,8 +183,40 @@ async function loadFollowing() {
         const mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
         window.allMutualUsers = mutuals || [];
 
-        // 4. Merge into a unique Connections list (ONLY people who follow you can be messaged)
-        window.allConnections = [...followers];
+        // 4. Fetch Applicants (Event Creators can message their applicants)
+        let applicants = [];
+        try {
+            const respApplicants = await fetch(`${API_BASE_URL}/api/events/all-applicants?userId=${currentUserId}`);
+            if (respApplicants.ok) {
+                const appRecords = await respApplicants.json();
+                const uniqueApplicantIds = new Set();
+                appRecords.forEach(record => {
+                    if (record.userId && record.userId != currentUserId) {
+                        const idStr = String(record.userId);
+                        if (!uniqueApplicantIds.has(idStr)) {
+                            uniqueApplicantIds.add(idStr);
+                            applicants.push({
+                                id: record.userId,
+                                name: record.applicantName || 'Applicant',
+                                role: record.role || 'Film Professional'
+                            });
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn("Could not load applicants for messaging:", err);
+        }
+
+        // 5. Merge into a unique Connections list
+        const followerIds = new Set(followers.map(u => String(getUserId(u))));
+        const combined = [...followers];
+        applicants.forEach(app => {
+            if (!followerIds.has(String(app.id))) {
+                combined.push(app);
+            }
+        });
+        window.allConnections = combined;
 
         // Update counts in UI
         if (document.getElementById('followingCount')) document.getElementById('followingCount').innerText = `${following.length} Following`;
@@ -207,7 +224,7 @@ async function loadFollowing() {
         if (document.getElementById('mutualCount')) document.getElementById('mutualCount').innerText = `${mutuals.length} Mutual`;
 
         // Display List
-        filterConnections('followers');
+        filterConnections('all');
 
         // Messaging restricted to followers only. No need to fetch all platform users.
 
@@ -274,12 +291,17 @@ function displayUsersList(elementId, users, emptyMessage) {
 async function startNewChat(receiverId) {
     if (!currentUserId || !receiverId) return;
     
-    // Check if user is allowed to message (must be a follower or mutual)
-    const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(receiverId));
+    // Check if user is allowed to message
+    const hasExistingConversation = conversations.some(conv => {
+        const otherId = String(conv.user1Id) === String(currentUserId) ? conv.user2Id : conv.user1Id;
+        return String(otherId) === String(receiverId);
+    });
+    const isApplicantContext = getQueryParam('from') === 'applicant' && String(getQueryParam('userId')) === String(receiverId);
+    const isAllowed = hasExistingConversation || isApplicantContext || (window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(receiverId)));
     
     if (!isAllowed) {
         console.warn(`Messaging restricted: User ${receiverId} is not a follower.`);
-        showMessage("You can only message your followers or mutual connections.", "error");
+        showMessage("For privacy, you can only message your followers, mutual connections, or applicants to your events.", "error");
         return;
     }
     
@@ -334,17 +356,8 @@ async function displayConversations(listToDisplay = null) {
         console.warn("Could not fetch unread counts:", e);
     }
 
-    // Filter conversations: Only show those where the other user is in our allowed connections (followers)
-    const allowedItems = items.filter(conv => {
-        const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
-        const otherUserId = getUserId(otherUser);
-        if (!otherUserId) return false;
-        
-        // If they follow us, they are in window.allConnections
-        return window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(otherUserId));
-    });
-
-    container.innerHTML = allowedItems.map(conv => {
+    // Display all conversations that exist in the database
+    container.innerHTML = items.map(conv => {
         try {
             const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
             const otherUserId = getUserId(otherUser);
@@ -358,9 +371,7 @@ async function displayConversations(listToDisplay = null) {
             
             // Format preview text
             let previewText = conv.lastMessage || 'Start a conversation...';
-            if (previewText.startsWith('__CALL_SIGNAL__:')) {
-                previewText = 'Incoming Call...';
-            } else if (previewText.startsWith('[STICKER:')) {
+            if (previewText.startsWith('[STICKER:')) {
                 previewText = 'Sticker';
             }
 
@@ -507,17 +518,6 @@ async function loadMessages() {
             });
         }
 
-        // Check for recent call signals in the message history (last 1 minute)
-        const recentSignal = messages.find(m => 
-            m.receiverId == currentUserId && 
-            m.content && m.content.startsWith('__CALL_SIGNAL__:') && 
-            (new Date() - new Date(m.createdAt)) < 60000
-        );
-        if (recentSignal && typeof CallSystem !== 'undefined' && !CallSystem.isCalling) {
-            const signalData = recentSignal.content.replace('__CALL_SIGNAL__:', '');
-            CallSystem.handleIncomingSignal(recentSignal.senderId, signalData);
-        }
-
         displayMessages(messages);
     } catch (error) {
         console.error('Error loading messages:', error);
@@ -532,9 +532,6 @@ let lastLoadedConversationId = null;
 function displayMessages(messages) {
     const container = document.getElementById('messagesArea');
     if (!container) return;
-    
-    // Filter out signaling messages completely from the chat bubble area
-    messages = messages.filter(m => !m.content || !m.content.startsWith('__CALL_SIGNAL__:'));
     
     // Check if we actually need to re-render everything
     // This prevents the "not moving" or "jumping" feeling when polling
@@ -635,14 +632,7 @@ async function sendMessage() {
     }
 
     if (!selectedConversationUserId || !currentUserId) {
-        showMessage('Please select a conversation', 'error');
-        return;
-    }
-
-    // Check if user is allowed to message
-    const isAllowed = window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(selectedConversationUserId));
-    if (!isAllowed) {
-        showMessage("You can only message your followers or mutual connections.", "error");
+        showMessage('Please select a conversation first.', 'error');
         return;
     }
 
@@ -680,11 +670,11 @@ async function sendMessage() {
             const err = await response.text();
             console.error('Error sending message:', err);
             // Restore content if failed? Or just show error
-            showMessage('Failed to send message', 'error');
+            showMessage('We couldn’t send your message. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Error sending message:', error);
-        showMessage('Connection error', 'error');
+        showMessage('Network error. Please check your internet connection.', 'error');
     } finally {
         isSending = false;
     }
@@ -748,14 +738,14 @@ document.getElementById('messageImage')?.addEventListener('change', async (e) =>
     const file = e.target.files[0];
     if (file) {
         if (file.size > 50 * 1024 * 1024) {
-            showMessage('File size must be less than 50MB', 'error');
+            showMessage('That file is too big! Please keep it under 50MB.', 'error');
             return;
         }
         try {
             selectedImageFile = await uploadImage(file);
             showFilePreview(file.name, selectedImageFile, 'image');
         } catch (error) {
-            showMessage(error.message, 'error');
+            showMessage('Something went wrong with the upload. Please try again.', 'error');
         }
     }
 });
@@ -767,7 +757,7 @@ document.getElementById('messageFile')?.addEventListener('change', async (e) => 
     const file = e.target.files[0];
     if (file) {
         if (file.size > 50 * 1024 * 1024) {
-            showMessage('File size must be less than 50MB', 'error');
+            showMessage('That file is too big! Please keep it under 50MB.', 'error');
             return;
         }
         try {
@@ -775,7 +765,7 @@ document.getElementById('messageFile')?.addEventListener('change', async (e) => 
             selectedFileType = file.type;
             showFilePreview(file.name, null, 'file');
         } catch (error) {
-            showMessage(error.message, 'error');
+            showMessage('Something went wrong with the upload. Please try again.', 'error');
         }
     }
 });

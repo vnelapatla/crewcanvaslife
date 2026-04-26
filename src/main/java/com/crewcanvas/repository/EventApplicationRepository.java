@@ -17,4 +17,12 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
     
     @org.springframework.transaction.annotation.Transactional
     void deleteByUserId(Long userId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByEventId(Long eventId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByEventIdIn(List<Long> eventIds);
+
+    List<EventApplication> findByEventIdIn(List<Long> eventIds);
 }

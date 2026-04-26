@@ -17,4 +17,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     
     @org.springframework.transaction.annotation.Transactional
     void deleteByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT e.id FROM Event e WHERE e.userId = ?1")
+    List<Long> findIdsByUserId(Long userId);
 }

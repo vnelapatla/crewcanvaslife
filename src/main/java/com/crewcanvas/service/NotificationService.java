@@ -76,4 +76,8 @@ public class NotificationService {
     public void clearAllNotifications(Long userId) {
         notificationRepository.deleteByUserId(userId);
     }
+
+    public void clearNotificationsByActor(Long actorId) {
+        notificationRepository.deleteByActorId(actorId);
+    }
 }

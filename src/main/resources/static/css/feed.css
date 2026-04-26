@@ -2,22 +2,24 @@
 
 .feed-container {
     width: 100%;
+    margin: 0;
 }
 
 @media (min-width: 1025px) {
     .feed-container {
-        max-width: 800px;
-        margin: 0 auto;
+        width: 100%;
+        max-width: none;
     }
 }
 
 /* Create Post Card */
 .create-post-card {
     background: white;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 25px 40px;
+    margin-bottom: 0;
+    border-bottom: 8px solid #f1f5f9; /* Thick separator for create post */
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
 .create-post-card h3 {
@@ -53,16 +55,16 @@
 /* Post Cards */
 .post-card {
     background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 30px 40px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #f1f5f9; /* Simple line separator */
+    transition: background 0.2s;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
 .post-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: #fafafa;
 }
 
 .post-header {
@@ -218,28 +220,48 @@
 }
 
 /* Responsive */
+/* Responsive Optimization - Force 100% Width */
 @media (max-width: 768px) {
-    .content-body {
-        padding-top: 80px !important;
-        padding-bottom: 20px !important;
+    .content-body, .feed-container, .main-content {
+        padding: 70px 0 20px 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
     
-    .feed-container {
-        padding: 0 10px;
-    }
-    
-    /* Ensure no clipping occurs on mobile screens */
-    .main-content {
-        overflow-y: visible !important;
-        min-height: 100vh;
+    .create-post-card, .post-card {
+        padding: 20px 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border-left: none !important;
+        border-right: none !important;
     }
 
     .create-post-card {
-        padding: 20px;
+        border-bottom: 8px solid #f1f5f9;
     }
 
-    .post-card {
-        padding: 15px;
+    /* Inner padding for text content so it doesn't touch the screen edge */
+    .post-header, .post-content > p, .post-footer, .poll-container, .create-post-card h3, #standardPostInputs {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    
+    /* Images must touch the edge */
+    .post-image, .post-slider-container, .post-slider-item img, .post-slider {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    .main-content {
+        overflow-y: visible !important;
+        min-height: 100vh;
     }
 
     .post-footer {

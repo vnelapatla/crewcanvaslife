@@ -30,5 +30,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @org.springframework.transaction.annotation.Transactional
     void deleteByReceiverId(Long receiverId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM conversations WHERE user1_id = ?1 OR user2_id = ?1", nativeQuery = true)
+    void deleteFromConversationsTable(Long userId);
 }
 

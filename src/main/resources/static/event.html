@@ -133,6 +133,76 @@
             color: white;
         }
 
+        /* Search Section */
+        .search-container {
+            margin: 20px 0 30px;
+            position: relative;
+            max-width: 600px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-box {
+            width: 100%;
+            background: #fff;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 16px 25px 16px 55px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 140, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .search-btn-premium {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .search-btn-premium:hover {
+            background: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
+        }
+
+        .search-box:focus + .search-icon {
+            color: var(--primary-orange);
+        }
+
         /* Cinematic Events Grid */
         .events-display-grid {
             display: grid;
@@ -147,8 +217,26 @@
             overflow: hidden;
             box-shadow: var(--card-shadow);
             border: 1px solid #f1f5f9;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             position: relative;
+            animation: cardAppear 0.5s ease backwards;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .cinematic-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+            z-index: 5;
         }
 
         .cinematic-card:hover {
@@ -443,15 +531,98 @@
         .btn-cancel-premium:hover { background: #e2e8f0; }
 
         @media (max-width: 600px) {
+            .search-container {
+                margin: 10px 0 20px !important;
+                gap: 8px !important;
+            }
+            .search-box {
+                padding: 10px 15px 10px 40px !important;
+                font-size: 13px !important;
+                border-radius: 12px !important;
+            }
+            .search-icon {
+                left: 15px !important;
+                font-size: 14px !important;
+            }
+            .search-btn-premium {
+                padding: 0 15px !important;
+                font-size: 12px !important;
+                border-radius: 12px !important;
+            }
+            .events-display-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                padding-bottom: 80px !important;
+            }
+            .cinematic-card {
+                border-radius: 12px !important;
+            }
+            .card-image-box {
+                height: 120px !important;
+            }
+            .card-content {
+                padding: 12px !important;
+            }
+            .card-content h3 {
+                font-size: 14px !important;
+                margin-bottom: 8px !important;
+            }
+            .meta-group {
+                gap: 8px !important;
+                margin-bottom: 10px !important;
+            }
+            .meta-item {
+                font-size: 10px !important;
+                gap: 4px !important;
+            }
+            .meta-item i {
+                font-size: 11px !important;
+            }
+            .card-desc {
+                font-size: 11px !important;
+                margin-bottom: 12px !important;
+                -webkit-line-clamp: 2 !important;
+            }
+            .card-footer {
+                padding-top: 10px !important;
+            }
+            .applicants-text {
+                font-size: 11px !important;
+            }
+            .apply-btn {
+                padding: 6px 12px !important;
+                font-size: 11px !important;
+                border-radius: 8px !important;
+            }
             .form-grid-2 {
                 grid-template-columns: 1fr;
                 gap: 10px;
             }
+            .details-section {
+                padding: 8px !important;
+                gap: 5px !important;
+                margin-bottom: 10px !important;
+                font-size: 11px !important;
+                border-radius: 8px !important;
+                grid-template-columns: 1fr !important;
+            }
+            .details-section div {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
             .form-group.full-width {
                 grid-column: span 1;
             }
+            .modal {
+                align-items: flex-start !important;
+                padding: 20px 10px !important;
+                overflow-y: auto !important;
+            }
             .modal-content {
                 border-radius: 16px;
+                width: 100% !important;
+                margin: 0 auto !important;
             }
             .modal-header {
                 padding: 15px 20px !important;
@@ -480,7 +651,27 @@
                 padding: 10px 15px 20px !important;
             }
             .event-feature-card {
-                min-width: 260px !important;
+                min-width: 140px !important;
+                padding: 12px 15px !important;
+                gap: 10px !important;
+                border-radius: 12px !important;
+            }
+            .event-feature-card .icon-box {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 14px !important;
+                border-radius: 8px !important;
+            }
+            .event-feature-card .info h3 {
+                font-size: 10px !important;
+            }
+            .event-feature-card .info p {
+                font-size: 9px !important;
+            }
+            .event-feature-card .badge {
+                font-size: 12px !important;
+                padding: 2px 6px !important;
+                border-radius: 6px !important;
             }
         }
     </style>
@@ -495,7 +686,15 @@
 
         <div class="content-body">
             <div class="horizontal-cards">
-                <div class="event-feature-card active" onclick="switchEventTab('auditions', this)">
+                <div class="event-feature-card active" onclick="switchEventTab('all', this)">
+                    <div class="icon-box"><i class="fas fa-layer-group"></i></div>
+                    <div class="info">
+                        <h3>ALL EVENTS</h3>
+                        <p>Everything listed</p>
+                    </div>
+                    <div class="badge" id="totalEventCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="switchEventTab('auditions', this)">
                     <div class="icon-box"><i class="fas fa-video"></i></div>
                     <div class="info">
                         <h3>AUDITIONS</h3>
@@ -527,6 +726,16 @@
                     </div>
                     <div class="badge" id="contestCount">0</div>
                 </div>
+            </div>
+
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <input type="text" id="eventSearchInput" class="search-box" placeholder="Search events, auditions or workshops..." oninput="searchEvents()">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <button class="search-btn-premium" onclick="searchEvents()">
+                    <i class="fas fa-filter"></i> Search
+                </button>
             </div>
 
             <div id="eventsGrid" class="events-display-grid">
@@ -571,14 +780,14 @@
     <div id="formModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 540px; padding: 0;">
             <div class="modal-header" style="padding: 15px 25px; border-bottom: 1px solid #f1f5f9;">
-                <h2 id="formTitle" style="font-size: 16px;">✨ Launch Opportunity</h2>
+                <h2 id="formTitle" style="font-size: 16px;">✨ Create New Event</h2>
                 <span class="close" onclick="closeFormModal()">✕</span>
             </div>
             <div class="content-body-modal" style="padding: 20px 25px;">
                 <div class="form-grid-2">
                     <div class="form-group full-width">
-                        <label class="form-label-premium">Opportunity Title</label>
-                        <input type="text" id="eventTitle" class="form-control-premium" placeholder="e.g. Lead Actor for Feature Film">
+                        <label class="form-label-premium">Event Name / Title</label>
+                        <input type="text" id="eventTitle" class="form-control-premium" placeholder="e.g. Workshop - Acting Masterclass">
                     </div>
                     <div class="form-group">
                         <label class="form-label-premium">Start Date</label>
@@ -605,12 +814,28 @@
                         <input type="email" id="eventOrgEmail" class="form-control-premium" placeholder="organizer@example.com">
                     </div>
                     <div class="form-group">
+                        <label class="form-label-premium">Organizer Phone</label>
+                        <div style="display: flex; gap: 5px;">
+                            <select id="countryCode" class="form-control-premium" style="width: 80px; padding: 10px 5px;">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+971">+971</option>
+                            </select>
+                            <input type="tel" id="eventOrgPhone" class="form-control-premium" placeholder="10-digit number">
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label-premium">Max Capacity</label>
                         <input type="number" id="eventCapacity" class="form-control-premium" placeholder="e.g. 50">
                     </div>
                     <div class="form-group">
                         <label class="form-label-premium">Budget / Price (₹)</label>
                         <input type="number" id="eventPrice" class="form-control-premium" placeholder="e.g. 5000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Image URL (Optional)</label>
+                        <input type="text" id="eventImageUrl" class="form-control-premium" placeholder="https://image-link.com">
                     </div>
                     <div class="form-group full-width">
                         <label class="form-label-premium">Key Skills Required</label>
@@ -662,8 +887,29 @@
     <script src="js/profile-handler.js"></script>
     <script src="js/events.js"></script>
     <script>
-        function showChoiceModal() { document.getElementById('choiceModal').style.display = 'flex'; }
-        function closeChoiceModal() { document.getElementById('choiceModal').style.display = 'none'; }
+        function showChoiceModal() { 
+            document.getElementById('choiceModal').style.display = 'flex'; 
+            document.body.style.overflow = 'hidden';
+        }
+        function closeChoiceModal() { 
+            document.getElementById('choiceModal').style.display = 'none'; 
+            if (!document.getElementById('formModal').style.display || document.getElementById('formModal').style.display === 'none') {
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Ensure form modal also handles body scroll
+        const originalOpenCreateForm = window.openCreateForm;
+        window.openCreateForm = function(type) {
+            document.body.style.overflow = 'hidden';
+            if (typeof originalOpenCreateForm === 'function') originalOpenCreateForm(type);
+        }
+        
+        const originalCloseFormModal = window.closeFormModal;
+        window.closeFormModal = function() {
+            document.body.style.overflow = 'auto';
+            if (typeof originalCloseFormModal === 'function') originalCloseFormModal();
+        }
     </script>
 </body>
 

@@ -63,7 +63,6 @@ function getNotifTypeClass(type) {
         case 'LIKE': return 'tag-like';
         case 'COMMENT': return 'tag-comment';
         case 'MESSAGE': return 'tag-message';
-        case 'CALL': return 'tag-call';
         case 'SHORTLIST':
         case 'REJECT':
         case 'APPLICATION': return 'tag-event';

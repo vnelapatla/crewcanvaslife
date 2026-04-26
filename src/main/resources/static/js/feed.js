@@ -6,12 +6,15 @@ const PAGE_SIZE = 10;
 let currentUserId = null;
 let selectedImageFiles = []; // Array for multiple images
 let isPollMode = false;
+let editingPostId = null;
+let editingImages = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     currentUserId = getCurrentUserId();
     loadFeed(0, true);
     setupImageUpload();
+    setupEditImageUpload();
     setupInfiniteScroll();
     
     // Add Load More fallback listener
@@ -260,7 +263,7 @@ function renderPostHTML(post) {
             </a>
             ${post.userId == currentUserId ? `
                 <div class="post-actions-menu">
-                    <button onclick="editPost(${post.id}, '${(post.content || "").replace(/'/g, "\\'")}')" title="Edit">✏️</button>
+                    <button onclick="editPost(${post.id})" title="Edit">✏️</button>
                     <button onclick="deletePost(${post.id})" title="Delete">🗑️</button>
                 </div>
             ` : ''}
@@ -327,7 +330,7 @@ function setupImageUpload() {
                     `;
                     previewContainer.appendChild(previewDiv);
                 } catch (error) {
-                    showMessage(error.message, 'error');
+                    showMessage('We couldn’t upload that image. Please try a different one.', 'error');
                 }
             }
         }
@@ -438,12 +441,11 @@ async function createPost() {
             }
             loadFeed(0, true);
         } else {
-            const error = await response.text();
-            showMessage('Error: ' + error, 'error');
+            showMessage('We couldn’t post that right now. Please check your content and try again.', 'error');
         }
     } catch (error) {
         console.error('Error creating post:', error);
-        showMessage('Connection Error', 'error');
+        showMessage('Unable to reach the studio. Please check your connection.', 'error');
     } finally {
         if (postBtn) {
             postBtn.disabled = false;
@@ -485,7 +487,7 @@ async function likePost(postId) {
                 btn.classList.toggle('liked', updatedPost.likedByUsers.includes(parseInt(currentUserId)));
             }
         } else {
-            showMessage('Could not like post', 'error');
+            showMessage('Unable to like this post. Please try again later.', 'error');
         }
     } catch (e) {
         console.error('Error:', e);
@@ -539,36 +541,132 @@ async function commentPost(postId) {
         if (response.ok) {
             const updatedPost = await response.json();
             loadFeed(0, true); // Refresh or we could surgically update the comment list
-            showMessage('Comment added gracefully!', 'success');
+            showMessage('Your comment has been posted!', 'success');
         } else {
-            showMessage('Error commenting', 'error');
+            showMessage('We couldn’t post your comment. Please try again.', 'error');
         }
     } catch (e) {
         console.error('Error:', e);
     }
 }
 
-async function editPost(postId, currentContent) {
-    const newContent = prompt("Edit your post:", currentContent);
-    if (newContent !== null && newContent.trim() !== "") {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    content: newContent.trim()
-                })
-            });
-            if (response.ok) {
-                showMessage('Post updated!');
-                loadFeed(0, true);
-            } else {
-                showMessage('Failed to update post.', 'error');
+async function editPost(postId) {
+    editingPostId = postId;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`);
+        if (response.ok) {
+            const post = await response.json();
+            
+            // Populate content
+            document.getElementById('editPostContent').value = post.content || '';
+            
+            // Populate images
+            editingImages = [];
+            if (post.imageUrls) {
+                editingImages = [...post.imageUrls];
+            } else if (post.imageUrl) {
+                editingImages = post.imageUrl.split(',').filter(s => s.trim() !== '');
             }
-        } catch (e) {
-            console.error('Error updating post', e);
+            
+            renderEditImagePreviews();
+            
+            // Show Modal
+            document.getElementById('editPostModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent scroll
+        } else {
+            showMessage('We couldn’t load the post details. Please refresh the page.', 'error');
+        }
+    } catch (e) {
+        console.error('Error fetching post for edit:', e);
+        showMessage('Oops! Something went wrong while loading the post.', 'error');
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('editPostModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    editingPostId = null;
+    editingImages = [];
+}
+
+function renderEditImagePreviews() {
+    const container = document.getElementById('editImagePreviewContainer');
+    if (!container) return;
+    
+    container.innerHTML = editingImages.map((img, index) => `
+        <div class="preview-item">
+            <img src="${img}" alt="Preview">
+            <button class="remove-img-btn" onclick="removeEditingImage(${index})">✕</button>
+        </div>
+    `).join('');
+}
+
+function removeEditingImage(index) {
+    editingImages.splice(index, 1);
+    renderEditImagePreviews();
+}
+
+function setupEditImageUpload() {
+    const imageInput = document.getElementById('editPostImage');
+    if (!imageInput) return;
+
+    imageInput.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+            try {
+                const base64 = await uploadImage(file);
+                if (base64) {
+                    editingImages.push(base64);
+                }
+            } catch (error) {
+                showMessage('Image upload failed. Please try again.', 'error');
+            }
+        }
+        renderEditImagePreviews();
+        imageInput.value = ''; // Reset
+    };
+}
+
+async function saveEditPost() {
+    const saveBtn = document.getElementById('saveEditBtn');
+    const content = document.getElementById('editPostContent').value.trim();
+    
+    if (!content && editingImages.length === 0) {
+        showMessage('Post cannot be empty', 'error');
+        return;
+    }
+
+    try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="loader-tiny"></span> Saving...';
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/posts/${editingPostId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: content,
+                imageUrls: editingImages
+            })
+        });
+
+        if (response.ok) {
+            showMessage('Post updated successfully!', 'success');
+            closeEditModal();
+            loadFeed(0, true);
+        } else {
+            showMessage('We couldn’t update your post. Please check your connection.', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving post:', error);
+        showMessage('Network error. Please try again.', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Changes';
         }
     }
 }
@@ -647,7 +745,7 @@ async function votePoll(postId, optionIndex) {
                 }
             }
         } else {
-            showMessage('Could not submit vote', 'error');
+            showMessage('Unable to submit your vote. Please try again later.', 'error');
         }
     } catch (e) {
         console.error('Error voting:', e);

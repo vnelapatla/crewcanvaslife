@@ -49,7 +49,7 @@ const ProfileHandler = {
     async toggleFollow(userId, btnElement) {
         const currentUserId = localStorage.getItem('userId');
         if (!currentUserId) {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -64,10 +64,10 @@ const ProfileHandler = {
             if (response.ok) {
                 if (isFollowing) {
                     this.followingIds = this.followingIds.filter(id => id !== parseInt(userId));
-                    if (typeof showMessage === 'function') showMessage('Unfollowed user', 'success');
+                    if (typeof showMessage === 'function') showMessage('Unfollowed', 'success');
                 } else {
                     this.followingIds.push(parseInt(userId));
-                    if (typeof showMessage === 'function') showMessage('Following user', 'success');
+                    if (typeof showMessage === 'function') showMessage('You are now following!', 'success');
                 }
                 this.syncFollowButtons();
                 if (typeof refreshProfileData === 'function') {
@@ -76,12 +76,11 @@ const ProfileHandler = {
                     loadProfile();
                 }
             } else {
-                const err = await response.text();
-                if (typeof showMessage === 'function') showMessage(err || 'Connection update failed', 'error');
+                if (typeof showMessage === 'function') showMessage('We couldn’t update your connection. Please try again.', 'error');
             }
         } catch (error) {
             console.error('Follow toggle error:', error);
-            if (typeof showMessage === 'function') showMessage('Connection error', 'error');
+            if (typeof showMessage === 'function') showMessage('Network error. Please check your connection.', 'error');
         }
     },
 

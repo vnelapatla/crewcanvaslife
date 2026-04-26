@@ -13,12 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.crewcanvas.service.NotificationService;
-
+import com.crewcanvas.model.PasswordResetToken;
+import com.crewcanvas.repository.PasswordResetTokenRepository;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -46,6 +51,9 @@ public class UserService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
 
     public User registerUser(String name, String email, String password) {
         if (userRepository.existsByEmail(email)) {
@@ -175,30 +183,112 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        // Clean up connections first (Foreign Key constraint)
-        connectionRepository.deleteByFollowerId(id);
-        connectionRepository.deleteByFollowingId(id);
-        
-        // Clean up messages
-        messageRepository.deleteBySenderId(id);
-        messageRepository.deleteByReceiverId(id);
-        
-        // Clean up event applications and events
-        eventApplicationRepository.deleteByUserId(id);
-        eventRepository.deleteByUserId(id);
-        
-        pollVoteRepository.deleteByUserId(id);
-        pollVoteRepository.deleteVotesOnUserPolls(id); // Votes on user's polls
-        projectRepository.deleteByUserId(id);
-        
-        // Clean up post likes and posts
-        postRepository.deleteUserLikes(id);
-        postRepository.deleteByUserId(id);
-        
-        userRepository.deleteById(id);
+        try {
+            logger.info("Starting deletion process for user ID: {}", id);
+            User user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                logger.warn("User not found for ID: {}", id);
+                return;
+            }
+
+            // Clean up Password Reset Tokens
+            logger.debug("Deleting password reset tokens for user: {}", id);
+            tokenRepository.deleteByUser(user);
+
+            // Clean up Notifications
+            logger.debug("Clearing notifications for user: {}", id);
+            notificationService.clearAllNotifications(id);
+            notificationService.clearNotificationsByActor(id);
+
+            // Clean up connections
+            logger.debug("Deleting connections for user: {}", id);
+            connectionRepository.deleteByFollowerId(id);
+            connectionRepository.deleteByFollowingId(id);
+            
+            // Fix for "ghost" followers table that might exist in some DB environments
+            try {
+                connectionRepository.deleteFromFollowersTable(id);
+            } catch (Exception e) {
+                logger.warn("Ghost followers table cleanup skipped or failed (likely table doesn't exist): {}", e.getMessage());
+            }
+            
+            // Clean up messages
+            logger.debug("Deleting messages for user: {}", id);
+            messageRepository.deleteBySenderId(id);
+            messageRepository.deleteByReceiverId(id);
+            
+            // Fix for "ghost" conversations table
+            try {
+                messageRepository.deleteFromConversationsTable(id);
+            } catch (Exception e) {
+                logger.warn("Ghost conversations table cleanup skipped or failed: {}", e.getMessage());
+            }
+            
+            // Clean up event applications and events
+            logger.debug("Deleting event data for user: {}", id);
+            eventApplicationRepository.deleteByUserId(id);
+            
+            // Fix: Delete applications TO the user's events before deleting the events
+            List<Long> userEventIds = eventRepository.findIdsByUserId(id);
+            if (!userEventIds.isEmpty()) {
+                logger.debug("Deleting applications for user's events: {}", userEventIds);
+                eventApplicationRepository.deleteByEventIdIn(userEventIds);
+            }
+            eventRepository.deleteByUserId(id);
+            
+            logger.debug("Deleting poll votes for user: {}", id);
+            pollVoteRepository.deleteByUserId(id);
+            pollVoteRepository.deleteVotesOnUserPolls(id);
+            
+            logger.debug("Deleting projects for user: {}", id);
+            projectRepository.deleteByUserId(id);
+            
+            // Clean up post likes and posts
+            logger.debug("Deleting post data for user: {}", id);
+            postRepository.deleteUserLikes(id); // Likes MADE BY user
+            
+            // Fix: Delete all collection data FOR the user's posts before deleting the posts themselves
+            postRepository.deleteLikesOnUserPosts(id);
+            postRepository.deleteCommentsOnUserPosts(id);
+            postRepository.deleteImagesOnUserPosts(id);
+            postRepository.deleteLinksOnUserPosts(id);
+            
+            postRepository.deleteByUserId(id);
+            
+            logger.info("Final step: Deleting user record for ID: {}", id);
+            userRepository.deleteById(id);
+            logger.info("User ID: {} deleted successfully", id);
+        } catch (Exception e) {
+            logger.error("CRITICAL ERROR during user deletion (ID: {}): {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete user account due to data constraints: " + e.getMessage(), e);
+        }
     }
 
     public List<User> getTopUsers() {
         return userRepository.findTop10ByOrderByProfileScoreDesc();
+    }
+
+    @Transactional
+    public void createPasswordResetTokenForUser(User user, String token) {
+        // Delete any existing token for this user
+        tokenRepository.deleteByUser(user);
+        
+        PasswordResetToken myToken = new PasswordResetToken(token, user);
+        tokenRepository.save(myToken);
+    }
+
+    public Optional<User> getUserByPasswordResetToken(String token) {
+        Optional<PasswordResetToken> resetToken = tokenRepository.findByToken(token);
+        if (resetToken.isPresent() && !resetToken.get().isExpired()) {
+            return Optional.of(resetToken.get().getUser());
+        }
+        return Optional.empty();
+    }
+
+    @Transactional
+    public void changeUserPassword(User user, String newPassword) {
+        user.setPassword(newPassword);
+        userRepository.save(user);
+        tokenRepository.deleteByUser(user); // Invalidate token after use
     }
 }

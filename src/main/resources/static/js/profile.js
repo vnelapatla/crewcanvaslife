@@ -2,6 +2,8 @@
 let profileUserId = null;
 let currentUserId = null;
 let profileUserData = null; 
+let editingPostId = null;
+let editingImages = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -31,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Load all data in parallel for "reactive fast" performance
         refreshProfileData();
+        setupEditImageUpload();
     } catch (globalError) {
         console.error("Critical Profile Init Error:", globalError);
     }
@@ -153,6 +156,32 @@ function displayProfile(user) {
 
     // Dynamic Craft Specifications
     displayCraftSpecs(user);
+
+    // Profile Actions (Edit vs Follow/Message)
+    const actionsContainer = document.getElementById('profileActionsContainer');
+    if (actionsContainer) {
+        const isCurrentUser = profileUserId === currentUserId;
+        if (isCurrentUser) {
+            actionsContainer.innerHTML = `
+                <a href="edit-profile.html" class="action-btn btn-primary">
+                    <i class="fa-solid fa-user-edit"></i> Edit Profile
+                </a>
+            `;
+        } else {
+            const isFollowing = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollowing(profileUserId) : false;
+            actionsContainer.innerHTML = `
+                <button class="action-btn btn-primary btn-follow ${isFollowing ? 'following' : ''}" 
+                        data-user-id="${profileUserId}" 
+                        onclick="ProfileHandler.toggleFollow('${profileUserId}', this)">
+                    <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> 
+                    ${isFollowing ? 'Following' : 'Follow'}
+                </button>
+                <a href="messages.html?chatWith=${profileUserId}" class="action-btn btn-secondary">
+                    <i class="fa-solid fa-envelope"></i> Message
+                </a>
+            `;
+        }
+    }
 }
 
 function displayCraftSpecs(user) {
@@ -239,10 +268,21 @@ function displayCraftSpecs(user) {
     };
 
     let fields = [];
+    let matched = false;
     for (const [key, val] of Object.entries(craftMapping)) {
         if (role.toLowerCase().includes(key.toLowerCase())) {
             fields = fields.concat(val);
+            matched = true;
         }
+    }
+
+    if (!matched) {
+        fields = [
+            { label: 'Interests', key: 'interests' },
+            { label: 'Occupation', key: 'occupation' },
+            { label: 'Industry Goals', key: 'goals' },
+            { label: 'Learning', key: 'learningResources' }
+        ];
     }
 
     // De-duplicate fields by key
@@ -304,6 +344,7 @@ async function loadUserProjects() {
                     <div class="project-meta">
                         <h4>${p.title} ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                         <p>${p.role} • ${p.year || ''}</p>
+                        ${p.videoUrl ? `<a href="${p.videoUrl}" target="_blank" style="color:var(--primary-orange); text-decoration:none; font-size:11px; margin-top:5px; display:inline-block; font-weight:700;">VIEW PROJECT <i class="fa-solid fa-external-link" style="font-size:9px;"></i></a>` : ''}
                     </div>
                 </div>
                 `;
@@ -423,7 +464,7 @@ function renderPostHTML(post) {
             </div>
             ${post.userId == currentUserId ? `
                 <div class="post-actions-menu">
-                    <button onclick="editPost(${post.id}, '${(post.content || "").replace(/'/g, "\\'")}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="editPost(${post.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="deletePost(${post.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </div>
             ` : ''}
@@ -439,7 +480,7 @@ function renderPostHTML(post) {
                 <i class="fa-solid fa-heart"></i> <span id="likes-count-${post.id}">${post.likes || 0}</span>
             </button>
             <button class="post-action-btn" onclick="toggleCommentBox(${post.id})">
-                <i class="fa-solid fa-comment"></i> <span>${post.commentsCount || 0}</span>
+                <i class="fa-solid fa-comment"></i> <span>${post.comments || 0}</span>
             </button>
         </div>
         
@@ -472,20 +513,124 @@ async function deletePost(postId) {
     } catch (e) { console.error(e); }
 }
 
-async function editPost(postId, currentContent) {
-    const newContent = prompt("Edit your post:", currentContent);
-    if (newContent !== null && newContent.trim() !== "") {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: newContent.trim() })
-            });
-            if (response.ok) {
-                showMessage('Post updated!');
-                loadUserPosts();
+async function editPost(postId) {
+    editingPostId = postId;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`);
+        if (response.ok) {
+            const post = await response.json();
+            
+            // Populate content
+            document.getElementById('editPostContent').value = post.content || '';
+            
+            // Populate images
+            editingImages = [];
+            if (post.imageUrls) {
+                editingImages = [...post.imageUrls];
+            } else if (post.imageUrl) {
+                editingImages = post.imageUrl.split(',').filter(s => s.trim() !== '');
             }
-        } catch (e) { console.error(e); }
+            
+            renderEditImagePreviews();
+            
+            // Show Modal
+            document.getElementById('editPostModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            showMessage('We couldn’t load the post details. Please refresh the page.', 'error');
+        }
+    } catch (e) {
+        console.error('Error fetching post for edit:', e);
+        showMessage('Oops! Something went wrong while loading the post.', 'error');
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('editPostModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    editingPostId = null;
+    editingImages = [];
+}
+
+function renderEditImagePreviews() {
+    const container = document.getElementById('editImagePreviewContainer');
+    if (!container) return;
+    
+    container.innerHTML = editingImages.map((img, index) => `
+        <div class="preview-item">
+            <img src="${img}" alt="Preview">
+            <button class="remove-img-btn" onclick="removeEditingImage(${index})">✕</button>
+        </div>
+    `).join('');
+}
+
+function removeEditingImage(index) {
+    editingImages.splice(index, 1);
+    renderEditImagePreviews();
+}
+
+function setupEditImageUpload() {
+    const imageInput = document.getElementById('editPostImage');
+    if (!imageInput) return;
+
+    imageInput.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+            try {
+                const base64 = await uploadImage(file);
+                if (base64) {
+                    editingImages.push(base64);
+                }
+            } catch (error) {
+                showMessage('Image upload failed. Please try again.', 'error');
+            }
+        }
+        renderEditImagePreviews();
+        imageInput.value = ''; // Reset
+    };
+}
+
+async function saveEditPost() {
+    const saveBtn = document.getElementById('saveEditBtn');
+    const content = document.getElementById('editPostContent').value.trim();
+    
+    if (!content && editingImages.length === 0) {
+        showMessage('Post cannot be empty', 'error');
+        return;
+    }
+
+    try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/posts/${editingPostId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: content,
+                imageUrls: editingImages
+            })
+        });
+
+        if (response.ok) {
+            showMessage('Post updated successfully!', 'success');
+            closeEditModal();
+            loadUserPosts();
+        } else {
+            showMessage('We couldn’t update your post. Please check your connection.', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving post:', error);
+        showMessage('Network error. Please try again.', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Changes';
+        }
     }
 }
 

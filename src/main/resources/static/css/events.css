@@ -13,6 +13,75 @@
     padding: 20px 0 100px;
 }
 
+/* Search Section */
+.search-container {
+    margin: 20px 0 30px;
+    position: relative;
+    max-width: 600px;
+}
+
+.search-box {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 18px 25px 18px 55px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-dark);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    transition: all 0.3s ease;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 10px 30px rgba(255, 140, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.search-icon {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+.search-box:focus + .search-icon {
+    color: var(--primary-orange);
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        max-width: 100%;
+        margin: 15px 0 25px;
+    }
+    
+    .search-box {
+        padding: 15px 20px 15px 45px;
+        font-size: 14px;
+    }
+    
+    .search-icon {
+        left: 18px;
+        font-size: 16px;
+    }
+
+    .modal {
+        align-items: flex-start !important;
+        padding: 20px 10px !important;
+        overflow-y: auto !important;
+    }
+
+    .modal-content {
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+}
+
 .cinematic-card {
     background: #fff;
     border-radius: 24px;
@@ -184,4 +253,15 @@
     cursor: pointer;
     font-size: 20px;
     color: var(--text-muted);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); color: var(--primary-orange); }
+    100% { transform: scale(1); }
+}
+
+.pulse-animation {
+    display: inline-block;
+    animation: pulse 0.5s ease-in-out;
 }

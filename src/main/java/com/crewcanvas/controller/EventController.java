@@ -141,4 +141,14 @@ public class EventController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @GetMapping("/all-applicants")
+    public ResponseEntity<?> getAllApplicantsForUser(@RequestParam Long userId) {
+        try {
+            return ResponseEntity.ok(eventService.getAllApplicantsForUser(userId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

@@ -23,6 +23,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
+            min-height: 100vh;
         }
 
         .main-content {
@@ -32,10 +33,11 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            background: linear-gradient(rgba(10, 12, 16, 0.7), rgba(10, 12, 16, 0.7)), 
+            background: linear-gradient(rgba(10, 12, 16, 0.8), rgba(10, 12, 16, 0.8)), 
                         url('images/auth_premium.png');
             background-size: cover;
             background-position: center;
+            background-attachment: fixed;
         }
 
         .auth-container {
@@ -44,13 +46,8 @@
             padding: 48px;
             transition: var(--transition-smooth);
             margin: 0 auto;
-        }
-
-        @media (max-width: 1080px) {
-            .auth-container {
-                max-width: 100%;
-                border-radius: 0;
-            }
+            position: relative;
+            z-index: 10;
         }
 
         .logo-section {
@@ -187,34 +184,148 @@
             height: 20px;
         }
 
-        @media (max-width: 480px) {
+        /* Mobile Optimization */
+        @media (max-width: 500px) {
+            html, body {
+                height: 100%;
+                overflow: hidden;
+                overscroll-behavior: none; /* Prevent bounce */
+            }
+
+            .main-content {
+                padding: 0;
+                align-items: stretch;
+                height: 100%;
+                overflow: hidden;
+                overscroll-behavior: none;
+            }
+
             .auth-container {
-                padding: 32px 24px;
+                max-width: 100%;
+                height: 100dvh;
+                padding: 24px 20px;
                 border-radius: 0;
-                min-height: 100vh;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
+                justify-content: center; /* Center vertically if fits, else scroll */
+                background: var(--bg-main);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-y: contain;
+            }
+
+            .logo-section {
+                margin-bottom: 20px;
             }
 
             .logo-section h1 {
-                font-size: 32px;
+                font-size: 26px;
+                margin-bottom: 4px;
+            }
+
+            .logo-section p {
+                font-size: 11px;
+                letter-spacing: 1px;
             }
 
             .auth-tabs {
+                margin-bottom: 16px;
                 padding: 4px;
             }
 
             .auth-tab {
-                padding: 10px;
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            .form-group label {
+                margin-bottom: 4px;
+                font-size: 11px;
+            }
+
+            .premium-input {
+                padding: 10px 14px;
                 font-size: 14px;
             }
 
-            body {
-                padding: 0;
-                align-items: stretch;
+            .social-divider {
+                margin: 16px 0;
+                font-size: 11px;
+            }
+
+            .social-grid {
+                margin-bottom: 10px;
+            }
+
+            .social-btn {
+                padding: 10px;
+                font-size: 14px;
             }
         }
+
+        /* Landscape and very small height fix */
+        @media (max-height: 650px) and (max-width: 500px) {
+            .auth-container {
+                padding: 15px 20px;
+                justify-content: flex-start;
+            }
+            .logo-section {
+                margin-bottom: 10px;
+            }
+            .auth-tabs {
+                margin-bottom: 10px;
+            }
+            .form-group {
+                margin-bottom: 8px;
+            }
+            .social-divider {
+                margin: 12px 0;
+            }
+        }
+
+        .password-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+            z-index: 5;
+        }
+
+        .password-toggle:hover {
+            color: white;
+        }
+
+        .password-toggle svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .premium-input.with-toggle {
+            padding-right: 48px;
+        }
+
     </style>
 </head>
 
@@ -239,10 +350,15 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="loginPassword" class="premium-input" placeholder="••••••••" required>
+                    <div class="password-field">
+                        <input type="password" id="loginPassword" class="premium-input with-toggle" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)">
+                            <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="forgot-password">
-                    <a href="#">Forgot your password?</a>
+                    <a href="forgot-password.html">Forgot your password?</a>
                 </div>
                 <button type="submit" class="premium-btn" style="width: 100%;">
                     Access Studio
@@ -261,11 +377,21 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="signupPassword" class="premium-input" placeholder="Min. 8 characters" required>
+                    <div class="password-field">
+                        <input type="password" id="signupPassword" class="premium-input with-toggle" placeholder="Min. 8 characters" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)">
+                            <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Confirm Password</label>
-                    <input type="password" id="confirmPassword" class="premium-input" placeholder="••••••••" required>
+                    <div class="password-field">
+                        <input type="password" id="confirmPassword" class="premium-input with-toggle" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword', this)">
+                            <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="premium-btn" style="width: 100%;">
                     Create Profile
@@ -283,8 +409,8 @@
         </div>
     </main>
 
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/utils.js?v=1.1"></script>
+    <script src="js/auth.js?v=1.1"></script>
     <script>
         function toggleAuth(mode) {
             const loginForm = document.getElementById('loginForm');
@@ -302,6 +428,19 @@
                 signupForm.classList.add('active');
                 loginTab.classList.remove('active');
                 signupTab.classList.add('active');
+            }
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('svg');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
             }
         }
     </script>

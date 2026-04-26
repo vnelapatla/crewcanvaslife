@@ -40,9 +40,9 @@
         /* View 1: List Styles */
         .event-card {
             background: #fff;
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 25px;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
             box-shadow: var(--card-shadow);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -51,10 +51,10 @@
         }
 
         .event-info h3 {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         .event-details {
@@ -132,8 +132,8 @@
 
         .stat-card {
             background: #fff;
-            padding: 24px;
-            border-radius: 24px;
+            padding: 16px 20px;
+            border-radius: 16px;
             box-shadow: var(--card-shadow);
             border: 1px solid #f1f5f9;
             display: flex;
@@ -222,11 +222,45 @@
             transition: 0.3s;
         }
 
+        .icon-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(0.9);
+        }
+
         .btn-check { background: #f0fdf4; color: #16a34a; }
         .btn-cross { background: #fef2f2; color: #ef4444; }
 
         .btn-check:hover { background: #16a34a; color: white; }
         .btn-cross:hover { background: #ef4444; color: white; }
+
+        .mgmt-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control-premium {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #0f172a;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-control-premium:focus {
+            background: #fff;
+            border-color: var(--primary-orange);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+        }
 
         .search-bar {
             margin-bottom: 25px;
@@ -242,11 +276,31 @@
 
         @media (max-width: 1080px) {
             .stats-row { grid-template-columns: 1fr; }
+            .edit-modal-grid { grid-template-columns: 1fr !important; }
         }
 
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 15px;
+            }
+
+            .modal {
+                align-items: flex-start !important;
+                padding: 20px 10px !important;
+                overflow-y: auto !important;
+                z-index: 20000 !important;
+            }
+
+            .modal-content {
+                border-radius: 16px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 20px !important;
+            }
+
+            .edit-modal-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
             }
 
             .management-header h1 {
@@ -274,6 +328,22 @@
 
             .user-profile-box {
                 padding: 4px 10px;
+            }
+            .stat-card {
+                padding: 12px 15px !important;
+                gap: 15px !important;
+            }
+            .stat-value {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 16px !important;
+                border-radius: 10px !important;
+            }
+            .stat-text h4 {
+                font-size: 9px !important;
+            }
+            .stat-text b {
+                font-size: 13px !important;
             }
 
             /* Responsive Table to Cards */
@@ -402,7 +472,7 @@
         <div class="dashboard-container">
             <!-- View 1: List View -->
             <div id="listView" style="display: none;">
-                <h1 style="font-size: 32px; margin-bottom: 40px; color: #1e293b;">My Events Dashboard</h1>
+                <h1 style="font-size: 24px; margin-bottom: 30px; color: #1e293b;">My Events Dashboard</h1>
                 <div id="eventList">
                     <!-- Events loaded here -->
                 </div>
@@ -411,9 +481,20 @@
             <!-- View 2: Management View -->
             <div id="mgmtView" style="display: none;">
                 <div class="management-header">
-                    <div class="mgmt-label">Event Management</div>
-                    <h1 id="mgmtEventTitle" style="font-size: 36px; color: #1e293b; margin: 10px 0;">Event Title</h1>
-                    <button class="export-btn" onclick="exportApplicantsData()">Export Data</button>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <a href="home.html" style="text-decoration: none; color: #64748b; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; margin-bottom: 10px;">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                            <div class="mgmt-label">Event Management</div>
+                            <h1 id="mgmtEventTitle" style="font-size: 24px; color: #1e293b; margin: 5px 0;">Event Title</h1>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="export-btn" onclick="exportApplicantsData()" style="padding: 6px 12px; font-size: 11px;"><i class="fas fa-file-export"></i> Export</button>
+                            <button class="manage-btn" onclick="openEditModal()" style="margin-top: 0; padding: 6px 12px; font-size: 11px; border-color: var(--primary-orange); color: var(--primary-orange);"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="delete-btn" onclick="deleteEvent(currentEventId)" style="margin-top: 0; padding: 6px 12px; font-size: 11px;"><i class="fas fa-trash"></i> Delete</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="stats-row">
@@ -438,6 +519,7 @@
                 <table class="applicants-table">
                     <thead>
                         <tr>
+                            <th>RANK</th>
                             <th>NAME</th>
                             <th>ROLE</th>
                             <th>EXPERIENCE</th>
@@ -452,13 +534,90 @@
                 </table>
             </div>
         </div>
+
+        <!-- Edit Event Modal -->
+        <div id="editModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); overflow: hidden;">
+            <div class="modal-content" style="background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; color: #1e293b; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h2 style="margin: 0; font-family: 'Outfit';">Edit Event Details</h2>
+                    <button onclick="closeEditModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">✕</button>
+                </div>
+                <div class="edit-modal-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Event Title</label>
+                        <input type="text" id="editTitle" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Event Type</label>
+                        <select id="editType" class="form-control-premium">
+                            <option value="Audition">Audition</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Course">Course</option>
+                            <option value="Contest">Contest</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Start Date</label>
+                        <input type="date" id="editDate" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">End Date</label>
+                        <input type="date" id="editEndDate" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Time / Duration</label>
+                        <input type="text" id="editTimeDuration" class="form-control-premium" placeholder="e.g. 10:00 AM - 4:00 PM">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Location</label>
+                        <input type="text" id="editLocation" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Capacity</label>
+                        <input type="number" id="editCapacity" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Price (₹)</label>
+                        <input type="number" id="editPrice" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Organizer Name</label>
+                        <input type="text" id="editOrgName" class="form-control-premium">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Organizer Email</label>
+                        <input type="email" id="editOrgEmail" class="form-control-premium">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Organizer Phone</label>
+                        <input type="tel" id="editOrgPhone" class="form-control-premium" placeholder="e.g. +91 9876543210">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Image URL</label>
+                        <input type="text" id="editImageUrl" class="form-control-premium" placeholder="https://image-link.com">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Required Skills</label>
+                        <input type="text" id="editRequirements" class="form-control-premium">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Description</label>
+                        <textarea id="editDescription" class="form-control-premium" style="min-height: 100px;"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button onclick="saveEventEdits()" style="flex: 2; background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange)); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);">Save Changes</button>
+                    <button onclick="closeEditModal()" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+                </div>
+            </div>
+        </div>
     </main>
 
 
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/event-dashboard.js"></script>
+    <script src="js/utils.js?v=1.1"></script>
+    <script src="js/profile-handler.js?v=1.1"></script>
+    <script src="js/event-dashboard.js?v=1.1"></script>
 </body>
 
 </html>

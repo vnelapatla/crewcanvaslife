@@ -13,6 +13,9 @@
         .content-body {
             padding-bottom: 100px !important;
         }
+        #voiceCallBtn, #videoCallBtn {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="messages-page">
@@ -84,8 +87,6 @@
                             </div>
                         </div>
                         <div class="chat-actions">
-                            <i class="fa-solid fa-phone" id="voiceCallBtn" onclick="CallSystem.startCall('voice')" style="cursor: pointer;"></i>
-                            <i class="fa-solid fa-video" id="videoCallBtn" onclick="CallSystem.startCall('video')" style="cursor: pointer;"></i>
                             <i class="fa-solid fa-xmark" onclick="closeChatArea()" style="cursor: pointer;"></i>
                         </div>
                     </header>
@@ -119,9 +120,9 @@
     <!-- WebSocket Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/advanced-messaging.js"></script>
-    <script src="js/messages.js"></script>
+    <script src="js/utils.js?v=1.1"></script>
+    <script src="js/profile-handler.js?v=1.1"></script>
+    <script src="js/advanced-messaging.js?v=1.1"></script>
+    <script src="js/messages.js?v=1.1"></script>
 </body>
 </html>

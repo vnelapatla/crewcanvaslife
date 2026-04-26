@@ -70,6 +70,8 @@ public class EventService {
                 event.setDate(updatedEvent.getDate());
             if (updatedEvent.getTime() != null)
                 event.setTime(updatedEvent.getTime());
+            if (updatedEvent.getTimeDuration() != null)
+                event.setTimeDuration(updatedEvent.getTimeDuration());
             if (updatedEvent.getRequirements() != null)
                 event.setRequirements(updatedEvent.getRequirements());
             if (updatedEvent.getContactInfo() != null)
@@ -88,12 +90,16 @@ public class EventService {
                 event.setOrgEmail(updatedEvent.getOrgEmail());
             if (updatedEvent.getSkills() != null)
                 event.setSkills(updatedEvent.getSkills());
+            if (updatedEvent.getEndDate() != null)
+                event.setEndDate(updatedEvent.getEndDate());
             return eventRepository.save(event);
         }
         throw new RuntimeException("Event not found");
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void deleteEvent(Long id) {
+        applicationRepository.deleteByEventId(id);
         eventRepository.deleteById(id);
     }
 
@@ -264,5 +270,16 @@ public class EventService {
             return savedApp;
         }
         throw new RuntimeException("Application not found");
+    }
+
+    public List<EventApplication> getAllApplicantsForUser(Long userId) {
+        List<Event> userEvents = eventRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (userEvents.isEmpty()) return new java.util.ArrayList<>();
+        
+        java.util.List<Long> eventIds = userEvents.stream()
+            .map(Event::getId)
+            .collect(java.util.stream.Collectors.toList());
+            
+        return applicationRepository.findByEventIdIn(eventIds);
     }
 }

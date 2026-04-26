@@ -20,9 +20,9 @@
             .mobile-logo-box { display: flex !important; }
             .top-header { justify-content: space-between !important; padding: 10px 15px !important; }
             .quick-actions { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
-            .action-card { padding: 20px 10px; }
-            .action-icon { width: 48px; height: 48px; font-size: 18px; margin-bottom: 12px; }
-            .action-card b { font-size: 12px; }
+            .action-card { padding: 15px 10px; }
+            .action-icon { width: 42px; height: 42px; font-size: 16px; margin-bottom: 10px; }
+            .action-card b { font-size: 11px; }
             .stat-info b { font-size: 24px; }
             .content-body { padding: 10px 10px 100px !important; }
             .stat-card { padding: 15px !important; }
@@ -45,19 +45,19 @@
         
         .stat-header { display: flex; align-items: center; gap: 20px; }
         .stat-icon-box { 
-            width: 54px; 
-            height: 54px; 
-            border-radius: 14px; 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 12px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 22px;
+            font-size: 18px;
             background: #fff8f1;
             color: #ff8c00;
         }
         
-        .stat-info h3 { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin: 0; letter-spacing: 1px; font-weight: 800; }
-        .stat-info b { font-size: 32px; color: #1e293b; line-height: 1; }
+        .stat-info h3 { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; font-weight: 800; }
+        .stat-info b { font-size: 18px; color: #1e293b; line-height: 1.2; display: block; margin-top: 2px; }
         
         .stat-breakdown { 
             display: grid; 
@@ -74,7 +74,7 @@
         .action-card { 
             background: #fff; 
             border-radius: 24px; 
-            padding: 30px 20px; 
+            padding: 20px 15px; 
             text-align: center; 
             cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,18 +84,18 @@
         .action-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #ff8c00; }
         
         .action-icon { 
-            width: 64px; 
-            height: 64px; 
-            border-radius: 20px; 
-            margin: 0 auto 20px; 
+            width: 52px; 
+            height: 52px; 
+            border-radius: 16px; 
+            margin: 0 auto 15px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             color: #fff; 
-            font-size: 24px;
+            font-size: 20px;
             box-shadow: 0 8px 15px rgba(0,0,0,0.1);
         }
-        .action-card b { font-size: 14px; color: #334155; font-weight: 700; }
+        .action-card b { font-size: 13px; color: #334155; font-weight: 700; }
         
         .badge-shortlisted {
             background: #f0fdf4;
@@ -128,7 +128,7 @@
                 <div class="action-card" onclick="location.href='event.html'"><div class="action-icon" style="background:#3b82f6"><i class="fa-solid fa-calendar-plus"></i></div><b>Create Event</b></div>
             </div>
 
-            <h2 style="font-size: 18px; font-weight: 800; margin: 40px 0 20px;">Organization Dashboard</h2>
+            <h2 style="font-size: 18px; font-weight: 800; margin: 40px 0 20px;">Manage My Events</h2>
             <div id="hostedEventsContainer" class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 50px;">
                 <!-- Hosted events with applicant lists will appear here -->
                 <p style="color: #64748b; font-size: 14px; text-align: center; padding: 40px; background: #fff; border-radius: 24px; border: 1px dashed #cbd5e1;">
@@ -221,24 +221,19 @@
                             eventCard.innerHTML = `
                                 <div class="card-bar" style="background:#8b5cf6"></div>
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                    <div class="stat-header">
-                                        <div class="stat-icon-box" style="background: #f5f3ff; color: #8b5cf6;">
+                                    <div class="stat-header" style="gap: 12px;">
+                                        <div class="stat-icon-box" style="width: 42px; height: 42px; font-size: 18px; background: #f5f3ff; color: #8b5cf6;">
                                             <i class="fa-solid fa-clapperboard"></i>
                                         </div>
                                         <div class="stat-info">
-                                            <h3>${event.eventType}</h3>
-                                            <b>${event.title}</b>
-                                            <p style="font-size:12px; color:#64748b; margin-top:5px;">${event.applicants} Applicants</p>
+                                            <h3 style="font-size: 9px;">${event.eventType}</h3>
+                                            <b style="font-size: 15px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${event.title}</b>
+                                            <p style="font-size:11px; color:#64748b; margin-top:2px;">${event.applicants} Applicants</p>
                                         </div>
                                     </div>
-                                    <button onclick="toggleApplicants(${event.id})" style="background:#1e293b; color:white; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
-                                        View Ranked Applicants
+                                    <button onclick="window.location.href='event-dashboard.html?id=${event.id}'" style="background:#1e293b; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; align-self: center;">
+                                        Manage
                                     </button>
-                                </div>
-                                <div id="applicantsList_${event.id}" style="display:none; margin-top:20px; border-top:1px solid #f1f5f9; padding-top:20px;">
-                                    <div class="loading-applicants" style="text-align:center; padding:20px;">
-                                        <i class="fas fa-spinner fa-spin"></i> Loading ranked candidates...
-                                    </div>
                                 </div>
                             `;
                             container.appendChild(eventCard);
@@ -267,10 +262,10 @@
                     // Render Application List
                     const list = document.getElementById('appList');
                     list.innerHTML = apps.map(app => {
-                        return `<div style="background:#fff; border:1px solid #eee; border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:20px;">
-                            <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:20px;"></i>
-                            <div style="flex:1"><b>${app.eventTitle || 'Event'}</b><p style="font-size:12px; color:#666">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
-                            <span style="background:#f1f5f9; color:#64748b; padding:4px 12px; border-radius:15px; font-size:10px; font-weight:800;">${app.status || 'PENDING'}</span>
+                        return `<div style="background:#fff; border:1px solid #f1f5f9; border-radius:16px; padding:12px 16px; margin-bottom:10px; display:flex; align-items:center; gap:15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                            <i class="fa-solid fa-clapperboard" style="color:#6366f1; font-size:16px;"></i>
+                            <div style="flex:1"><b style="font-size: 14px; color: #334155;">${app.eventTitle || 'Event'}</b><p style="font-size:11px; color:#94a3b8; margin: 2px 0 0;">Applied on ${new Date(app.appliedAt).toLocaleDateString()}</p></div>
+                            <span style="background:#f8fafc; color:#64748b; padding:4px 10px; border-radius:12px; font-size:9px; font-weight:800; text-transform: uppercase;">${app.status || 'PENDING'}</span>
                         </div>`;
                     }).join('');
                 }
@@ -279,52 +274,6 @@
             }
         });
 
-        async function toggleApplicants(eventId) {
-            const listDiv = document.getElementById(`applicantsList_${eventId}`);
-            if (listDiv.style.display === 'block') {
-                listDiv.style.display = 'none';
-                return;
-            }
-            
-            listDiv.style.display = 'block';
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/events/${eventId}/applicants`);
-                if (res.ok) {
-                    const applicants = await res.json();
-                    if (applicants.length === 0) {
-                        listDiv.innerHTML = '<p style="text-align:center; font-size:13px; color:#64748b; padding:20px;">No applications received yet.</p>';
-                        return;
-                    }
-                    
-                    listDiv.innerHTML = applicants.map((app, index) => {
-                        const isLowCompleteness = app.matchScore < -2000; // Penalized score
-                        const rankLabel = isLowCompleteness ? 'NEXT ORDER' : `#${index + 1} MATCH`;
-                        const rankColor = isLowCompleteness ? '#94a3b8' : '#ff8c00';
-                        
-                        return `
-                            <div style="display:flex; align-items:center; gap:15px; padding:15px; background:#f8fafc; border-radius:16px; margin-bottom:10px; border:1px solid ${isLowCompleteness ? '#e2e8f0' : 'rgba(255,140,0,0.1)'}">
-                                <div style="width:40px; height:40px; background:${rankColor}; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; flex-shrink:0;">
-                                    ${isLowCompleteness ? '!' : index + 1}
-                                </div>
-                                <div style="flex:1">
-                                    <div style="display:flex; justify-content:space-between;">
-                                        <b style="font-size:14px; color:#1e293b;">${app.applicantName}</b>
-                                        <span style="font-size:10px; font-weight:800; color:${rankColor}; text-transform:uppercase;">${rankLabel}</span>
-                                    </div>
-                                    <div style="font-size:12px; color:#64748b;">${app.role} • ${app.location}</div>
-                                    <div style="margin-top:8px; display:flex; gap:10px;">
-                                        <button onclick="window.location.href='profile.html?userId=${app.userId}'" style="background:white; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">View Profile</button>
-                                        <button onclick="location.href='messages.html?contactId=${app.userId}'" style="background:white; border:1px solid #ff8c00; color:#ff8c00; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Message</button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            } catch (err) {
-                listDiv.innerHTML = '<p style="color:red; font-size:12px; padding:10px;">Failed to load applicants.</p>';
-            }
-        }
     </script>
 </body>
 </html>

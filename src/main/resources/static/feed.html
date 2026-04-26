@@ -84,9 +84,32 @@
 
     <!-- Universal Bottom Navigation is injected by utils.js -->
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/feed.js"></script>
+    <!-- Edit Post Modal -->
+    <div id="editPostModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Post</h3>
+                <button onclick="closeEditModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="editPostContent" maxlength="1000" placeholder="What's on your mind?"></textarea>
+                <div id="editImagePreviewContainer" class="image-preview-grid"></div>
+                <div class="modal-actions">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" id="editPostImage" accept="image/*" multiple style="display: none;">
+                        <button onclick="document.getElementById('editPostImage').click()" class="secondary-btn">
+                            <i class="fa-regular fa-image"></i> Add Media
+                        </button>
+                    </div>
+                    <button onclick="saveEditPost()" id="saveEditBtn" class="auth-btn" style="width: auto; padding: 10px 25px;">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js?v=2.0"></script>
+    <script src="js/profile-handler.js?v=2.0"></script>
+    <script src="js/feed.js?v=2.0"></script>
 </body>
 
 </html>

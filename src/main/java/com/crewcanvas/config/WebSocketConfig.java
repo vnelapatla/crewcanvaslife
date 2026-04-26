@@ -1,3 +1,4 @@
+
 package com.crewcanvas.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureWebSocketTransport(org.springframework.web.socket.config.annotation.WebSocketTransportRegistration registration) {
+    public void configureWebSocketTransport(
+            org.springframework.web.socket.config.annotation.WebSocketTransportRegistration registration) {
         registration.setMessageSizeLimit(100 * 1024 * 1024); // 100MB
         registration.setSendBufferSizeLimit(100 * 1024 * 1024); // 100MB
         registration.setSendTimeLimit(20000); // 20 seconds

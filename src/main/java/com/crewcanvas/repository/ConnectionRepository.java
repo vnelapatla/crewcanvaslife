@@ -30,4 +30,9 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
 
     @org.springframework.transaction.annotation.Transactional
     void deleteByFollowingId(Long followingId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM followers WHERE follower_id = ?1 OR following_id = ?1", nativeQuery = true)
+    void deleteFromFollowersTable(Long userId);
 }

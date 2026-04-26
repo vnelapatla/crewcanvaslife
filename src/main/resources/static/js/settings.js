@@ -52,12 +52,11 @@ async function updatePassword() {
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
         } else {
-            const errorMsg = await res.text();
-            showMessage(`Failed to update password: ${errorMsg || res.statusText}`, "error");
+            showMessage("We couldn't update your password. Please ensure all fields are correct.", "error");
         }
     } catch (error) {
         console.error('Error updating password:', error);
-        showMessage("An error occurred", "error");
+        showMessage("Oops! Something went wrong. Please try again later.", "error");
     }
 }
 
@@ -88,7 +87,7 @@ async function saveSettings(data) {
     try {
         const userId = parseInt(data.id);
         if (isNaN(userId)) {
-            showMessage("Invalid User ID", "error");
+            showMessage("Session error. Please try logging in again.", "error");
             return;
         }
 
@@ -108,12 +107,11 @@ async function saveSettings(data) {
         if (res.ok) {
             showMessage("Settings saved successfully", "success");
         } else {
-            const err = await res.text();
-            showMessage(`Save failed: ${res.status} ${err}`, "error");
+            showMessage("Unable to save your settings. Please check your details and try again.", "error");
         }
     } catch (error) {
         console.error('Error saving settings:', error);
-        showMessage("Connection error", "error");
+        showMessage("Network connection error. Please check your internet.", "error");
     }
 }
 
@@ -132,11 +130,10 @@ async function deleteAccount() {
             showMessage("Account deleted successfully", "success");
             setTimeout(() => {
                 localStorage.clear();
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             }, 2000);
         } else {
-            const errorMsg = await res.text();
-            showMessage(`Failed to delete account: ${errorMsg || res.statusText}`, "error");
+            showMessage("We couldn't delete your account right now. Please try again later.", "error");
         }
     } catch (error) {
         console.error('Error deleting account:', error);

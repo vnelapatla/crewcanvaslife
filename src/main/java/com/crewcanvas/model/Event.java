@@ -34,6 +34,9 @@ public class Event {
     private LocalDate endDate;
 
     private LocalTime time;
+    
+    @Column(name = "time_duration")
+    private String timeDuration;
 
     private String requirements;
 
@@ -156,6 +159,14 @@ public class Event {
 
     public void setTime(LocalTime time) {
         this.time = time;
+    }
+
+    public String getTimeDuration() {
+        return timeDuration;
+    }
+
+    public void setTimeDuration(String timeDuration) {
+        this.timeDuration = timeDuration;
     }
 
     public String getRequirements() {

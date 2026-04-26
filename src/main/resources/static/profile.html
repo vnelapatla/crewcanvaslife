@@ -46,94 +46,14 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            padding-top: 70px; /* Space for fixed header */
         }
 
-        /* --- Top Header --- */
+        /* Use Universal Header from main.css */
         .top-header {
-            height: 80px;
-            padding: 0 40px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-bottom: 1px solid var(--border-dim);
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 999;
+            background: white !important;
+            border-bottom: 1px solid #f1f5f9 !important;
         }
-
-        .user-profile-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255,255,255,0.03);
-            padding: 8px 15px;
-            border-radius: 50px;
-            border: 1px solid var(--border-dim);
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-        }
-
-        .user-profile-box:hover {
-            border-color: var(--primary-orange);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .mini-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-orange);
-        }
-
-        .user-name-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        /* --- Profile Dropdown --- */
-        .profile-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 220px;
-            background: #fff; /* White as per reference image 1 */
-            border-radius: 15px;
-            margin-top: 15px;
-            padding: 10px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-            display: none;
-            flex-direction: column;
-            z-index: 1001;
-        }
-
-        .profile-dropdown.active { display: flex; }
-
-        .dropdown-item {
-            padding: 12px 15px;
-            border-radius: 10px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #333;
-            transition: 0.2s;
-        }
-
-        .dropdown-item:hover { background: #f5f5f5; }
-
-        .dropdown-item i { font-size: 16px; width: 24px; text-align: center; }
-        .dropdown-item.profile i { color: #6366f1; } /* Purple */
-        .dropdown-item.edit i { color: #f43f5e; } /* Red/Orange */
-        .dropdown-item.settings i { color: #64748b; } /* Gray */
-        .dropdown-item.logout { border-top: 1px solid #eee; margin-top: 5px; color: #f43f5e; }
-        .dropdown-item.logout i { color: #3b82f6; } /* Blue */
 
         /* --- Profile Page Content --- */
         .profile-container {
@@ -558,6 +478,55 @@
         .slider-nav-btn.prev { left: 10px; }
         .slider-nav-btn.next { right: 10px; }
 
+        .profile-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .action-btn {
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255,140,0,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,140,0,0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-follow.following {
+            background: transparent;
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
         /* Responsive */
         @media (max-width: 1080px) {
             body { display: block; }
@@ -599,6 +568,10 @@
                 <h1 id="profileName">...</h1>
                 <div id="profileStatus" style="font-weight: 800; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;"></div>
                 <p id="profileBio"></p>
+                
+                <div class="profile-actions" id="profileActionsContainer">
+                    <!-- Injected by JS based on viewer ownership -->
+                </div>
                 
                 <div class="profile-strength-container" id="profileStrengthBox" style="display: none;">
                     <div class="strength-header">
@@ -726,8 +699,31 @@
         <a href="event.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Events</span></a>
     </nav>
 
-    <script src="js/utils.js"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/profile.js"></script>
+    <!-- Edit Post Modal -->
+    <div id="editPostModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Post</h3>
+                <button onclick="closeEditModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="editPostContent" maxlength="1000" placeholder="What's on your mind?"></textarea>
+                <div id="editImagePreviewContainer" class="image-preview-grid"></div>
+                <div class="modal-actions">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" id="editPostImage" accept="image/*" multiple style="display: none;">
+                        <button onclick="document.getElementById('editPostImage').click()" class="secondary-btn">
+                            <i class="fa-regular fa-image"></i> Add Media
+                        </button>
+                    </div>
+                    <button onclick="saveEditPost()" id="saveEditBtn" class="auth-btn" style="width: auto; padding: 10px 25px;">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js?v=2.0"></script>
+    <script src="js/profile-handler.js?v=2.0"></script>
+    <script src="js/profile.js?v=2.0"></script>
 </body>
 </html>

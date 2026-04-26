@@ -35,14 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('isAdmin', isAdmin);
 
                 showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => window.location.href = 'home.html', 1500);
+                setTimeout(() => window.location.href = 'feed.html', 1500);
             } else {
-                const error = await response.text();
-                showMessage(error || 'Login failed. Please check your credentials.', 'error');
+                showMessage('We couldn’t find an account with those details. Please check your email and password.', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            showMessage('Server connection error. Is the backend running?', 'error');
+            showMessage('Unable to connect to the studio. Please check your internet connection.', 'error');
         }
     });
 
@@ -88,12 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('loginEmail').value = email;
                 }, 2000);
             } else {
-                const error = await response.text();
-                showMessage(error || 'Registration failed. Email might already be in use.', 'error');
+                showMessage('This email seems to be taken already. Try logging in instead.', 'error');
             }
         } catch (error) {
             console.error('Signup error:', error);
-            showMessage('Server connection error. Is the backend running?', 'error');
+            showMessage('Something went wrong on our end. Please try again in a few moments.', 'error');
         }
     });
 });
@@ -130,13 +128,12 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('isAdmin', user.isAdmin);
 
             showMessage('Google Login successful! Redirecting...', 'success');
-            setTimeout(() => window.location.href = 'home.html', 1500);
+            setTimeout(() => window.location.href = 'feed.html', 1500);
         } else {
-            const error = await res.text();
-            showMessage(error || 'Google login failed.', 'error');
+            showMessage('Google login wasn’t successful. Please try signing in with your email.', 'error');
         }
     } catch (error) {
         console.error('Google Auth error:', error);
-        showMessage('Server connection error during Google login.', 'error');
+        showMessage('Having trouble reaching Google. Please check your connection.', 'error');
     }
 }

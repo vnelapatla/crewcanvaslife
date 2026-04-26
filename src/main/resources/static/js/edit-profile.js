@@ -3,6 +3,7 @@ let currentUserId = null;
 let selectedProfilePic = null;
 let skillsList = [];
 let originalUserData = {};
+let editingProjectId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -54,6 +55,10 @@ async function loadProfileData() {
             document.getElementById('actGender').value = user.gender || '';
             document.getElementById('actBodyType').value = user.bodyType || '';
             document.getElementById('actLanguages').value = user.languages || '';
+            
+            // DOP
+            document.getElementById('dopCamera').value = user.cameraExpertise || '';
+            document.getElementById('dopShowreel').value = user.showreel || '';
 
             // Editor
             document.getElementById('editSoftware').value = user.editingSoftware || '';
@@ -126,11 +131,13 @@ function handleRoleChange() {
         document.getElementById('moduleDirector').style.display = 'block';
     } else if (role.includes('actor')) {
         document.getElementById('moduleActor').style.display = 'block';
+    } else if (role.includes('dop')) {
+        document.getElementById('moduleDOP').style.display = 'block';
     } else if (role.includes('editor')) {
         document.getElementById('moduleEditor').style.display = 'block';
     } else if (role.includes('music')) {
         document.getElementById('moduleMusic').style.display = 'block';
-    } else if (role.includes('aspirant') || role.includes('content creator') || role.includes('explorer')) {
+    } else {
         document.getElementById('moduleGeneral').style.display = 'block';
     }
 }
@@ -153,15 +160,22 @@ function setupImageHandlers() {
         const file = e.target.files[0];
         if (file) {
             try {
+                const uploadBtn = document.getElementById('posterUploadBtn');
+                uploadBtn.style.opacity = '0.5';
+                
                 const url = await uploadImage(file);
                 if (url) {
-                    document.getElementById('projPosterPreview').src = url;
-                    document.getElementById('projPosterPreview').setAttribute('data-poster-url', url);
+                    const preview = document.getElementById('projPosterPreview');
+                    preview.src = url;
+                    preview.setAttribute('data-poster-url', url);
+                    uploadBtn.classList.add('has-image');
+                    uploadBtn.style.opacity = '1';
                     console.log("Poster uploaded successfully");
                 }
             } catch (err) {
                 console.error("Poster upload failed:", err);
-                alert("Failed to upload poster image.");
+                showMessage("We couldn't upload your project poster. Please try a different image.", "error");
+                document.getElementById('posterUploadBtn').style.opacity = '1';
             }
         }
     });
@@ -220,6 +234,17 @@ async function saveProfile() {
             gender: document.getElementById('actGender').value.trim(),
             bodyType: document.getElementById('actBodyType').value.trim(),
             languages: document.getElementById('actLanguages').value.trim(),
+
+            // DOP Fields
+            cameraExpertise: document.getElementById('dopCamera').value.trim(),
+            // showreel is handled by either director or DOP field in UI, but we should make sure it's consistent.
+            // Wait, I used 'dopShowreel' and 'dirShowreel'. I'll handle them both.
+            // Let's use a logic to pick the one from the active module.
+            showreel: (document.getElementById('editRole').value.toLowerCase().includes('director')) 
+                ? document.getElementById('dirShowreel').value.trim()
+                : (document.getElementById('editRole').value.toLowerCase().includes('dop') 
+                    ? document.getElementById('dopShowreel').value.trim() 
+                    : originalUserData.showreel || ''),
 
             // Editor Fields
             editingSoftware: document.getElementById('editSoftware').value.trim(),
@@ -286,26 +311,89 @@ async function loadUserProjects() {
 function renderProjectsList(projects) {
     const container = document.getElementById('projectsListContainer');
     if (!projects || projects.length === 0) {
-        container.innerHTML = '<p style="color:#888; font-size:13px; padding:10px;">No projects added to portfolio yet.</p>';
+        container.innerHTML = '<div style="text-align:center; padding:30px; background:#f8fafc; border-radius:16px; border:1px solid #e2e8f0; color:#64748b; font-size:13px;"><i class="fa-solid fa-film" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>No projects added to portfolio yet.</div>';
         return;
     }
 
     container.innerHTML = projects.map(p => `
         <div class="project-item-card">
-            <img src="${p.imageUrl || 'https://via.placeholder.com/80x110'}" alt="Poster">
+            <img src="${p.imageUrl || 'https://via.placeholder.com/80x110?text=No+Poster'}" alt="Poster">
             <div class="project-info">
                 <h4>${p.title} (${p.year}) ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                 <p><strong>Role:</strong> ${p.role}</p>
-                <p style="margin-top:5px; font-size:12px;">${p.description || 'No description'}</p>
-                ${p.videoUrl ? `<a href="${p.videoUrl}" target="_blank" style="font-size:12px; color:var(--primary-orange); text-decoration:none;">Project Link <i class="fa-solid fa-external-link"></i></a>` : ''}
+                <p style="margin-top:5px; font-size:12px; color:#475569;">${p.description || 'No description'}</p>
+                ${p.videoUrl ? `<a href="${p.videoUrl}" target="_blank" style="font-size:12px; color:var(--primary-orange); text-decoration:none; display:inline-block; margin-top:8px; font-weight:700;">VIEW PROJECT <i class="fa-solid fa-external-link" style="font-size:10px;"></i></a>` : ''}
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-delete-project" onclick="deleteProject(${p.id})" style="color:#ff4d4d; border:none; background:none; cursor:pointer;">
+            <div class="project-actions">
+                <button class="project-action-btn" onclick="editProjectUI(${p.id})" title="Edit Project">
+                    <i class="fa-solid fa-edit"></i>
+                </button>
+                <button class="project-action-btn delete" onclick="deleteProject(${p.id})" title="Delete Project">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
         </div>
     `).join('');
+}
+
+async function editProjectUI(projectId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}`);
+        if (response.ok) {
+            const project = await response.json();
+            
+            editingProjectId = projectId;
+            
+            // Populate form
+            document.getElementById('projTitle').value = project.title;
+            document.getElementById('projYear').value = project.year;
+            document.getElementById('projRole').value = project.role;
+            document.getElementById('projLink').value = project.videoUrl || '';
+            document.getElementById('projAbout').value = project.description || '';
+            
+            const preview = document.getElementById('projPosterPreview');
+            const uploadBtn = document.getElementById('posterUploadBtn');
+            
+            if (project.imageUrl) {
+                preview.src = project.imageUrl;
+                preview.setAttribute('data-poster-url', project.imageUrl);
+                uploadBtn.classList.add('has-image');
+            } else {
+                preview.src = '';
+                preview.removeAttribute('data-poster-url');
+                uploadBtn.classList.remove('has-image');
+            }
+            
+            // Update UI
+            document.getElementById('formTitle').textContent = '✎ Edit Movie Project';
+            document.getElementById('submitProjectBtn').textContent = 'UPDATE PROJECT';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            
+            // Scroll to form
+            document.getElementById('projectForm').scrollIntoView({ behavior: 'smooth' });
+        }
+    } catch (err) {
+        console.error('Error fetching project for edit:', err);
+    }
+}
+
+function resetProjectForm() {
+    editingProjectId = null;
+    document.getElementById('projTitle').value = '';
+    document.getElementById('projYear').value = '';
+    document.getElementById('projRole').value = '';
+    document.getElementById('projLink').value = '';
+    document.getElementById('projAbout').value = '';
+    
+    const preview = document.getElementById('projPosterPreview');
+    const uploadBtn = document.getElementById('posterUploadBtn');
+    preview.src = '';
+    preview.removeAttribute('data-poster-url');
+    uploadBtn.classList.remove('has-image');
+    
+    document.getElementById('formTitle').textContent = '+ Add New Movie Project';
+    document.getElementById('submitProjectBtn').textContent = 'ADD PROJECT';
+    document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
 async function addNewProject(e) {
@@ -319,17 +407,17 @@ async function addNewProject(e) {
     const imageUrl = document.getElementById('projPosterPreview').getAttribute('data-poster-url') || '';
 
     if (!title || !year || !role) {
-        alert('Please fill in Movie Name, Year and your Role.');
+        showMessage('Please enter the movie title, year, and your role.', 'error');
         return;
     }
 
     const userIdNum = parseInt(currentUserId);
     if (!currentUserId || isNaN(userIdNum)) {
-        alert('User session not found or invalid. Please log in again.');
+        showMessage('Your session has expired. Please log in again.', 'error');
         return;
     }
 
-    const newProject = {
+    const projectData = {
         userId: userIdNum,
         title: title,
         year: parseInt(year),
@@ -339,52 +427,38 @@ async function addNewProject(e) {
         imageUrl: imageUrl
     };
 
-    const addBtn = e ? e.target : document.querySelector('button[onclick*="addNewProject"]');
-    const originalText = addBtn ? addBtn.textContent : 'ADD PROJECT';
+    const addBtn = document.getElementById('submitProjectBtn');
+    const originalText = addBtn.textContent;
 
     try {
-        if (addBtn) {
-            addBtn.disabled = true;
-            addBtn.textContent = 'Adding...';
-        }
+        addBtn.disabled = true;
+        addBtn.textContent = editingProjectId ? 'Updating...' : 'Adding...';
 
-        console.log("Attempting to save project:", newProject);
+        const url = editingProjectId 
+            ? `${API_BASE_URL}/api/projects/${editingProjectId}` 
+            : `${API_BASE_URL}/api/projects`;
+        const method = editingProjectId ? 'PUT' : 'POST';
 
-        const response = await fetch(`${API_BASE_URL}/api/projects`, {
-            method: 'POST',
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newProject)
+            body: JSON.stringify(projectData)
         });
 
         if (response.ok) {
-            const result = await response.json();
-            console.log("Project saved successfully:", result);
-            
-            // Reset form
-            document.getElementById('projTitle').value = '';
-            document.getElementById('projYear').value = '';
-            document.getElementById('projRole').value = '';
-            document.getElementById('projLink').value = '';
-            document.getElementById('projAbout').value = '';
-            document.getElementById('projPosterPreview').src = 'https://via.placeholder.com/80x110';
-            document.getElementById('projPosterPreview').removeAttribute('data-poster-url');
-            
-            // Reload list
+            console.log("Project saved successfully");
+            resetProjectForm();
             loadUserProjects();
-            alert('Project added successfully!');
+            showMessage(editingProjectId ? 'Project updated!' : 'New project added to your portfolio!', 'success');
         } else {
-            const errorText = await response.text();
-            console.error("Server returned error:", errorText);
-            alert(`Failed to add project: ${errorText}`);
+            showMessage("We couldn’t save your project right now. Please try again.", "error");
         }
     } catch (err) {
-        console.error('Network or system error adding project:', err);
-        alert('An error occurred while saving the project. Please check your connection or server status.');
+        console.error('Error saving project:', err);
+        showMessage("Oops! Something went wrong while saving. Please check your connection.", "error");
     } finally {
-        if (addBtn) {
-            addBtn.disabled = false;
-            addBtn.textContent = originalText;
-        }
+        addBtn.disabled = false;
+        addBtn.textContent = originalText;
     }
 }
 

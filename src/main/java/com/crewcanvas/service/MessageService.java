@@ -30,12 +30,6 @@ public class MessageService {
                                     imageUrl != null ? "Sent an image" : 
                                     fileUrl != null ? "Sent a file" : "Sent a message";
         
-        // Special handling for call signals
-        if (content != null && content.startsWith("__CALL_SIGNAL__:")) {
-            notificationType = "CALL";
-            notificationContent = "is calling you";
-        }
-        
         notificationService.createNotification(
             receiverId,
             senderId,

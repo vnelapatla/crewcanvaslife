@@ -278,13 +278,13 @@ async function followUser(targetId) {
     const currentId = getCurrentUserId();
     const res = await fetch(`${API_BASE_URL}/api/profile/${targetId}/follow?followerId=${currentId}`, { method: 'POST' });
     if (res.ok) {
-        showMessage("Followed successfully!", "success");
+        showMessage("You are now following!", "success");
         await loadFollowingIds();
         updateUI(targetId, true);
     } else {
         const msg = await res.text();
         if (msg.includes("Already")) { updateUI(targetId, true); }
-        else showMessage("Error following user", "error");
+        else showMessage("We couldn't follow this user right now. Please try again.", "error");
     }
 }
 
