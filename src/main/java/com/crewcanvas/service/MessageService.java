@@ -27,33 +27,52 @@ public class MessageService {
     private com.crewcanvas.repository.EventApplicationRepository eventApplicationRepository;
 
     public boolean canUserMessage(Long senderId, Long receiverId) {
+        if (senderId == null || receiverId == null) {
+            System.err.println("Permission Denied: senderId or receiverId is null");
+            return false;
+        }
         if (senderId.equals(receiverId)) return true;
+
+        System.out.println("Checking messaging permission: " + senderId + " -> " + receiverId);
 
         // 1. Admin check
         com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
-        if (sender != null && sender.getIsAdmin()) return true;
+        if (sender != null && sender.getIsAdmin()) {
+            System.out.println("Permission Granted: Sender is Admin");
+            return true;
+        }
 
         com.crewcanvas.model.User receiver = userRepository.findById(receiverId).orElse(null);
-        if (receiver != null && receiver.getIsAdmin()) return true;
+        if (receiver != null && receiver.getIsAdmin()) {
+            System.out.println("Permission Granted: Receiver is Admin");
+            return true;
+        }
 
         // 2. Follower/Mutual Follower check
-        if (connectionRepository.findByFollowerIdAndFollowingId(senderId, receiverId).isPresent() ||
-            connectionRepository.findByFollowerIdAndFollowingId(receiverId, senderId).isPresent()) {
+        boolean senderFollowsReceiver = connectionRepository.findByFollowerIdAndFollowingId(senderId, receiverId).isPresent();
+        boolean receiverFollowsSender = connectionRepository.findByFollowerIdAndFollowingId(receiverId, senderId).isPresent();
+        
+        if (senderFollowsReceiver || receiverFollowsSender) {
+            System.out.println("Permission Granted: Connection exists (SenderFollows: " + senderFollowsReceiver + ", ReceiverFollows: " + receiverFollowsSender + ")");
             return true;
         }
 
         // 3. Event Creator to Applicant check
-        if (eventApplicationRepository.isApplicantToCreatorsEvent(senderId, receiverId) ||
-            eventApplicationRepository.isApplicantToCreatorsEvent(receiverId, senderId)) {
+        boolean isEventRelation = eventApplicationRepository.isApplicantToCreatorsEvent(senderId, receiverId) ||
+                                  eventApplicationRepository.isApplicantToCreatorsEvent(receiverId, senderId);
+        if (isEventRelation) {
+            System.out.println("Permission Granted: Event Creator/Applicant relation exists");
             return true;
         }
 
+        System.err.println("Permission Denied: No valid relationship found between " + senderId + " and " + receiverId);
         return false;
     }
 
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
         if (!canUserMessage(senderId, receiverId)) {
-            throw new RuntimeException("You are not allowed to message this user. You must be following each other or be an event creator/applicant.");
+            String reason = "Messaging is restricted. You must be following each other, be mutual followers, or have an active event relationship.";
+            throw new RuntimeException(reason);
         }
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);

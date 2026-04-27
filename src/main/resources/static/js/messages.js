@@ -255,7 +255,9 @@ async function startNewChat(receiverId) {
             openConversation(receiverId);
             loadConversations();
         } else {
-            console.error("Failed to start conversation");
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Failed to start conversation:", errorData.message || "Unknown error");
+            showMessage(errorData.message || "Could not start chat. Please check your connection permissions.", "error");
         }
     } catch (e) {
         console.error("Error starting chat:", e);
@@ -676,8 +678,9 @@ async function sendMessage() {
         } else {
             const err = await response.text();
             console.error('Error sending message:', err);
-            // Restore content if failed? Or just show error
-            showMessage('We couldn’t send your message. Please try again.', 'error');
+            // Show the actual error from the backend if possible
+            const errorMsg = err.includes('Error sending message:') ? err.split('Error sending message:')[1] : err;
+            showMessage(errorMsg || 'We couldn’t send your message. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Error sending message:', error);
