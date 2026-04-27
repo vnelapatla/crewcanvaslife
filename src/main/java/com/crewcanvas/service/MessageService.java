@@ -65,7 +65,18 @@ public class MessageService {
             return true;
         }
 
-        System.err.println("Permission Denied: No valid relationship found between " + senderId + " and " + receiverId);
+        // 4. Existing Conversation check (Continuity)
+        // If they have already chatted, allow them to continue
+        boolean hasPreviousMessages = messageRepository.existsBySenderIdAndReceiverId(senderId, receiverId) ||
+                                      messageRepository.existsBySenderIdAndReceiverId(receiverId, senderId);
+        if (hasPreviousMessages) {
+            System.out.println("Permission Granted: Existing conversation found");
+            return true;
+        }
+
+        System.err.println("Permission Denied: No valid relationship found between " + senderId + " and " + receiverId + 
+                           " (FollowCheck: " + (senderFollowsReceiver || receiverFollowsSender) + 
+                           ", EventCheck: " + isEventRelation + ")");
         return false;
     }
 

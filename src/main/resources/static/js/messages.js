@@ -155,11 +155,24 @@ function connectWebSocket() {
 }
 
 function onMessageReceived(msg) {
-    if (String(selectedConversationUserId) === String(msg.senderId) || String(selectedConversationUserId) === String(msg.receiverId)) {
+    console.log("WebSocket Message Received:", msg);
+    // Robust ID comparison using String conversion
+    const isCurrentChat = String(selectedConversationUserId) === String(msg.senderId) || 
+                         String(selectedConversationUserId) === String(msg.receiverId);
+    
+    if (isCurrentChat) {
         loadMessages(); 
     }
     loadConversations();
 }
+
+// Fallback polling every 5 seconds to ensure sync
+setInterval(() => {
+    if (selectedConversationUserId) {
+        loadMessages();
+    }
+    loadConversations();
+}, 5000);
 
 async function initMessaging() {
     // Show loading state
@@ -654,11 +667,12 @@ function displayMessages(messages) {
 
 // Send message
 async function sendMessage() {
+    console.log("sendMessage called");
     const input = document.getElementById('messageInput');
     if (!input || isSending) return;
     
     const content = input.value.trim();
-    const hasAttachments = selectedImageFile || selectedGenericFile;
+    const hasAttachments = selectedFiles && selectedFiles.length > 0;
 
     if (!content && !hasAttachments) {
         return;
@@ -689,6 +703,11 @@ async function sendMessage() {
     input.value = '';
     clearPreview();
     isSending = true;
+    const sendBtn = document.querySelector('.send-btn');
+    if (sendBtn) {
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.pointerEvents = 'none';
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/messages`, {
@@ -708,7 +727,7 @@ async function sendMessage() {
         } else {
             const err = await response.text();
             console.error('Error sending message:', err);
-            // Show the actual error from the backend if possible
+            // ...
             const errorMsg = err.includes('Error sending message:') ? err.split('Error sending message:')[1] : err;
             showMessage(errorMsg || 'We couldn’t send your message. Please try again.', 'error');
         }
@@ -717,6 +736,11 @@ async function sendMessage() {
         showMessage('Network error. Please check your internet connection.', 'error');
     } finally {
         isSending = false;
+        const sendBtn = document.querySelector('.send-btn');
+        if (sendBtn) {
+            sendBtn.style.opacity = '1';
+            sendBtn.style.pointerEvents = 'auto';
+        }
     }
 }
 

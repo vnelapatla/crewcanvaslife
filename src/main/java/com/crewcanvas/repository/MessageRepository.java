@@ -40,4 +40,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE Message m SET m.isRead = true WHERE m.senderId = ?1 AND m.receiverId = ?2 AND m.isRead = false")
     void markConversationAsRead(Long senderId, Long receiverId);
+
+    boolean existsBySenderIdAndReceiverId(Long senderId, Long receiverId);
 }
