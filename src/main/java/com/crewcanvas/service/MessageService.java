@@ -17,7 +17,44 @@ public class MessageService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private com.crewcanvas.repository.UserRepository userRepository;
+
+    @Autowired
+    private com.crewcanvas.repository.ConnectionRepository connectionRepository;
+
+    @Autowired
+    private com.crewcanvas.repository.EventApplicationRepository eventApplicationRepository;
+
+    public boolean canUserMessage(Long senderId, Long receiverId) {
+        if (senderId.equals(receiverId)) return true;
+
+        // 1. Admin check
+        com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
+        if (sender != null && sender.getIsAdmin()) return true;
+
+        com.crewcanvas.model.User receiver = userRepository.findById(receiverId).orElse(null);
+        if (receiver != null && receiver.getIsAdmin()) return true;
+
+        // 2. Follower/Mutual Follower check
+        if (connectionRepository.findByFollowerIdAndFollowingId(senderId, receiverId).isPresent() ||
+            connectionRepository.findByFollowerIdAndFollowingId(receiverId, senderId).isPresent()) {
+            return true;
+        }
+
+        // 3. Event Creator to Applicant check
+        if (eventApplicationRepository.isApplicantToCreatorsEvent(senderId, receiverId) ||
+            eventApplicationRepository.isApplicantToCreatorsEvent(receiverId, senderId)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
+        if (!canUserMessage(senderId, receiverId)) {
+            throw new RuntimeException("You are not allowed to message this user. You must be following each other or be an event creator/applicant.");
+        }
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);

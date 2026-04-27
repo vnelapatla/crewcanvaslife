@@ -127,10 +127,11 @@ function formatDate(dateString) {
     }
 
     // Absolute format for future dates or older past dates
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('en-IN', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'Asia/Kolkata'
     });
 }
 
@@ -169,9 +170,11 @@ function formatTime(timeString) {
     const date = parseSafeDate(timeString);
     if (!date) return '';
     
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-IN', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata'
     });
 }
 

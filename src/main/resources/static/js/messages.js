@@ -20,10 +20,68 @@ if (typeof getUserId === 'undefined') {
 
 function switchSidebarTab(tabName) {
     const chatTab = document.getElementById('conversationsList');
+    const followingTab = document.getElementById('followingList');
     const btns = document.querySelectorAll('.list-tabs button');
 
-    if (chatTab) chatTab.style.display = 'block';
-    if(btns[0]) btns[0].classList.add('active');
+    if (tabName === 'conversations') {
+        if (chatTab) chatTab.style.display = 'block';
+        if (followingTab) followingTab.style.display = 'none';
+        if (btns[0]) btns[0].classList.add('active');
+        if (btns[1]) btns[1].classList.remove('active');
+        loadConversations();
+    } else {
+        if (chatTab) chatTab.style.display = 'none';
+        if (followingTab) followingTab.style.display = 'block';
+        if (btns[0]) btns[0].classList.remove('active');
+        if (btns[1]) btns[1].classList.add('active');
+        loadFollowersAndMutuals();
+    }
+}
+
+let followers = [];
+let following = [];
+let mutuals = [];
+
+async function loadFollowersAndMutuals() {
+    if (!currentUserId) return;
+    
+    try {
+        const [followersRes, followingRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers`),
+            fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following`)
+        ]);
+
+        if (followersRes.ok && followingRes.ok) {
+            followers = await followersRes.json();
+            following = await followingRes.json();
+            
+            // Calculate mutuals
+            const followingIds = new Set(following.map(u => String(getUserId(u))));
+            mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
+            
+            // Update counts in UI
+            const followerCountEl = document.getElementById('followerCount');
+            const mutualCountEl = document.getElementById('mutualCount');
+            if (followerCountEl) followerCountEl.textContent = `${followers.length} Followers`;
+            if (mutualCountEl) mutualCountEl.textContent = `${mutuals.length} Mutual`;
+
+            // Display in followingList (Contacts)
+            displayUsersList('followingList', followers, "No contacts found. Follow people to start chatting!");
+        }
+    } catch (e) {
+        console.error("Error loading connections:", e);
+    }
+}
+
+function filterConnections(type) {
+    // Switch to contacts tab first
+    switchSidebarTab('followers');
+    
+    if (type === 'followers') {
+        displayUsersList('followingList', followers, "No followers yet.");
+    } else if (type === 'mutual') {
+        displayUsersList('followingList', mutuals, "No mutual connections yet.");
+    }
 }
 
 let currentUserId = null;
@@ -113,6 +171,7 @@ async function initMessaging() {
 
     try {
         await loadConversations(); 
+        await loadFollowersAndMutuals();
         console.log("Messaging initialized successfully");
     } catch (e) {
         console.error("Failed to initialize messaging:", e);
@@ -173,9 +232,6 @@ function displayUsersList(elementId, users, emptyMessage) {
                         <span class="user-status">${user.role || 'Film Professional'}</span>
                     </div>
                 </div>
-                <button class="message-row-btn" onclick="startNewChat(${userId})">
-                    <i class="fa-solid fa-paper-plane"></i> Message
-                </button>
             </div>
         `;
     }).join('');
@@ -285,7 +341,7 @@ function formatDateShort(dateString) {
     
     // Today
     if (date.toDateString() === now.toDateString()) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
     }
     
     // Yesterday
@@ -297,11 +353,11 @@ function formatDateShort(dateString) {
     
     // Within last week
     if (diffDays < 7) {
-        return date.toLocaleDateString([], { weekday: 'short' });
+        return date.toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' });
     }
     
     // Older
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' });
 }
 
 
@@ -315,12 +371,33 @@ async function openConversation(userId) {
     selectedConversationUserId = userId;
     console.log("Opening conversation with:", userId);
 
-    // UI Updates for mobile and desktop
+    // UI Updates for mobile and desktop (Modal Overlay)
     const chatOverlay = document.getElementById('chatOverlay');
-    if (chatOverlay) chatOverlay.style.display = 'flex';
+    if (chatOverlay) {
+        chatOverlay.style.display = 'flex';
+        document.body.classList.add('scroll-lock');
+    }
     
-    const chatArea = document.getElementById('chatArea');
-    if (chatArea) chatArea.style.display = 'flex';
+    // Handle Visual Viewport for mobile keyboard stability
+    if (window.visualViewport && window.innerWidth <= 1024) {
+        const handleViewportChange = () => {
+            const viewport = window.visualViewport;
+            const chatWindow = document.querySelector('.chat-window');
+            if (chatWindow) {
+                chatWindow.style.height = `${viewport.height}px`;
+                chatWindow.style.top = `${viewport.offsetTop}px`;
+            }
+        };
+        window.visualViewport.addEventListener('resize', handleViewportChange);
+        window.visualViewport.addEventListener('scroll', handleViewportChange);
+        // Initial call
+        handleViewportChange();
+    }
+    
+    // Highlight sidebar row
+    document.querySelectorAll('.user-row').forEach(row => row.classList.remove('active'));
+    const activeRow = document.querySelector(`.user-row[onclick="openConversation(${userId})"]`);
+    if (activeRow) activeRow.classList.add('active');
 
     // Update partner details in overlay
     try {
@@ -343,18 +420,60 @@ async function openConversation(userId) {
 
     // Load messages
     loadMessages();
+    
+    // Check messaging permission
+    checkMessagingPermission(currentUserId, userId);
 }
 
-function closeChat() {
-    const chatOverlay = document.getElementById('chatOverlay');
-    if (chatOverlay) chatOverlay.style.display = 'none';
-    selectedConversationUserId = null;
-    selectedPartnerProfile = null;
-    if (refreshInterval) clearInterval(refreshInterval);
+async function checkMessagingPermission(senderId, receiverId) {
+    const inputArea = document.querySelector('.chat-input-area');
+    if (!inputArea) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/messages/check-permission?senderId=${senderId}&receiverId=${receiverId}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.allowed) {
+                inputArea.style.display = 'flex';
+                const oldMsg = document.getElementById('restriction-msg');
+                if (oldMsg) oldMsg.remove();
+            } else {
+                inputArea.style.display = 'none';
+                let restrictionMsg = document.getElementById('restriction-msg');
+                if (!restrictionMsg) {
+                    restrictionMsg = document.createElement('div');
+                    restrictionMsg.id = 'restriction-msg';
+                    restrictionMsg.style = 'padding: 20px; text-align: center; color: #666; font-size: 13px; background: #f9f9f9; border-top: 1px solid #eee;';
+                    inputArea.parentNode.insertBefore(restrictionMsg, inputArea);
+                }
+                restrictionMsg.innerHTML = `<i class="fa-solid fa-lock" style="margin-right: 8px;"></i> You can only message followers, mutual followers, admins, or event applicants.`;
+            }
+        }
+    } catch (e) {
+        console.error("Error checking permission:", e);
+    }
 }
 
 function closeChatArea() {
-    closeChat();
+    const chatOverlay = document.getElementById('chatOverlay');
+    if (chatOverlay) {
+        chatOverlay.style.display = 'none';
+        document.body.classList.remove('scroll-lock');
+    }
+    selectedConversationUserId = null;
+    selectedPartnerProfile = null;
+    if (refreshInterval) clearInterval(refreshInterval);
+    document.querySelectorAll('.user-row').forEach(row => row.classList.remove('active'));
+    
+    // Clean up viewport listeners
+    if (window.visualViewport) {
+        // We can't easily remove anonymous listeners, but resetting height is enough
+        const chatWindow = document.querySelector('.chat-window');
+        if (chatWindow) {
+            chatWindow.style.height = '';
+            chatWindow.style.top = '';
+        }
+    }
 }
 
 function getRandomColor(name) {

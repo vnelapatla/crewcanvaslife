@@ -209,35 +209,47 @@ function displayProfile(user) {
             const isFollower = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollower(profileUserId) : false;
             const isAdmin = getCurrentUserIsAdmin();
             
-            // Logic: Admin can message anyone. Others need to be mutual followers OR messaging their own followers.
-            // Both "mutual" and "send to followers" effectively mean the profile user must follow the current user.
-            const canMessage = isAdmin || isFollower;
-
-            let followBtnHtml = `
-                <button class="action-btn btn-primary btn-follow ${isFollowing ? 'following' : ''}" 
-                        data-user-id="${profileUserId}" 
-                        onclick="ProfileHandler.toggleFollow('${profileUserId}', this)">
-                    <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> 
-                    ${isFollowing ? 'Following' : 'Follow'}
+            const followBtnHtml = `
+                <button onclick="ProfileHandler.toggleFollow('${profileUserId}', this)" class="action-btn ${isFollowing ? 'btn-follow following' : 'btn-primary'}">
+                    <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> ${isFollowing ? 'Following' : 'Follow'}
                 </button>
             `;
 
-            let messageBtnHtml = '';
-            if (canMessage) {
-                messageBtnHtml = `
-                    <a href="messages.html?chatWith=${profileUserId}" class="action-btn btn-secondary">
-                        <i class="fa-solid fa-envelope"></i> Message
-                    </a>
-                `;
-            } else {
-                messageBtnHtml = `
-                    <button class="action-btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;" onclick="showMessage('You can only message your followers or mutual connections.', 'info')">
-                        <i class="fa-solid fa-lock"></i> Message
-                    </button>
-                `;
-            }
+            // Placeholder for message button that will be updated by the permission check
+            const messageBtnHtml = `
+                <button id="profileMessageBtn" class="action-btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Checking...
+                </button>
+            `;
 
             actionsContainer.innerHTML = followBtnHtml + messageBtnHtml;
+
+            // Check messaging permission from backend
+            fetch(`${API_BASE_URL}/api/messages/check-permission?senderId=${currentUserId}&receiverId=${profileUserId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const messageBtn = document.getElementById('profileMessageBtn');
+                    if (!messageBtn) return;
+                    
+                    if (data.allowed) {
+                        messageBtn.innerHTML = `<i class="fa-solid fa-envelope"></i> Message`;
+                        messageBtn.onclick = () => window.location.href = `messages.html?chatWith=${profileUserId}`;
+                        messageBtn.style.opacity = "1";
+                        messageBtn.style.cursor = "pointer";
+                    } else {
+                        messageBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Message`;
+                        messageBtn.style.opacity = "0.6";
+                        messageBtn.style.cursor = "not-allowed";
+                        messageBtn.onclick = () => showMessage('You can only message followers, mutual followers, admins, or event applicants.', 'info');
+                    }
+                })
+                .catch(err => {
+                    console.error("Permission check failed:", err);
+                    const messageBtn = document.getElementById('profileMessageBtn');
+                    if (messageBtn) {
+                        messageBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Message`;
+                    }
+                });
         }
     }
 }

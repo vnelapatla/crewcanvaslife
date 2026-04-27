@@ -74,45 +74,47 @@
                 </div>
             </main>
 
-            <!-- Chat Modal / Fullscreen Panel (Hidden by default) -->
-            <div id="chatOverlay" class="chat-overlay" style="display: none;">
-                <div class="chat-window">
-                    <header class="chat-header">
-                        <div class="chat-user">
-                            <button class="back-btn" onclick="closeChatArea()"><i class="fa-solid fa-arrow-left"></i></button>
-                            <div id="chatUserAvatar" class="initials-avatar"></div>
-                            <div class="user-info">
-                                <h4 id="chatUserName">User Name</h4>
-                                <span id="chatUserStatus">active now</span>
-                            </div>
+        </div>
+        
+        <!-- Chat Modal / Fullscreen Panel (Hidden by default) -->
+        <div id="chatOverlay" class="chat-overlay" style="display: none;">
+            <div class="chat-window">
+                <header class="chat-header">
+                    <div class="chat-user">
+                        <button class="back-btn" onclick="closeChatArea()"><i class="fa-solid fa-arrow-left"></i></button>
+                        <div id="chatUserAvatar" class="initials-avatar"></div>
+                        <div class="user-info">
+                            <h4 id="chatUserName">User Name</h4>
+                            <span id="chatUserStatus">active now</span>
                         </div>
-                        <div class="chat-actions">
-                            <i class="fa-solid fa-xmark" onclick="closeChatArea()" style="cursor: pointer;"></i>
-                        </div>
-                    </header>
-                    <div id="messagesArea" class="messages-container"></div>
-                    <div id="previewArea" class="chat-preview-area" style="display: none; padding: 10px 20px; background: #fff; border-top: 1px solid #eee; align-items: center; gap: 15px;">
-                        <!-- Injected by JS -->
                     </div>
-                    <div class="chat-input-area">
-                        <div class="input-actions">
-                            <i class="fa-regular fa-face-smile" id="emojiBtn" style="cursor: pointer;"></i>
-                            <label for="messageImage" style="cursor: pointer; margin: 0;">
-                                <i class="fa-solid fa-image"></i>
-                            </label>
-                            <input type="file" id="messageImage" accept="image/*" style="display: none;">
-                            
-                            <label for="messageFile" style="cursor: pointer; margin: 0;">
-                                <i class="fa-solid fa-paperclip"></i>
-                            </label>
-                            <input type="file" id="messageFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.mp4,.mov,.avi,.mp3,.wav" style="display: none;">
-                        </div>
-                        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="handleEnter(event)">
-                        <button onclick="sendMessage()" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                    <div class="chat-actions">
+                        <i class="fa-solid fa-xmark" onclick="closeChatArea()" style="cursor: pointer;"></i>
                     </div>
+                </header>
+                <div id="messagesArea" class="messages-container"></div>
+                <div id="previewArea" class="chat-preview-area" style="display: none; padding: 10px 20px; background: #fff; border-top: 1px solid #eee; align-items: center; gap: 15px;">
+                    <!-- Injected by JS -->
+                </div>
+                <div class="chat-input-area">
+                    <div class="input-actions">
+                        <i class="fa-regular fa-face-smile" id="emojiBtn" style="cursor: pointer;"></i>
+                        <label for="messageImage" style="cursor: pointer; margin: 0;">
+                            <i class="fa-solid fa-image"></i>
+                        </label>
+                        <input type="file" id="messageImage" accept="image/*" style="display: none;">
+                        
+                        <label for="messageFile" style="cursor: pointer; margin: 0;">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </label>
+                        <input type="file" id="messageFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.mp4,.mov,.avi,.mp3,.wav" style="display: none;">
+                    </div>
+                    <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="handleEnter(event)">
+                    <button onclick="sendMessage()" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 

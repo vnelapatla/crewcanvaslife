@@ -96,6 +96,17 @@ public class MessageController {
         }
     }
 
+    @GetMapping("/check-permission")
+    public ResponseEntity<?> checkPermission(@RequestParam Long senderId, @RequestParam Long receiverId) {
+        try {
+            boolean allowed = messageService.canUserMessage(senderId, receiverId);
+            return ResponseEntity.ok(java.util.Collections.singletonMap("allowed", allowed));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error checking permission: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/{userId}")
     public ResponseEntity<?> getConversation(@PathVariable Long userId, @RequestParam Long otherUserId, 
                                             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {

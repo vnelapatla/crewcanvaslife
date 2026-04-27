@@ -147,7 +147,9 @@ function displayUsers(users, forceFollowingState = false) {
     container.innerHTML = finalUsers.map(user => {
         const id = parseInt(getUserId(user));
         const isFollowed = forceFollowingState || ProfileHandler.isFollowing(id);
-        const canMessage = ProfileHandler.isFollower(id);
+        const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : false;
+        // In search results, we show message button if they follow us or we are admin
+        const canMessage = isAdmin || ProfileHandler.isFollower(id);
         return createUserCard(user, isFollowed, canMessage);
     }).join('');
 }
