@@ -30,8 +30,12 @@ public class DataSeeder {
                 // Remove seeded data for Admin to clean up live site
                 System.out.println("Cleaning up seed data for Admin (ID: " + adminId + ")...");
                 
-                // Remove post images first due to foreign key constraints
+                // Remove post dependencies first due to foreign key constraints
                 jdbcTemplate.update("DELETE FROM post_images WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)", adminId);
+                jdbcTemplate.update("DELETE FROM post_actual_comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)", adminId);
+                jdbcTemplate.update("DELETE FROM post_likes_users WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)", adminId);
+                jdbcTemplate.update("DELETE FROM post_links WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)", adminId);
+                
                 // Remove posts
                 jdbcTemplate.update("DELETE FROM posts WHERE user_id = ?", adminId);
                 // Remove projects
