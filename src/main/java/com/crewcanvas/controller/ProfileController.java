@@ -94,9 +94,7 @@ public class ProfileController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
-    }
-
-    @PostMapping("/{id}/follow")
+    }    @PostMapping("/{id}/follow")
     public ResponseEntity<?> followUser(@PathVariable Long id, @RequestParam Long followerId) {
         try {
             connectionService.followUser(followerId, id);

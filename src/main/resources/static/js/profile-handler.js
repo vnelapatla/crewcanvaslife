@@ -1,10 +1,10 @@
 /**
  * Profile Handler for CrewCanvas
- * Handles connections, followers, and dynamic profile interactions
+ * Handles connections (Follow/Unfollow) and dynamic profile interactions
  */
 const ProfileHandler = {
-    followingIds: [],
-    followerIds: [],
+    followingSet: new Set(),
+    followerSet: new Set(),
     isInitialized: false,
     initPromise: null,
     
@@ -12,129 +12,105 @@ const ProfileHandler = {
         if (this.initPromise) return this.initPromise;
         
         this.initPromise = (async () => {
-            // Update header immediately from cache
-            this.updateHeader();
-            
-            // Then load dynamic data
-            await Promise.all([
-                this.loadFollowings(),
-                this.loadFollowers()
-            ]);
-            
-            this.isInitialized = true;
-            this.syncFollowButtons();
+            const currentUserId = getCurrentUserId();
+            if (!currentUserId) return;
+
+            try {
+                // Fetch following/followers in parallel
+                const [followingRes, followersRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following?t=${Date.now()}`),
+                    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers?t=${Date.now()}`)
+                ]);
+
+                if (followingRes.ok) {
+                    const following = await followingRes.json();
+                    following.forEach(u => this.followingSet.add(parseInt(u.id || u.userId)));
+                }
+
+                if (followersRes.ok) {
+                    const followers = await followersRes.json();
+                    followers.forEach(u => this.followerSet.add(parseInt(u.id || u.userId)));
+                }
+
+                console.log(`ProfileHandler: Loaded ${this.followingSet.size} following, ${this.followerSet.size} followers`);
+                this.updateHeader();
+                this.isInitialized = true;
+            } catch (e) {
+                console.error("ProfileHandler Init Error:", e);
+            }
         })();
         
         return this.initPromise;
     },
 
-    async loadFollowers() {
-        const userId = localStorage.getItem('userId');
-        if (!userId) return;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/followers?t=${Date.now()}`);
-            if (response.ok) {
-                const followers = await response.json();
-                this.followerIds = followers.map(u => parseInt(getUserId(u)));
-            }
-        } catch (error) {
-            console.error('Error loading followers:', error);
-        }
-    },
-
-    async loadFollowings() {
-        const userId = localStorage.getItem('userId');
-        if (!userId) return;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/following?t=${Date.now()}`);
-            if (response.ok) {
-                const followings = await response.json();
-                this.followingIds = followings.map(u => parseInt(getUserId(u)));
-            }
-        } catch (error) {
-            console.error('Error loading followings:', error);
-        }
-    },
-
     isFollowing(userId) {
-        return this.followingIds.includes(parseInt(userId));
+        return this.followingSet.has(parseInt(userId));
     },
 
     isFollower(userId) {
-        return this.followerIds.includes(parseInt(userId));
+        return this.followerSet.has(parseInt(userId));
     },
 
-    isMutual(userId) {
-        const id = parseInt(userId);
-        return this.followingIds.includes(id) && this.followerIds.includes(id);
-    },
-
-    syncFollowButtons() {
-        document.querySelectorAll('.follow-btn, .btn-follow').forEach(btn => {
-            const userId = btn.getAttribute('data-user-id');
-            if (!userId) return;
-            
-            const following = this.isFollowing(userId);
-            if (following) {
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Following';
-                btn.classList.add('following');
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Follow';
-                btn.classList.remove('following');
-            }
-        });
-    },
-
-    async toggleFollow(userId, btnElement) {
-        const currentUserId = localStorage.getItem('userId');
+    async toggleFollow(targetId, btnElement) {
+        const currentUserId = getCurrentUserId();
         if (!currentUserId) {
             window.location.href = 'index.html';
             return;
         }
 
-        const isFollowing = this.isFollowing(userId);
+        const isFollowing = this.isFollowing(targetId);
+        const url = `${API_BASE_URL}/api/profile/${targetId}/${isFollowing ? 'unfollow' : 'follow'}?followerId=${currentUserId}`;
         const method = isFollowing ? 'DELETE' : 'POST';
-        const endpoint = isFollowing ? 
-            `${API_BASE_URL}/api/profile/${userId}/unfollow?followerId=${currentUserId}` :
-            `${API_BASE_URL}/api/profile/${userId}/follow?followerId=${currentUserId}`;
 
         try {
-            const response = await fetch(endpoint, { method });
-            if (response.ok) {
-                if (isFollowing) {
-                    this.followingIds = this.followingIds.filter(id => id !== parseInt(userId));
-                    if (typeof showMessage === 'function') showMessage('Unfollowed', 'success');
-                } else {
-                    this.followingIds.push(parseInt(userId));
-                    if (typeof showMessage === 'function') showMessage('You are now following!', 'success');
-                }
-                this.syncFollowButtons();
-                
-                // If on crew-search page, we might need to refresh UI
-                if (typeof switchSearchTab === 'function' && typeof currentSearchTab !== 'undefined') {
-                    if (currentSearchTab === 'find' && !isFollowing) {
-                        // In find tab, follow means user should disappear
-                        const btn = document.getElementById(`follow-btn-${userId}`);
-                        const card = btn ? btn.closest('.crew-card') : null;
-                        if (card) {
-                            card.style.opacity = '0';
-                            setTimeout(() => card.remove(), 300);
-                        }
-                    }
-                }
-                if (typeof refreshProfileData === 'function') {
-                    refreshProfileData();
-                } else if (typeof loadProfile === 'function') {
-                    loadProfile();
-                }
-            } else {
-                if (typeof showMessage === 'function') showMessage('We couldn’t update your connection. Please try again.', 'error');
+            if (btnElement) {
+                btnElement.disabled = true;
+                btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             }
-        } catch (error) {
-            console.error('Follow toggle error:', error);
-            if (typeof showMessage === 'function') showMessage('Network error. Please check your connection.', 'error');
+
+            const res = await fetch(url, { method });
+            if (res.ok) {
+                if (isFollowing) {
+                    this.followingSet.delete(parseInt(targetId));
+                } else {
+                    this.followingSet.add(parseInt(targetId));
+                }
+                
+                // Trigger UI updates
+                this.broadcastUpdate(targetId, !isFollowing);
+                if (typeof refreshProfileData === 'function') refreshProfileData();
+            } else {
+                const msg = await res.text();
+                if (typeof showMessage === 'function') showMessage(msg, 'error');
+            }
+        } catch (e) {
+            console.error("Follow Toggle Error:", e);
+        } finally {
+            if (btnElement) btnElement.disabled = false;
+        }
+    },
+
+    broadcastUpdate(targetId, newState) {
+        // Update any follow buttons on the page for this user
+        const buttons = document.querySelectorAll(`[data-user-id="${targetId}"]`);
+        buttons.forEach(btn => {
+            if (btn.classList.contains('btn-follow') || btn.classList.contains('btn-following') || btn.classList.contains('action-btn')) {
+                const isActionBtn = btn.classList.contains('action-btn');
+                if (isActionBtn) {
+                    btn.className = `action-btn btn-primary btn-follow ${newState ? 'following' : ''}`;
+                    btn.innerHTML = `<i class="fa-solid ${newState ? 'fa-check' : 'fa-user-plus'}"></i> ${newState ? 'Following' : 'Follow'}`;
+                } else {
+                    btn.className = newState ? 'btn-following' : 'btn-follow';
+                    btn.innerHTML = newState ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
+                }
+            }
+        });
+
+        // Update follower count labels if they exist
+        const countLabel = document.getElementById(`followers-count-${targetId}`);
+        if (countLabel) {
+            let val = parseInt(countLabel.innerText) || 0;
+            countLabel.innerText = newState ? val + 1 : Math.max(0, val - 1);
         }
     },
 
@@ -165,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('profileDropdown');
         const trigger = document.querySelector('.user-profile-box');
-        if (dropdown && !trigger.contains(e.target)) {
+        if (dropdown && trigger && !trigger.contains(e.target)) {
             dropdown.classList.remove('active');
         }
     });

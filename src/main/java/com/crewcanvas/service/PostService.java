@@ -201,7 +201,53 @@ public class PostService {
     }
 
     private List<Post> populatePollData(List<Post> posts) {
-        posts.forEach(this::populatePollData);
+        if (posts.isEmpty()) return posts;
+
+        // Bulk fetch users to avoid N+1 deadlock issues
+        java.util.Set<Long> userIds = posts.stream()
+            .map(Post::getUserId)
+            .filter(java.util.Objects::nonNull)
+            .collect(java.util.stream.Collectors.toSet());
+
+        if (!userIds.isEmpty()) {
+            java.util.Map<Long, com.crewcanvas.model.User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
+
+            posts.forEach(post -> {
+                com.crewcanvas.model.User user = userMap.get(post.getUserId());
+                if (user != null) {
+                    java.util.Map<String, Object> details = new java.util.HashMap<>();
+                    details.put("id", user.getId());
+                    details.put("name", user.getName());
+                    details.put("role", user.getRole());
+                    details.put("profilePicture", user.getProfilePicture());
+                    post.setUserDetails(details);
+                }
+            });
+        }
+
+        // Process polls
+        posts.forEach(post -> {
+            if (post.getPoll() != null) {
+                com.crewcanvas.model.Poll poll = post.getPoll();
+                List<com.crewcanvas.model.PollVote> votes = pollVoteRepository.findByPollId(poll.getId());
+                java.util.Map<Long, Integer> voteMap = new java.util.HashMap<>();
+                
+                java.util.Map<Long, Integer> optionIdToIndex = new java.util.HashMap<>();
+                for (int i = 0; i < poll.getOptions().size(); i++) {
+                    optionIdToIndex.put(poll.getOptions().get(i).getId(), i);
+                }
+                
+                for (com.crewcanvas.model.PollVote vote : votes) {
+                    Integer index = optionIdToIndex.get(vote.getOptionId());
+                    if (index != null) {
+                        voteMap.put(vote.getUserId(), index);
+                    }
+                }
+                poll.setPollVotes(voteMap);
+            }
+        });
+
         return posts;
     }
 }

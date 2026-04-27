@@ -336,7 +336,29 @@
             }
 
             .card {
-                padding: 20px;
+                padding: 24px;
+                margin-left: 15px;
+                border-left: 2px solid var(--border-color);
+                position: relative;
+            }
+
+            .card::before {
+                content: attr(data-step);
+                position: absolute;
+                left: -15px;
+                top: 0;
+                width: 30px;
+                height: 30px;
+                background: var(--primary-orange);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 900;
+                box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+                z-index: 2;
             }
 
             .btn-save {
@@ -410,7 +432,7 @@
             </div>
 
             <!-- 1. Identity -->
-            <div class="card">
+            <div class="card" data-step="01">
                 <h3><i class="fa-solid fa-user-circle"></i> Identity & Contact</h3>
                 <div style="display: flex; gap: 25px; align-items: center; margin-bottom: 30px; background: #fffaf5; padding: 20px; border-radius: 20px;">
                     <img id="currentAvatar" src="https://via.placeholder.com/120" class="avatar-preview" alt="Avatar">
@@ -429,7 +451,7 @@
             </div>
 
             <!-- 2. Role & Specs -->
-            <div class="card">
+            <div class="card" data-step="02">
                 <h3><i class="fa-solid fa-clapperboard"></i> Professional Information</h3>
                 
                 <div class="form-group" id="verifiedStatusContainer" style="display: none; background: #fffaf5; padding: 12px 18px; border-radius: 12px; border: 1px solid var(--primary-orange); margin-bottom: 25px;">
@@ -567,7 +589,7 @@
             </div>
 
             <!-- 3. Movie Projects -->
-            <div class="card">
+            <div class="card" data-step="03">
                 <h3 style="display: flex; justify-content: space-between; align-items: center;">
                     <span><i class="fa-solid fa-film"></i> Movie Projects</span>
                 </h3>
@@ -605,7 +627,7 @@
             </div>
 
             <!-- 4. Social Presence -->
-            <div class="card">
+            <div class="card" data-step="04">
                 <h3><i class="fa-solid fa-hashtag"></i> Social Presence</h3>
                 <div class="form-grid">
                     <div class="form-group"><label>Instagram</label><input type="text" id="editInstagram" placeholder="@handle"></div>
@@ -615,7 +637,7 @@
                 </div>
             </div>
             
-            <div class="card" style="border: 1px solid #fee2e2; background: #fff5f5;">
+            <div class="card" style="border: 1px solid #fee2e2; background: #fff5f5;" data-step="05">
                 <h3 style="color: #ef4444;"><i class="fa-solid fa-lock"></i> Private Quotes & Availability</h3>
                 <p style="font-size: 11px; color: #991b1b; margin-bottom: 20px; font-weight: 600;">* Hidden details unlockable with code.</p>
                 

@@ -182,6 +182,17 @@ public class MessageController {
     }
 
 
+    @PutMapping("/read-all")
+    public ResponseEntity<?> markConversationAsRead(@RequestParam Long senderId, @RequestParam Long receiverId) {
+        try {
+            messageService.markConversationAsRead(senderId, receiverId);
+            return ResponseEntity.ok("Messages marked as read");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
         try {

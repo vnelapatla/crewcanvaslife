@@ -315,9 +315,15 @@ function renderProjectsList(projects) {
         return;
     }
 
-    container.innerHTML = projects.map(p => `
+    container.innerHTML = projects.map((p, index) => {
+        const projectNum = (index + 1).toString().padStart(2, '0');
+        const defaultImage = `https://placehold.co/200x300/f8fafc/64748b?text=PROJECT+${projectNum}`;
+        
+        return `
         <div class="project-item-card">
-            <img src="${p.imageUrl || 'https://via.placeholder.com/80x110?text=No+Poster'}" alt="Poster">
+            <img src="${p.imageUrl || defaultImage}" 
+                 alt="Poster" 
+                 onerror="this.onerror=null; this.src='${defaultImage}';">
             <div class="project-info">
                 <h4>${p.title} (${p.year}) ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                 <p><strong>Role:</strong> ${p.role}</p>

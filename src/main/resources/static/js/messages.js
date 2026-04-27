@@ -6,7 +6,7 @@ const MessagingUI = {
     }
 };
 // State management
-let connectionFilter = 'all'; // 'all', 'following', 'followers', 'mutual'
+
 
 // Helper for robust ID retrieval
 // Helper for robust ID retrieval (Handled in utils.js, but keeping a local alias for safety)
@@ -20,20 +20,10 @@ if (typeof getUserId === 'undefined') {
 
 function switchSidebarTab(tabName) {
     const chatTab = document.getElementById('conversationsList');
-    const followTab = document.getElementById('followingList');
     const btns = document.querySelectorAll('.list-tabs button');
 
-    if (tabName === 'conversations') {
-        if (chatTab) chatTab.style.display = 'block';
-        if (followTab) followTab.style.display = 'none';
-        if(btns[0]) btns[0].classList.add('active');
-        if(btns[1]) btns[1].classList.remove('active');
-    } else {
-        if (chatTab) chatTab.style.display = 'none';
-        if (followTab) followTab.style.display = 'block';
-        if(btns[0]) btns[0].classList.remove('active');
-        if(btns[1]) btns[1].classList.add('active');
-    }
+    if (chatTab) chatTab.style.display = 'block';
+    if(btns[0]) btns[0].classList.add('active');
 }
 
 let currentUserId = null;
@@ -122,8 +112,7 @@ async function initMessaging() {
     });
 
     try {
-        await loadFollowing(); // Load allowed contacts first
-        await loadConversations(); // Then load and filter conversations
+        await loadConversations(); 
         console.log("Messaging initialized successfully");
     } catch (e) {
         console.error("Failed to initialize messaging:", e);
@@ -155,103 +144,7 @@ async function loadConversations() {
     }
 }
 
-// Load following and followers
-async function loadFollowing() {
-    try {
-        console.log("Loading all connection types for:", currentUserId);
-        
-        // 1. Fetch Following
-        const respFollowing = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following?t=${Date.now()}`);
-        let following = [];
-        if (respFollowing.ok) {
-            following = await respFollowing.json();
-            if (!Array.isArray(following)) following = [];
-            window.allFollowingUsers = following;
-        }
 
-        // 2. Fetch Followers
-        const respFollowers = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers?t=${Date.now()}`);
-        let followers = [];
-        if (respFollowers.ok) {
-            followers = await respFollowers.json();
-            if (!Array.isArray(followers)) followers = [];
-            window.allFollowerUsers = followers;
-        }
-
-        // 3. Calculate Mutuals
-        const followingIds = new Set(following.map(u => String(getUserId(u))));
-        const mutuals = followers.filter(u => followingIds.has(String(getUserId(u))));
-        window.allMutualUsers = mutuals || [];
-
-        // 4. Fetch Applicants (Event Creators can message their applicants)
-        let applicants = [];
-        try {
-            const respApplicants = await fetch(`${API_BASE_URL}/api/events/all-applicants?userId=${currentUserId}`);
-            if (respApplicants.ok) {
-                const appRecords = await respApplicants.json();
-                const uniqueApplicantIds = new Set();
-                appRecords.forEach(record => {
-                    if (record.userId && record.userId != currentUserId) {
-                        const idStr = String(record.userId);
-                        if (!uniqueApplicantIds.has(idStr)) {
-                            uniqueApplicantIds.add(idStr);
-                            applicants.push({
-                                id: record.userId,
-                                name: record.applicantName || 'Applicant',
-                                role: record.role || 'Film Professional'
-                            });
-                        }
-                    }
-                });
-            }
-        } catch (err) {
-            console.warn("Could not load applicants for messaging:", err);
-        }
-
-        // 5. Merge into a unique Connections list
-        const followerIds = new Set(followers.map(u => String(getUserId(u))));
-        const combined = [...followers];
-        applicants.forEach(app => {
-            if (!followerIds.has(String(app.id))) {
-                combined.push(app);
-            }
-        });
-        window.allConnections = combined;
-
-        // Update counts in UI
-        if (document.getElementById('followingCount')) document.getElementById('followingCount').innerText = `${following.length} Following`;
-        if (document.getElementById('followerCount')) document.getElementById('followerCount').innerText = `${followers.length} Followers`;
-        if (document.getElementById('mutualCount')) document.getElementById('mutualCount').innerText = `${mutuals.length} Mutual`;
-
-        // Display List
-        filterConnections('all');
-
-        // Messaging restricted to followers only. No need to fetch all platform users.
-
-    } catch (error) {
-        console.error('Error loading social connections:', error);
-        const container = document.getElementById('followingList');
-        if (container) container.innerHTML = '<div style="padding: 20px; color: #f44336; font-size: 13px;">Wait! Logic error or server down.</div>';
-    }
-}
-
-function filterConnections(type) {
-    connectionFilter = type;
-    let list = window.allConnections || [];
-    let emptyMsg = "No contacts found";
-
-    if (type === 'followers') {
-        list = window.allFollowerUsers || [];
-        emptyMsg = "No one is following you yet";
-    } else if (type === 'mutual') {
-        list = window.allMutualUsers || [];
-        emptyMsg = "No mutual connections found";
-    }
-
-    displayUsersList('followingList', list, emptyMsg);
-    
-    switchSidebarTab('following');
-}
 
 // Generic user list display
 function displayUsersList(elementId, users, emptyMessage) {
@@ -290,20 +183,6 @@ function displayUsersList(elementId, users, emptyMessage) {
 
 async function startNewChat(receiverId) {
     if (!currentUserId || !receiverId) return;
-    
-    // Check if user is allowed to message
-    const hasExistingConversation = conversations.some(conv => {
-        const otherId = String(conv.user1Id) === String(currentUserId) ? conv.user2Id : conv.user1Id;
-        return String(otherId) === String(receiverId);
-    });
-    const isApplicantContext = getQueryParam('from') === 'applicant' && String(getQueryParam('userId')) === String(receiverId);
-    const isAllowed = hasExistingConversation || isApplicantContext || (window.allConnections && window.allConnections.some(u => String(getUserId(u)) === String(receiverId)));
-    
-    if (!isAllowed) {
-        console.warn(`Messaging restricted: User ${receiverId} is not a follower.`);
-        showMessage("For privacy, you can only message your followers, mutual connections, or applicants to your events.", "error");
-        return;
-    }
     
     console.log(`Starting conversation with ${receiverId}`);
     try {
@@ -503,11 +382,15 @@ async function loadMessages() {
         const messages = await response.json();
         if (!Array.isArray(messages)) return;
 
-        // Mark messages as read ONLY if they were unread and from the partner
-        const unreadFromPartner = messages.filter(m => m.receiverId == currentUserId && !m.isRead);
-        if (unreadFromPartner.length > 0) {
-            for (let msg of unreadFromPartner) {
-                await markAsRead(msg.id);
+        // Mark messages as read using the optimized bulk endpoint
+        const hasUnread = messages.some(m => m.receiverId == currentUserId && !m.isRead);
+        if (hasUnread) {
+            try {
+                await fetch(`${API_BASE_URL}/api/messages/read-all?senderId=${selectedConversationUserId}&receiverId=${currentUserId}`, {
+                    method: 'PUT'
+                });
+            } catch (e) {
+                console.warn("Failed to mark messages as read:", e);
             }
         }
 
@@ -637,10 +520,15 @@ async function sendMessage() {
     }
 
     // Capture files and clear state immediately to allow typing next message
+    // Encrypt content for "safe" transmission if AdvancedMessaging is available
+    const finalContent = (typeof AdvancedMessaging !== 'undefined' && content) 
+        ? AdvancedMessaging.encrypt(content) 
+        : content;
+
     const payload = {
         senderId: currentUserId,
         receiverId: selectedConversationUserId,
-        content: content,
+        content: finalContent,
         imageUrl: selectedImageFile || '',
         fileUrl: selectedGenericFile || '',
         fileType: selectedFileType || ''
@@ -715,18 +603,6 @@ const searchConversations = debounce(() => {
         return nameMatch || contentMatch;
     });
     displayConversations(filtered);
-    
-    // Search within connections (followers/mutuals)
-    if (window.allConnections) {
-        if (query.length > 0) {
-            switchSidebarTab('following'); 
-            const filteredAllowed = window.allConnections.filter(u => (u.name || '').toLowerCase().includes(query));
-            displayUsersList('followingList', filteredAllowed, 'No followers found matching search');
-        } else {
-            switchSidebarTab('conversations');
-            displayUsersList('followingList', window.allConnections, 'No followers yet');
-        }
-    }
 }, 300);
 
 // Also expose to window for the oninput attribute

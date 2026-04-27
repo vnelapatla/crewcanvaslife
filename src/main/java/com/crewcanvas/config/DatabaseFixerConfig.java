@@ -12,6 +12,20 @@ public class DatabaseFixerConfig {
     public CommandLineRunner fixUserTable(JdbcTemplate jdbcTemplate) {
         return args -> {
             try {
+                // Check if we've already done this recently to avoid boot lag and deadlocks
+                try {
+                    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS sys_maintenance (id INT PRIMARY KEY, last_run TIMESTAMP)");
+                    java.util.List<java.util.Map<String, Object>> lastRun = jdbcTemplate.queryForList("SELECT last_run FROM sys_maintenance WHERE id = 1");
+                    if (!lastRun.isEmpty()) {
+                        java.sql.Timestamp ts = (java.sql.Timestamp) lastRun.get(0).get("last_run");
+                        // If run within last 1 hour, skip heavy maintenance
+                        if (System.currentTimeMillis() - ts.getTime() < 3600000) {
+                            System.out.println("Database maintenance skipped (recently completed).");
+                            return;
+                        }
+                    }
+                } catch (Exception e) {}
+
                 System.out.println("Applying manual database fixes to resolve row size limits...");
                 
                 // Manually force these columns to TEXT to free up row space
@@ -153,6 +167,11 @@ public class DatabaseFixerConfig {
                 compressExistingImages(jdbcTemplate, "users", "cover_image", "id");
                 compressExistingImages(jdbcTemplate, "posts", "image_url", "id");
                 
+                // Mark maintenance as done
+                try {
+                    jdbcTemplate.update("REPLACE INTO sys_maintenance (id, last_run) VALUES (1, CURRENT_TIMESTAMP)");
+                } catch (Exception e) {}
+
                 System.out.println("Database maintenance completed.");
             } catch (Exception e) {
                 System.err.println("Database fix error: " + e.getMessage());

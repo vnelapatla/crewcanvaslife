@@ -5,6 +5,38 @@ let profileUserData = null;
 let editingPostId = null;
 let editingImages = [];
 
+function switchTab(element, tabName) {
+    console.log("Switching tab to:", tabName);
+    
+    // 1. Update button states
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (element) {
+        element.classList.add('active');
+    }
+
+    // 2. Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none'; // Force hide
+    });
+    
+    // 3. Show selected tab content
+    const targetId = tabName === 'portfolio' ? 'portfolioTab' : 'activityTab';
+    const targetTab = document.getElementById(targetId);
+    
+    if (targetTab) {
+        targetTab.classList.add('active');
+        targetTab.style.display = 'block'; // Force show
+        console.log("Showing tab container:", targetId);
+        
+        if (tabName === 'activity') {
+            loadUserPosts(); // Trigger data fetch
+        }
+    } else {
+        console.error("Tab container not found:", targetId);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         checkAuth();
@@ -43,7 +75,6 @@ async function refreshProfileData() {
     return Promise.all([
         loadProfile(),
         loadUserProjects(),
-        loadUserPosts(),
         loadFollowers(),
         loadFollowing()
     ]).catch(err => {
@@ -358,16 +389,23 @@ async function loadUserProjects() {
                 return;
             }
 
-            grid.innerHTML = projects.map(p => {
+            grid.innerHTML = projects.map((p, index) => {
                 const userEmail = getCurrentUserEmail();
                 const isAdmin = getCurrentUserIsAdmin() || userEmail === 'crewcanvas2@gmail.com';
                 const verifyBtn = (isAdmin && !p.verified) ? 
                     `<button onclick="verifyProject(${p.id})" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:1px solid var(--primary-orange); color:var(--primary-orange); padding:4px 10px; border-radius:15px; font-size:10px; font-weight:800; cursor:pointer; z-index:10;">VERIFY</button>` : '';
 
+                // Fallback image based on project sequence
+                const projectNum = (index + 1).toString().padStart(2, '0');
+                const defaultImage = `https://placehold.co/400x600/f8fafc/64748b?text=PROJECT+${projectNum}`;
+
                 return `
                 <div class="project-item" style="position:relative;">
                     ${verifyBtn}
-                    <img src="${p.imageUrl || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${p.title}" loading="lazy">
+                    <img src="${p.imageUrl || defaultImage}" 
+                         alt="${p.title}" 
+                         loading="lazy" 
+                         onerror="this.onerror=null; this.src='${defaultImage}';">
                     <div class="project-meta">
                         <h4>${p.title} ${p.verified ? '<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Project"></i>' : ''}</h4>
                         <p>${p.role} • ${p.year || ''}</p>

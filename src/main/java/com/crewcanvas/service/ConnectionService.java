@@ -6,101 +6,78 @@ import com.crewcanvas.repository.ConnectionRepository;
 import com.crewcanvas.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ConnectionService {
-
     @Autowired
     private ConnectionRepository connectionRepository;
 
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private NotificationService notificationService;
+    @Transactional
+    public void followUser(Long followerId, Long followingId) {
+        if (followerId.equals(followingId)) {
+            throw new RuntimeException("You cannot follow yourself");
+        }
 
-    public Connection followUser(Long followerId, Long followingId) {
-        // Check if already following
-        if (connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
+        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent()) {
             throw new RuntimeException("Already following this user");
         }
 
-        // Create connection
-        Connection connection = new Connection(followerId, followingId);
+        Connection connection = new Connection();
+        connection.setFollowerId(followerId);
+        connection.setFollowingId(followingId);
         connectionRepository.save(connection);
 
-        // Update follower/following counts
-        updateFollowerCounts(followerId, followingId, true);
+        // Update counts
+        userRepository.findById(followerId).ifPresent(user -> {
+            user.setFollowing((user.getFollowing() == null ? 0 : user.getFollowing()) + 1);
+            userRepository.save(user);
+        });
 
-        // Trigger Notification
-        notificationService.createNotification(
-            followingId, 
-            followerId, 
-            "FOLLOW", 
-            "started following you.", 
-            followerId.toString()
-        );
-
-        return connection;
+        userRepository.findById(followingId).ifPresent(user -> {
+            user.setFollowers((user.getFollowers() == null ? 0 : user.getFollowers()) + 1);
+            userRepository.save(user);
+        });
     }
 
+    @Transactional
     public void unfollowUser(Long followerId, Long followingId) {
-        Optional<Connection> connection = connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId);
-        if (connection.isPresent()) {
-            connectionRepository.delete(connection.get());
+        Connection connection = connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId)
+                .orElseThrow(() -> new RuntimeException("Connection not found"));
 
-            // Update follower/following counts
-            updateFollowerCounts(followerId, followingId, false);
-        } else {
-            throw new RuntimeException("Not following this user");
-        }
+        connectionRepository.delete(connection);
+
+        // Update counts
+        userRepository.findById(followerId).ifPresent(user -> {
+            int current = user.getFollowing() == null ? 0 : user.getFollowing();
+            user.setFollowing(Math.max(0, current - 1));
+            userRepository.save(user);
+        });
+
+        userRepository.findById(followingId).ifPresent(user -> {
+            int current = user.getFollowers() == null ? 0 : user.getFollowers();
+            user.setFollowers(Math.max(0, current - 1));
+            userRepository.save(user);
+        });
     }
 
     public List<User> getFollowers(Long userId) {
-        List<Connection> connections = connectionRepository.findByFollowingId(userId);
-        return connections.stream()
-                .map(c -> userRepository.findById(c.getFollowerId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        return connectionRepository.findByFollowingId(userId).stream()
+                .map(conn -> userRepository.findById(conn.getFollowerId()).orElse(null))
+                .filter(user -> user != null)
                 .collect(Collectors.toList());
     }
 
     public List<User> getFollowing(Long userId) {
-        List<Connection> connections = connectionRepository.findByFollowerId(userId);
-        return connections.stream()
-                .map(c -> userRepository.findById(c.getFollowingId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        return connectionRepository.findByFollowerId(userId).stream()
+                .map(conn -> userRepository.findById(conn.getFollowingId()).orElse(null))
+                .filter(user -> user != null)
                 .collect(Collectors.toList());
-    }
-
-    public boolean isFollowing(Long followerId, Long followingId) {
-        return connectionRepository.existsByFollowerIdAndFollowingId(followerId, followingId);
-    }
-
-    private void updateFollowerCounts(Long followerId, Long followingId, boolean increment) {
-        int delta = increment ? 1 : -1;
-
-        // Follower's "Following" count changes
-        Optional<User> followerUser = userRepository.findById(followerId);
-        if (followerUser.isPresent()) {
-            User user = followerUser.get();
-            int currentFollowing = user.getFollowing() != null ? user.getFollowing() : 0;
-            user.setFollowing(Math.max(0, currentFollowing + delta));
-            userRepository.save(user);
-        }
-
-        // Following's "Follower" count changes
-        Optional<User> followingUser = userRepository.findById(followingId);
-        if (followingUser.isPresent()) {
-            User user = followingUser.get();
-            int currentFollowers = user.getFollowers() != null ? user.getFollowers() : 0;
-            user.setFollowers(Math.max(0, currentFollowers + delta));
-            userRepository.save(user);
-        }
     }
 }

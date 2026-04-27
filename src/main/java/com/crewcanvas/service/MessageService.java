@@ -61,6 +61,10 @@ public class MessageService {
         return messageRepository.findUnreadMessages(userId);
     }
 
+    public void markConversationAsRead(Long senderId, Long receiverId) {
+        messageRepository.markConversationAsRead(senderId, receiverId);
+    }
+
     public Message markAsRead(Long messageId) {
         Optional<Message> messageOpt = messageRepository.findById(messageId);
         if (messageOpt.isPresent()) {

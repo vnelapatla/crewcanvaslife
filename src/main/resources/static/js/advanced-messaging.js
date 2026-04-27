@@ -159,8 +159,11 @@ const AdvancedMessaging = {
     },
 
     decrypt(encodedText) {
-        if (!encodedText) return encodedText;
+        if (!encodedText || encodedText.length < 4) return encodedText;
         try {
+            // Only attempt decryption if it looks like a Base64 string (no spaces, valid chars)
+            if (/\s/.test(encodedText)) return encodedText;
+            
             return decodeURIComponent(escape(atob(encodedText)));
         } catch (e) {
             return encodedText; // Return original if not base64

@@ -199,7 +199,6 @@ public class UserService {
             logger.debug("Clearing notifications for user: {}", id);
             notificationService.clearAllNotifications(id);
             notificationService.clearNotificationsByActor(id);
-
             // Clean up connections
             logger.debug("Deleting connections for user: {}", id);
             connectionRepository.deleteByFollowerId(id);
@@ -211,7 +210,6 @@ public class UserService {
             } catch (Exception e) {
                 logger.warn("Ghost followers table cleanup skipped or failed (likely table doesn't exist): {}", e.getMessage());
             }
-            
             // Clean up messages
             logger.debug("Deleting messages for user: {}", id);
             messageRepository.deleteBySenderId(id);

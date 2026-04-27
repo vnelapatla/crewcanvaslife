@@ -19,12 +19,12 @@
         :root {
             --primary-orange: #ff8c00;
             --accent-red: #ff4d4d;
-            --bg-black: #0a0a0a;
-            --card-bg: #141414;
-            --item-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --border-dim: #222222;
+            --bg-black: #f8fafc;
+            --card-bg: #ffffff;
+            --item-bg: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-dim: #e2e8f0;
             --sidebar-width: 260px;
         }
 
@@ -100,7 +100,7 @@
             border: 4px solid var(--primary-orange);
             position: relative;
             z-index: 1;
-            background: #111;
+            background: #f1f5f9;
         }
 
         #profileName {
@@ -125,7 +125,7 @@
             width: 100%;
             max-width: 320px;
             margin: 20px auto 0;
-            background: rgba(255,255,255,0.03);
+            background: #ffffff;
             border-radius: 12px;
             padding: 15px;
             border: 1px solid var(--border-dim);
@@ -147,7 +147,7 @@
 
         .progress-bar-bg {
             height: 6px;
-            background: rgba(255,255,255,0.1);
+            background: #e2e8f0;
             border-radius: 10px;
             overflow: hidden;
         }
@@ -169,8 +169,8 @@
         }
 
         .stat-pill {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #333;
+            background: #ffffff;
+            border: 1px solid var(--border-dim);
             padding: 10px 20px;
             border-radius: 50px;
             display: flex;
@@ -230,10 +230,10 @@
         }
 
         .card-content::-webkit-scrollbar { width: 4px; }
-        .card-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .card-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .data-row {
-            background: rgba(255,255,255,0.03);
+            background: #f8fafc;
             padding: 12px 18px;
             border-radius: 12px;
             margin-bottom: 10px;
@@ -242,8 +242,8 @@
             align-items: center;
         }
 
-        .data-row .label { color: #666; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .data-row .value { color: #fff; font-size: 13px; font-weight: 700; }
+        .data-row .label { color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .data-row .value { color: #0f172a; font-size: 13px; font-weight: 700; }
 
         /* Private Card Special Styling */
         #privateInfoCard {
@@ -261,21 +261,105 @@
             font-size: 13px;
         }
 
-        .private-row .label { color: #fff; font-weight: 500; }
+        .private-row .label { color: #0f172a; font-weight: 500; }
         .private-row .value { color: #ff4d4d; font-weight: 700; }
 
         /* Portfolio & Feed Grid */
-        .portfolio-feed-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
+        .portfolio-single-grid {
             margin-bottom: 50px;
         }
 
-        .uniform-card { height: 700px !important; }
+        /* Tabs System */
+        .profile-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 25px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn i { font-size: 16px; }
+
+        .tab-btn.active {
+            color: var(--primary-orange);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary-orange);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--primary-orange);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .uniform-card { min-height: 300px !important; }
+
+        /* Multi-column grid for Desktop Projects */
+        @media (min-width: 1081px) {
+            #projectsGrid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+                gap: 20px !important;
+            }
+
+            .project-item img {
+                height: 260px !important;
+            }
+
+            /* Limit Post Width on Desktop for better readability */
+            .post-card {
+                max-width: 700px;
+                margin-left: 0;
+                margin-right: auto;
+            }
+
+            .post-image, .post-slider-container {
+                max-height: 500px;
+                object-fit: contain;
+                background: #000;
+            }
+        }
 
         .project-item {
-            background: #111;
+            background: #ffffff;
             border-radius: 15px;
             overflow: hidden;
             border: 1px solid #222;
@@ -293,7 +377,7 @@
         .project-meta p { margin: 5px 0 0; font-size: 11px; color: var(--primary-orange); font-weight: 600; }
 
         .post-card {
-            background: rgba(255,255,255,0.03);
+            background: #ffffff;
             border: 1px solid var(--border-dim);
             border-radius: 16px;
             padding: 20px;
@@ -335,7 +419,7 @@
         .post-actions-menu button {
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--border-dim);
-            color: #fff;
+            color: #0f172a;
             width: 32px;
             height: 32px;
             border-radius: 8px;
@@ -355,7 +439,7 @@
         .post-content {
             font-size: 14px;
             line-height: 1.6;
-            color: #ccc;
+            color: #475569;
             margin-bottom: 15px;
         }
 
@@ -544,10 +628,82 @@
                 border-color: rgba(255, 140, 0, 0.2);
             }
             .stat-pill span { font-weight: 800; }
-            .info-card { padding: 20px; }
+            .info-card { padding: 24px; margin-bottom: 20px; }
             .uniform-card { height: auto !important; }
             .data-row { flex-wrap: wrap; gap: 5px; }
             .data-row .value { word-break: break-all; text-align: left; width: 100%; margin-top: 2px; }
+
+            /* Fix Impacted Grid - Make it 1 column on mobile */
+            .profile-grid, .portfolio-feed-grid {
+                grid-template-columns: 1fr !important;
+                gap: 30px;
+            }
+
+            /* Step by Step Visual Flow */
+            .profile-container {
+                position: relative;
+            }
+
+            .info-card {
+                position: relative;
+                border-left: 2px solid var(--border-dim);
+                padding-left: 30px;
+                margin-left: 15px;
+            }
+
+            .info-card::before {
+                content: attr(data-step);
+                position: absolute;
+                left: -15px;
+                top: 0;
+                width: 30px;
+                height: 30px;
+                background: var(--primary-orange);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 900;
+                box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+                z-index: 2;
+            }
+
+            .info-card h3 {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+
+            /* Horizontal Slider for Projects on Mobile */
+            #projectsGrid {
+                display: flex !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory;
+                gap: 15px !important;
+                padding-bottom: 15px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* Hide scrollbar for clean look */
+            }
+
+            #projectsGrid::-webkit-scrollbar {
+                display: none;
+            }
+
+            .project-item {
+                flex: 0 0 240px !important; /* Fixed width for slider items */
+                scroll-snap-align: start;
+                margin-bottom: 0 !important;
+            }
+
+            .project-item img {
+                height: 320px !important; /* Taller posters for premium feel */
+                object-fit: cover;
+            }
+        }
+
+        @media (min-width: 1081px) {
+            .info-card::before { display: none; }
         }
 
         @media (max-width: 480px) {
@@ -596,10 +752,6 @@
                     <span id="projectCount">0</span> Projects
                 </div>
                 <div class="stat-pill">
-                    <i class="fa-solid fa-newspaper"></i>
-                    <span id="postCount">0</span> Posts
-                </div>
-                <div class="stat-pill">
                     <i class="fa-solid fa-users"></i>
                     <span id="followerCount">0</span> Followers
                 </div>
@@ -619,7 +771,7 @@
 
             <!-- Row 1: Personal & Craft -->
             <div class="profile-grid">
-                <div class="info-card">
+                <div class="info-card" data-step="01">
                     <h3><i class="fa-solid fa-user"></i> Personal Information</h3>
                     <div class="data-row">
                         <span class="label">Email</span>
@@ -635,7 +787,7 @@
                     </div>
                 </div>
 
-                <div class="info-card" id="craftSpecsCard">
+                <div class="info-card" id="craftSpecsCard" data-step="02">
                     <h3><i class="fa-solid fa-briefcase"></i> Craft Specifications</h3>
                     <div id="craftSpecsContainer">
                         <!-- Dynamic fields injected here -->
@@ -645,12 +797,12 @@
 
             <!-- Row 2: Private & Skills -->
             <div class="profile-grid">
-                <div class="info-card" id="privateInfoCard">
+                <div class="info-card" id="privateInfoCard" data-step="03">
                     <h3><i class="fa-solid fa-lock"></i> Private Quotes</h3>
                     <div id="privateLockedState">
                         <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Enter code to view budget & availability:</p>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="unlockCodeInput" placeholder="Enter Code" style="flex: 1; padding: 10px; border: 1px solid #333; border-radius: 8px; background: #000; color: #fff; font-size: 12px;">
+                            <input type="text" id="unlockCodeInput" placeholder="Enter Code" style="flex: 1; padding: 10px; border: 1px solid var(--border-dim); border-radius: 8px; background: #ffffff; color: #0f172a; font-size: 12px;">
                             <button onclick="unlockPrivateInfo()" style="background: #ff4d4d; color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 11px;">Unlock</button>
                         </div>
                     </div>
@@ -674,23 +826,39 @@
                     </div>
                 </div>
 
-                <div class="info-card">
+                <div class="info-card" data-step="04">
                     <h3><i class="fa-solid fa-wrench"></i> Skills & Social</h3>
                     <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;"></div>
                     <div id="socialLinks" style="display: flex; gap: 20px; font-size: 24px;"></div>
                 </div>
             </div>
 
-            <!-- Row 3: Portfolio & Feed -->
-            <div class="portfolio-feed-grid">
-                <div class="info-card uniform-card">
-                    <h3><i class="fa-solid fa-film"></i> Movie Projects</h3>
-                    <div class="card-content" id="projectsGrid"></div>
-                </div>
+            <!-- Row 3: Tabs Navigation -->
+            <div class="profile-tabs">
+                <button class="tab-btn active" onclick="switchTab(this, 'portfolio')">
+                    <i class="fa-solid fa-briefcase"></i> Portfolio
+                </button>
+                <button class="tab-btn" onclick="switchTab(this, 'activity')">
+                    <i class="fa-solid fa-clock-rotate-left"></i> My Posts
+                </button>
+            </div>
 
-                <div class="info-card uniform-card">
-                    <h3><i class="fa-solid fa-newspaper"></i> My Posts</h3>
-                    <div class="card-content" id="postsContent"></div>
+            <!-- Row 4: Tab Contents -->
+            <div id="portfolioTab" class="tab-content active">
+                <div class="portfolio-single-grid">
+                    <div class="info-card uniform-card">
+                        <h3><i class="fa-solid fa-film"></i> Movie Projects</h3>
+                        <div class="card-content" id="projectsGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="activityTab" class="tab-content">
+                <div class="portfolio-single-grid">
+                    <div class="info-card uniform-card">
+                        <h3><i class="fa-solid fa-newspaper"></i> Recent Posts</h3>
+                        <div class="card-content" id="postsContent"></div>
+                    </div>
                 </div>
             </div>
         </div>
