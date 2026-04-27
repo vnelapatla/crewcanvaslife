@@ -22,9 +22,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Build with Maven
+    - name: Build and Test with Maven
       run: |
-        mvn clean package -DskipTests
+        mvn clean package
         # Verify the file exists
         ls -lh target/*.jar
 
