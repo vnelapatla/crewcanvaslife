@@ -520,7 +520,6 @@ body.scroll-lock {
         white-space: nowrap;
     }
 
-    /* Mobile Chat Overlay Fix */
     .chat-overlay {
         position: fixed;
         top: 0;
@@ -529,8 +528,12 @@ body.scroll-lock {
         bottom: 0;
         z-index: 999999;
         background: #fff;
-        display: flex;
+        display: none; /* Controlled by JS */
         flex-direction: column;
+    }
+    
+    .chat-overlay.active {
+        display: flex !important;
     }
 
     .chat-window {
@@ -628,10 +631,12 @@ body.scroll-lock {
     }
 
     .chat-input-area {
-        padding: 10px 15px calc(15px + env(safe-area-inset-bottom, 0)) 15px;
+        padding: 12px 15px;
         background: #fff;
         border-top: 1px solid #f0f0f0;
-        margin-bottom: 70px; /* Space for your visible bottom nav */
+        margin-bottom: 0 !important; /* Remove margin when inside chat modal */
+        position: relative;
+        z-index: 10;
     }
 
     .chat-input-area input {

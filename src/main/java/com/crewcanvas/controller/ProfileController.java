@@ -35,7 +35,7 @@ public class ProfileController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to load profile. Please try again later.");
         }
     }
 
@@ -46,7 +46,7 @@ public class ProfileController {
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating profile: " + e.getMessage());
+                    .body("We couldn't update your profile. Please check your connection and try again.");
         }
     }
     
@@ -68,7 +68,7 @@ public class ProfileController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update password.");
         }
     }
 
@@ -81,7 +81,7 @@ public class ProfileController {
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Search service is temporarily unavailable.");
         }
     }
 
@@ -104,7 +104,7 @@ public class ProfileController {
                     .body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to follow user at this time.");
         }
     }
 
@@ -118,7 +118,7 @@ public class ProfileController {
                     .body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to unfollow user at this time.");
         }
     }
 

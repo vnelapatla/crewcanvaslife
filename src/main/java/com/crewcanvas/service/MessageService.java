@@ -37,13 +37,13 @@ public class MessageService {
 
         // 1. Admin check
         com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
-        if (sender != null && sender.getIsAdmin()) {
+        if (sender != null && Boolean.TRUE.equals(sender.getIsAdmin())) {
             System.out.println("Permission Granted: Sender is Admin");
             return true;
         }
 
         com.crewcanvas.model.User receiver = userRepository.findById(receiverId).orElse(null);
-        if (receiver != null && receiver.getIsAdmin()) {
+        if (receiver != null && Boolean.TRUE.equals(receiver.getIsAdmin())) {
             System.out.println("Permission Granted: Receiver is Admin");
             return true;
         }
@@ -69,7 +69,7 @@ public class MessageService {
         return false;
     }
 
-    public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType) {
+    public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
         if (!canUserMessage(senderId, receiverId)) {
             String reason = "Messaging is restricted. You must be following each other, be mutual followers, or have an active event relationship.";
             throw new RuntimeException(reason);
@@ -78,6 +78,9 @@ public class MessageService {
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
         message.setFileType(fileType);
+        if (fileUrls != null) {
+            message.setFileUrls(fileUrls);
+        }
         Message savedMessage = messageRepository.save(message);
 
         // Trigger Notification

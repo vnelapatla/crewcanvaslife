@@ -29,6 +29,12 @@ public class Message {
 
     @Column(name = "file_type")
     private String fileType;
+    
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "message_files", joinColumns = @JoinColumn(name = "message_id"))
+    @Lob
+    @Column(name = "file_url", columnDefinition = "LONGTEXT")
+    private java.util.List<String> fileUrls = new java.util.ArrayList<>();
 
 
     @Column(name = "is_read", nullable = false)
@@ -136,6 +142,14 @@ public class Message {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public java.util.List<String> getFileUrls() {
+        return fileUrls;
+    }
+    
+    public void setFileUrls(java.util.List<String> fileUrls) {
+        this.fileUrls = fileUrls;
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnore

@@ -377,22 +377,36 @@ async function openConversation(userId) {
     const chatOverlay = document.getElementById('chatOverlay');
     if (chatOverlay) {
         chatOverlay.style.display = 'flex';
+        chatOverlay.classList.add('active'); // Added for mobile visibility
         document.body.classList.add('scroll-lock');
     }
     
     // Handle Visual Viewport for mobile keyboard stability
-    if (window.visualViewport && window.innerWidth <= 1024) {
+    if (window.visualViewport) {
         const handleViewportChange = () => {
             const viewport = window.visualViewport;
+            const chatOverlay = document.getElementById('chatOverlay');
             const chatWindow = document.querySelector('.chat-window');
-            if (chatWindow) {
-                chatWindow.style.height = `${viewport.height}px`;
-                chatWindow.style.top = `${viewport.offsetTop}px`;
+            
+            if (window.innerWidth <= 1024 && chatOverlay && chatOverlay.classList.contains('active')) {
+                // On mobile, the overlay should match the viewport
+                chatOverlay.style.height = `${viewport.height}px`;
+                chatOverlay.style.top = `${viewport.offsetTop}px`;
+                
+                if (chatWindow) {
+                    chatWindow.style.height = '100%'; // Window fills the adjusted overlay
+                }
+            } else if (chatWindow) {
+                // Reset for desktop or when closed
+                if (chatOverlay) {
+                    chatOverlay.style.height = '';
+                    chatOverlay.style.top = '';
+                }
+                chatWindow.style.height = '';
             }
         };
         window.visualViewport.addEventListener('resize', handleViewportChange);
         window.visualViewport.addEventListener('scroll', handleViewportChange);
-        // Initial call
         handleViewportChange();
     }
     
@@ -460,6 +474,7 @@ function closeChatArea() {
     const chatOverlay = document.getElementById('chatOverlay');
     if (chatOverlay) {
         chatOverlay.style.display = 'none';
+        chatOverlay.classList.remove('active');
         document.body.classList.remove('scroll-lock');
     }
     selectedConversationUserId = null;
@@ -569,21 +584,28 @@ function displayMessages(messages) {
         const name = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
         
         let attachmentContent = '';
-        if (msg.imageUrl) {
-            attachmentContent = `<img src="${msg.imageUrl}" alt="Image" style="max-width: 100%; border-radius: 8px; margin-top:5px;">`;
-        } else if (msg.fileUrl) {
-            const fileName = `attachment_${msg.id}`;
-            attachmentContent = `
-                <div class="file-attachment" onclick="downloadFile('${msg.fileUrl}', '${fileName}')" style="display: flex; align-items: center; gap: 10px; background: rgba(255,136,0,0.1); padding: 12px; border-radius: 8px; margin-top: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
-                    <div style="width: 35px; height: 35px; background: var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-                        <i class="fa-solid fa-file-arrow-down"></i>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 13px; font-weight: 700; color: #333;">Download File</div>
-                        <div style="font-size: 10px; color: #888;">${msg.fileType || 'Document'}</div>
-                    </div>
-                </div>
-            `;
+        const allFiles = [...(msg.fileUrls || [])];
+        if (msg.imageUrl && !allFiles.includes(msg.imageUrl)) allFiles.unshift(msg.imageUrl);
+        if (msg.fileUrl && !allFiles.includes(msg.fileUrl)) allFiles.push(msg.fileUrl);
+
+        if (allFiles.length > 0) {
+            attachmentContent = '<div class="message-attachments-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; margin-top: 8px;">';
+            allFiles.forEach((url, idx) => {
+                const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || (idx === 0 && msg.imageUrl);
+                if (isImage) {
+                    attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="window.open('${url}')">`;
+                } else {
+                    attachmentContent += `
+                        <div class="file-attachment mini" onclick="window.open('${url}')" style="display: flex; align-items: center; gap: 5px; background: rgba(255,136,0,0.1); padding: 8px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
+                            <div style="width: 25px; height: 25px; background: var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">
+                                <i class="fa-solid fa-file-arrow-down"></i>
+                            </div>
+                            <div style="font-size: 11px; font-weight: 700; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">File ${idx + 1}</div>
+                        </div>
+                    `;
+                }
+            });
+            attachmentContent += '</div>';
         }
 
         let avatarHtml = '';
@@ -650,9 +672,10 @@ async function sendMessage() {
         senderId: currentUserId,
         receiverId: selectedConversationUserId,
         content: finalContent,
-        imageUrl: selectedImageFile || '',
-        fileUrl: selectedGenericFile || '',
-        fileType: selectedFileType || ''
+        imageUrl: selectedFiles.length > 0 && selectedFiles[0].type === 'image' ? selectedFiles[0].url : '',
+        fileUrl: selectedFiles.length > 0 && selectedFiles[0].type === 'file' ? selectedFiles[0].url : '',
+        fileType: selectedFiles.length > 0 ? selectedFiles[0].rawType : '',
+        fileUrls: selectedFiles.map(f => f.url)
     };
 
     // Clear input and previews immediately for snappy UI
@@ -730,78 +753,89 @@ const searchConversations = debounce(() => {
 // Also expose to window for the oninput attribute
 window.searchConversations = searchConversations;
 
-// Image upload for messages
-let selectedImageFile = null;
-document.getElementById('messageImage')?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (file) {
+// Support for multiple files (up to 7)
+let selectedFiles = [];
+
+async function handleFileSelect(e, type) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (selectedFiles.length + files.length > 7) {
+        showMessage('You can only select up to 7 files total.', 'error');
+        return;
+    }
+
+    for (const file of files) {
         if (file.size > 50 * 1024 * 1024) {
-            showMessage('That file is too big! Please keep it under 50MB.', 'error');
-            return;
+            showMessage(`${file.name} is too big! (Max 50MB)`, 'error');
+            continue;
         }
+
         try {
-            selectedImageFile = await uploadImage(file);
-            showFilePreview(file.name, selectedImageFile, 'image');
+            const dataUrl = await uploadImage(file); // existing helper
+            selectedFiles.push({
+                name: file.name,
+                url: dataUrl,
+                type: type,
+                rawType: file.type
+            });
         } catch (error) {
-            showMessage('Something went wrong with the upload. Please try again.', 'error');
+            showMessage(`Failed to upload ${file.name}`, 'error');
         }
     }
-});
+    renderFilePreviews();
+}
 
-// Generic file upload for messages
-let selectedGenericFile = null;
-let selectedFileType = null;
-document.getElementById('messageFile')?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        if (file.size > 50 * 1024 * 1024) {
-            showMessage('That file is too big! Please keep it under 50MB.', 'error');
-            return;
-        }
-        try {
-            selectedGenericFile = await uploadImage(file); 
-            selectedFileType = file.type;
-            showFilePreview(file.name, null, 'file');
-        } catch (error) {
-            showMessage('Something went wrong with the upload. Please try again.', 'error');
-        }
-    }
-});
+document.getElementById('messageImage')?.addEventListener('change', (e) => handleFileSelect(e, 'image'));
+document.getElementById('messageFile')?.addEventListener('change', (e) => handleFileSelect(e, 'file'));
 
-function showFilePreview(name, data, type) {
+function renderFilePreviews() {
     const previewArea = document.getElementById('previewArea');
     if (!previewArea) return;
     
-    previewArea.style.display = 'flex';
-    if (type === 'image') {
-        previewArea.innerHTML = `
-            <div style="position: relative; width: 50px; height: 50px;">
-                <img src="${data}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
-                <div onclick="clearPreview()" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer;">×</div>
-            </div>
-            <span style="font-size: 12px; color: #666;">${truncateText(name, 20)}</span>
-        `;
-    } else {
-        previewArea.innerHTML = `
-            <div style="position: relative; display: flex; align-items: center; gap: 10px; background: #f0f0f0; padding: 5px 10px; border-radius: 4px;">
-                <i class="fa-solid fa-file" style="color: #666;"></i>
-                <span style="font-size: 12px; color: #666;">${truncateText(name, 20)}</span>
-                <div onclick="clearPreview()" style="margin-left: 10px; color: #ff4444; cursor: pointer; font-weight: bold;">×</div>
-            </div>
-        `;
+    if (selectedFiles.length === 0) {
+        previewArea.style.display = 'none';
+        previewArea.innerHTML = '';
+        return;
     }
+
+    previewArea.style.display = 'flex';
+    previewArea.style.flexWrap = 'wrap';
+    previewArea.style.gap = '8px';
+    previewArea.style.padding = '10px';
+
+    previewArea.innerHTML = selectedFiles.map((file, index) => {
+        if (file.type === 'image') {
+            return `
+                <div style="position: relative; width: 60px; height: 60px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+                    <img src="${file.url}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div onclick="removeSelectedFile(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; font-weight: bold;">×</div>
+                </div>
+            `;
+        } else {
+            return `
+                <div style="position: relative; display: flex; align-items: center; gap: 8px; background: #f8f9fa; padding: 8px 12px; border-radius: 8px; border: 1px solid #eee; max-width: 150px;">
+                    <i class="fa-solid fa-file" style="color: var(--primary-orange);"></i>
+                    <span style="font-size: 11px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</span>
+                    <div onclick="removeSelectedFile(${index})" style="color: #ff4444; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 5px;">×</div>
+                </div>
+            `;
+        }
+    }).join('');
+}
+
+function removeSelectedFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFilePreviews();
 }
 
 function clearPreview() {
-    selectedImageFile = null;
-    selectedGenericFile = null;
-    selectedFileType = null;
+    selectedFiles = [];
     const previewArea = document.getElementById('previewArea');
     if (previewArea) {
         previewArea.style.display = 'none';
         previewArea.innerHTML = '';
     }
-    // Reset file inputs
     const imgInput = document.getElementById('messageImage');
     if(imgInput) imgInput.value = '';
     const fileInput = document.getElementById('messageFile');

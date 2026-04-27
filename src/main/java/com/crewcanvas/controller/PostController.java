@@ -32,7 +32,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.CREATED).body(post);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating post: " + e.getMessage());
+                    .body("We couldn't share your post. Please try again.");
         }
     }
 
@@ -43,7 +43,7 @@ public class PostController {
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to load the feed.");
         }
     }
 
@@ -58,7 +58,7 @@ public class PostController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Something went wrong while fetching the post.");
         }
     }
 
@@ -69,7 +69,7 @@ public class PostController {
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Couldn't load user posts.");
         }
     }
 
@@ -107,7 +107,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Failed to like the post.");
         }
     }
 
@@ -122,7 +122,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to post your comment.");
         }
     }
 
@@ -134,7 +134,7 @@ public class PostController {
             Post post = postService.votePoll(id, userId, optionIndex);
             return ResponseEntity.ok(post);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error voting: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to cast your vote.");
         }
     }
 }

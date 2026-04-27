@@ -39,7 +39,8 @@ public class MessageController {
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
-                    request.getFileType()
+                    request.getFileType(),
+                    request.getFileUrls()
             );
 
             java.util.Map<String, Object> map = new java.util.HashMap<>();
@@ -50,6 +51,7 @@ public class MessageController {
             map.put("imageUrl", savedMessage.getImageUrl());
             map.put("fileUrl", savedMessage.getFileUrl());
             map.put("fileType", savedMessage.getFileType());
+            map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
 
@@ -71,7 +73,8 @@ public class MessageController {
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
-                    request.getFileType());
+                    request.getFileType(),
+                    request.getFileUrls());
 
             java.util.Map<String, Object> map = new java.util.HashMap<>();
             map.put("id", savedMessage.getId());
@@ -81,6 +84,7 @@ public class MessageController {
             map.put("imageUrl", savedMessage.getImageUrl());
             map.put("fileUrl", savedMessage.getFileUrl());
             map.put("fileType", savedMessage.getFileType());
+            map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
 
@@ -91,8 +95,14 @@ public class MessageController {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
         } catch (Exception e) {
+            String msg = e.getMessage();
+            // If it's one of our known business logic errors, show it
+            if (msg != null && (msg.contains("restricted") || msg.contains("allowed") || msg.contains("relationship"))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(msg);
+            }
+            // Otherwise show a friendly generic message
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error sending message: " + e.getMessage());
+                    .body("We're having trouble sending your message. Please try again in a moment.");
         }
     }
 
@@ -103,7 +113,7 @@ public class MessageController {
             return ResponseEntity.ok(java.util.Collections.singletonMap("allowed", allowed));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error checking permission: " + e.getMessage());
+                    .body("Unable to verify messaging permissions at this time.");
         }
     }
 
@@ -122,6 +132,7 @@ public class MessageController {
                 map.put("imageUrl", m.getImageUrl());
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
+                map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
                 map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
@@ -129,7 +140,7 @@ public class MessageController {
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Backend Error: " + e.getClass().getName() + " - " + e.getMessage());
+                    .body("We couldn't load your conversation. Please refresh and try again.");
         }
     }
 
@@ -152,16 +163,16 @@ public class MessageController {
                 map.put("imageUrl", m.getImageUrl());
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
+                map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
                 map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            System.err.println("CRITICAL ERROR in getUserMessages for user " + userId + ": " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("CRITICAL ERROR in getUserMessages: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Backend Error: " + e.getClass().getName() + " - " + e.getMessage());
+                    .body("Failed to load recent chats.");
         }
     }
 
@@ -181,6 +192,7 @@ public class MessageController {
                 map.put("imageUrl", m.getImageUrl());
                 map.put("fileUrl", m.getFileUrl());
                 map.put("fileType", m.getFileType());
+                map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
                 map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
                 result.add(map);
@@ -188,7 +200,7 @@ public class MessageController {
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Backend Error: " + e.getClass().getName() + " - " + e.getMessage());
+                    .body("Unable to check notifications.");
         }
     }
 
@@ -200,7 +212,7 @@ public class MessageController {
             return ResponseEntity.ok("Messages marked as read");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Unable to update message status.");
         }
     }
 
@@ -236,6 +248,7 @@ class MessageRequest {
     private String imageUrl;
     private String fileUrl;
     private String fileType;
+    private java.util.List<String> fileUrls;
 
     public Long getSenderId() {
         return senderId;
@@ -283,5 +296,13 @@ class MessageRequest {
 
     public void setFileType(String fileType) {
         this.fileType = fileType;
+    }
+    
+    public java.util.List<String> getFileUrls() {
+        return fileUrls;
+    }
+    
+    public void setFileUrls(java.util.List<String> fileUrls) {
+        this.fileUrls = fileUrls;
     }
 }
