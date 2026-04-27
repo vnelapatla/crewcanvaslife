@@ -389,12 +389,19 @@ async function openConversation(userId) {
             const chatWindow = document.querySelector('.chat-window');
             
             if (window.innerWidth <= 1024 && chatOverlay && chatOverlay.classList.contains('active')) {
-                // On mobile, the overlay should match the viewport
-                chatOverlay.style.height = `${viewport.height}px`;
+                // On mobile, the overlay should match the visible viewport exactly
+                const newHeight = viewport.height;
+                chatOverlay.style.height = `${newHeight}px`;
                 chatOverlay.style.top = `${viewport.offsetTop}px`;
                 
                 if (chatWindow) {
-                    chatWindow.style.height = '100%'; // Window fills the adjusted overlay
+                    chatWindow.style.height = '100%';
+                }
+                
+                // Ensure the last message is still visible
+                const container = document.getElementById('messagesArea');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
                 }
             } else if (chatWindow) {
                 // Reset for desktop or when closed
