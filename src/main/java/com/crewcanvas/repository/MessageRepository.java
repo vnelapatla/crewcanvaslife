@@ -33,6 +33,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM conversations WHERE user1_id = ?1 OR user2_id = ?1", nativeQuery = true)
+    void deleteFromConversationsTable(Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE Message m SET m.isRead = true WHERE m.senderId = ?1 AND m.receiverId = ?2 AND m.isRead = false")
     void markConversationAsRead(Long senderId, Long receiverId);
 }
