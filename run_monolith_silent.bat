@@ -7,7 +7,7 @@ echo [INFO] Starting Monolith Build... > monolith_run.log
 echo [INFO] Java Home: "%JAVA_HOME%" >> monolith_run.log
 
 echo [INFO] Cleaning and Building... >> monolith_run.log
-call "%MAVEN_BIN%\mvn.cmd" -f pom-monolith.xml clean install -DskipTests >> monolith_run.log 2>&1
+call "%MAVEN_BIN%\mvn.cmd" clean install -DskipTests >> monolith_run.log 2>&1
 
 if %errorlevel% neq 0 (
     echo [ERROR] Build Failed! >> monolith_run.log
@@ -15,4 +15,4 @@ if %errorlevel% neq 0 (
 )
 
 echo [INFO] Build Successful. Starting App... >> monolith_run.log
-call "%MAVEN_BIN%\mvn.cmd" -f pom-monolith.xml spring-boot:run >> monolith_run.log 2>&1
+call "%MAVEN_BIN%\mvn.cmd" spring-boot:run >> monolith_run.log 2>&1

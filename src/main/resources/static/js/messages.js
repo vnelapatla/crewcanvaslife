@@ -611,12 +611,21 @@ function displayMessages(messages) {
         if (allFiles.length > 0) {
             attachmentContent = '<div class="message-attachments-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; margin-top: 8px;">';
             allFiles.forEach((url, idx) => {
-                const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || (idx === 0 && msg.imageUrl);
+                const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || url.startsWith('data:image/');
+                const isVideo = isVideoFile(url);
+                
                 if (isImage) {
-                    attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="window.open('${url}')">`;
+                    attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="viewFile('${url}')">`;
+                } else if (isVideo) {
+                    attachmentContent += `
+                        <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
+                            <video src="${url}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; pointer-events: none;"><i class="fa-solid fa-play"></i></div>
+                        </div>
+                    `;
                 } else {
                     attachmentContent += `
-                        <div class="file-attachment mini" onclick="window.open('${url}')" style="display: flex; align-items: center; gap: 5px; background: rgba(255,136,0,0.1); padding: 8px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
+                        <div class="file-attachment mini" onclick="downloadFile('${url}', 'file_${idx + 1}')" style="display: flex; align-items: center; gap: 5px; background: rgba(255,136,0,0.1); padding: 8px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
                             <div style="width: 25px; height: 25px; background: var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">
                                 <i class="fa-solid fa-file-arrow-down"></i>
                             </div>
@@ -797,6 +806,15 @@ async function handleFileSelect(e, type) {
     }
 
     for (const file of files) {
+        // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+        const isVideo = file.type.startsWith('video/') || 
+                        file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
+        
+        if (isVideo && !getCurrentUserIsAdmin()) {
+            showMessage('Video uploads in messages are restricted to administrators.', 'error');
+            continue;
+        }
+
         if (file.size > 50 * 1024 * 1024) {
             showMessage(`${file.name} is too big! (Max 50MB)`, 'error');
             continue;
@@ -872,17 +890,66 @@ function clearPreview() {
     const fileInput = document.getElementById('messageFile');
     if(fileInput) fileInput.value = '';
 }
-function downloadFile(base64, filename) {
-    if (!base64) return;
+function downloadFile(url, filename) {
+    if (!url) return;
     try {
+        let targetUrl = url;
+        let isDataUrl = url.startsWith('data:');
+        
+        if (isDataUrl) {
+            const parts = url.split(';base64,');
+            if (parts.length === 2) {
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                const blob = new Blob([uInt8Array], { type: contentType });
+                targetUrl = URL.createObjectURL(blob);
+            }
+        }
+
         const link = document.createElement('a');
-        link.href = base64;
+        link.href = targetUrl;
         link.download = filename || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        if (targetUrl !== url) {
+            setTimeout(() => URL.revokeObjectURL(targetUrl), 1000);
+        }
     } catch (e) {
         console.error("Download failed:", e);
-        window.open(base64); // Fallback
+        window.open(url, '_blank');
+    }
+}
+
+function viewFile(url) {
+    if (!url) return;
+    try {
+        let targetUrl = url;
+        if (url.startsWith('data:')) {
+            const parts = url.split(';base64,');
+            if (parts.length === 2) {
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                const blob = new Blob([uInt8Array], { type: contentType });
+                targetUrl = URL.createObjectURL(blob);
+            }
+        }
+        const newWin = window.open(targetUrl, '_blank');
+        if (!newWin || newWin.closed) {
+            showMessage("Please allow popups to view this image", "warning");
+        }
+    } catch (e) {
+        window.open(url, '_blank');
     }
 }

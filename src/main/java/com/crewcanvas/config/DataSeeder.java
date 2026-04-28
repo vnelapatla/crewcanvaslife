@@ -27,6 +27,8 @@ public class DataSeeder {
                     return;
                 }
 
+                // 2026-04-28: DISABLING DESTRUCTIVE SEEDING TO PREVENT DATA LOSS ON LIVE SITE
+                /*
                 // Remove seeded data for Admin to clean up live site
                 System.out.println("Cleaning up seed data for Admin (ID: " + adminId + ")...");
                 
@@ -42,6 +44,8 @@ public class DataSeeder {
                 jdbcTemplate.update("DELETE FROM projects WHERE user_id = ?", adminId);
 
                 System.out.println("SUCCESS: Admin seed data removed.");
+                */
+                System.out.println("SKIP: Destructive cleanup disabled to protect live content.");
 
             } catch (Exception e) {
                 System.err.println("Cleanup error: " + e.getMessage());

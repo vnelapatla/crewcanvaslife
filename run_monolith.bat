@@ -13,8 +13,8 @@ timeout /t 2 /nobreak >nul
 
 echo [2/3] Cleaning and Building Monolith...
 echo Using Maven at: "%MAVEN_BIN%"
-echo Using Project File: pom-monolith.xml
-call "%MAVEN_BIN%\mvn.cmd" -f pom-monolith.xml clean install -DskipTests
+echo Using Project File: pom.xml
+call "%MAVEN_BIN%\mvn.cmd" -f pom.xml clean install -DskipTests
 if %errorlevel% neq 0 (
     echo [ERROR] Build Failed! Check the error messages above.
     pause
@@ -23,8 +23,8 @@ if %errorlevel% neq 0 (
 
 echo [3/3] Starting Application...
 echo.
-echo Application will start on port 8080 (as per application.properties)
+echo Application will start on port 8081 (as per application.properties)
 echo DB: localhost:3306/crewcanvas_db
 echo.
-call "%MAVEN_BIN%\mvn.cmd" -f pom-monolith.xml spring-boot:run
+call "%MAVEN_BIN%\mvn.cmd" -f pom.xml spring-boot:run
 pause

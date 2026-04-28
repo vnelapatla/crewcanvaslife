@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry Pass - CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff8c00;
+            --primary-dark: #e67e00;
+            --bg: #0f172a;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .pass-container {
+            width: 100%;
+            max-width: 420px;
+            margin: auto;
+        }
+
+        .pass-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .pass-header {
+            background: var(--primary);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .pass-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .pass-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .pass-body {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .qr-container {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 25px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+        }
+
+        .event-details {
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-light);
+            letter-spacing: 1px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .pass-footer {
+            border-top: 2px dashed #f1f5f9;
+            padding: 20px 30px;
+            background: #fdfdfd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .status-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-print {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-print:hover { background: var(--primary-dark); }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .pass-card { box-shadow: none; border: 1px solid #eee; }
+            .actions { display: none; }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 480px) {
+            .pass-header { padding: 20px 15px; }
+            .pass-header h1 { font-size: 20px; }
+            .pass-body { padding: 20px; }
+            .qr-container { padding: 15px; margin-bottom: 20px; }
+            .detail-value { font-size: 14px; }
+            .pass-footer { padding: 15px 20px; }
+            .btn { padding: 10px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="pass-container">
+        <div class="pass-card" id="passCard">
+            <div id="loader" class="loading-overlay">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: var(--text-light); font-weight: 500;">Generating Pass...</p>
+            </div>
+
+            <div class="pass-header">
+                <h1>OFFICIAL ENTRY PASS</h1>
+                <p>CrewCanvas Events Ecosystem</p>
+            </div>
+
+            <div class="pass-body">
+                <div class="qr-container">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="event-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Event Name</div>
+                        <div class="detail-value" id="eventTitle">-</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div class="detail-item">
+                            <div class="detail-label">Date</div>
+                            <div class="detail-value" id="eventDate">-</div>
+                        </div>
+                        <div class="detail-item" style="text-align: right;">
+                            <div class="detail-label">Type</div>
+                            <div class="detail-value" id="eventType">-</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Venue</div>
+                        <div class="detail-value" id="eventLocation">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pass-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userInitials">U</div>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 700;" id="userName">-</div>
+                        <div style="font-size: 11px; color: var(--text-light);" id="userRole">-</div>
+                    </div>
+                </div>
+                <div class="status-badge">VALID</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Pass
+            </button>
+            <button class="btn" style="background: #f1f5f9; color: #475569;" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getQueryParam('token');
+            if (!token) {
+                alert('Invalid pass token');
+                window.location.href = 'event.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/events/pass/${token}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderPass(data);
+                } else {
+                    alert('Pass not found or expired');
+                    window.location.href = 'event.html';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Connection error');
+            }
+        });
+
+        function renderPass(data) {
+            document.getElementById('eventTitle').innerText = data.eventTitle || 'Untitled Event';
+            document.getElementById('eventType').innerText = data.eventType || 'Event';
+            document.getElementById('eventDate').innerText = data.eventDate || '-';
+            document.getElementById('userName').innerText = data.applicantName || 'Guest';
+            document.getElementById('userRole').innerText = data.role || 'Professional';
+            document.getElementById('userInitials').innerText = (data.applicantName || 'U').charAt(0);
+            
+            document.getElementById('eventLocation').innerText = data.eventLocation || 'See Event Details';
+            
+            // Generate QR Code
+            const qrValue = data.passToken;
+            new QRCode(document.getElementById("qrcode"), {
+                text: qrValue,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('loader').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

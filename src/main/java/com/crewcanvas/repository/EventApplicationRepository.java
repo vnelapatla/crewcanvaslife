@@ -13,6 +13,7 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
     @org.springframework.data.jpa.repository.Query("SELECT ea FROM EventApplication ea WHERE ea.eventId = :eventId")
     List<EventApplication> findByEventId(@org.springframework.data.repository.query.Param("eventId") Long eventId);
     Optional<EventApplication> findByEventIdAndUserId(Long eventId, Long userId);
+    Optional<EventApplication> findByPassToken(String passToken);
     boolean existsByEventIdAndUserId(Long eventId, Long userId);
     
     @org.springframework.transaction.annotation.Transactional

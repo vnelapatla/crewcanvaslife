@@ -45,6 +45,8 @@ async function showListView() {
 
 function renderEventList(events) {
     const list = document.getElementById('eventList');
+    if (!list) return;
+
     if (events.length === 0) {
         list.innerHTML = '<div style="text-align:center; padding: 50px; color: #94a3b8;">You haven\'t created any events yet.</div>';
         return;
@@ -52,6 +54,9 @@ function renderEventList(events) {
 
     list.innerHTML = events.map(event => `
         <div class="event-card">
+            <div class="event-image-sm" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
+                <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
             <div class="event-info">
                 <h3>${event.title}</h3>
                 <div class="event-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; background: #f8fafc; padding: 12px; border-radius: 12px; font-size: 13px;">
@@ -60,12 +65,14 @@ function renderEventList(events) {
                     <div><b style="width: auto;">Loc:</b> ${event.location}</div>
                     <div><b style="width: auto;">Price:</b> ${event.price === 0 ? 'Free' : `₹${event.price || 0}`}</div>
                     <div><b style="width: auto;">Seats:</b> ${event.capacity || 'Unlimited'}</div>
-                    <div><b style="width: auto;">Apps:</b> ${event.applicants || 0}</div>
+                    <div><i class="fas fa-users"></i> ${event.applicants || 0} Registered</div>
                     <div style="grid-column: span 2; margin-top:2px; color: #64748b; font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><b>Desc:</b> ${event.description || ''}</div>
                 </div>
-            </div>
             <div class="event-actions">
                 <button class="manage-btn" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage Applications</button>
+                <button class="manage-btn" style="background: #f1f5f9; color: #64748b; margin-top: 8px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-share-alt"></i> Share Link
+                </button>
                 <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete</button>
             </div>
         </div>
@@ -95,16 +102,23 @@ async function showManagementView() {
 
             document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
             
-            // Enrich header with more details if they were missing
+            // Enrich header with more details
             const detailsHtml = `
                 <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
-                    <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date || currentEvent.startDate)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
+                    <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
                     <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
                     ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
                 </div>
+                <button class="btn-premium-sm" style="background: var(--primary-orange, #ff8c00); margin-top: 15px; color: white; width: auto; padding: 8px 16px;" onclick="shareContent('event', ${currentEvent.id}, '${currentEvent.title.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-share-alt"></i> Share Event Link
+                </button>
+                ${currentEvent.eventType === 'Film Event' ? `
+                    <button class="btn-premium-sm" style="background: #0f172a; margin-top: 15px; color: white; width: auto; padding: 8px 16px; margin-left: 10px;" onclick="window.location.href='scan.html'">
+                        <i class="fas fa-qrcode"></i> Scan Tickets
+                    </button>
+                ` : ''}
             `;
             
-            // Check if we already have details container, if not insert it
             let detailsContainer = document.getElementById('mgmtEventDetails');
             if (!detailsContainer) {
                 const titleEl = document.getElementById('mgmtEventTitle');
@@ -119,38 +133,25 @@ async function showManagementView() {
         const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants`);
         if (applicantsRes.ok) {
             const rawApplicants = await applicantsRes.json();
-            console.log(`Fetched ${rawApplicants.length} raw applicants:`, rawApplicants);
-            
-            // Enrich with user details
-            allApplicants = await Promise.all(rawApplicants.map(async (app) => {
-                try {
-                    const user = await getUserProfile(app.userId);
-                    return { ...app, user: user || { name: 'Unknown User', email: 'N/A' } };
-                } catch (e) {
-                    console.error(`Failed to enrich applicant ${app.id}:`, e);
-                    return { ...app, user: { name: 'Error Loading', email: 'N/A' } };
-                }
-            }));
-            
+            allApplicants = rawApplicants;
             filteredApplicants = [...allApplicants];
             renderApplicantsTable();
             updateStats();
         } else {
             const errorText = await applicantsRes.text();
-            console.error('Server error fetching applicants:', errorText);
-            // If the server returned an error starting with "Error:", use that message directly
-            const cleanError = errorText.startsWith('Error:') ? errorText : `Server returned ${applicantsRes.status}: ${errorText}`;
-            showMessage(`Error loading applicants: ${cleanError}`, 'error');
+            showMessage(`Error loading applicants: ${errorText}`, 'error');
             renderApplicantsTable(); 
         }
     } catch (error) {
-        console.error('Network or parsing error:', error);
-        showMessage('Network error or server is down. Please try again.', 'error');
+        console.error('Error loading management view:', error);
+        showMessage('Connection error.', 'error');
     }
 }
 
 function renderApplicantsTable() {
     const body = document.getElementById('applicantsBody');
+    if (!body) return;
+
     if (filteredApplicants.length === 0) {
         body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">No applicants found.</td></tr>';
         return;
@@ -179,7 +180,10 @@ function renderApplicantsTable() {
                 <td data-label="Experience">${app.experience || '-'}</td>
                 <td data-label="Location">${app.location || '-'}</td>
                 <td data-label="Status">
-                    <span class="status-badge status-${(app.status || 'PENDING').toLowerCase()}">${app.status || 'PENDING'}</span>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span class="status-badge status-${(app.status || 'PENDING').toLowerCase() === 'pending' ? 'registered' : (app.status || '').toLowerCase()}">${(app.status || 'PENDING') === 'PENDING' ? 'REGISTERED' : app.status}</span>
+                        ${app.scanned ? '<span style="font-size:10px; color:#10b981; font-weight:700;"><i class="fas fa-check-double"></i> SCANNED</span>' : ''}
+                    </div>
                 </td>
                 <td data-label="Actions">
                     <div class="action-icons">
@@ -192,6 +196,11 @@ function renderApplicantsTable() {
                         <button class="icon-btn btn-check" onclick="updateAppStatus(${app.id}, 'SHORTLISTED')" title="Shortlist">
                             <i class="fas fa-check"></i>
                         </button>
+                        ${!app.scanned && app.status === 'SHORTLISTED' && currentEvent.eventType === 'Film Event' ? `
+                            <button class="icon-btn" onclick="manualCheckIn(${app.id})" title="Manual Check-in" style="background:#dcfce7; color:#166534; border: 1px solid #bbf7d0;">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                        ` : ''}
                         <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'REJECTED')" title="Reject">
                             <i class="fas fa-times"></i>
                         </button>
@@ -202,57 +211,98 @@ function renderApplicantsTable() {
     }).join('');
 }
 
+function updateStats() {
+    const total = allApplicants.length;
+    const shortlisted = allApplicants.filter(a => a.status === 'SHORTLISTED').length;
+    const pending = allApplicants.filter(a => a.status === 'PENDING').length;
+
+    const statTotal = document.getElementById('statTotal');
+    const statShortlisted = document.getElementById('statShortlisted');
+    const statPending = document.getElementById('statPending');
+
+    if (statTotal) statTotal.innerText = total;
+    if (statShortlisted) statShortlisted.innerText = shortlisted;
+    if (statPending) statPending.innerText = pending;
+}
+
 function openEditModal() {
-    // Ensure we have the latest event data
     if (!currentEvent && currentEventId) {
         currentEvent = eventsCache.find(e => e.id == currentEventId);
     }
     
     if (!currentEvent) {
-        console.error("No event data found for ID:", currentEventId);
+        console.error("No event data found");
         return;
     }
     
     document.body.style.overflow = 'hidden';
-    document.getElementById('editTitle').value = currentEvent.title;
-    document.getElementById('editType').value = currentEvent.eventType;
-    document.getElementById('editDate').value = currentEvent.date || '';
-    document.getElementById('editLocation').value = currentEvent.location;
+    document.getElementById('editTitle').value = currentEvent.title || '';
+    document.getElementById('editType').value = currentEvent.eventType || '';
+    document.getElementById('editDate').value = formatDateForInput(currentEvent.date);
+    document.getElementById('editLocation').value = currentEvent.location || '';
     document.getElementById('editCapacity').value = currentEvent.capacity || 0;
-    if (document.getElementById('editPrice')) document.getElementById('editPrice').value = currentEvent.price || 0;
-    if (document.getElementById('editEndDate')) document.getElementById('editEndDate').value = currentEvent.endDate || '';
-    if (document.getElementById('editTimeDuration')) document.getElementById('editTimeDuration').value = currentEvent.timeDuration || currentEvent.time || '';
-    if (document.getElementById('editOrgName')) document.getElementById('editOrgName').value = currentEvent.orgName || '';
-    if (document.getElementById('editOrgEmail')) document.getElementById('editOrgEmail').value = currentEvent.orgEmail || '';
-    if (document.getElementById('editOrgPhone')) document.getElementById('editOrgPhone').value = currentEvent.orgPhone || '';
-    if (document.getElementById('editImageUrl')) document.getElementById('editImageUrl').value = currentEvent.imageUrl || '';
-    if (document.getElementById('editRequirements')) document.getElementById('editRequirements').value = currentEvent.requirements || currentEvent.skills || '';
+    
+    const priceEl = document.getElementById('editPrice');
+    if (priceEl) priceEl.value = currentEvent.price || 0;
+    
+    const endDateEl = document.getElementById('editEndDate');
+    if (endDateEl) endDateEl.value = formatDateForInput(currentEvent.endDate);
+    
+    const timeEl = document.getElementById('editTimeDuration');
+    if (timeEl) timeEl.value = currentEvent.timeDuration || '';
+    
+    const orgNameEl = document.getElementById('editOrgName');
+    if (orgNameEl) orgNameEl.value = currentEvent.orgName || '';
+    
+    const orgEmailEl = document.getElementById('editOrgEmail');
+    if (orgEmailEl) orgEmailEl.value = currentEvent.orgEmail || '';
+    
+    const orgPhoneEl = document.getElementById('editOrgPhone');
+    if (orgPhoneEl) orgPhoneEl.value = currentEvent.orgPhone || '';
+    
+    const imgUrlEl = document.getElementById('editImageUrl');
+    if (imgUrlEl) imgUrlEl.value = currentEvent.imageUrl || '';
+    
+    const reqEl = document.getElementById('editRequirements');
+    if (reqEl) reqEl.value = currentEvent.requirements || '';
+    
     document.getElementById('editDescription').value = currentEvent.description || '';
     document.getElementById('editModal').style.display = 'flex';
 }
 
 function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
-    document.body.style.overflow = 'auto'; // Restore background scroll
+    document.body.style.overflow = 'auto';
 }
 
 async function saveEventEdits() {
+    console.log('--- Starting Event Edit Save Process ---');
+    const btn = document.querySelector('button[onclick="saveEventEdits()"]');
+    const originalText = btn ? (btn.innerText || btn.textContent) : 'Save Changes';
+
     const updatedData = {
-        title: document.getElementById('editTitle').value,
+        title: document.getElementById('editTitle').value.trim(),
         eventType: document.getElementById('editType').value,
         date: document.getElementById('editDate').value,
-        location: document.getElementById('editLocation').value,
-        capacity: parseInt(document.getElementById('editCapacity').value),
-        price: document.getElementById('editPrice') ? parseFloat(document.getElementById('editPrice').value) : (currentEvent.price || 0),
-        endDate: document.getElementById('editEndDate') ? document.getElementById('editEndDate').value : (currentEvent.endDate || null),
-        timeDuration: document.getElementById('editTimeDuration') ? document.getElementById('editTimeDuration').value : (currentEvent.timeDuration || ''),
-        orgName: document.getElementById('editOrgName') ? document.getElementById('editOrgName').value : (currentEvent.orgName || ''),
-        orgEmail: document.getElementById('editOrgEmail') ? document.getElementById('editOrgEmail').value : (currentEvent.orgEmail || ''),
-        orgPhone: document.getElementById('editOrgPhone') ? document.getElementById('editOrgPhone').value : (currentEvent.orgPhone || ''),
-        imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value : (currentEvent.imageUrl || ''),
-        requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value : (currentEvent.requirements || ''),
-        description: document.getElementById('editDescription').value
+        location: document.getElementById('editLocation').value.trim(),
+        capacity: parseInt(document.getElementById('editCapacity').value) || 0,
+        price: document.getElementById('editPrice') ? parseFloat(document.getElementById('editPrice').value) || 0.0 : (currentEvent.price || 0),
+        endDate: document.getElementById('editEndDate') ? (document.getElementById('editEndDate').value || null) : (currentEvent.endDate || null),
+        timeDuration: document.getElementById('editTimeDuration') ? document.getElementById('editTimeDuration').value.trim() : (currentEvent.timeDuration || ''),
+        orgName: document.getElementById('editOrgName') ? document.getElementById('editOrgName').value.trim() : (currentEvent.orgName || ''),
+        orgEmail: document.getElementById('editOrgEmail') ? document.getElementById('editOrgEmail').value.trim() : (currentEvent.orgEmail || ''),
+        orgPhone: document.getElementById('editOrgPhone') ? document.getElementById('editOrgPhone').value.trim() : (currentEvent.orgPhone || ''),
+        imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value.trim() : (currentEvent.imageUrl || ''),
+        requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value.trim() : (currentEvent.requirements || ''),
+        description: document.getElementById('editDescription').value.trim()
     };
+
+    console.log('Updated Event Payload:', updatedData);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+    }
 
     try {
         const res = await fetch(`${API_BASE_URL}/api/events/${currentEventId}`, {
@@ -262,54 +312,53 @@ async function saveEventEdits() {
         });
 
         if (res.ok) {
+            const savedEvent = await res.json();
+            console.log('Event updated successfully:', savedEvent);
             showMessage('Event updated successfully', 'success');
-            closeEditModal();
-            // Refresh local state
-            currentEvent = { ...currentEvent, ...updatedData };
             
-            // Update UI elements
-            document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
-            
-            const detailsContainer = document.getElementById('mgmtEventDetails');
-            if (detailsContainer) {
-                detailsContainer.innerHTML = `
-                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
-                        <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date || currentEvent.startDate)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
-                        <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
-                        ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
-                    </div>
-                `;
-            }
-            
-            // Also update in cache for list view consistency
-            const idx = eventsCache.findIndex(e => e.id == currentEventId);
-            if (idx > -1) eventsCache[idx] = currentEvent;
+            setTimeout(() => {
+                closeEditModal();
+                currentEvent = savedEvent;
+                document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
+                
+                const detailsContainer = document.getElementById('mgmtEventDetails');
+                if (detailsContainer) {
+                    detailsContainer.innerHTML = `
+                        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
+                            <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
+                            ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
+                        </div>
+                    `;
+                }
+                
+                const idx = eventsCache.findIndex(e => e.id == currentEventId);
+                if (idx > -1) eventsCache[idx] = currentEvent;
+            }, 800);
             
         } else {
-            showMessage('Failed to update event', 'error');
+            const errorText = await res.text();
+            console.error('Server error saving event:', errorText);
+            showMessage('Failed to update event: ' + errorText, 'error');
+            alert('SERVER ERROR: ' + errorText);
         }
     } catch (error) {
         console.error('Error saving edits:', error);
         showMessage('Connection error', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     }
-}
-
-function updateStats() {
-    const total = allApplicants.length;
-    const shortlisted = allApplicants.filter(a => a.status === 'SHORTLISTED').length;
-    const pending = allApplicants.filter(a => a.status === 'PENDING').length;
-
-    document.getElementById('statTotal').innerText = total;
-    document.getElementById('statShortlisted').innerText = shortlisted;
-    document.getElementById('statPending').innerText = pending;
 }
 
 function filterApplicants(query) {
     query = query.toLowerCase();
     filteredApplicants = allApplicants.filter(app => 
-        (app.user?.name || '').toLowerCase().includes(query) || 
-        (app.user?.email || '').toLowerCase().includes(query) ||
-        (app.user?.role || '').toLowerCase().includes(query)
+        (app.applicantName || '').toLowerCase().includes(query) || 
+        (app.applicantEmail || '').toLowerCase().includes(query) ||
+        (app.role || '').toLowerCase().includes(query)
     );
     renderApplicantsTable();
 }
@@ -321,7 +370,6 @@ async function updateAppStatus(applicationId, newStatus) {
         });
         if (res.ok) {
             showMessage(`Applicant ${newStatus.toLowerCase()} successfully`, 'success');
-            // Update local state and re-render
             const appIndex = allApplicants.findIndex(a => a.id === applicationId);
             if (appIndex > -1) {
                 allApplicants[appIndex].status = newStatus;
@@ -359,13 +407,13 @@ function exportApplicantsData() {
 
     const headers = ['Name', 'Email', 'Role', 'Experience', 'Location', 'Status', 'Applied At'];
     const rows = allApplicants.map(app => [
-        app.user?.name || '',
-        app.user?.email || '',
-        app.user?.role || '',
-        app.user?.experience || '',
-        app.user?.location || '',
+        app.applicantName || '',
+        app.applicantEmail || '',
+        app.role || '',
+        app.experience || '',
+        app.location || '',
         app.status,
-        new Date(app.appliedAt).toLocaleString()
+        app.appliedAt ? new Date(app.appliedAt).toLocaleString() : ''
     ]);
 
     let csvContent = "data:text/csv;charset=utf-8," 
@@ -375,12 +423,10 @@ function exportApplicantsData() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `applicants_${currentEvent.title.replace(/\s+/g, '_')}.csv`);
+    link.setAttribute("download", `applicants_${currentEvent?.title?.replace(/\s+/g, '_') || 'export'}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    showMessage('Data exported to CSV', 'success');
 }
 
 async function loadCurrentUser() {
@@ -390,12 +436,42 @@ async function loadCurrentUser() {
         const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
         if (response.ok) {
             currentUser = await response.json();
-            
-            // Update header name
             const nameEle = document.getElementById('userNameHeader');
             if (nameEle) nameEle.textContent = currentUser.name;
         }
     } catch (error) {
         console.error('Error loading user:', error);
+    }
+}
+
+async function manualCheckIn(applicationId) {
+    if (!confirm('Manually mark this applicant as attended?')) return;
+    
+    try {
+        const app = allApplicants.find(a => a.id === applicationId);
+        if (!app || !app.passToken) {
+            showMessage('Error: No pass token generated yet. Applicant must be shortlisted first.', 'error');
+            return;
+        }
+
+        const res = await fetch(`${API_BASE_URL}/api/events/pass/validate?token=${app.passToken}`, {
+            method: 'POST'
+        });
+
+        if (res.ok) {
+            showMessage('Check-in successful!', 'success');
+            const appIndex = allApplicants.findIndex(a => a.id === applicationId);
+            if (appIndex > -1) {
+                allApplicants[appIndex].scanned = true;
+                filteredApplicants = [...allApplicants];
+                renderApplicantsTable();
+            }
+        } else {
+            const err = await res.text();
+            showMessage(`Check-in failed: ${err}`, 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showMessage('Connection error during check-in', 'error');
     }
 }

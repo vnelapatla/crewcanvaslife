@@ -35,7 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('isAdmin', isAdmin);
 
                 showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => window.location.href = 'feed.html', 1500);
+                setTimeout(() => {
+                    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+                    if (redirectUrl) {
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        window.location.href = redirectUrl;
+                    } else {
+                        window.location.href = 'feed.html';
+                    }
+                }, 1500);
             } else {
                 showMessage('We couldn’t find an account with those details. Please check your email and password.', 'error');
             }
@@ -128,7 +136,15 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('isAdmin', user.isAdmin);
 
             showMessage('Google Login successful! Redirecting...', 'success');
-            setTimeout(() => window.location.href = 'feed.html', 1500);
+            setTimeout(() => {
+                const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+                if (redirectUrl) {
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    window.location.href = redirectUrl;
+                } else {
+                    window.location.href = 'feed.html';
+                }
+            }, 1500);
         } else {
             showMessage('Google login wasn’t successful. Please try signing in with your email.', 'error');
         }

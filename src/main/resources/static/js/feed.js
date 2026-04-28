@@ -8,11 +8,12 @@ let selectedImageFiles = []; // Array for multiple images
 let isPollMode = false;
 let editingPostId = null;
 let editingImages = [];
+let isUploading = false;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     currentUserId = getCurrentUserId();
-    loadFeed(0, true);
+    await loadFeed(0, true);
     setupImageUpload();
     setupEditImageUpload();
     setupInfiniteScroll();
@@ -34,10 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const postEl = document.querySelector(`.post-card[data-post-id="${postId}"]`);
             if (postEl) {
                 postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                postEl.style.boxShadow = "0 0 20px var(--primary-orange)";
-                setTimeout(() => postEl.style.boxShadow = "", 3000);
+                postEl.style.boxShadow = "0 0 25px rgba(255, 140, 0, 0.4)";
+                postEl.style.border = "1px solid var(--primary-orange)";
+                setTimeout(() => {
+                    postEl.style.boxShadow = "";
+                    postEl.style.border = "";
+                }, 4000);
             }
-        }, 1500); // Wait for load
+        }, 500); 
     }
 });
 
@@ -186,7 +191,7 @@ function renderPostHTML(post) {
     if (images.length === 1) {
         mediaHtml = `
             <div class="post-slider-container">
-                <img src="${images[0]}" class="post-image" alt="Post content" loading="lazy" style="margin-top:0;">
+                ${renderMediaContent(images[0], 'post-image')}
             </div>
         `;
     } else if (images.length > 1) {
@@ -195,7 +200,7 @@ function renderPostHTML(post) {
                 <div id="slider-${post.id}" class="post-slider" onscroll="updateSliderDots(${post.id})">
                     ${images.map(img => `
                         <div class="post-slider-item">
-                            <img src="${img}" alt="Post content" loading="lazy">
+                            ${renderMediaContent(img, '')}
                         </div>
                     `).join('')}
                 </div>
@@ -290,6 +295,9 @@ function renderPostHTML(post) {
             <button class="post-action-btn" onclick="toggleCommentBox(${post.id})">
                 💬 <span>${post.comments || 0}</span>
             </button>
+            <button class="post-action-btn" onclick="shareContent('post', ${post.id})" title="Share Post">
+                🔗 Share
+            </button>
         </div>
         
         <div id="comment-box-${post.id}" style="display:none; padding:15px; border-top:1px solid #f1f5f9; background:#fafafa; border-radius:0 0 16px 16px;">
@@ -318,16 +326,34 @@ function setupImageUpload() {
         const files = Array.from(e.target.files);
         if (files.length > 0) {
             for (const file of files) {
+                // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+                const isVideo = file.type.startsWith('video/') || 
+                                file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
+                
+                if (isVideo && !getCurrentUserIsAdmin()) {
+                    showMessage('Video uploads in posts are restricted to administrators.', 'error');
+                    continue;
+                }
+
                 try {
                     const base64 = await uploadImage(file);
                     selectedImageFiles.push(base64);
                     
                     const previewDiv = document.createElement('div');
-                    previewDiv.style.cssText = "position:relative; width:80px; height:80px;";
-                    previewDiv.innerHTML = `
-                        <img src="${base64}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
-                        <button onclick="removeSelectedImage(this, '${base64}')" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer;">✕</button>
-                    `;
+                    previewDiv.style.cssText = "position:relative; width:80px; height:80px; background:#000; border-radius:8px; overflow:hidden;";
+                    
+                    if (isVideoFile(base64)) {
+                        previewDiv.innerHTML = `
+                            <video src="${base64}" style="width:100%; height:100%; object-fit:cover;"></video>
+                            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:12px; pointer-events:none;"><i class="fa-solid fa-play"></i></div>
+                            <button onclick="removeSelectedImage(this, '${base64}')" style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:18px; height:18px; font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10;">✕</button>
+                        `;
+                    } else {
+                        previewDiv.innerHTML = `
+                            <img src="${base64}" style="width:100%; height:100%; object-fit:cover;">
+                            <button onclick="removeSelectedImage(this, '${base64}')" style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:18px; height:18px; font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10;">✕</button>
+                        `;
+                    }
                     previewContainer.appendChild(previewDiv);
                 } catch (error) {
                     showMessage('We couldn’t upload that image. Please try a different one.', 'error');
@@ -595,7 +621,11 @@ function renderEditImagePreviews() {
     
     container.innerHTML = editingImages.map((img, index) => `
         <div class="preview-item">
-            <img src="${img}" alt="Preview">
+            ${isVideoFile(img) ? 
+                `<video src="${img}" style="width:100%; height:100%; object-fit:cover;"></video>
+                 <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; pointer-events:none;"><i class="fa-solid fa-play"></i></div>` : 
+                `<img src="${img}" alt="Preview">`
+            }
             <button class="remove-img-btn" onclick="removeEditingImage(${index})">✕</button>
         </div>
     `).join('');
@@ -613,6 +643,15 @@ function setupEditImageUpload() {
     imageInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         for (const file of files) {
+            // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+            const isVideo = file.type.startsWith('video/') || 
+                            file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
+            
+            if (isVideo && !getCurrentUserIsAdmin()) {
+                showMessage('Video uploads in posts are restricted to administrators.', 'error');
+                continue;
+            }
+
             try {
                 const base64 = await uploadImage(file);
                 if (base64) {

@@ -35,16 +35,16 @@ public class MessageService {
 
         System.out.println("Checking messaging permission: " + senderId + " -> " + receiverId);
 
-        // 1. Admin check
+        // 1. Admin check (Hardcoded whitelist + Admin flag)
         com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
-        if (sender != null && Boolean.TRUE.equals(sender.getIsAdmin())) {
-            System.out.println("Permission Granted: Sender is Admin");
+        if (sender != null && (Boolean.TRUE.equals(sender.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(sender.getEmail()))) {
+            System.out.println("Permission Granted: Sender is Admin/Whitelisted");
             return true;
         }
 
         com.crewcanvas.model.User receiver = userRepository.findById(receiverId).orElse(null);
-        if (receiver != null && Boolean.TRUE.equals(receiver.getIsAdmin())) {
-            System.out.println("Permission Granted: Receiver is Admin");
+        if (receiver != null && (Boolean.TRUE.equals(receiver.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(receiver.getEmail()))) {
+            System.out.println("Permission Granted: Receiver is Admin/Whitelisted");
             return true;
         }
 
@@ -84,6 +84,18 @@ public class MessageService {
         if (!canUserMessage(senderId, receiverId)) {
             String reason = "Messaging is restricted. You must be following each other, be mutual followers, or have an active event relationship.";
             throw new RuntimeException(reason);
+        }
+
+        // Restriction: Only admin (crewcanvas2@gmail.com) can send videos
+        com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
+        boolean isAdmin = sender != null && (Boolean.TRUE.equals(sender.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(sender.getEmail()));
+        
+        boolean hasVideo = (fileType != null && fileType.toLowerCase().contains("video")) ||
+                          (fileUrl != null && fileUrl.startsWith("data:video/")) ||
+                          (fileUrls != null && fileUrls.stream().anyMatch(url -> url != null && url.startsWith("data:video/")));
+
+        if (hasVideo && !isAdmin) {
+            throw new RuntimeException("Video uploads in messages are restricted to administrators.");
         }
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);

@@ -109,9 +109,19 @@ public class DatabaseFixerConfig {
                 }
                 
                 // --- Optimize Event Applications ---
-                String[] appCols = { "event_title TEXT", "event_type TEXT" };
+                String[] appCols = { "event_title TEXT", "event_type TEXT", "event_location TEXT", "event_date TEXT", "pass_token VARCHAR(255)", "is_scanned BOOLEAN DEFAULT FALSE" };
                 for (String colDef : appCols) {
-                    try { jdbcTemplate.execute("ALTER TABLE event_applications ADD COLUMN " + colDef); } catch (Exception e) {}
+                    String colName = colDef.split(" ")[0];
+                    try {
+                        jdbcTemplate.queryForList("SELECT " + colName + " FROM event_applications LIMIT 1");
+                    } catch (Exception e) {
+                        try { 
+                            System.out.println("FIX: Adding missing column " + colName + " to event_applications");
+                            jdbcTemplate.execute("ALTER TABLE event_applications ADD COLUMN " + colDef); 
+                        } catch (Exception ex) {
+                            System.err.println("CRITICAL: Failed to add column " + colName + ": " + ex.getMessage());
+                        }
+                    }
                 }
 
                 // --- Performance Optimization: Add Database Indexes ---

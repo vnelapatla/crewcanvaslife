@@ -467,14 +467,18 @@ function renderPostHTML(post) {
 
     let mediaHtml = '';
     if (images.length === 1) {
-        mediaHtml = `<img src="${images[0]}" class="post-image" alt="Post content" loading="lazy">`;
+        mediaHtml = `
+            <div class="post-slider-container">
+                ${renderMediaContent(images[0], 'post-image')}
+            </div>
+        `;
     } else if (images.length > 1) {
         mediaHtml = `
             <div class="post-slider-container">
                 <div id="slider-${post.id}" class="post-slider" onscroll="updateSliderDots(${post.id})">
                     ${images.map(img => `
                         <div class="post-slider-item">
-                            <img src="${img}" alt="Post content" loading="lazy">
+                            ${renderMediaContent(img, '')}
                         </div>
                     `).join('')}
                 </div>
@@ -635,7 +639,11 @@ function renderEditImagePreviews() {
     
     container.innerHTML = editingImages.map((img, index) => `
         <div class="preview-item">
-            <img src="${img}" alt="Preview">
+            ${isVideoFile(img) ? 
+                `<video src="${img}" style="width:100%; height:100%; object-fit:cover;"></video>
+                 <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; pointer-events:none;"><i class="fa-solid fa-play"></i></div>` : 
+                `<img src="${img}" alt="Preview">`
+            }
             <button class="remove-img-btn" onclick="removeEditingImage(${index})">✕</button>
         </div>
     `).join('');
@@ -653,6 +661,15 @@ function setupEditImageUpload() {
     imageInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         for (const file of files) {
+            // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+            const isVideo = file.type.startsWith('video/') || 
+                            file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
+            
+            if (isVideo && !getCurrentUserIsAdmin()) {
+                showMessage('Video uploads in posts are restricted to administrators.', 'error');
+                continue;
+            }
+
             try {
                 const base64 = await uploadImage(file);
                 if (base64) {

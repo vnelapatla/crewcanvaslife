@@ -71,6 +71,12 @@ public class Post {
     @Transient
     private java.util.Map<String, Object> userDetails;
 
+    @Transient
+    private java.util.List<String> pollOptions;
+
+    @Transient
+    private String pollQuestion;
+
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Poll poll;
 
@@ -99,19 +105,28 @@ public class Post {
     }
 
     // Proxy methods for frontend compatibility
-    @com.fasterxml.jackson.annotation.JsonProperty("pollQuestion")
-    public String getPollQuestion() {
-        return poll != null ? poll.getQuestion() : null;
-    }
-
     @com.fasterxml.jackson.annotation.JsonProperty("pollOptions")
     public List<String> getPollOptions() {
+        if (pollOptions != null) return pollOptions;
         if (poll == null) return null;
         List<String> options = new ArrayList<>();
         for (PollOption opt : poll.getOptions()) {
             options.add(opt.getOptionText());
         }
         return options;
+    }
+
+    public void setPollOptions(List<String> pollOptions) {
+        this.pollOptions = pollOptions;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("pollQuestion")
+    public String getPollQuestion() {
+        return pollQuestion != null ? pollQuestion : (poll != null ? poll.getQuestion() : null);
+    }
+
+    public void setPollQuestion(String pollQuestion) {
+        this.pollQuestion = pollQuestion;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("pollVotes")

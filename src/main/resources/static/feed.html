@@ -47,7 +47,7 @@
                 <div class="create-post-actions"
                     style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="display: flex; gap: 15px;">
-                        <input type="file" id="postImage" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="postImage" accept="image/*,video/*" multiple style="display: none;">
                         <button id="mediaBtn" class="filter-toggle" onclick="document.getElementById('postImage').click()"
                             style="background:transparent; border:none; color: var(--text-muted); cursor: pointer;">
                             <span class="filter-icon">🖼️</span> Media
@@ -96,7 +96,7 @@
                 <div id="editImagePreviewContainer" class="image-preview-grid"></div>
                 <div class="modal-actions">
                     <div style="display: flex; gap: 10px;">
-                        <input type="file" id="editPostImage" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="editPostImage" accept="image/*,video/*" multiple style="display: none;">
                         <button onclick="document.getElementById('editPostImage').click()" class="secondary-btn">
                             <i class="fa-regular fa-image"></i> Add Media
                         </button>

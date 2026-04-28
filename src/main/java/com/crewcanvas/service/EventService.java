@@ -129,6 +129,8 @@ public class EventService {
             // Populate event details
             application.setEventTitle(event.getTitle());
             application.setEventType(event.getEventType());
+            application.setEventLocation(event.getLocation());
+            application.setEventDate(event.getDate() != null ? event.getDate().toString() : "");
 
             applicationRepository.save(application);
 
@@ -154,14 +156,26 @@ public class EventService {
 
     public List<EventApplication> getUserApplications(Long userId) {
         List<EventApplication> apps = applicationRepository.findByUserId(userId);
-        // Fallback for old apps missing title/type
+        // Fallback for old apps missing title/type or pass tokens
         for (EventApplication app : apps) {
-            if (app.getEventTitle() == null) {
-                eventRepository.findById(app.getEventId()).ifPresent(e -> {
-                    app.setEventTitle(e.getTitle());
-                    app.setEventType(e.getEventType());
-                    applicationRepository.save(app);
-                });
+            boolean needsUpdate = false;
+            if (app.getEventTitle() == null || app.getEventType() == null) {
+                Optional<Event> eOpt = eventRepository.findById(app.getEventId());
+                if (eOpt.isPresent()) {
+                    app.setEventTitle(eOpt.get().getTitle());
+                    app.setEventType(eOpt.get().getEventType());
+                    needsUpdate = true;
+                }
+            }
+            
+            // Retroactively generate token if it's a shortlisted Film Event
+            if ("SHORTLISTED".equalsIgnoreCase(app.getStatus()) && app.getPassToken() == null && "Film Event".equalsIgnoreCase(app.getEventType())) {
+                app.setPassToken("PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + app.getId());
+                needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+                applicationRepository.save(app);
             }
         }
         return apps;
@@ -245,6 +259,26 @@ public class EventService {
             EventApplication application = appOpt.get();
             String oldStatus = application.getStatus();
             application.setStatus(status);
+            
+            // Populate event details if missing (for legacy applications)
+            if (application.getEventType() == null) {
+                System.out.println("DEBUG: Retro-populating event details for application: " + appId);
+                eventRepository.findById(application.getEventId()).ifPresent(event -> {
+                    application.setEventType(event.getEventType());
+                    application.setEventTitle(event.getTitle());
+                    application.setEventLocation(event.getLocation());
+                    application.setEventDate(event.getDate() != null ? event.getDate().toString() : "");
+                });
+            }
+
+            System.out.println("DEBUG: Checking token generation for type: [" + application.getEventType() + "] and status: [" + status + "]");
+
+            // Generate Pass Token if shortlisted and it's a Film Event
+            if (status.equalsIgnoreCase("SHORTLISTED") && application.getPassToken() == null && "Film Event".equalsIgnoreCase(application.getEventType())) {
+                application.setPassToken("PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + application.getId());
+                System.out.println("DEBUG: Generated Pass Token: " + application.getPassToken());
+            }
+
             EventApplication savedApp = applicationRepository.save(application);
 
             // Trigger Notification to Applicant if status changed to Shortlisted or Rejected
@@ -253,7 +287,9 @@ public class EventService {
                              status.equalsIgnoreCase("Rejected") ? "REJECT" : "UPDATE";
                 
                 String content = status.equalsIgnoreCase("Shortlisted") ? 
-                                "Congratulations! You've been shortlisted for: " + application.getEventTitle() :
+                                ("Film Event".equalsIgnoreCase(application.getEventType()) ? 
+                                    "Congratulations! You've been shortlisted for: " + application.getEventTitle() + ". Your entry pass is now available!" :
+                                    "Congratulations! You've been shortlisted for: " + application.getEventTitle()) :
                                 status.equalsIgnoreCase("Rejected") ?
                                 "Status update for " + application.getEventTitle() + ": " + status :
                                 "Your application status for " + application.getEventTitle() + " was updated to " + status;
@@ -270,6 +306,30 @@ public class EventService {
             return savedApp;
         }
         throw new RuntimeException("Application not found");
+    }
+
+    public EventApplication validatePass(String token) {
+        System.out.println("DEBUG: Looking for pass with token: " + token);
+        return applicationRepository.findByPassToken(token)
+            .map(app -> {
+                System.out.println("DEBUG: Found application ID: " + app.getId() + " for user: " + app.getApplicantName());
+                System.out.println("DEBUG: Current scanned status: " + app.isScanned());
+                if (app.isScanned()) {
+                    throw new RuntimeException("ALREADY_SCANNED");
+                }
+                app.setScanned(true);
+                EventApplication saved = applicationRepository.save(app);
+                System.out.println("DEBUG: Successfully marked as scanned.");
+                return saved;
+            })
+            .orElseThrow(() -> {
+                System.err.println("DEBUG: No application found for token: " + token);
+                return new RuntimeException("INVALID_TOKEN");
+            });
+    }
+
+    public Optional<EventApplication> getApplicationByToken(String token) {
+        return applicationRepository.findByPassToken(token);
     }
 
     public List<EventApplication> getAllApplicantsForUser(Long userId) {

@@ -45,9 +45,22 @@ public class EventApplication {
     @Column(name = "event_type")
     private String eventType;
 
+    @Column(name = "event_location")
+    private String eventLocation;
+
+    @Column(name = "event_date")
+    private String eventDate;
+
+    @Column(name = "pass_token")
+    private String passToken;
+
+    @Column(name = "is_scanned")
+    private Boolean scanned = false;
+
     @PrePersist
     protected void onCreate() {
         appliedAt = LocalDateTime.now();
+        if (scanned == null) scanned = false;
     }
 
     public EventApplication() {}
@@ -56,6 +69,7 @@ public class EventApplication {
         this.eventId = eventId;
         this.userId = userId;
         this.status = "PENDING";
+        this.scanned = false;
     }
 
     // Getters and Setters
@@ -93,4 +107,16 @@ public class EventApplication {
 
     public String getEventType() { return eventType; }
     public void setEventType(String eventType) { this.eventType = eventType; }
+
+    public String getEventLocation() { return eventLocation; }
+    public void setEventLocation(String eventLocation) { this.eventLocation = eventLocation; }
+
+    public String getEventDate() { return eventDate; }
+    public void setEventDate(String eventDate) { this.eventDate = eventDate; }
+
+    public String getPassToken() { return passToken; }
+    public void setPassToken(String passToken) { this.passToken = passToken; }
+
+    public Boolean isScanned() { return scanned != null && scanned; }
+    public void setScanned(Boolean scanned) { this.scanned = scanned; }
 }

@@ -726,6 +726,14 @@
                     </div>
                     <div class="badge" id="contestCount">0</div>
                 </div>
+                <div class="event-feature-card" onclick="switchEventTab('filmevents', this)">
+                    <div class="icon-box" style="color: #ff8c00;"><i class="fas fa-film"></i></div>
+                    <div class="info">
+                        <h3>FILM EVENTS</h3>
+                        <p>Premiere & Screenings</p>
+                    </div>
+                    <div class="badge" id="filmEventCount">0</div>
+                </div>
             </div>
 
             <div class="search-container">
@@ -771,6 +779,10 @@
                 <div class="choice-item" onclick="openCreateForm('Audition')">
                     <div class="choice-icon blue">🎬</div>
                     <span>Audition</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Film Event')">
+                    <div class="choice-icon" style="background: linear-gradient(135deg, #f59e0b, #ff8c00);">🎞️</div>
+                    <span>Film Event</span>
                 </div>
             </div>
         </div>

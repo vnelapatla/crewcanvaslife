@@ -46,8 +46,13 @@
             box-shadow: var(--card-shadow);
             border: 1px solid #f1f5f9;
             display: flex;
-            justify-content: space-between;
+            gap: 20px;
+            justify-content: flex-start;
             align-items: flex-start;
+        }
+
+        .event-info {
+            flex: 1;
         }
 
         .event-info h3 {
@@ -204,6 +209,8 @@
         }
 
         .status-shortlisted { background: #fff8f1; color: #f59e0b; }
+        .status-registered { background: #dcfce7; color: #15803d; }
+        .status-rejected { background: #fef2f2; color: #ef4444; }
 
         .action-icons {
             display: flex;
@@ -554,6 +561,7 @@
                             <option value="Workshop">Workshop</option>
                             <option value="Course">Course</option>
                             <option value="Contest">Contest</option>
+                            <option value="Film Event">Film Event</option>
                         </select>
                     </div>
                     <div>

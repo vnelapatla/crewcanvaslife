@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - CrewCanvas Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --primary: #ff8c00;
+            --bg: #0f172a;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            background: black;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .result-panel {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 20px;
+            background: white;
+            color: #1e293b;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+            text-align: center;
+        }
+
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .status-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .status-success { color: var(--success); }
+        .status-error { color: var(--error); }
+        .status-warning { color: var(--warning); }
+
+        .applicant-info {
+            margin-top: 20px;
+            text-align: left;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .label { color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .value { font-weight: 600; color: #0f172a; }
+
+        .btn-reset {
+            margin-top: 25px;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            background: var(--bg);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #scan-message {
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="font-weight: 800; letter-spacing: -1px;">QR SCANNER</h2>
+        <p style="font-size: 12px; opacity: 0.6; text-transform: uppercase;">Admin Gate Control</p>
+    </div>
+
+    <div class="main-container">
+        <div id="reader"></div>
+        <p id="scan-message">Position the QR code within the frame</p>
+
+        <div class="result-panel" id="resultPanel">
+            <div id="statusIcon" class="status-icon"></div>
+            <h2 id="statusTitle" style="font-weight: 800;">VALIDATED</h2>
+            <p id="statusMsg" style="color: #64748b; margin-top: 5px;">Access granted for this event.</p>
+
+            <div class="applicant-info">
+                <div class="info-row">
+                    <span class="label">Applicant</span>
+                    <span class="value" id="resName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Event</span>
+                    <span class="value" id="resEvent">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Role</span>
+                    <span class="value" id="resRole">-</span>
+                </div>
+                <div class="info-row" style="border:none">
+                    <span class="label">Time</span>
+                    <span class="value" id="resTime">-</span>
+                </div>
+            </div>
+
+            <button class="btn-reset" onclick="resetScanner()">SCAN NEXT</button>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        let html5QrCode;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!getCurrentUserIsAdmin()) {
+                alert('Admin access required');
+                window.location.href = 'home.html';
+                return;
+            }
+            startScanner();
+        });
+
+        function startScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            );
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanning to process
+            await html5QrCode.stop();
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('scan-message').style.display = 'none';
+            
+            validateToken(decodedText);
+        }
+
+        async function validateToken(token) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/events/pass/validate?token=${token}`, {
+                    method: 'POST'
+                });
+
+                const panel = document.getElementById('resultPanel');
+                const title = document.getElementById('statusTitle');
+                const msg = document.getElementById('statusMsg');
+                const icon = document.getElementById('statusIcon');
+                
+                panel.style.display = 'block';
+
+                if (response.ok) {
+                    const data = await response.json();
+                    title.innerText = "SUCCESS";
+                    title.className = "status-success";
+                    msg.innerText = "Entry validated successfully.";
+                    icon.innerHTML = '<i class="fas fa-check-circle status-success"></i>';
+                    
+                    document.getElementById('resName').innerText = data.applicantName;
+                    document.getElementById('resEvent').innerText = data.eventTitle;
+                    document.getElementById('resRole').innerText = data.role;
+                    document.getElementById('resTime').innerText = new Date().toLocaleTimeString();
+                } else {
+                    const error = await response.text();
+                    title.innerText = "DENIED";
+                    title.className = "status-error";
+                    icon.innerHTML = '<i class="fas fa-times-circle status-error"></i>';
+                    
+                    if (error === "ALREADY_SCANNED") {
+                        msg.innerText = "Warning: This pass was already scanned!";
+                        title.innerText = "ALREADY IN";
+                        title.className = "status-warning";
+                        icon.innerHTML = '<i class="fas fa-exclamation-triangle status-warning"></i>';
+                    } else {
+                        msg.innerText = "Invalid or expired entry pass.";
+                    }
+                    
+                    document.getElementById('resName').innerText = "N/A";
+                    document.getElementById('resEvent').innerText = "N/A";
+                    document.getElementById('resRole').innerText = "N/A";
+                    document.getElementById('resTime').innerText = "-";
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Connection error');
+                resetScanner();
+            }
+        }
+
+        function resetScanner() {
+            document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('reader').style.display = 'block';
+            document.getElementById('scan-message').style.display = 'block';
+            startScanner();
+        }
+    </script>
+</body>
+</html>

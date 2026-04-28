@@ -1,45 +1,76 @@
 // Edit Profile functionality
 let currentUserId = null;
 let selectedProfilePic = null;
+let selectedCoverImage = null;
 let skillsList = [];
 let originalUserData = {};
 let editingProjectId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (!checkAuth()) return;
+    console.log("Edit Profile page loaded");
+    if (!checkAuth()) {
+        alert("Auth failed - redirecting to login");
+        window.location.href = 'index.html';
+        return;
+    }
     
     currentUserId = getCurrentUserId();
-    if (!currentUserId) {
+    console.log("[EditProfile] Initializing for ID:", currentUserId);
+    
+    if (!currentUserId || currentUserId === 'null') {
+        alert("No valid User ID found in session. Please log in again.");
         window.location.href = 'index.html';
         return;
     }
 
     try {
-        await Promise.all([
-            loadProfileData(),
-            loadUserProjects()
-        ]);
+        console.log("Fetching profile data for ID:", currentUserId);
+        await loadProfileData();
+        console.log("Fetching projects...");
+        await loadUserProjects();
+        console.log("Setting up image handlers...");
         setupImageHandlers();
+        console.log("Profile initialization complete");
     } catch (err) {
         console.error("Initialization failed:", err);
-        showMessage("Failed to load profile data. Please refresh.", "error");
     }
 });
 
 async function loadProfileData() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
+        const url = `${API_BASE_URL}/api/profile/${currentUserId}`;
+        console.log("Fetching from:", url);
+        
+        const response = await fetch(url);
         if (response.ok) {
             const user = await response.json();
+            console.log("Data received:", user);
             originalUserData = user;
+
+            if (!user.name) {
+                console.warn("User object received but name is empty");
+            }
 
             const setVal = (id, val) => {
                 const el = document.getElementById(id);
-                if (el) el.value = val || '';
+                if (el) {
+                    if (el.type === 'date') {
+                        val = formatDateForInput(val);
+                    }
+                    el.value = val || '';
+                    console.log(`[EditProfile] Populated #${id} with:`, val);
+                } else {
+                    console.warn(`[EditProfile] Element #${id} not found in HTML`);
+                }
             };
 
-            setVal('editName', user.name);
-            setVal('editEmail', user.email);
+            // Fallback for basic info if missing in API
+            const name = user.name || localStorage.getItem('userName');
+            const email = user.email || localStorage.getItem('userEmail');
+            
+            console.log("[EditProfile] Populating basic fields...");
+            setVal('editName', name);
+            setVal('editEmail', email);
             setVal('editPhone', user.phone);
             setVal('editLocation', user.location);
             setVal('editRole', user.role || 'Director');
@@ -71,6 +102,7 @@ async function loadProfileData() {
             setVal('actGender', user.gender);
             setVal('actBodyType', user.bodyType);
             setVal('actLanguages', user.languages);
+            setVal('actShowreel', user.showreel);
             
             setVal('dopCamera', user.cameraExpertise);
             setVal('dopShowreel', user.showreel);
@@ -132,15 +164,23 @@ async function loadProfileData() {
             }
 
             handleRoleChange();
+        } else {
+            const errText = await response.text();
+            alert("SERVER ERROR: Could not find your profile. (Status " + response.status + "): " + errText);
         }
     } catch (error) {
         console.error('Error loading profile data:', error);
-        throw error; // Let the caller handle it
+        alert("FETCH ERROR: " + error.message);
     }
 }
 
 function handleRoleChange() {
-    const role = document.getElementById('editRole').value.toLowerCase();
+    const el = document.getElementById('editRole');
+    if (!el) {
+        console.warn("[EditProfile] #editRole not found for handleRoleChange");
+        return;
+    }
+    const role = el.value.toLowerCase();
     document.querySelectorAll('.craft-module').forEach(m => m.style.display = 'none');
     
     if (role.includes('director')) {
@@ -170,6 +210,23 @@ function setupImageHandlers() {
             }
         }
     });
+
+    // Cover Image Handler
+    const coverInput = document.getElementById('coverImageInput');
+    if (coverInput) {
+        coverInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    selectedCoverImage = await uploadImage(file);
+                    // If there's a preview element for cover, update it here
+                    showMessage('Cover image selected.', 'info');
+                } catch (err) {
+                    console.error('Cover upload failed:', err);
+                }
+            }
+        });
+    }
 
     // Project Poster Handler
     document.getElementById('projPosterInput').addEventListener('change', async (e) => {
@@ -214,113 +271,146 @@ function removeSkill(index) {
 
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
-    container.innerHTML = skillsList.map((s, i) => `<span class="skill-tag">${s} <i class="fa-solid fa-times" onclick="removeSkill(${i})" style="cursor:pointer; margin-left:5px;"></i></span>`).join('');
+    if (container) {
+        container.innerHTML = skillsList.map((s, i) => `<span class="skill-tag">${s} <i class="fa-solid fa-times" onclick="removeSkill(${i})" style="cursor:pointer; margin-left:5px;"></i></span>`).join('');
+    }
 }
 
 async function saveProfile() {
-    const saveBtn = document.querySelector('.btn-save');
-    if (!saveBtn) return;
+    console.log('--- Starting Profile Save Process ---');
+    const btn = document.getElementById('saveProfileBtn') || document.querySelector('.btn-save');
+    if (!btn) {
+        console.error('Save button not found');
+        return;
+    }
 
+    const originalBtnHtml = btn.innerHTML || btn.textContent;
+    
     try {
-        const name = document.getElementById('editName').value.trim();
-        const email = document.getElementById('editEmail').value.trim();
+        // Basic UI Feedback
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const elName = document.getElementById('editName');
+        const elEmail = document.getElementById('editEmail');
+        
+        if (!elName || !elEmail) {
+            console.error('Critical elements missing: editName or editEmail');
+            showMessage('Page error: Essential fields missing. Please reload.', 'error');
+            return;
+        }
+
+        const name = elName.value.trim();
+        const email = elEmail.value.trim();
         const userIdNum = parseInt(currentUserId);
+
+        console.log('User ID:', userIdNum, 'Name:', name, 'Email:', email);
+
+        if (isNaN(userIdNum)) {
+            console.error('Invalid User ID:', currentUserId);
+            showMessage('Session expired. Please log in again.', 'error');
+            return;
+        }
 
         if (!name || !email) {
             showMessage('Name and Email are required.', 'error');
             return;
         }
 
-        if (isNaN(userIdNum)) {
-            showMessage('Session expired. Please log in again.', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
-            return;
-        }
-
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-
-        const role = document.getElementById('editRole').value;
-        const isDirector = role.toLowerCase().includes('director');
-        const isDop = role.toLowerCase().includes('dop');
-        const isMusic = role.toLowerCase().includes('music');
-
+        const roleEl = document.getElementById('editRole');
+        const role = roleEl ? roleEl.value : 'Explorer';
+        console.log('Selected Role:', role);
+        
+        // Standardized helper for fetching values safely
         const getVal = (id) => {
             const el = document.getElementById(id);
-            return el ? el.value.trim() : '';
+            if (!el) {
+                console.warn(`Element #${id} not found, returning empty string`);
+                return '';
+            }
+            return el.value ? el.value.trim() : '';
         };
 
+        const selectedRole = role; 
+        const isActor = selectedRole.toLowerCase().includes('actor');
+        const isDirector = selectedRole.toLowerCase().includes('director');
+        const isMusic = selectedRole.toLowerCase().includes('music') || selectedRole.toLowerCase().includes('singer');
+        const isDop = selectedRole.toLowerCase().includes('dop') || selectedRole.toLowerCase().includes('cinematographer');
+
+        // Build the data object with ALL fields supported by the User model
         const updatedUser = {
             id: userIdNum,
             name: name,
             email: email,
             phone: getVal('editPhone'),
             location: getVal('editLocation'),
-            role: role,
-            experience: getVal('editExperience'),
             bio: getVal('editBio'),
+            role: selectedRole,
             userType: getVal('editUserType'),
-            skills: skillsList.join(','),
+            skills: getVal('editSkills') || (skillsList && skillsList.length > 0 ? skillsList.join(',') : ''),
             
-            // Director Fields
+            // Experience fields
+            experience: getVal('editExperience'),
+            experienceDetails: getVal('editExpDetails'),
+            
+            // Role-specific fields (Direct mapping to User model)
+            genres: (isDirector || isMusic) ? (isMusic ? getVal('musGenres') : getVal('dirGenres')) : (originalUserData.genres || ''),
             projectsDirected: getVal('dirProjects'),
             budgetHandled: getVal('dirBudget'),
             teamSize: getVal('dirTeamSize'),
             visionStatement: getVal('dirVision'),
-
-            // Role-specific genres
-            genres: isMusic ? getVal('musGenres') : getVal('dirGenres'),
-
-            // Showreel logic
-            showreel: isDirector 
-                ? getVal('dirShowreel')
-                : (isDop ? getVal('dopShowreel') : (originalUserData.showreel || '')),
-
-            // Actor Fields
+            
             height: getVal('actHeight'),
             weight: getVal('actWeight'),
             ageRange: getVal('actAgeRange'),
-            gender: getVal('actGender'),
+            gender: getVal('actGender') || getVal('editGender'),
             bodyType: getVal('actBodyType'),
             languages: getVal('actLanguages'),
-
-            // DOP Fields
+            
             cameraExpertise: getVal('dopCamera'),
-
-            // Editor Fields
             editingSoftware: getVal('editSoftware'),
             editingStyle: getVal('editStyle'),
-            portfolioVideos: getVal('editVideos'),
             turnaroundTime: getVal('editTurnaround'),
-            experienceDetails: getVal('editExpDetails'),
-
-            // Music Fields
+            portfolioVideos: getVal('editVideos') || getVal('editPortfolio'),
+            
             daws: getVal('musDaws'),
             instruments: getVal('musInstruments'),
             sampleTracks: getVal('musTracks'),
             musicExperience: getVal('musExperience'),
-
-            // General Details
+            
             interests: getVal('genInterests'),
             occupation: getVal('genOccupation'),
             goals: getVal('genGoals'),
             learningResources: getVal('genLearning'),
-
+            
+            showreel: isDirector ? getVal('dirShowreel') : (isDop ? getVal('dopShowreel') : (isActor ? getVal('actShowreel') : (originalUserData.showreel || ''))),
+            
             instagram: getVal('editInstagram'),
             youtube: getVal('editYoutube'),
-            tiktok: getVal('editTiktok'),
             twitter: getVal('editTwitter'),
+            tiktok: getVal('editTiktok'),
             
-            // Private Info
+            // Dates
             availabilityFrom: getVal('editAvailFrom') || null,
             availabilityTo: getVal('editAvailTo') || null,
+            
+            // Private Info
             expectedMovieRemuneration: getVal('editBudgetMovie'),
             expectedWebseriesRemuneration: getVal('editBudgetWeb')
         };
 
-        if (selectedProfilePic) updatedUser.profilePicture = selectedProfilePic;
+        // Include base64 images if they were selected
+        if (selectedProfilePic) {
+            updatedUser.profilePicture = selectedProfilePic;
+        }
+        if (selectedCoverImage) {
+            updatedUser.coverImage = selectedCoverImage;
+        }
 
-        console.log('Sending profile update:', updatedUser);
+        // Recalculate profile score before saving
+        updatedUser.profileScore = typeof calculateProfileScore === 'function' ? calculateProfileScore(updatedUser) : (originalUserData ? (originalUserData.profileScore || 0) : 0);
+
+        console.log('Sending Profile Update Payload:', updatedUser);
 
         const response = await fetch(`${API_BASE_URL}/api/profile`, {
             method: 'PUT',
@@ -328,24 +418,43 @@ async function saveProfile() {
             body: JSON.stringify(updatedUser)
         });
 
+        console.log('Response status:', response.status);
+
         if (response.ok) {
-            showMessage('Profile updated successfully!', 'success');
+            const result = await response.json();
+            console.log('Profile updated successfully:', result);
+            
+            // Update local storage
+            localStorage.setItem('userName', result.name);
+            if (result.profilePicture) localStorage.setItem('userAvatar', result.profilePicture);
+
+            showMessage('Profile saved successfully!', 'success');
+            
+            // Give user a moment to see the success message
             setTimeout(() => {
                 window.location.href = 'profile.html';
             }, 1000);
         } else {
-            const errorMsg = await response.text();
-            throw new Error(errorMsg || 'Failed to update profile');
+            let errorMsg = 'Unknown error';
+            try {
+                errorMsg = await response.text();
+            } catch (e) {}
+            
+            console.error('Server Save Error:', errorMsg);
+            showMessage('Save failed: ' + errorMsg, 'error');
+            alert('SERVER ERROR: ' + errorMsg);
         }
     } catch (error) {
-        console.error('Save Error:', error);
-        showMessage(error.message || 'We couldn’t save your profile. Please check your connection.', 'error');
+        console.error('Save Execution Error:', error);
+        alert('CRITICAL ERROR: ' + error.message);
+        showMessage('An error occurred while saving. Please check the console.', 'error');
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Professional Profile';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
     }
 }
-
 
 // Project Management Functions
 async function loadUserProjects() {
@@ -360,6 +469,8 @@ async function loadUserProjects() {
 
 function renderProjectsList(projects) {
     const container = document.getElementById('projectsListContainer');
+    if (!container) return;
+    
     if (!projects || projects.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding:30px; background:#f8fafc; border-radius:16px; border:1px solid #e2e8f0; color:#64748b; font-size:13px;"><i class="fa-solid fa-film" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>No projects added to portfolio yet.</div>';
         return;
@@ -389,7 +500,7 @@ function renderProjectsList(projects) {
                 </button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 async function editProjectUI(projectId) {
@@ -422,8 +533,11 @@ async function editProjectUI(projectId) {
             
             // Update UI
             document.getElementById('formTitle').textContent = '✎ Edit Movie Project';
-            document.getElementById('submitProjectBtn').textContent = 'UPDATE PROJECT';
-            document.getElementById('cancelEditBtn').style.display = 'block';
+            const submitBtn = document.getElementById('submitProjectBtn');
+            if (submitBtn) submitBtn.textContent = 'UPDATE PROJECT';
+            
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (cancelBtn) cancelBtn.style.display = 'block';
             
             // Scroll to form
             document.getElementById('projectForm').scrollIntoView({ behavior: 'smooth' });
@@ -443,13 +557,20 @@ function resetProjectForm() {
     
     const preview = document.getElementById('projPosterPreview');
     const uploadBtn = document.getElementById('posterUploadBtn');
-    preview.src = '';
-    preview.removeAttribute('data-poster-url');
-    uploadBtn.classList.remove('has-image');
+    if (preview) {
+        preview.src = '';
+        preview.removeAttribute('data-poster-url');
+    }
+    if (uploadBtn) uploadBtn.classList.remove('has-image');
     
-    document.getElementById('formTitle').textContent = '+ Add New Movie Project';
-    document.getElementById('submitProjectBtn').textContent = 'ADD PROJECT';
-    document.getElementById('cancelEditBtn').style.display = 'none';
+    const formTitle = document.getElementById('formTitle');
+    if (formTitle) formTitle.textContent = '+ Add New Movie Project';
+    
+    const submitBtn = document.getElementById('submitProjectBtn');
+    if (submitBtn) submitBtn.textContent = 'ADD PROJECT';
+    
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 async function addNewProject(e) {
@@ -484,6 +605,8 @@ async function addNewProject(e) {
     };
 
     const addBtn = document.getElementById('submitProjectBtn');
+    if (!addBtn) return;
+    
     const originalText = addBtn.textContent;
 
     try {
@@ -528,6 +651,7 @@ async function deleteProject(projectId) {
 
         if (response.ok) {
             loadUserProjects();
+            showMessage('Project deleted.', 'info');
         }
     } catch (err) {
         console.error('Error deleting project:', err);

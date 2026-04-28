@@ -11,6 +11,8 @@ function checkAuth() {
     const userEmail = localStorage.getItem('userEmail');
 
     if (!userId || !userEmail) {
+        // Save current URL to redirect back after login (especially for shared links)
+        sessionStorage.setItem('redirectAfterLogin', window.location.href);
         window.location.href = 'index.html';
         return false;
     }
@@ -135,6 +137,46 @@ function formatDate(dateString) {
     });
 }
 
+/**
+ * Formats a date value (string, object, or Date) to YYYY-MM-DD
+ * required by <input type="date">
+ */
+function formatDateForInput(val) {
+    if (!val) return '';
+    
+    // 1. If it's a string
+    if (typeof val === 'string') {
+        if (val.includes('T')) return val.split('T')[0];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+    }
+    
+    // 2. If it's a Java LocalDate object {year, month, day}
+    if (typeof val === 'object' && val.year) {
+        const y = val.year;
+        const m = String(val.monthValue || val.month || '').padStart(2, '0');
+        const d = String(val.dayOfMonth || val.day || '').padStart(2, '0');
+        if (y && m !== '00' && d !== '00') return `${y}-${m}-${d}`;
+    }
+    
+    // 3. If it's a Date object
+    if (val instanceof Date && !isNaN(val.getTime())) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const day = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    return '';
+}
+
 function parseSafeDate(dateString) {
     if (!dateString) return null;
     
@@ -215,6 +257,22 @@ function renderAvatarFallback(name, className = '', size = '40px') {
     return `<div class="${className}" style="width: ${size}; height: ${size}; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: calc(${size} * 0.4); flex-shrink: 0;">${initials}</div>`;
 }
 
+/**
+ * Returns a default image URL based on the event type
+ */
+function getEventDefaultImage(eventType) {
+    const type = (eventType || '').toLowerCase();
+    const basePath = 'images/defaults/';
+    
+    if (type.includes('audition')) return basePath + 'audition.png';
+    if (type.includes('workshop')) return basePath + 'workshop.png';
+    if (type.includes('course')) return basePath + 'course.png';
+    if (type.includes('contest')) return basePath + 'contest.png';
+    
+    // Default fallback
+    return 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80';
+}
+
 // Get query parameter from URL
 function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
@@ -281,6 +339,63 @@ async function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
     });
 }
 
+/**
+ * Utility to copy text to clipboard with feedback
+ */
+async function copyToClipboard(text, successMsg = 'Link copied to clipboard!') {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            // Fallback for non-secure contexts or older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+        showMessage(successMsg, 'success');
+        return true;
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        showMessage('Failed to copy link', 'error');
+        return false;
+    }
+}
+
+/**
+ * Universal sharing function for posts and events
+ */
+function shareContent(type, id, title = '') {
+    const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    let shareUrl = '';
+    
+    if (type === 'post') {
+        shareUrl = `${baseUrl}/feed.html?postId=${id}`;
+    } else if (type === 'event') {
+        shareUrl = `${baseUrl}/event.html?eventId=${id}`;
+    } else if (type === 'profile') {
+        shareUrl = `${baseUrl}/profile.html?userId=${id}`;
+    } else {
+        shareUrl = window.location.href;
+    }
+
+    copyToClipboard(shareUrl, `Link to ${type} copied!`);
+    
+    // Optional: Web Share API for mobile devices
+    if (navigator.share) {
+        navigator.share({
+            title: title || `Check out this ${type} on CrewCanvas`,
+            url: shareUrl
+        }).catch(console.error);
+    }
+}
+
 // Logout function
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
@@ -313,6 +428,23 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Helper to check if a source is a video
+function isVideoFile(src) {
+    if (!src) return false;
+    if (typeof src !== 'string') return false;
+    if (src.startsWith('data:video/')) return true;
+    return src.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)($|\?)/i);
+}
+
+// Helper to render media content (image or video)
+function renderMediaContent(src, className = 'post-image') {
+    if (isVideoFile(src)) {
+        return `<video src="${src}" class="${className}" controls muted playsinline style="width:100%; max-height:500px; background:#000; border-radius:8px; display:block; object-fit:contain;"></video>`;
+    } else {
+        return `<img src="${src}" class="${className}" alt="Media content" loading="lazy">`;
+    }
 }
 
 // Add CSS animations and Premium Toast Styles
@@ -429,7 +561,7 @@ const currentPage = path.split("/").pop() || 'index.html';
 
 // Helper to check if current page is an authentication page
 function isAuthPage() {
-    const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html'];
+    const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html', 'pass.html', 'scan.html'];
     return authPages.includes(currentPage) || path === '/' || path === '';
 }
 
@@ -965,6 +1097,8 @@ if (typeof module !== 'undefined' && module.exports) {
         renderAvatarFallback,
         calculateProfileScore,
         initUniversalBottomNav,
-        NotificationHandler
+        NotificationHandler,
+        formatDateForInput,
+        shareContent
     };
 }

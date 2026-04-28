@@ -14,8 +14,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentUserId = getCurrentUserId();
     // Load user first to ensure isAdmin status is known before rendering events
     await loadCurrentUser();
-    loadEvents();
+    await loadEvents();
     checkEditMode();
+
+    // Auto-scroll to event if eventId is in URL
+    const eventId = getQueryParam('eventId');
+    if (eventId) {
+        setTimeout(() => {
+            const eventCard = document.getElementById(`event-card-${eventId}`) || 
+                              document.querySelector(`.event-card[data-id="${eventId}"]`) ||
+                              document.querySelector(`.card[data-id="${eventId}"]`); // Try multiple selectors
+            if (eventCard) {
+                eventCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                eventCard.style.boxShadow = "0 0 25px rgba(255, 140, 0, 0.4)";
+                eventCard.style.border = "2px solid var(--primary-orange)";
+                setTimeout(() => {
+                    eventCard.style.boxShadow = "";
+                    eventCard.style.border = "";
+                }, 4000);
+            }
+        }, 800);
+    }
 });
 
 async function checkEditMode() {
@@ -37,8 +56,8 @@ async function loadEventForEdit(id) {
             // Populate fields
             document.getElementById('eventTitle').value = event.title || '';
             document.getElementById('eventDescription').value = event.description || '';
-            document.getElementById('eventDate').value = event.date || '';
-            document.getElementById('eventEndDate').value = event.endDate || '';
+            document.getElementById('eventDate').value = formatDateForInput(event.date);
+            document.getElementById('eventEndDate').value = formatDateForInput(event.endDate);
             document.getElementById('eventTimeDuration').value = event.timeDuration || event.time || '';
             document.getElementById('eventLocation').value = event.location || '';
             document.getElementById('eventOrgName').value = event.orgName || '';
@@ -113,7 +132,8 @@ function updateCounts() {
         'Workshop': 0,
         'Course': 0,
         'Contest': 0,
-        'Audition': 0
+        'Audition': 0,
+        'Film Event': 0
     };
 
     allEvents.forEach(event => {
@@ -126,6 +146,7 @@ function updateCounts() {
     if (document.getElementById('courseCount')) document.getElementById('courseCount').innerText = counts['Course'];
     if (document.getElementById('contestCount')) document.getElementById('contestCount').innerText = counts['Contest'];
     if (document.getElementById('auditionCount')) document.getElementById('auditionCount').innerText = counts['Audition'];
+    if (document.getElementById('filmEventCount')) document.getElementById('filmEventCount').innerText = counts['Film Event'];
     if (document.getElementById('totalEventCount')) document.getElementById('totalEventCount').innerText = allEvents.length;
 }
 
@@ -190,14 +211,13 @@ function displayEvents(events) {
 
     container.innerHTML = events.map((event, index) => {
         const typeClass = `tag-${(event.eventType || 'audition').toLowerCase()}`;
-        const placeholderImg = `https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80`;
         const animationDelay = (index % 10) * 0.1; // Staggered delay for first 10 items
         
         return `
-            <div class="cinematic-card" style="animation-delay: ${animationDelay}s">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s">
                 <div class="card-image-box">
                     <div class="type-tag ${typeClass}">${event.eventType || 'Audition'}</div>
-                    <img src="${event.imageUrl || placeholderImg}" alt="${event.title}">
+                    <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" alt="${event.title}">
                 </div>
                 <div class="card-content">
                     <h3>${event.title}</h3>
@@ -245,12 +265,35 @@ function displayEvents(events) {
                                         </button>
                                     ` : ''}
                                 </div>
-                            ` : (userApplications.some(app => app.eventId === event.id) ? `
-                                <button class="apply-btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">Registered</button>
-                            ` : `
-                                <button class="apply-btn" onclick="applyToEvent(${event.id})">Register Now</button>
-                            `)}
+                            ` : (() => {
+                                const userApp = userApplications.find(app => app.eventId === event.id);
+                                if (!userApp) {
+                                    return `<button class="apply-btn" onclick="applyToEvent(${event.id})">Register</button>`;
+                                }
+                                
+                                console.log(`Checking pass for event ${event.id}: status=${userApp.status}, token=${userApp.passToken}, type=${event.eventType}`);
+                                const isFilmEvent = event.eventType && event.eventType.trim().toLowerCase() === 'film event';
+                                if (userApp.status === 'SHORTLISTED' && userApp.passToken && isFilmEvent) {
+                                    return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
+                                }
+                                
+                                let statusColor = '#27ae60'; // Success green
+                                let statusLabel = 'Registered';
+                                
+                                if (userApp.status === 'SHORTLISTED') {
+                                    statusColor = '#ff8c00'; // Brand orange
+                                    statusLabel = 'Shortlisted';
+                                } else if (userApp.status === 'REJECTED') {
+                                    statusColor = '#ef4444'; // Red
+                                    statusLabel = 'Rejected';
+                                }
+                                
+                                return `<button class="apply-btn" disabled style="background: ${statusColor}; cursor: default; opacity: 1;">${statusLabel}</button>`;
+                            })()}
                         </div>
+                        <button class="apply-btn" style="background: transparent; border: 1px solid #e2e8f0; color: #64748b; width: 40px; min-width: 40px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')" title="Share Event">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -303,97 +346,99 @@ function closeFormModal() {
     if (formModal) formModal.style.display = 'none';
 }
 
-// Create new event
+// Create/Update event
 async function submitEvent() {
+    console.log('--- Starting Event Submit/Update Process ---');
     const titleEle = document.getElementById('eventTitle');
     const descEle = document.getElementById('eventDescription');
     const dateEle = document.getElementById('eventDate');
     const endDateEle = document.getElementById('eventEndDate');
     const timeDurationEle = document.getElementById('eventTimeDuration');
     const locEle = document.getElementById('eventLocation');
-    const orgNameEle = document.getElementById('eventOrgName');
-    const orgPhoneEle = document.getElementById('eventOrgPhone');
-    const orgEmailEle = document.getElementById('eventOrgEmail');
-    const countryCodeEle = document.getElementById('countryCode');
-    const imageUrlEle = document.getElementById('eventImageUrl');
+    const typeEle = document.getElementById('eventType');
+    
+    if (!titleEle || !dateEle || !locEle) {
+        console.error('Essential elements missing for event submission');
+        return;
+    }
 
-    const title = titleEle ? titleEle.value.trim() : '';
-    const description = descEle ? descEle.value.trim() : '';
-    const date = dateEle ? dateEle.value : '';
-    const endDate = endDateEle ? endDateEle.value : '';
-    const timeDuration = timeDurationEle ? timeDurationEle.value.trim() : '';
-    const location = locEle ? locEle.value.trim() : '';
-    const orgName = orgNameEle ? orgNameEle.value.trim() : '';
-    const countryCode = countryCodeEle ? countryCodeEle.value : '';
-    const orgPhone = orgPhoneEle ? countryCode + ' ' + orgPhoneEle.value.trim() : '';
-    const orgEmail = orgEmailEle ? orgEmailEle.value.trim() : '';
+    const title = titleEle.value.trim();
+    const date = dateEle.value;
+    const location = locEle.value.trim();
+    const eventType = typeEle ? typeEle.value : (currentType || 'Audition');
 
     if (!title || !date || !location) {
-        showMessage('Please fill in title, date, and location', 'error');
+        showMessage('Please fill in Title, Date, and Location', 'error');
+        return;
+    }
+
+    const userId = getCurrentUserId();
+    if (!userId) {
+        showMessage('Session expired. Please log in again.', 'error');
         return;
     }
 
     const eventData = {
-        userId: currentUserId,
-        title,
-        eventType: currentType || 'Audition',
-        description,
-        date,
-        endDate,
-        timeDuration,
-        location,
-        orgName,
-        orgPhone,
-        orgEmail,
-        imageUrl: imageUrlEle ? imageUrlEle.value.trim() : '',
-        applicants: 0,
-        // Optional fields that might not be in the current form
+        userId: parseInt(userId),
+        title: title,
+        eventType: eventType,
+        description: descEle ? descEle.value.trim() : '',
+        date: date,
+        endDate: endDateEle ? endDateEle.value : null,
+        timeDuration: timeDurationEle ? timeDurationEle.value.trim() : '',
+        location: location,
         capacity: document.getElementById('eventCapacity') ? parseInt(document.getElementById('eventCapacity').value) || 0 : 0,
         price: document.getElementById('eventPrice') ? parseFloat(document.getElementById('eventPrice').value) || 0.0 : 0.0,
-        requirements: document.getElementById('eventSkills') ? document.getElementById('eventSkills').value.trim() : ''
+        orgName: document.getElementById('eventOrgName') ? document.getElementById('eventOrgName').value.trim() : '',
+        orgEmail: document.getElementById('eventOrgEmail') ? document.getElementById('eventOrgEmail').value.trim() : '',
+        orgPhone: document.getElementById('eventOrgPhone') ? document.getElementById('eventOrgPhone').value.trim() : '',
+        imageUrl: document.getElementById('eventImageUrl') ? document.getElementById('eventImageUrl').value : ''
     };
 
+    const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
+    const method = editModeId ? 'PUT' : 'POST';
+
+    console.log(`Sending ${method} request to ${url} with payload:`, eventData);
+
+    const btn = document.querySelector('.btn-submit-event') || document.querySelector('button[onclick="submitEvent()"]');
+    const originalText = btn ? (btn.innerText || btn.textContent) : 'Submit';
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+    }
 
     try {
-        const method = editModeId ? 'PUT' : 'POST';
-        const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
-        
         const response = await fetch(url, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(eventData)
         });
 
+        console.log('Response status:', response.status);
+
         if (response.ok) {
+            const result = await response.json();
+            console.log('Event operation successful:', result);
             showMessage(editModeId ? 'Event updated successfully!' : 'Event created successfully!', 'success');
-            closeFormModal();
             
-            if (editModeId) {
-                // Redirect back to dashboard after edit
-                setTimeout(() => window.location.href = `event-dashboard.html?id=${editModeId}`, 1500);
-            } else {
-                loadEvents(); // Reload grid
-            }
-
-            // Clear form
-            if (titleEle) titleEle.value = '';
-            if (descEle) descEle.value = '';
-            if (dateEle) dateEle.value = '';
-            if (endDateEle) endDateEle.value = '';
-            if (timeDurationEle) timeDurationEle.value = '';
-            if (locEle) locEle.value = '';
-            if (orgNameEle) orgNameEle.value = '';
-            if (orgPhoneEle) orgPhoneEle.value = '';
-            if (orgEmailEle) orgEmailEle.value = '';
-
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            showMessage('We couldn’t post your opportunity right now. Please try again.', 'error');
+            const errorText = await response.text();
+            console.error('Server error:', errorText);
+            showMessage('Save failed: ' + errorText, 'error');
+            alert('SERVER ERROR: ' + errorText);
         }
     } catch (error) {
-        console.error('Error creating event:', error);
-        showMessage('Oops! Something went wrong while saving. Please check your connection.', 'error');
+        console.error('Fetch error:', error);
+        showMessage('Connection error. Please check your internet.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     }
 }
 
@@ -511,6 +556,7 @@ function switchEventTab(type, element) {
     else if (type === 'workshops') filterType = 'Workshop';
     else if (type === 'courses') filterType = 'Course';
     else if (type === 'contests') filterType = 'Contest';
+    else if (type === 'filmevents') filterType = 'Film Event';
     else if (type === 'all') filterType = 'all';
     
     filterEvents(filterType);

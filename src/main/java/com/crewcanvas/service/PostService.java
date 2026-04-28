@@ -28,6 +28,16 @@ public class PostService {
     private NotificationService notificationService;
 
     public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks) {
+        // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
+        com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
+        boolean isAdmin = user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()));
+        
+        boolean hasVideo = imageUrls != null && imageUrls.stream().anyMatch(url -> url != null && url.startsWith("data:video/"));
+        
+        if (hasVideo && !isAdmin) {
+            throw new RuntimeException("Video uploads in posts are restricted to administrators.");
+        }
+
         Post post = new Post(userId, content, imageUrls, externalLinks);
         return postRepository.save(post);
     }
@@ -72,6 +82,17 @@ public class PostService {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
+
+            // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
+            com.crewcanvas.model.User user = userRepository.findById(post.getUserId()).orElse(null);
+            boolean isAdmin = user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()));
+            
+            boolean hasVideo = imageUrls != null && imageUrls.stream().anyMatch(url -> url != null && url.startsWith("data:video/"));
+            
+            if (hasVideo && !isAdmin) {
+                throw new RuntimeException("Video uploads in posts are restricted to administrators.");
+            }
+
             if (content != null)
                 post.setContent(content);
             if (imageUrls != null)
@@ -196,58 +217,19 @@ public class PostService {
                 }
             }
             poll.setPollVotes(voteMap);
+            
+            // Populate pollOptions as string list for frontend
+            java.util.List<String> optStrings = poll.getOptions().stream()
+                .map(com.crewcanvas.model.PollOption::getOptionText)
+                .collect(java.util.stream.Collectors.toList());
+            post.setPollOptions(optStrings);
+            post.setPollQuestion(poll.getQuestion());
         }
         return post;
     }
 
     private List<Post> populatePollData(List<Post> posts) {
-        if (posts.isEmpty()) return posts;
-
-        // Bulk fetch users to avoid N+1 deadlock issues
-        java.util.Set<Long> userIds = posts.stream()
-            .map(Post::getUserId)
-            .filter(java.util.Objects::nonNull)
-            .collect(java.util.stream.Collectors.toSet());
-
-        if (!userIds.isEmpty()) {
-            java.util.Map<Long, com.crewcanvas.model.User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
-
-            posts.forEach(post -> {
-                com.crewcanvas.model.User user = userMap.get(post.getUserId());
-                if (user != null) {
-                    java.util.Map<String, Object> details = new java.util.HashMap<>();
-                    details.put("id", user.getId());
-                    details.put("name", user.getName());
-                    details.put("role", user.getRole());
-                    details.put("profilePicture", user.getProfilePicture());
-                    post.setUserDetails(details);
-                }
-            });
-        }
-
-        // Process polls
-        posts.forEach(post -> {
-            if (post.getPoll() != null) {
-                com.crewcanvas.model.Poll poll = post.getPoll();
-                List<com.crewcanvas.model.PollVote> votes = pollVoteRepository.findByPollId(poll.getId());
-                java.util.Map<Long, Integer> voteMap = new java.util.HashMap<>();
-                
-                java.util.Map<Long, Integer> optionIdToIndex = new java.util.HashMap<>();
-                for (int i = 0; i < poll.getOptions().size(); i++) {
-                    optionIdToIndex.put(poll.getOptions().get(i).getId(), i);
-                }
-                
-                for (com.crewcanvas.model.PollVote vote : votes) {
-                    Integer index = optionIdToIndex.get(vote.getOptionId());
-                    if (index != null) {
-                        voteMap.put(vote.getUserId(), index);
-                    }
-                }
-                poll.setPollVotes(voteMap);
-            }
-        });
-
+        posts.forEach(this::populatePollData);
         return posts;
     }
 }
