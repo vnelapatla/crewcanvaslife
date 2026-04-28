@@ -5,12 +5,25 @@ let skillsList = [];
 let originalUserData = {};
 let editingProjectId = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!checkAuth()) return;
+    
     currentUserId = getCurrentUserId();
-    loadProfileData();
-    setupImageHandlers();
-    loadUserProjects(); // Added
+    if (!currentUserId) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try {
+        await Promise.all([
+            loadProfileData(),
+            loadUserProjects()
+        ]);
+        setupImageHandlers();
+    } catch (err) {
+        console.error("Initialization failed:", err);
+        showMessage("Failed to load profile data. Please refresh.", "error");
+    }
 });
 
 async function loadProfileData() {
@@ -20,77 +33,78 @@ async function loadProfileData() {
             const user = await response.json();
             originalUserData = user;
 
-            document.getElementById('editName').value = user.name || '';
-            document.getElementById('editEmail').value = user.email || '';
-            document.getElementById('editPhone').value = user.phone || '';
-            document.getElementById('editLocation').value = user.location || '';
-            document.getElementById('editRole').value = user.role || 'Director';
-            document.getElementById('editExperience').value = user.experience || 'Professional';
-            document.getElementById('editBio').value = user.bio || '';
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val || '';
+            };
+
+            setVal('editName', user.name);
+            setVal('editEmail', user.email);
+            setVal('editPhone', user.phone);
+            setVal('editLocation', user.location);
+            setVal('editRole', user.role || 'Director');
+            setVal('editExperience', user.experience || 'Fresher');
+            setVal('editBio', user.bio);
             
             // User Category & Verification
-            document.getElementById('editUserType').value = user.userType || 'Explorer';
+            setVal('editUserType', user.userType || 'Explorer');
             if (user.isVerifiedProfessional) {
-                document.getElementById('verifiedStatusContainer').style.display = 'block';
-                document.getElementById('categoryGroup').style.display = 'block';
-                document.getElementById('categoryLockMessage').style.display = 'none';
+                if (document.getElementById('verifiedStatusContainer')) document.getElementById('verifiedStatusContainer').style.display = 'block';
+                if (document.getElementById('categoryGroup')) document.getElementById('categoryGroup').style.display = 'block';
+                if (document.getElementById('categoryLockMessage')) document.getElementById('categoryLockMessage').style.display = 'none';
             } else {
-                document.getElementById('categoryGroup').style.display = 'none';
-                document.getElementById('categoryLockMessage').style.display = 'block';
+                if (document.getElementById('categoryGroup')) document.getElementById('categoryGroup').style.display = 'none';
+                if (document.getElementById('categoryLockMessage')) document.getElementById('categoryLockMessage').style.display = 'block';
             }
 
             // Role-specific fields
-            // Director
-            document.getElementById('dirGenres').value = user.genres || '';
-            document.getElementById('dirProjects').value = user.projectsDirected || '';
-            document.getElementById('dirBudget').value = user.budgetHandled || '';
-            document.getElementById('dirTeamSize').value = user.teamSize || '';
-            document.getElementById('dirShowreel').value = user.showreel || '';
-            document.getElementById('dirVision').value = user.visionStatement || '';
+            setVal('dirGenres', user.genres);
+            setVal('dirProjects', user.projectsDirected);
+            setVal('dirBudget', user.budgetHandled);
+            setVal('dirTeamSize', user.teamSize);
+            setVal('dirShowreel', user.showreel);
+            setVal('dirVision', user.visionStatement);
 
-            // Actor
-            document.getElementById('actHeight').value = user.height || '';
-            document.getElementById('actWeight').value = user.weight || '';
-            document.getElementById('actAgeRange').value = user.ageRange || '';
-            document.getElementById('actGender').value = user.gender || '';
-            document.getElementById('actBodyType').value = user.bodyType || '';
-            document.getElementById('actLanguages').value = user.languages || '';
+            setVal('actHeight', user.height);
+            setVal('actWeight', user.weight);
+            setVal('actAgeRange', user.ageRange);
+            setVal('actGender', user.gender);
+            setVal('actBodyType', user.bodyType);
+            setVal('actLanguages', user.languages);
             
-            // DOP
-            document.getElementById('dopCamera').value = user.cameraExpertise || '';
-            document.getElementById('dopShowreel').value = user.showreel || '';
+            setVal('dopCamera', user.cameraExpertise);
+            setVal('dopShowreel', user.showreel);
 
-            // Editor
-            document.getElementById('editSoftware').value = user.editingSoftware || '';
-            document.getElementById('editStyle').value = user.editingStyle || '';
-            document.getElementById('editVideos').value = user.portfolioVideos || '';
-            document.getElementById('editTurnaround').value = user.turnaroundTime || '';
-            document.getElementById('editExpDetails').value = user.experienceDetails || '';
+            setVal('editSoftware', user.editingSoftware);
+            setVal('editStyle', user.editingStyle);
+            setVal('editVideos', user.portfolioVideos);
+            setVal('editTurnaround', user.turnaroundTime);
+            setVal('editExpDetails', user.experienceDetails);
 
-            // Music
-            document.getElementById('musGenres').value = user.genres || ''; // Reuse genres if applicable
-            document.getElementById('musDaws').value = user.daws || '';
-            document.getElementById('musInstruments').value = user.instruments || '';
-            document.getElementById('musTracks').value = user.sampleTracks || '';
-            document.getElementById('musExperience').value = user.musicExperience || '';
+            setVal('musGenres', user.genres);
+            setVal('musDaws', user.daws);
+            setVal('musInstruments', user.instruments);
+            setVal('musTracks', user.sampleTracks);
+            setVal('musExperience', user.musicExperience);
 
-            // General Details
-            document.getElementById('genInterests').value = user.interests || '';
-            document.getElementById('genOccupation').value = user.occupation || '';
-            document.getElementById('genGoals').value = user.goals || '';
-            document.getElementById('genLearning').value = user.learningResources || '';
+            setVal('genInterests', user.interests);
+            setVal('genOccupation', user.occupation);
+            setVal('genGoals', user.goals);
+            setVal('genLearning', user.learningResources);
 
-            // Socials
-            document.getElementById('editInstagram').value = user.instagram || '';
-            document.getElementById('editYoutube').value = user.youtube || '';
-            document.getElementById('editTiktok').value = user.tiktok || '';
-            document.getElementById('editTwitter').value = user.twitter || '';
+            setVal('editInstagram', user.instagram);
+            setVal('editYoutube', user.youtube);
+            setVal('editTiktok', user.tiktok);
+            setVal('editTwitter', user.twitter);
             
             // Private Info
-            if (user.availabilityFrom) document.getElementById('editAvailFrom').value = user.availabilityFrom;
-            if (user.availabilityTo) document.getElementById('editAvailTo').value = user.availabilityTo;
-            document.getElementById('editBudgetMovie').value = user.expectedMovieRemuneration || user.budgetMovie || '';
-            document.getElementById('editBudgetWeb').value = user.expectedWebseriesRemuneration || user.budgetWebseries || '';
+            if (user.availabilityFrom) setVal('editAvailFrom', user.availabilityFrom);
+            if (user.availabilityTo) setVal('editAvailTo', user.availabilityTo);
+            
+            const movieRem = user.expectedMovieRemuneration || user.budgetMovie || '';
+            const webRem = user.expectedWebseriesRemuneration || user.budgetWebseries || '';
+            setVal('editBudgetMovie', movieRem);
+            setVal('editBudgetWeb', webRem);
 
             if (user.skills) {
                 skillsList = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
@@ -98,7 +112,8 @@ async function loadProfileData() {
             }
 
             if (user.profilePicture) {
-                document.getElementById('currentAvatar').src = user.profilePicture;
+                const avatar = document.getElementById('currentAvatar');
+                if (avatar) avatar.src = user.profilePicture;
             }
 
             // Profile Strength Score
@@ -119,7 +134,8 @@ async function loadProfileData() {
             handleRoleChange();
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading profile data:', error);
+        throw error; // Let the caller handle it
     }
 }
 
@@ -203,82 +219,108 @@ function renderSkills() {
 
 async function saveProfile() {
     const saveBtn = document.querySelector('.btn-save');
+    if (!saveBtn) return;
+
     try {
+        const name = document.getElementById('editName').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const userIdNum = parseInt(currentUserId);
+
+        if (!name || !email) {
+            showMessage('Name and Email are required.', 'error');
+            return;
+        }
+
+        if (isNaN(userIdNum)) {
+            showMessage('Session expired. Please log in again.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
 
+        const role = document.getElementById('editRole').value;
+        const isDirector = role.toLowerCase().includes('director');
+        const isDop = role.toLowerCase().includes('dop');
+        const isMusic = role.toLowerCase().includes('music');
+
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        };
+
         const updatedUser = {
-            id: currentUserId,
-            name: document.getElementById('editName').value.trim(),
-            email: document.getElementById('editEmail').value.trim(),
-            phone: document.getElementById('editPhone').value.trim(),
-            location: document.getElementById('editLocation').value.trim(),
-            role: document.getElementById('editRole').value,
-            experience: document.getElementById('editExperience').value,
-            bio: document.getElementById('editBio').value.trim(),
-            userType: document.getElementById('editUserType').value,
+            id: userIdNum,
+            name: name,
+            email: email,
+            phone: getVal('editPhone'),
+            location: getVal('editLocation'),
+            role: role,
+            experience: getVal('editExperience'),
+            bio: getVal('editBio'),
+            userType: getVal('editUserType'),
             skills: skillsList.join(','),
             
             // Director Fields
-            genres: document.getElementById('dirGenres').value.trim(),
-            projectsDirected: document.getElementById('dirProjects').value.trim(),
-            budgetHandled: document.getElementById('dirBudget').value.trim(),
-            teamSize: document.getElementById('dirTeamSize').value.trim(),
-            showreel: document.getElementById('dirShowreel').value.trim(),
-            visionStatement: document.getElementById('dirVision').value.trim(),
+            projectsDirected: getVal('dirProjects'),
+            budgetHandled: getVal('dirBudget'),
+            teamSize: getVal('dirTeamSize'),
+            visionStatement: getVal('dirVision'),
+
+            // Role-specific genres
+            genres: isMusic ? getVal('musGenres') : getVal('dirGenres'),
+
+            // Showreel logic
+            showreel: isDirector 
+                ? getVal('dirShowreel')
+                : (isDop ? getVal('dopShowreel') : (originalUserData.showreel || '')),
 
             // Actor Fields
-            height: document.getElementById('actHeight').value.trim(),
-            weight: document.getElementById('actWeight').value.trim(),
-            ageRange: document.getElementById('actAgeRange').value.trim(),
-            gender: document.getElementById('actGender').value.trim(),
-            bodyType: document.getElementById('actBodyType').value.trim(),
-            languages: document.getElementById('actLanguages').value.trim(),
+            height: getVal('actHeight'),
+            weight: getVal('actWeight'),
+            ageRange: getVal('actAgeRange'),
+            gender: getVal('actGender'),
+            bodyType: getVal('actBodyType'),
+            languages: getVal('actLanguages'),
 
             // DOP Fields
-            cameraExpertise: document.getElementById('dopCamera').value.trim(),
-            // showreel is handled by either director or DOP field in UI, but we should make sure it's consistent.
-            // Wait, I used 'dopShowreel' and 'dirShowreel'. I'll handle them both.
-            // Let's use a logic to pick the one from the active module.
-            showreel: (document.getElementById('editRole').value.toLowerCase().includes('director')) 
-                ? document.getElementById('dirShowreel').value.trim()
-                : (document.getElementById('editRole').value.toLowerCase().includes('dop') 
-                    ? document.getElementById('dopShowreel').value.trim() 
-                    : originalUserData.showreel || ''),
+            cameraExpertise: getVal('dopCamera'),
 
             // Editor Fields
-            editingSoftware: document.getElementById('editSoftware').value.trim(),
-            editingStyle: document.getElementById('editStyle').value.trim(),
-            portfolioVideos: document.getElementById('editVideos').value.trim(),
-            turnaroundTime: document.getElementById('editTurnaround').value.trim(),
-            experienceDetails: document.getElementById('editExpDetails').value.trim(),
+            editingSoftware: getVal('editSoftware'),
+            editingStyle: getVal('editStyle'),
+            portfolioVideos: getVal('editVideos'),
+            turnaroundTime: getVal('editTurnaround'),
+            experienceDetails: getVal('editExpDetails'),
 
             // Music Fields
-            // Note: genres is reused from above if needed
-            daws: document.getElementById('musDaws').value.trim(),
-            instruments: document.getElementById('musInstruments').value.trim(),
-            sampleTracks: document.getElementById('musTracks').value.trim(),
-            musicExperience: document.getElementById('musExperience').value.trim(),
+            daws: getVal('musDaws'),
+            instruments: getVal('musInstruments'),
+            sampleTracks: getVal('musTracks'),
+            musicExperience: getVal('musExperience'),
 
             // General Details
-            interests: document.getElementById('genInterests').value.trim(),
-            occupation: document.getElementById('genOccupation').value.trim(),
-            goals: document.getElementById('genGoals').value.trim(),
-            learningResources: document.getElementById('genLearning').value.trim(),
+            interests: getVal('genInterests'),
+            occupation: getVal('genOccupation'),
+            goals: getVal('genGoals'),
+            learningResources: getVal('genLearning'),
 
-            instagram: document.getElementById('editInstagram').value.trim(),
-            youtube: document.getElementById('editYoutube').value.trim(),
-            tiktok: document.getElementById('editTiktok').value.trim(),
-            twitter: document.getElementById('editTwitter').value.trim(),
+            instagram: getVal('editInstagram'),
+            youtube: getVal('editYoutube'),
+            tiktok: getVal('editTiktok'),
+            twitter: getVal('editTwitter'),
             
             // Private Info
-            availabilityFrom: document.getElementById('editAvailFrom').value || null,
-            availabilityTo: document.getElementById('editAvailTo').value || null,
-            expectedMovieRemuneration: document.getElementById('editBudgetMovie').value.trim(),
-            expectedWebseriesRemuneration: document.getElementById('editBudgetWeb').value.trim()
+            availabilityFrom: getVal('editAvailFrom') || null,
+            availabilityTo: getVal('editAvailTo') || null,
+            expectedMovieRemuneration: getVal('editBudgetMovie'),
+            expectedWebseriesRemuneration: getVal('editBudgetWeb')
         };
 
         if (selectedProfilePic) updatedUser.profilePicture = selectedProfilePic;
+
+        console.log('Sending profile update:', updatedUser);
 
         const response = await fetch(`${API_BASE_URL}/api/profile`, {
             method: 'PUT',
@@ -287,15 +329,23 @@ async function saveProfile() {
         });
 
         if (response.ok) {
-            window.location.href = 'profile.html';
+            showMessage('Profile updated successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = 'profile.html';
+            }, 1000);
+        } else {
+            const errorMsg = await response.text();
+            throw new Error(errorMsg || 'Failed to update profile');
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Save Error:', error);
+        showMessage(error.message || 'We couldn’t save your profile. Please check your connection.', 'error');
     } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Professional Profile';
     }
 }
+
 
 // Project Management Functions
 async function loadUserProjects() {
