@@ -101,6 +101,29 @@ public class ShareController {
                 String[] parts = base64.split(",");
                 String contentType = parts[0].split(":")[1].split(";")[0];
                 byte[] imageBytes = java.util.Base64.getDecoder().decode(parts[1]);
+
+                // Load image to crop
+                java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
+                java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
+
+                if (originalImage != null) {
+                    int width = originalImage.getWidth();
+                    int height = originalImage.getHeight();
+                    
+                    // Crop top 55% (hides bottom 45% where contact details usually are)
+                    int cropHeight = (int) (height * 0.55);
+                    if (cropHeight > 0) {
+                        java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
+                        
+                        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                        String format = contentType.contains("/") ? contentType.split("/")[1] : "png";
+                        javax.imageio.ImageIO.write(croppedImage, format, baos);
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(contentType))
+                                .body(baos.toByteArray());
+                    }
+                }
+                
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .body(imageBytes);
