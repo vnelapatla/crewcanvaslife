@@ -34,7 +34,7 @@ public class ShareController {
         Post post = postOpt.get();
         String title = "New Post on CrewCanvas";
         String content = post.getContent() != null ? post.getContent() : "";
-        String truncatedDescription = truncateContent(content, 0.7);
+        String truncatedDescription = truncateContent(content, 0.55);
         
         String scheme = request.getScheme();
         String serverName = request.getServerName();
@@ -59,7 +59,7 @@ public class ShareController {
         Event event = eventOpt.get();
         String title = event.getTitle();
         String content = event.getDescription() != null ? event.getDescription() : "";
-        String truncatedDescription = truncateContent(content, 0.7);
+        String truncatedDescription = truncateContent(content, 0.55);
         
         // Hide contact info in the share preview
         truncatedDescription += "\n\n[Contact details hidden. Click to view on website]";
