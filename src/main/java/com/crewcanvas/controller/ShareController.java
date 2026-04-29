@@ -25,7 +25,7 @@ public class ShareController {
     private EventService eventService;
 
     @GetMapping("/post/{id}")
-    public ResponseEntity<String> sharePost(@PathVariable Long id) {
+    public ResponseEntity<String> sharePost(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
         Optional<Post> postOpt = postService.getPostById(id);
         if (postOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -35,18 +35,22 @@ public class ShareController {
         String title = "New Post on CrewCanvas";
         String content = post.getContent() != null ? post.getContent() : "";
         String truncatedDescription = truncateContent(content, 0.7);
-        String imageUrl = (post.getImageUrls() != null && !post.getImageUrls().isEmpty()) 
-                          ? post.getImageUrls().get(0) 
-                          : "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80";
+        
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
 
-        String html = generateShareHtml(title, truncatedDescription, imageUrl, "/feed.html?postId=" + id);
+        String imageUrl = baseUrl + "/share/image/post/" + id;
+
+        String html = generateShareHtml(title, truncatedDescription, imageUrl, baseUrl + "/feed.html?postId=" + id, baseUrl);
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
     }
 
     @GetMapping("/event/{id}")
-    public ResponseEntity<String> shareEvent(@PathVariable Long id) {
+    public ResponseEntity<String> shareEvent(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -60,12 +64,51 @@ public class ShareController {
         // Hide contact info in the share preview
         truncatedDescription += "\n\n[Contact details hidden. Click to view on website]";
 
-        String imageUrl = event.getImageUrl() != null && !event.getImageUrl().isEmpty() ? event.getImageUrl() : "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80";
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
 
-        String html = generateShareHtml(title, truncatedDescription, imageUrl, "/event.html?eventId=" + id);
+        String imageUrl = baseUrl + "/share/image/event/" + id;
+
+        String html = generateShareHtml(title, truncatedDescription, imageUrl, baseUrl + "/event.html?eventId=" + id, baseUrl);
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
+    }
+
+    @GetMapping("/image/post/{id}")
+    public ResponseEntity<byte[]> getPostImage(@PathVariable Long id) {
+        Optional<Post> postOpt = postService.getPostById(id);
+        if (postOpt.isPresent() && postOpt.get().getImageUrls() != null && !postOpt.get().getImageUrls().isEmpty()) {
+            return serveBase64Image(postOpt.get().getImageUrls().get(0));
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/image/event/{id}")
+    public ResponseEntity<byte[]> getEventImage(@PathVariable Long id) {
+        Optional<Event> eventOpt = eventService.getEventById(id);
+        if (eventOpt.isPresent() && eventOpt.get().getImageUrl() != null) {
+            return serveBase64Image(eventOpt.get().getImageUrl());
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    private ResponseEntity<byte[]> serveBase64Image(String base64) {
+        try {
+            if (base64.startsWith("data:image")) {
+                String[] parts = base64.split(",");
+                String contentType = parts[0].split(":")[1].split(";")[0];
+                byte[] imageBytes = java.util.Base64.getDecoder().decode(parts[1]);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(imageBytes);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     private String truncateContent(String content, double percentage) {
@@ -76,8 +119,7 @@ public class ShareController {
         return content.substring(0, length) + "...";
     }
 
-    private String generateShareHtml(String title, String description, String imageUrl, String redirectUrl) {
-        String fullUrl = "https://crewcanvas.com" + redirectUrl; // Placeholder domain for meta tags
+    private String generateShareHtml(String title, String description, String imageUrl, String redirectUrl, String baseUrl) {
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
@@ -88,7 +130,7 @@ public class ShareController {
                 "    <meta property=\"og:title\" content=\"" + title + "\" />\n" +
                 "    <meta property=\"og:description\" content=\"" + description.replace("\"", "&quot;") + "\" />\n" +
                 "    <meta property=\"og:image\" content=\"" + imageUrl + "\" />\n" +
-                "    <meta property=\"og:url\" content=\"" + fullUrl + "\" />\n" +
+                "    <meta property=\"og:url\" content=\"" + redirectUrl + "\" />\n" +
                 "    <meta property=\"og:type\" content=\"website\" />\n" +
                 "    <meta name=\"twitter:card\" content=\"summary_large_image\" />\n" +
                 "    <meta name=\"twitter:title\" content=\"" + title + "\" />\n" +
@@ -108,7 +150,7 @@ public class ShareController {
                 "</head>\n" +
                 "<body>\n" +
                 "    <div class=\"teaser-card\">\n" +
-                "        <a href=\"/\" class=\"logo\">CrewCanvas</a>\n" +
+                "        <a href=\"" + baseUrl + "\" class=\"logo\">CrewCanvas</a>\n" +
                 "        " + (imageUrl != null ? "<img src=\"" + imageUrl + "\" class=\"teaser-img\">" : "") + "\n" +
                 "        <h1>" + title + "</h1>\n" +
                 "        <p>" + description + "</p>\n" +
