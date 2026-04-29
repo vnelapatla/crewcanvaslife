@@ -170,13 +170,13 @@ public class ShareController {
                 "        .btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(255, 140, 0, 0.4); }\n" +
                 "        .logo { font-weight: 800; color: #ff8c00; margin-bottom: 40px; font-size: 28px; display: block; text-decoration: none; }\n" +
                 "    </style>\n" +
-                "    <script>
-        // Auto-redirect if user is already logged in
-        if (localStorage.getItem('userId')) {
-            window.location.href = '" + redirectUrl + "';
-        }
-    </script>
-</head>\n" +
+                "    <script>\n" +
+                "        // Auto-redirect if user is already logged in\n" +
+                "        if (localStorage.getItem('userId')) {\n" +
+                "            window.location.href = '" + redirectUrl + "';\n" +
+                "        }\n" +
+                "    </script>\n" +
+                "</head>\n" +
                 "<body>\n" +
                 "    <div class=\"teaser-card\">\n" +
                 "        <a href=\"" + baseUrl + "\" class=\"logo\">CrewCanvas</a>\n" +
