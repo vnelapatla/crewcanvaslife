@@ -447,6 +447,55 @@ function renderMediaContent(src, className = 'post-image') {
     }
 }
 
+/**
+ * Opens a Base64 string in a new tab as a Blob URL (Prevents forced downloads)
+ */
+function viewFileFromBase64(base64Data) {
+    if (!base64Data) return;
+    
+    try {
+        const parts = base64Data.split(';base64,');
+        if (parts.length < 2) {
+            window.open(base64Data, '_blank');
+            return;
+        }
+
+        const contentType = parts[0].split(':')[1] || 'application/pdf';
+        const byteCharacters = atob(parts[1]);
+        const byteArrays = [];
+
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+            byteArrays.push(new Uint8Array(byteNumbers));
+        }
+
+        const blob = new Blob(byteArrays, {type: contentType});
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // USE A TEMPORARY LINK (Most robust method)
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+    } catch (e) {
+        console.error("View Error:", e);
+        window.open(base64Data, '_blank');
+    }
+}
+
 // Add CSS animations and Premium Toast Styles
 const style = document.createElement('style');
 style.textContent = `
@@ -780,7 +829,8 @@ function calculateProfileScore(user) {
     if (user.experience) score += 10;
     
     // Portfolio & Social (Max 25)
-    if (user.showreel || user.portfolioVideos) score += 15;
+    if (user.showreel || user.portfolioVideos) score += 10;
+    if (user.resume) score += 5;
     if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 10;
     
     return Math.min(score, 100);

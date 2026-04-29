@@ -2,6 +2,9 @@
 let currentUserId = null;
 let selectedProfilePic = null;
 let selectedCoverImage = null;
+let selectedResume = null;
+let selectedResumeName = null;
+let selectedResumeType = null;
 let skillsList = [];
 let originalUserData = {};
 let editingProjectId = null;
@@ -138,6 +141,13 @@ async function loadProfileData() {
             setVal('editBudgetMovie', movieRem);
             setVal('editBudgetWeb', webRem);
 
+            if (user.resume) {
+                const uploadUI = document.getElementById('resumeUploadUI');
+                const existsUI = document.getElementById('resumeExistsUI');
+                if (uploadUI) uploadUI.style.display = 'none';
+                if (existsUI) existsUI.style.display = 'flex';
+            }
+
             if (user.skills) {
                 skillsList = user.skills.split(',').map(s => s.trim()).filter(s => s !== '');
                 renderSkills();
@@ -223,6 +233,36 @@ function setupImageHandlers() {
                     showMessage('Cover image selected.', 'info');
                 } catch (err) {
                     console.error('Cover upload failed:', err);
+                }
+            }
+        });
+    }
+
+    // Resume Handler
+    const resumeInput = document.getElementById('resumeInput');
+    if (resumeInput) {
+        resumeInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    const status = document.getElementById('resumeStatus');
+                    const uploadUI = document.getElementById('resumeUploadUI');
+                    const existsUI = document.getElementById('resumeExistsUI');
+                    
+                    if (status) status.textContent = 'Uploading...';
+                    
+                    selectedResume = await uploadImage(file);
+                    selectedResumeName = file.name;
+                    selectedResumeType = file.type;
+                    
+                    if (status) status.textContent = file.name;
+                    if (uploadUI) uploadUI.style.display = 'flex';
+                    if (existsUI) existsUI.style.display = 'none';
+                    
+                    showMessage('Resume selected successfully.', 'success');
+                } catch (err) {
+                    console.error('Resume upload failed:', err);
+                    document.getElementById('resumeStatus').textContent = 'Upload failed';
                 }
             }
         });
@@ -396,8 +436,15 @@ async function saveProfile() {
             
             // Private Info
             expectedMovieRemuneration: getVal('editBudgetMovie'),
-            expectedWebseriesRemuneration: getVal('editBudgetWeb')
+            expectedWebseriesRemuneration: getVal('editBudgetWeb'),
+            resume: (selectedResume !== null) ? selectedResume : (originalUserData.resume || ''),
+            resumeFileName: (selectedResume !== null) ? selectedResumeName : (originalUserData.resumeFileName || ''),
+            resumeContentType: (selectedResume !== null) ? selectedResumeType : (originalUserData.resumeContentType || '')
         };
+
+        if (selectedResume) {
+            console.log("New resume detected, sending to server...");
+        }
 
         // Include base64 images if they were selected
         if (selectedProfilePic) {
@@ -427,6 +474,7 @@ async function saveProfile() {
             // Update local storage
             localStorage.setItem('userName', result.name);
             if (result.profilePicture) localStorage.setItem('userAvatar', result.profilePicture);
+            if (result.resume) localStorage.setItem('userResume', result.resume);
 
             showMessage('Profile saved successfully!', 'success');
             

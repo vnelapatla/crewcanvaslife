@@ -191,6 +191,22 @@ function displayProfile(user) {
         }, 100);
     }
 
+    const resumeSection = document.getElementById('resumeSection');
+    const resumeDownload = document.getElementById('resumeDownload');
+    
+    if (resumeSection && resumeDownload) {
+        if (user.resume) {
+            resumeSection.style.display = 'flex';
+            resumeDownload.href = user.resume;
+            // Use original filename if available
+            if (user.resumeFileName) {
+                resumeDownload.download = user.resumeFileName;
+            }
+        } else {
+            resumeSection.style.display = 'none';
+        }
+    }
+
     // Dynamic Craft Specifications
     displayCraftSpecs(user);
 

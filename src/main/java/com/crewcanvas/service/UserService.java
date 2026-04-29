@@ -169,6 +169,9 @@ public class UserService {
         // Images
         if (updatedUser.getProfilePicture() != null) existingUser.setProfilePicture(updatedUser.getProfilePicture());
         if (updatedUser.getCoverImage() != null) existingUser.setCoverImage(updatedUser.getCoverImage());
+        if (updatedUser.getResume() != null) existingUser.setResume(updatedUser.getResume());
+        if (updatedUser.getResumeFileName() != null) existingUser.setResumeFileName(updatedUser.getResumeFileName());
+        if (updatedUser.getResumeContentType() != null) existingUser.setResumeContentType(updatedUser.getResumeContentType());
         
         return userRepository.save(existingUser);
     }

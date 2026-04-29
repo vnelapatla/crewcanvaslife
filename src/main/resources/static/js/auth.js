@@ -1,3 +1,5 @@
+const GOOGLE_CLIENT_ID = "804092739623-3khsc57mme7lgb0n7ugj2lg9r43fb1n5.apps.googleusercontent.com";
+
 // Auth script for login and signup
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
@@ -102,17 +104,55 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage('Something went wrong on our end. Please try again in a few moments.', 'error');
         }
     });
+
+    // Initialize Google Identity Services
+    initializeGoogleIdentity();
 });
 
-const GOOGLE_CLIENT_ID = "804092739623-3khsc57mme7lgb0n7ugj2lg9r43fb1n5.apps.googleusercontent.com";
+function initializeGoogleIdentity() {
+    if (typeof google !== 'undefined') {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+        });
 
-// Google Login Handler
+        // Render the Google button if the container exists
+        const googleBtnDiv = document.getElementById('googleButtonDiv');
+        if (googleBtnDiv) {
+            google.accounts.id.renderButton(
+                googleBtnDiv,
+                { 
+                    theme: "outline", 
+                    size: "large", 
+                    width: googleBtnDiv.offsetWidth > 300 ? 400 : googleBtnDiv.offsetWidth,
+                    shape: "rectangular",
+                    text: "continue_with",
+                    logo_alignment: "left"
+                }
+            );
+        }
+        
+        // Also show One Tap dialog (standard GIS behavior)
+        google.accounts.id.prompt(); 
+    } else {
+        // If script hasn't loaded yet, try again in a bit
+        setTimeout(initializeGoogleIdentity, 500);
+    }
+}
+
+
+// Manual Google Login Handler (can be used as fallback or for One Tap)
 function handleGoogleLogin() {
-    google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse
-    });
-    google.accounts.id.prompt(); // also display the One Tap dialog
+    if (typeof google !== 'undefined') {
+        google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed()) {
+                console.log("One Tap not displayed:", notification.getNotDisplayedReason());
+                // If it's suppressed or not showing, we already have the rendered button as a primary way to log in
+            }
+        });
+    }
 }
 
 async function handleCredentialResponse(response) {

@@ -161,6 +161,16 @@ public class User {
     @Lob
     @Column(name = "cover_image", columnDefinition = "LONGTEXT")
     private String coverImage;
+    
+    @Lob
+    @Column(name = "resume", columnDefinition = "LONGBLOB")
+    private String resume;
+
+    @Column(name = "resume_file_name")
+    private String resumeFileName;
+
+    @Column(name = "resume_content_type")
+    private String resumeContentType;
 
     @Column(nullable = false)
     private Integer followers = 0;
@@ -296,6 +306,12 @@ public class User {
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
     public String getCoverImage() { return coverImage; }
     public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
+    public String getResume() { return resume; }
+    public void setResume(String resume) { this.resume = resume; }
+    public String getResumeFileName() { return resumeFileName; }
+    public void setResumeFileName(String resumeFileName) { this.resumeFileName = resumeFileName; }
+    public String getResumeContentType() { return resumeContentType; }
+    public void setResumeContentType(String resumeContentType) { this.resumeContentType = resumeContentType; }
     public Integer getFollowers() { return followers; }
     public void setFollowers(Integer followers) { this.followers = followers; }
     public Integer getFollowing() { return following; }
