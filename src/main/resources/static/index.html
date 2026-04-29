@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
-    <title>CrewCanvas | Access Studio</title>
+    <title>CrewCanvas | Cinema Access</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,355 +14,334 @@
     
     <style>
         :root {
-            --primary-orange: #ff8c00;
+            --primary-orange: #ff5722;
             --primary-red: #ff2d55;
-            --text-main: #1e293b;
+            --gradient-main: linear-gradient(90deg, #ff8c00, #ff2d55);
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #334155;
             --text-dim: #94a3b8;
-            --bg-light: #f8fafc;
-            --input-bg: #f1f5f9;
-            --input-focus-bg: #eef2ff;
+            --input-bg: #f8fafc;
+            --input-border: #f1f5f9;
         }
 
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* AGGRESSIVE DEEP LOCK */
         html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Lock the background */
+            margin: 0; padding: 0;
+            height: 100dvh; width: 100vw;
+            overflow: hidden !important;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overscroll-behavior: none;
+            touch-action: none;
+            background-color: var(--bg-color);
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            background-color: var(--bg-light);
-            font-family: 'Outfit', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        .fixed-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('images/99.png');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .fixed-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .auth-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            z-index: 10;
+        }
+
         .auth-card {
-            background: white;
-            width: 90%;
+            background: var(--card-bg);
+            border-radius: 32px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+            width: 100%;
             max-width: 440px;
-            height: auto;
-            max-height: 95vh;
-            border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
             position: relative;
-            overflow-y: auto; /* Allow internal scrolling if needed */
-            padding: 50px 35px 40px 35px;
-            animation: cardFadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            scrollbar-width: none; /* Hide scrollbar for clean look */
+            overflow: hidden;
+            padding-top: 6px; 
+            border: 1px solid rgba(0,0,0,0.02);
+            /* LOCKED HEIGHT - NO INTERNAL SCROLL */
+            display: flex;
+            flex-direction: column;
+            touch-action: none; 
         }
 
-        .auth-card::-webkit-scrollbar { display: none; }
-
-        @keyframes cardFadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .top-accent {
+        .auth-card::before {
+            content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #ff8c00, #ff2d55, #ff00ff);
-            border-radius: 40px 40px 0 0;
+            top: 0; left: 0; right: 0; height: 6px;
+            background: var(--gradient-main);
+        }
+
+        .card-content {
+            padding: 30px 25px;
+            overflow: hidden; /* COMPLETELY DISABLED INTERNAL SCROLLING */
         }
 
         .logo-section {
             display: flex;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
 
         .logo-pill {
             background: white;
-            padding: 15px 45px;
+            padding: 10px 35px;
             border-radius: 100px;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.04);
             text-align: center;
+            border: 1px solid #f8fafc;
         }
 
         .logo-pill h1 {
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 800;
             margin: 0;
             color: var(--primary-orange);
-            letter-spacing: -0.8px;
+            letter-spacing: -1px;
+            line-height: 1;
         }
 
         .logo-pill p {
-            margin: 0;
-            font-size: 11px;
+            margin: 3px 0 0;
+            font-size: 9px;
             color: var(--primary-orange);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
+            letter-spacing: 1.2px;
         }
 
         .auth-tabs {
             display: flex;
-            border-bottom: 2px solid #f1f5f9;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .tab-btn {
             flex: 1;
-            background: none;
+            padding: 12px;
             border: none;
-            padding: 15px;
-            font-size: 19px;
+            background: none;
+            font-size: 16px;
             font-weight: 700;
-            color: var(--text-dim);
+            color: #cbd5e1;
             cursor: pointer;
-            transition: 0.3s;
             position: relative;
         }
 
-        .tab-btn.active {
-            color: var(--primary-orange);
-        }
-
+        .tab-btn.active { color: var(--primary-orange); }
         .tab-btn.active::after {
             content: '';
             position: absolute;
-            bottom: -2px;
-            left: 15%;
-            right: 15%;
-            height: 4px;
+            bottom: -1px;
+            left: 20%; right: 20%;
+            height: 3px;
             background: var(--primary-orange);
             border-radius: 10px;
         }
 
-        .auth-form {
-            display: none;
-        }
-
-        .auth-form.active {
-            display: block;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
+        .auth-form { display: none; flex-direction: column; }
+        .auth-form.active { display: flex; }
+        
+        /* COMPACT FORM SPACING */
+        .form-group { margin-bottom: 15px; }
         .form-group label {
             display: block;
-            font-size: 14px;
-            font-weight: 800;
-            color: #334155;
-            margin-bottom: 10px;
-            padding-left: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 5px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 20px 24px;
+            padding: 12px 18px;
             background: var(--input-bg);
             border: 1px solid #f1f5f9;
-            border-radius: 22px;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-main);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #cbd5e1;
-            background: var(--input-focus-bg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        }
-
-        .forgot-link {
-            display: block;
-            text-align: right;
-            color: #3b82f6;
-            text-decoration: none;
+            border-radius: 14px;
             font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .forgot-pass {
+            text-align: right;
+            font-size: 12px;
             font-weight: 700;
-            margin-top: -10px;
-            margin-bottom: 30px;
+            color: #3b82f6;
+            cursor: pointer;
+            margin-bottom: 15px;
         }
 
         .submit-btn {
             width: 100%;
-            padding: 20px;
-            background: linear-gradient(90deg, #ff8c00, #ff4400);
+            padding: 14px;
+            background: var(--gradient-main);
             border: none;
-            border-radius: 22px;
+            border-radius: 16px;
             color: white;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 12px 24px rgba(255, 140, 0, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 30px;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 18px 35px rgba(255, 140, 0, 0.4);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(255, 87, 34, 0.15);
         }
 
         .divider {
-            position: relative;
+            display: flex;
+            align-items: center;
             text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 50%;
-            width: 100%; height: 1px;
-            background: #f1f5f9;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            font-size: 14px;
-            color: var(--text-dim);
+            margin-bottom: 20px;
+            color: #94a3b8;
+            font-size: 11px;
             font-weight: 700;
-            position: relative;
         }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .divider:not(:empty)::before { margin-right: 15px; }
+        .divider:not(:empty)::after { margin-left: 15px; }
 
         .social-section {
             display: flex;
             justify-content: center;
-            padding-bottom: 10px;
         }
 
-        /* Custom Google Button */
         .google-circle-btn {
-            width: 55px;
-            height: 55px;
+            width: 48px;
+            height: 48px;
             background: white;
-            border-radius: 50%;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            position: relative;
         }
 
-        .google-circle-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.1);
-            border-color: #e2e8f0;
-        }
-
-        .google-circle-btn img {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Hidden Google Native Button */
         #googleButtonDiv {
             position: absolute;
-            opacity: 0;
-            pointer-events: none;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.01;
+            z-index: 5;
         }
 
-        /* Mobile Adjustments */
+        /* MOBILE SPECIFIC COMPACTNESS */
         @media (max-width: 480px) {
-            .auth-card {
-                width: 100%;
-                height: 100%;
-                max-height: 100vh;
-                border-radius: 0;
-                margin: 0;
-                padding: 60px 25px;
-            }
-            .top-accent { border-radius: 0; }
-            body { background: white; }
+            .auth-container { padding: 10px; }
+            .card-content { padding: 25px 20px; }
+            .logo-pill { padding: 10px 30px; }
+            .logo-pill h1 { font-size: 24px; }
+            .submit-btn { padding: 12px; font-size: 16px; }
+            .form-group { margin-bottom: 10px; }
+            .auth-tabs { margin-bottom: 20px; }
         }
     </style>
 </head>
 
 <body>
-    <div class="auth-card">
-        <div class="top-accent"></div>
+    <div class="fixed-bg"></div>
+    <div class="fixed-overlay"></div>
 
-        <div class="logo-section">
-            <div class="logo-pill">
-                <h1>CrewCanvas</h1>
-                <p>Where all crafts connect</p>
-            </div>
-        </div>
+    <div class="auth-container">
+        <div id="authCard" class="auth-card">
+            <div class="card-content">
+                <div class="logo-section">
+                    <div class="logo-pill">
+                        <h1>CrewCanvas</h1>
+                        <p>Where all crafts connect</p>
+                    </div>
+                </div>
 
-        <div class="auth-tabs">
-            <button id="loginTabBtn" class="tab-btn active" onclick="toggleAuth('login')">Login</button>
-            <button id="signupTabBtn" class="tab-btn" onclick="toggleAuth('signup')">Sign Up</button>
-        </div>
+                <div class="auth-tabs">
+                    <button id="loginTabBtn" class="tab-btn active" onclick="toggleAuth('login')">Login</button>
+                    <button id="signupTabBtn" class="tab-btn" onclick="toggleAuth('signup')">Sign Up</button>
+                </div>
 
-        <!-- Login Form -->
-        <form id="loginForm" class="auth-form active" onsubmit="handleLoginSubmit(event)">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="Enter your email" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="Enter your password" required>
-            </div>
-            <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
-            <button type="submit" class="submit-btn">Login</button>
-        </form>
+                <div class="forms-wrapper">
+                    <form id="loginForm" class="auth-form active" onsubmit="handleLoginSubmit(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        </div>
+                        <div class="forgot-pass">Forgot password?</div>
+                        <button type="submit" class="submit-btn">Login</button>
+                    </form>
 
-        <!-- Signup Form -->
-        <form id="signupForm" class="auth-form" onsubmit="handleSignupSubmit(event)">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="signupName" placeholder="Enter your full name" required>
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="signupEmail" placeholder="Enter your email" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="signupPassword" placeholder="Minimum 6 characters" required>
-            </div>
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="Repeat password" required>
-            </div>
-            <button type="submit" class="submit-btn">Create Your Legacy</button>
-        </form>
+                    <form id="signupForm" class="auth-form" onsubmit="handleSignupSubmit(event)">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="signupName" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="signupPassword" placeholder="6+ characters" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Repeat password" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Create Your Legacy</button>
+                    </form>
+                </div>
 
-        <div class="divider">
-            <span>Or login with</span>
-        </div>
+                <div class="divider">Or login with</div>
 
-        <div class="social-section">
-            <!-- Visible Premium Google Button -->
-            <div class="google-circle-btn" onclick="triggerGoogleLogin()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_Logo.svg" alt="Google Logo">
+                <div class="social-section">
+                    <div class="google-circle-btn">
+                        <svg viewBox="0 0 48 48" width="24" height="24">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        <div id="googleButtonDiv"></div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Hidden Native Google Trigger -->
-            <div id="googleButtonDiv"></div>
         </div>
     </div>
 
@@ -374,35 +353,37 @@
             const signupForm = document.getElementById('signupForm');
             const loginBtn = document.getElementById('loginTabBtn');
             const signupBtn = document.getElementById('signupTabBtn');
-
             if (mode === 'login') {
-                loginForm.classList.add('active');
-                signupForm.classList.remove('active');
-                loginBtn.classList.add('active');
-                signupBtn.classList.remove('active');
+                loginForm.classList.add('active'); signupForm.classList.remove('active');
+                loginBtn.classList.add('active'); signupBtn.classList.remove('active');
             } else {
-                signupForm.classList.add('active');
-                loginForm.classList.remove('active');
-                signupBtn.classList.add('active');
-                loginBtn.classList.remove('active');
+                signupForm.classList.add('active'); loginForm.classList.remove('active');
+                signupBtn.classList.add('active'); loginBtn.classList.remove('active');
+            }
+        }
+        async function handleLoginSubmit(e) { 
+            e.preventDefault(); 
+            // This calls the login function in your auth.js
+            if (typeof login === 'function') { login(e); } 
+        }
+        async function handleSignupSubmit(e) { 
+            e.preventDefault(); 
+            // This calls the register function in your auth.js
+            if (typeof register === 'function') { register(e); } 
+        }
+
+        // This is the callback Google calls after successful auth
+        function handleGoogleResponse(response) {
+            console.log("Google response received, calling handleCredentialResponse...");
+            if (typeof handleCredentialResponse === 'function') {
+                handleCredentialResponse(response);
             }
         }
 
-        function triggerGoogleLogin() {
-            if (typeof handleGoogleLogin === 'function') {
-                handleGoogleLogin();
-            }
-        }
-
-        async function handleLoginSubmit(e) {
+        // AGGRESSIVE SCROLL PREVENTION
+        document.addEventListener('touchmove', function(e) {
             e.preventDefault();
-            if (typeof login === 'function') { login(e); }
-        }
-
-        async function handleSignupSubmit(e) {
-            e.preventDefault();
-            if (typeof register === 'function') { register(e); }
-        }
+        }, { passive: false });
     </script>
 </body>
 
