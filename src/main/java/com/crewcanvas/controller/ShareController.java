@@ -171,19 +171,18 @@ public class ShareController {
                 "        .logo { font-weight: 800; color: #ff8c00; margin-bottom: 40px; font-size: 28px; display: block; text-decoration: none; }\n" +
                 "    </style>\n" +
                 "    <script>\n" +
-                "        // Auto-redirect if user is already logged in\n" +
-                "        if (localStorage.getItem('userId')) {\n" +
-                "            window.location.href = '" + redirectUrl + "';\n" +
-                "        }\n" +
+                "        // Immediate redirect for humans. Bots (WhatsApp/Social Media) will ignore this \n" +
+                "        // and read the meta tags above for the 55% preview.\n" +
+                "        window.location.href = '" + redirectUrl + "';\n" +
                 "    </script>\n" +
                 "</head>\n" +
-                "<body>\n" +
-                "    <div class=\"teaser-card\">\n" +
-                "        <a href=\"" + baseUrl + "\" class=\"logo\">CrewCanvas</a>\n" +
-                "        " + (imageUrl != null ? "<img src=\"" + imageUrl + "\" class=\"teaser-img\">" : "") + "\n" +
-                "        <h1>" + title + "</h1>\n" +
-                "        <p>" + description + "</p>\n" +
-                "        <a href=\"" + redirectUrl + "\" class=\"btn\">View Full Post Details</a>\n" +
+                "<body style=\"background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;\">\n" +
+                "    <div style=\"text-align: center; font-family: 'Inter', sans-serif;\">\n" +
+                "        <h1 style=\"color: #ff8c00; margin-bottom: 20px;\">CrewCanvas</h1>\n" +
+                "        <p style=\"color: #94a3b8;\">Redirecting you to the full content...</p>\n" +
+                "        <noscript>\n" +
+                "            <a href=\"" + redirectUrl + "\" style=\"color: #ff8c00; text-decoration: underline;\">Click here to continue</a>\n" +
+                "        </noscript>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";
