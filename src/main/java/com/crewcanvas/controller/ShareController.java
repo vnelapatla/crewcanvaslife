@@ -32,8 +32,8 @@ public class ShareController {
         }
 
         Post post = postOpt.get();
-        String title = "New Post on CrewCanvas";
         String content = post.getContent() != null ? post.getContent() : "";
+        String title = content.length() > 40 ? content.substring(0, 37) + "..." : (content.isEmpty() ? "New Post on CrewCanvas" : content);
         String truncatedDescription = truncateContent(content, 0.55);
         
         String scheme = request.getScheme();
