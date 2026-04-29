@@ -171,10 +171,10 @@ public class ShareController {
                 "        .logo { font-weight: 800; color: #ff8c00; margin-bottom: 40px; font-size: 28px; display: block; text-decoration: none; }\n" +
                 "    </style>\n" +
                 "    <script>\n" +
-                "        if (localStorage.getItem('userId')) {\n" +
-                "            window.location.href = '" + redirectUrl + "';\n" +
-                "        }\n" +
+                "        window.location.href = '" + redirectUrl + "';\n" +
+                "        setTimeout(function() { window.location.href = '" + redirectUrl + "'; }, 1000);\n" +
                 "    </script>\n" +
+                "    <meta http-equiv=\"refresh\" content=\"0;url=" + redirectUrl + "\">\n" +
                 "</head>\n" +
                 "<body>\n" +
                 "    <div class=\"teaser-card\">\n" +
@@ -182,7 +182,8 @@ public class ShareController {
                 "        " + (imageUrl != null ? "<img src=\"" + imageUrl + "\" class=\"teaser-img\">" : "") + "\n" +
                 "        <h1>" + title + "</h1>\n" +
                 "        <p>" + description + "</p>\n" +
-                "        <a href=\"" + redirectUrl + "\" class=\"btn\">View Full Post Details</a>\n" +
+                "        <p style=\"color: #94a3b8; font-size: 14px; margin-bottom: 24px;\">Redirecting you to the full content...</p>\n" +
+                "        <a href=\"" + redirectUrl + "\" class=\"btn\">Click here if not redirected</a>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";
