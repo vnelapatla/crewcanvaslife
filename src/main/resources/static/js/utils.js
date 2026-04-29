@@ -376,11 +376,11 @@ function shareContent(type, id, title = '') {
     let shareUrl = '';
     
     if (type === 'post') {
-        shareUrl = `${baseUrl}/feed.html?postId=${id}`;
+        shareUrl = `${window.location.origin}/share/post/${id}`;
     } else if (type === 'event') {
-        shareUrl = `${baseUrl}/event.html?eventId=${id}`;
+        shareUrl = `${window.location.origin}/share/event/${id}`;
     } else if (type === 'profile') {
-        shareUrl = `${baseUrl}/profile.html?userId=${id}`;
+        shareUrl = `${window.location.origin}/profile.html?userId=${id}`;
     } else {
         shareUrl = window.location.href;
     }
