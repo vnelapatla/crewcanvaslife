@@ -74,8 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (password.length < 8) {
-            showMessage('Password must be at least 8 characters long', 'error');
+        if (password.length < 6) {
+            showMessage('Password must be at least 6 characters long', 'error');
             return;
         }
 
@@ -124,12 +124,10 @@ function initializeGoogleIdentity() {
             google.accounts.id.renderButton(
                 googleBtnDiv,
                 { 
+                    type: "icon",
                     theme: "outline", 
                     size: "large", 
-                    width: googleBtnDiv.offsetWidth > 300 ? 400 : googleBtnDiv.offsetWidth,
-                    shape: "rectangular",
-                    text: "continue_with",
-                    logo_alignment: "left"
+                    shape: "circle"
                 }
             );
         }
