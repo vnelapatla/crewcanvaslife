@@ -107,32 +107,14 @@ function formatDate(dateString) {
     
     if (!date || isNaN(date.getTime())) return dateString;
     
-    const now = new Date();
-    const diff = now - date;
-
-    // Relative time ONLY for past events within the last 7 days
-    if (diff > 0 && diff < 604800000) {
-        if (diff < 60000) return 'Just now';
-        
-        if (diff < 3600000) {
-            const minutes = Math.floor(diff / 60000);
-            return `${minutes}m ago`;
-        }
-        
-        if (diff < 86400000) {
-            const hours = Math.floor(diff / 3600000);
-            return `${hours}h ago`;
-        }
-        
-        const days = Math.floor(diff / 86400000);
-        return `${days}d ago`;
-    }
-
-    // Absolute format for future dates or older past dates
-    return date.toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'short',
+    // Always return absolute format as requested by the user
+    return date.toLocaleString('en-IN', {
         day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
         timeZone: 'Asia/Kolkata'
     });
 }
