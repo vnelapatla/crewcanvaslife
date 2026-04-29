@@ -13,6 +13,26 @@ let isUploading = false;
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     currentUserId = getCurrentUserId();
+    // If a specific post is shared, focus on it
+    const postId = getQueryParam('postId');
+    if (postId) {
+        const createCard = document.querySelector('.create-post-card');
+        if (createCard) createCard.style.display = 'none';
+        
+        // Add a "View All Feed" button at the top
+        const sectionHeader = document.querySelector('.section-header');
+        if (sectionHeader) {
+            sectionHeader.innerHTML += `
+                <button onclick="window.location.href='feed.html'" class="auth-btn" style="width: auto; padding: 6px 15px; font-size: 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; margin-left: auto;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Feed
+                </button>
+            `;
+            sectionHeader.style.display = 'flex';
+            sectionHeader.style.alignItems = 'center';
+            sectionHeader.style.marginBottom = '20px';
+        }
+    }
+
     await loadFeed(0, true);
     setupImageUpload();
     setupEditImageUpload();
@@ -29,22 +49,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Auto-scroll to post if postId is in URL
+    scrollToPostFromUrl();
+});
+
+function scrollToPostFromUrl() {
     const postId = getQueryParam('postId');
-    if (postId) {
-        setTimeout(() => {
-            const postEl = document.querySelector(`.post-card[data-post-id="${postId}"]`);
-            if (postEl) {
+    if (!postId) return;
+
+    // Check if post is already in DOM
+    const existing = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+    if (!existing) {
+        // If not in first page, fetch it specifically and prepend
+        fetch(`${API_BASE_URL}/api/posts/${postId}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(post => {
+                if (post) {
+                    // Check again to avoid duplicates
+                    if (!document.querySelector(`.post-card[data-post-id="${postId}"]`)) {
+                        displayPosts([post], false, true); // Prepend
+                    }
+                    performScroll(postId);
+                }
+            })
+            .catch(err => console.error("Error fetching shared post:", err));
+    } else {
+        performScroll(postId);
+    }
+}
+
+function performScroll(postId) {
+    // Retry finding the post for up to 3 seconds
+    let attempts = 0;
+    const interval = setInterval(() => {
+        const postEl = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+        if (postEl) {
+            clearInterval(interval);
+            setTimeout(() => {
                 postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                postEl.style.boxShadow = "0 0 25px rgba(255, 140, 0, 0.4)";
-                postEl.style.border = "1px solid var(--primary-orange)";
+                postEl.style.boxShadow = "0 0 30px rgba(255, 140, 0, 0.6)";
+                postEl.style.border = "2px solid var(--primary-orange)";
+                postEl.style.zIndex = "10";
                 setTimeout(() => {
                     postEl.style.boxShadow = "";
                     postEl.style.border = "";
                 }, 4000);
-            }
-        }, 500); 
-    }
-});
+            }, 200);
+        }
+        
+        attempts++;
+        if (attempts > 30) {
+            clearInterval(interval);
+            console.log("Post scroll failed after 3s:", postId);
+        }
+    }, 100);
+}
 
 // Load feed posts
 async function loadFeed(page = 0, refresh = false) {
@@ -142,7 +200,7 @@ function setupInfiniteScroll() {
 }
 
 // Display posts
-function displayPosts(posts, refresh = false) {
+function displayPosts(posts, refresh = false, prepend = false) {
     const container = document.getElementById('feedContainer');
     if (!container) return;
 
@@ -155,6 +213,8 @@ function displayPosts(posts, refresh = false) {
     
     if (refresh) {
         container.innerHTML = postsHtml;
+    } else if (prepend) {
+        container.insertAdjacentHTML('afterbegin', postsHtml);
     } else {
         container.insertAdjacentHTML('beforeend', postsHtml);
     }

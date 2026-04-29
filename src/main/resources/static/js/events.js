@@ -17,25 +17,85 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadEvents();
     checkEditMode();
 
-    // Auto-scroll to event if eventId is in URL
+    // If a specific event is shared, focus on it
     const eventId = getQueryParam('eventId');
     if (eventId) {
-        setTimeout(() => {
-            const eventCard = document.getElementById(`event-card-${eventId}`) || 
-                              document.querySelector(`.event-card[data-id="${eventId}"]`) ||
-                              document.querySelector(`.card[data-id="${eventId}"]`); // Try multiple selectors
-            if (eventCard) {
+        // Hide the feature tabs and search
+        const horizontalCards = document.querySelector('.horizontal-cards');
+        if (horizontalCards) horizontalCards.style.display = 'none';
+        
+        const searchContainer = document.querySelector('.search-container');
+        if (searchContainer) searchContainer.style.display = 'none';
+        
+        // Add a "View All Events" button
+        const contentBody = document.querySelector('.content-body');
+        if (contentBody) {
+            const backBtn = document.createElement('div');
+            backBtn.style.marginBottom = '20px';
+            backBtn.innerHTML = `
+                <button onclick="window.location.href='event.html'" class="apply-btn" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; width: auto; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-arrow-left"></i> View All Industry Events
+                </button>
+            `;
+            contentBody.prepend(backBtn);
+        }
+    }
+
+    // Auto-scroll to event if eventId is in URL
+    scrollToEventFromUrl();
+});
+
+function scrollToEventFromUrl() {
+    const eventId = getQueryParam('eventId');
+    if (!eventId) return;
+
+    // Check if event is already in DOM
+    const existing = document.getElementById(`event-card-${eventId}`);
+    if (!existing) {
+        // Fetch specific event and prepend
+        fetch(`${API_BASE_URL}/api/events/${eventId}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(event => {
+                if (event) {
+                    if (!document.getElementById(`event-card-${eventId}`)) {
+                        displayEvents([event], true); // Prepend
+                    }
+                    performEventScroll(eventId);
+                }
+            })
+            .catch(err => console.error("Error fetching shared event:", err));
+    } else {
+        performEventScroll(eventId);
+    }
+}
+
+function performEventScroll(eventId) {
+    // Retry finding the event for up to 3 seconds
+    let attempts = 0;
+    const interval = setInterval(() => {
+        const eventCard = document.getElementById(`event-card-${eventId}`) || 
+                          document.querySelector(`.event-card[data-id="${eventId}"]`) ||
+                          document.querySelector(`.card[data-id="${eventId}"]`);
+        if (eventCard) {
+            clearInterval(interval);
+            setTimeout(() => {
                 eventCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                eventCard.style.boxShadow = "0 0 25px rgba(255, 140, 0, 0.4)";
+                eventCard.style.boxShadow = "0 0 30px rgba(255, 140, 0, 0.6)";
                 eventCard.style.border = "2px solid var(--primary-orange)";
                 setTimeout(() => {
                     eventCard.style.boxShadow = "";
                     eventCard.style.border = "";
                 }, 4000);
-            }
-        }, 800);
-    }
-});
+            }, 200);
+        }
+        
+        attempts++;
+        if (attempts > 30) {
+            clearInterval(interval);
+            console.log("Event scroll failed after 3s:", eventId);
+        }
+    }, 100);
+}
 
 async function checkEditMode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -196,10 +256,11 @@ function searchEvents() {
 }
 
 // Display events in grid
-function displayEvents(events) {
+function displayEvents(events, prepend = false) {
     const container = document.getElementById('eventsGrid');
+    if (!container) return;
 
-    if (events.length === 0) {
+    if (events.length === 0 && !prepend) {
         container.innerHTML = `
             <div class="no-events" style="grid-column: 1/-1; text-align: center; padding: 100px 0;">
                 <div style="font-size: 60px; margin-bottom: 20px;">🎬</div>
@@ -209,9 +270,9 @@ function displayEvents(events) {
         return;
     }
 
-    container.innerHTML = events.map((event, index) => {
+    const eventsHtml = events.map((event, index) => {
         const typeClass = `tag-${(event.eventType || 'audition').toLowerCase()}`;
-        const animationDelay = (index % 10) * 0.1; // Staggered delay for first 10 items
+        const animationDelay = (index % 10) * 0.1;
         
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s">
@@ -271,27 +332,24 @@ function displayEvents(events) {
                                     return `<button class="apply-btn" onclick="applyToEvent(${event.id})">Register</button>`;
                                 }
                                 
-                                console.log(`Checking pass for event ${event.id}: status=${userApp.status}, token=${userApp.passToken}, type=${event.eventType}`);
                                 const isFilmEvent = event.eventType && event.eventType.trim().toLowerCase() === 'film event';
                                 
-                                // SHOW PASS INSTANTLY FOR FILM EVENTS (Even if status is just Registered)
                                 if (isFilmEvent && userApp.passToken) {
                                     return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
                                 }
                                 
-                                // For other events, wait for Shortlisted status
                                 if (userApp.status === 'SHORTLISTED' && userApp.passToken) {
                                     return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
                                 }
                                 
-                                let statusColor = '#27ae60'; // Success green
+                                let statusColor = '#27ae60';
                                 let statusLabel = 'Registered';
                                 
                                 if (userApp.status === 'SHORTLISTED') {
-                                    statusColor = '#ff8c00'; // Brand orange
+                                    statusColor = '#ff8c00';
                                     statusLabel = 'Shortlisted';
                                 } else if (userApp.status === 'REJECTED') {
-                                    statusColor = '#ef4444'; // Red
+                                    statusColor = '#ef4444';
                                     statusLabel = 'Rejected';
                                 }
                                 
@@ -306,6 +364,12 @@ function displayEvents(events) {
             </div>
         `;
     }).join('');
+
+    if (prepend) {
+        container.insertAdjacentHTML('afterbegin', eventsHtml);
+    } else {
+        container.innerHTML = eventsHtml;
+    }
 }
 
 function truncateText(text, length) {
