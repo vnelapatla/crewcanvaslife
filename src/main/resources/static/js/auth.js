@@ -141,15 +141,18 @@ function initializeGoogleIdentity() {
 }
 
 
-// Manual Google Login Handler (can be used as fallback or for One Tap)
+// Manual Google Login Handler (can be used for custom buttons)
 function handleGoogleLogin() {
+    console.log("Triggering Google Login flow...");
     if (typeof google !== 'undefined') {
-        google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed()) {
-                console.log("One Tap not displayed:", notification.getNotDisplayedReason());
-                // If it's suppressed or not showing, we already have the rendered button as a primary way to log in
-            }
-        });
+        // Try to find the native button and click it if it exists
+        const nativeBtn = document.querySelector('#googleButtonDiv [role="button"]');
+        if (nativeBtn) {
+            nativeBtn.click();
+        } else {
+            // Fallback to One Tap prompt
+            google.accounts.id.prompt();
+        }
     }
 }
 
