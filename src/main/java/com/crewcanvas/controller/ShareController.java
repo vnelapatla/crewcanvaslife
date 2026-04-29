@@ -170,20 +170,20 @@ public class ShareController {
                 "        .btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(255, 140, 0, 0.4); }\n" +
                 "        .logo { font-weight: 800; color: #ff8c00; margin-bottom: 40px; font-size: 28px; display: block; text-decoration: none; }\n" +
                 "    </style>\n" +
-                "    <script>\n" +
-                "        window.location.href = '" + redirectUrl + "';\n" +
-                "        setTimeout(function() { window.location.href = '" + redirectUrl + "'; }, 1000);\n" +
-                "    </script>\n" +
-                "    <meta http-equiv=\"refresh\" content=\"0;url=" + redirectUrl + "\">\n" +
-                "</head>\n" +
+                "    <script>
+        // Auto-redirect if user is already logged in
+        if (localStorage.getItem('userId')) {
+            window.location.href = '" + redirectUrl + "';
+        }
+    </script>
+</head>\n" +
                 "<body>\n" +
                 "    <div class=\"teaser-card\">\n" +
                 "        <a href=\"" + baseUrl + "\" class=\"logo\">CrewCanvas</a>\n" +
                 "        " + (imageUrl != null ? "<img src=\"" + imageUrl + "\" class=\"teaser-img\">" : "") + "\n" +
                 "        <h1>" + title + "</h1>\n" +
                 "        <p>" + description + "</p>\n" +
-                "        <p style=\"color: #94a3b8; font-size: 14px; margin-bottom: 24px;\">Redirecting you to the full content...</p>\n" +
-                "        <a href=\"" + redirectUrl + "\" class=\"btn\">Click here if not redirected</a>\n" +
+                "        <a href=\"" + redirectUrl + "\" class=\"btn\">View Full Post Details</a>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";

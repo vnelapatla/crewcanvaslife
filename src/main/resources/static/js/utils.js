@@ -6,18 +6,17 @@ if (window.location.protocol === 'file:') {
 }
 
 // Check if user is authenticated
-function checkAuth(redirectToLogin = true) {
+function checkAuth() {
     const userId = localStorage.getItem('userId');
     const userEmail = localStorage.getItem('userEmail');
-    const isAuthenticated = !!(userId && userEmail);
 
-    if (!isAuthenticated && redirectToLogin) {
+    if (!userId || !userEmail) {
         // Save current URL to redirect back after login (especially for shared links)
         sessionStorage.setItem('redirectAfterLogin', window.location.href);
         window.location.href = 'index.html';
         return false;
     }
-    return isAuthenticated;
+    return true;
 }
 
 // Get current user ID

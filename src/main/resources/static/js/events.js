@@ -10,17 +10,11 @@ let currentType = ''; // Track currently selected type for creation
 let editModeId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const isGuest = !checkAuth(false);
+    checkAuth();
     currentUserId = getCurrentUserId();
     
-    // Guest handling: hide FAB
-    if (isGuest) {
-        const fab = document.querySelector('.fab');
-        if (fab) fab.style.display = 'none';
-    }
-
     // Load user first to ensure isAdmin status is known before rendering events
-    if (!isGuest) await loadCurrentUser();
+    await loadCurrentUser();
     await loadEvents();
     checkEditMode();
 
@@ -523,7 +517,6 @@ async function submitEvent() {
 // Apply to event (continued)
 // Apply to event
 async function applyToEvent(eventId) {
-    if (!checkAuth(true)) return; // Force login
     // Check if user has required details
     if (!currentUser || !currentUser.name || !currentUser.phone || !currentUser.location) {
         pendingEventId = eventId;
