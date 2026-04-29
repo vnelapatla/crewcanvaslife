@@ -11,11 +11,19 @@ let editingImages = [];
 let isUploading = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    checkAuth();
+    const isGuest = !checkAuth(false);
     currentUserId = getCurrentUserId();
+    
+    // If guest, hide creation tools
+    if (isGuest) {
+        const createCard = document.querySelector('.create-post-card');
+        if (createCard) createCard.style.display = 'none';
+    }
+
     // If a specific post is shared, focus on it
     const postId = getQueryParam('postId');
     if (postId) {
+        // If guest, ensure create box stays hidden
         const createCard = document.querySelector('.create-post-card');
         if (createCard) createCard.style.display = 'none';
         
@@ -556,6 +564,7 @@ async function deletePost(postId) {
 }
 
 async function likePost(postId) {
+    if (!checkAuth(true)) return; // Force login
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/like`, {
             method: 'POST',
@@ -593,6 +602,7 @@ function toggleCommentBox(postId) {
 }
 
 async function commentPost(postId) {
+    if (!checkAuth(true)) return; // Force login
     const input = document.getElementById(`comment-input-${postId}`);
     const text = input ? input.value.trim() : "";
     
