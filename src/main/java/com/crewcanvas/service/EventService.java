@@ -132,6 +132,14 @@ public class EventService {
             application.setEventLocation(event.getLocation());
             application.setEventDate(event.getDate() != null ? event.getDate().toString() : "");
 
+            // AUTO-SHORTLIST FOR FILM EVENTS
+            if ("Film Event".equalsIgnoreCase(event.getEventType())) {
+                application.setStatus("SHORTLISTED");
+                // Generate pass token immediately
+                String token = "PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + System.currentTimeMillis();
+                application.setPassToken(token);
+            }
+
             applicationRepository.save(application);
 
             // Increment count
@@ -149,6 +157,17 @@ public class EventService {
                 );
             }
 
+            // Trigger Notification to Applicant for Film Event (Instant Pass)
+            if ("Film Event".equalsIgnoreCase(event.getEventType())) {
+                notificationService.createNotification(
+                    userId,
+                    null,
+                    "SHORTLIST",
+                    "Registration successful! Your Entry Pass for " + event.getTitle() + " is now available.",
+                    event.getId().toString()
+                );
+            }
+
             return savedEvent;
         }
         throw new RuntimeException("Event not found");
@@ -159,6 +178,8 @@ public class EventService {
         // Fallback for old apps missing title/type or pass tokens
         for (EventApplication app : apps) {
             boolean needsUpdate = false;
+            
+            // Sync missing event details
             if (app.getEventTitle() == null || app.getEventType() == null) {
                 Optional<Event> eOpt = eventRepository.findById(app.getEventId());
                 if (eOpt.isPresent()) {
@@ -168,9 +189,12 @@ public class EventService {
                 }
             }
             
-            // Retroactively generate token if it's a shortlisted Film Event
-            if ("SHORTLISTED".equalsIgnoreCase(app.getStatus()) && app.getPassToken() == null && "Film Event".equalsIgnoreCase(app.getEventType())) {
-                app.setPassToken("PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + app.getId());
+            // RETROACTIVE FIX: Auto-shortlist and generate token for ANY Film Event registration
+            if ("Film Event".equalsIgnoreCase(app.getEventType()) && (app.getPassToken() == null || !"SHORTLISTED".equalsIgnoreCase(app.getStatus()))) {
+                app.setStatus("SHORTLISTED");
+                if (app.getPassToken() == null) {
+                    app.setPassToken("PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + app.getId());
+                }
                 needsUpdate = true;
             }
             

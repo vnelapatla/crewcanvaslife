@@ -273,7 +273,14 @@ function displayEvents(events) {
                                 
                                 console.log(`Checking pass for event ${event.id}: status=${userApp.status}, token=${userApp.passToken}, type=${event.eventType}`);
                                 const isFilmEvent = event.eventType && event.eventType.trim().toLowerCase() === 'film event';
-                                if (userApp.status === 'SHORTLISTED' && userApp.passToken && isFilmEvent) {
+                                
+                                // SHOW PASS INSTANTLY FOR FILM EVENTS (Even if status is just Registered)
+                                if (isFilmEvent && userApp.passToken) {
+                                    return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
+                                }
+                                
+                                // For other events, wait for Shortlisted status
+                                if (userApp.status === 'SHORTLISTED' && userApp.passToken) {
                                     return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
                                 }
                                 
@@ -465,26 +472,13 @@ async function applyToEvent(eventId) {
 
         if (response.ok) {
             const updatedEvent = await response.json();
-            showMessage('Registration successful!', 'success');
+            showMessage('Registration successful! Generating your pass...', 'success');
             
-            // Update local state to keep everything in sync
-            const index = allEvents.findIndex(e => e.id === eventId);
-            if (index !== -1) {
-                allEvents[index] = updatedEvent;
-            }
-            userApplications.push({ eventId: eventId, userId: currentUserId });
-
-            // Update UI surgically without a full reload or re-render
-            const countEle = document.getElementById(`applicant-count-${eventId}`);
-            if (countEle) {
-                countEle.textContent = updatedEvent.applicants || 0;
-                countEle.classList.add('pulse-animation'); // Optional visual feedback
-            }
-            
-            const container = document.getElementById(`apply-container-${eventId}`);
-            if (container) {
-                container.innerHTML = `<button class="apply-btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">Registered</button>`;
-            }
+            // Reload after a short delay so the user sees the 'View Pass' button immediately
+            // Especially critical for Film Events where tokens are generated server-side
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
             showMessage('Registration failed. Please try again later.', 'error');
         }
