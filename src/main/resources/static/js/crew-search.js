@@ -315,26 +315,6 @@ function createUserCard(user, isFollowing, canMessage) {
     `;
 }
 
-function startMessage(id) {
-    window.location.href = `messages.html?userId=${id}`;
-}
-
+// Functions viewProfile and startMessage are used in createUserCard
 function viewProfile(id) { window.location.href = `profile.html?userId=${id}`; }
-
-// These are now handled by ProfileHandler
-
-
-function updateUI(id, isFollowing) {
-    const btn = document.getElementById(`follow-btn-${id}`);
-    const count = document.getElementById(`followers-count-${id}`);
-    if (btn) {
-        btn.innerHTML = isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
-        btn.className = isFollowing ? 'btn-following' : 'btn-follow';
-        // Add this missing line to update the click function
-        btn.onclick = () => isFollowing ? unfollowUser(id) : followUser(id);
-    }
-    if (count) {
-        let val = parseInt(count.innerText);
-        count.innerText = isFollowing ? val + 1 : Math.max(0, val - 1);
-    }
-}
+function startMessage(id) { window.location.href = `messages.html?userId=${id}`; }
