@@ -644,25 +644,27 @@ function displayMessages(messages) {
         const senderName = isSent ? (localStorage.getItem('userName') || 'You') : (selectedPartnerProfile?.name || 'User');
 
         return `
-            <div class="message ${isSent ? 'sent' : 'received'}">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg.id}">
                 ${avatarHtml}
                 <div class="message-text">
-                    <div style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
+                    <div class="message-sender-name" style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
                     <div class="message-body">
-                        ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
+                        ${(msg.displayContent || msg.content) ? `<p style="margin:0; white-space: pre-wrap;">${msg.displayContent || msg.content}</p>` : ''}
                     </div>
                     ${attachmentContent}
                     <div class="message-status">
-                        ${formatTime(msg.createdAt)}
-                        ${isSent ? (msg.isRead ? ' <span style="color:#4fc3f7">✓✓</span>' : ' ✓') : ''}
-                        ${msg.isEdited ? ' <span class="edited-tag">(edited)</span>' : ''}
+                        <span class="time">${formatTime(msg.createdAt)}</span>
+                        ${isSent ? `<span class="checkmarks" style="margin-left:5px; ${msg.isRead ? 'color:#4fc3f7' : 'color:#888'}">${msg.isRead ? '✓✓' : '✓'}</span>` : ''}
+                        ${msg.isEdited ? '<span class="edited-tag" style="font-size:9px; opacity:0.6; margin-left:5px;">(edited)</span>' : ''}
                     </div>
+                    ${isSent ? `
                     <button class="message-options-btn" onclick="${window.innerWidth <= 768 ? `openBottomSheet(${msg.id})` : `toggleMessageOptions(event, ${msg.id})`}">
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
+                    ` : ''}
                     <div id="options-${msg.id}" class="message-dropdown">
-                        ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
-                        ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
+                        <div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>
+                        <div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>
                         <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
                     </div>
                 </div>
