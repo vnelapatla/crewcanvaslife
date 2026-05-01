@@ -192,72 +192,31 @@ function onMessageReceived(msg) {
 
 async function initMessaging() {
     console.log("initMessaging started for user:", currentUserId);
-    // Show loading state
-    const lists = ['conversationsList', 'followingList', 'followersList'];
-    lists.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 13px;"><i class="fas fa-spinner fa-spin"></i> Connecting to server...</div>';
-    });
-
+    
     try {
-        // Load initial data
-        await Promise.all([
-            loadConversations(),
-            loadFollowersAndMutuals()
-        ]);
-
-        // Polling for updates
-        setInterval(() => {
-            if (currentUserId && currentUserId !== 'null' && currentUserId !== 'undefined') {
-                if (selectedConversationUserId) {
-                    loadMessages();
-                }
-                loadConversations();
-            }
-        }, 5000);
+        await loadConversations(); 
+        await loadFollowersAndMutuals();
         console.log("Messaging initialized successfully");
     } catch (e) {
         console.error("Failed to initialize messaging:", e);
-        const container = document.getElementById('conversationsList');
-        if (container) container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
-            Connection Failed<br>
-            <button onclick="initMessaging()" style="margin-top:10px; padding:5px 10px; border-radius:5px; border:none; background:#ff8c00; color:white; cursor:pointer;">Retry</button>
-        </div>`;
     }
 }
 
-// Load conversations
 async function loadConversations() {
-    if (!currentUserId || currentUserId === 'null' || currentUserId === 'undefined') {
-        console.warn("loadConversations: No valid currentUserId");
-        return;
-    }
+    if (!currentUserId || currentUserId === 'null' || currentUserId === 'undefined') return;
     
     try {
-        // Use the globally available API_BASE_URL (var) or window property
-        const baseUrl = window.API_BASE_URL || (typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '');
-        const url = `${baseUrl}/api/conversations/${currentUserId}`;
+        const url = `${API_BASE_URL}/api/conversations/${currentUserId}`;
         console.log("Fetching conversations from:", url);
         
         const response = await fetch(url);
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Server returned ${response.status}: ${errText}`);
+        if (response.ok) {
+            conversations = await response.json();
+            console.log("Conversations loaded:", conversations);
+            displayConversations();
         }
-        
-        conversations = await response.json();
-        console.log("Conversations loaded:", conversations.length);
-        displayConversations();
     } catch (error) {
         console.error('Error loading conversations:', error);
-        const container = document.getElementById('conversationsList');
-        if (container && container.innerHTML.includes('Connecting to server')) {
-            container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
-                Unable to load chats<br>
-                <span style="font-size: 10px; opacity: 0.7; display:block; margin-top:5px;">${error.message.substring(0, 50)}</span>
-                <button onclick="loadConversations()" style="margin-top:10px; padding:5px 10px; border-radius:5px; border:none; background:#ff8c00; color:white; cursor:pointer; font-size:11px;">Try Again</button>
-            </div>`;
-        }
     }
 }
 

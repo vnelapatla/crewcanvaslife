@@ -68,41 +68,31 @@ const ProfileHandler = {
         const url = `${API_BASE_URL}/api/profile/${targetId}/${isFollowing ? 'unfollow' : 'follow'}?followerId=${currentUserId}`;
         const method = isFollowing ? 'DELETE' : 'POST';
 
-        // OPTIMISTIC UI: Update state and broadcast immediately
-        if (isFollowing) {
-            this.followingSet.delete(parseInt(targetId));
-        } else {
-            this.followingSet.add(parseInt(targetId));
-        }
-        this.broadcastUpdate(targetId, !isFollowing);
-
         try {
+            if (btnElement) {
+                btnElement.disabled = true;
+                btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+
             const res = await fetch(url, { method });
-            if (!res.ok) {
-                // REVERT on failure
+            if (res.ok) {
                 if (isFollowing) {
-                    this.followingSet.add(parseInt(targetId));
-                } else {
                     this.followingSet.delete(parseInt(targetId));
+                } else {
+                    this.followingSet.add(parseInt(targetId));
                 }
-                this.broadcastUpdate(targetId, isFollowing);
                 
+                // Trigger UI updates
+                this.broadcastUpdate(targetId, !isFollowing);
+                if (typeof refreshProfileData === 'function') refreshProfileData();
+            } else {
                 const msg = await res.text();
                 if (typeof showMessage === 'function') showMessage(msg, 'error');
-            } else {
-                // Success - update counts if on profile page
-                if (typeof refreshProfileData === 'function') refreshProfileData();
             }
         } catch (e) {
             console.error("Follow Toggle Error:", e);
-            // REVERT on network error
-            if (isFollowing) {
-                this.followingSet.add(parseInt(targetId));
-            } else {
-                this.followingSet.delete(parseInt(targetId));
-            }
-            this.broadcastUpdate(targetId, isFollowing);
-            if (typeof showMessage === 'function') showMessage("Network error. Please try again.", 'error');
+        } finally {
+            if (btnElement) btnElement.disabled = false;
         }
     },
 
