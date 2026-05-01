@@ -526,7 +526,7 @@ function getRandomColor(name) {
 // Load messages
 async function loadMessages() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/${currentUserId}?otherUserId=${selectedConversationUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}`);
         if (!response.ok) {
             const errText = await response.text();
             const container = document.getElementById('messagesArea');
