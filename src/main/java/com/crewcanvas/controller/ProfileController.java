@@ -94,7 +94,20 @@ public class ProfileController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
-    }    @PostMapping("/{id}/follow")
+    }
+
+    @PostMapping("/sync-all")
+    public ResponseEntity<?> syncAllCounts() {
+        try {
+            connectionService.syncAllUserCounts();
+            return ResponseEntity.ok("All follower/following counts synchronized successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Sync failed: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/follow")
     public ResponseEntity<?> followUser(@PathVariable Long id, @RequestParam Long followerId) {
         try {
             connectionService.followUser(followerId, id);

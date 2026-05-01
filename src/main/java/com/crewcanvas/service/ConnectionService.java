@@ -19,6 +19,12 @@ public class ConnectionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public void followUser(Long followerId, Long followingId) {
         if (followerId.equals(followingId)) {
@@ -34,15 +40,30 @@ public class ConnectionService {
         connection.setFollowingId(followingId);
         connectionRepository.save(connection);
 
-        // Update counts
-        userRepository.findById(followerId).ifPresent(user -> {
-            user.setFollowing((user.getFollowing() == null ? 0 : user.getFollowing()) + 1);
-            userRepository.save(user);
-        });
+        // Sync counts for both users
+        syncUserCounts(followerId);
+        syncUserCounts(followingId);
 
+        // Notify the user being followed
         userRepository.findById(followingId).ifPresent(user -> {
-            user.setFollowers((user.getFollowers() == null ? 0 : user.getFollowers()) + 1);
-            userRepository.save(user);
+            userRepository.findById(followerId).ifPresent(follower -> {
+                // 1. In-App Notification
+                notificationService.createNotification(
+                    followingId,
+                    followerId,
+                    "FOLLOW",
+                    follower.getName() + " started following you!",
+                    followerId.toString()
+                );
+
+                // 2. Email Notification
+                try {
+                    String profileLink = "https://crewcanvas.in/profile.html?userId=" + followerId;
+                    emailService.sendFollowNotificationEmail(user.getEmail(), follower.getName(), profileLink);
+                } catch (Exception e) {
+                    System.err.println("Failed to send follow email: " + e.getMessage());
+                }
+            });
         });
     }
 
@@ -53,16 +74,28 @@ public class ConnectionService {
 
         connectionRepository.delete(connection);
 
-        // Update counts
-        userRepository.findById(followerId).ifPresent(user -> {
-            int current = user.getFollowing() == null ? 0 : user.getFollowing();
-            user.setFollowing(Math.max(0, current - 1));
+        // Sync counts for both users
+        syncUserCounts(followerId);
+        syncUserCounts(followingId);
+    }
+
+    public void syncUserCounts(Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            int followers = (int) connectionRepository.countByFollowingId(userId);
+            int following = (int) connectionRepository.countByFollowerId(userId);
+            user.setFollowers(followers);
+            user.setFollowing(following);
             userRepository.save(user);
         });
+    }
 
-        userRepository.findById(followingId).ifPresent(user -> {
-            int current = user.getFollowers() == null ? 0 : user.getFollowers();
-            user.setFollowers(Math.max(0, current - 1));
+    @Transactional
+    public void syncAllUserCounts() {
+        userRepository.findAll().forEach(user -> {
+            int followers = (int) connectionRepository.countByFollowingId(user.getId());
+            int following = (int) connectionRepository.countByFollowerId(user.getId());
+            user.setFollowers(followers);
+            user.setFollowing(following);
             userRepository.save(user);
         });
     }

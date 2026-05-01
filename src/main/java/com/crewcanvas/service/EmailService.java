@@ -40,15 +40,19 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendShortlistEmail(String to, String name, String eventTitle) {
+    public void sendShortlistEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
+        
+        String context = getEventContext(eventType);
+        String phase = getEventPhase(eventType);
+        
         message.setSubject("Congratulations! You're Shortlisted for " + eventTitle + " 🎉");
 
         String body = "Hi " + name + ",\n\n" +
-                "Great news! You have been shortlisted for the event: " + eventTitle + ".\n\n" +
-                "We wanted to let you know that the organizers are impressed with your profile. " +
-                "Soon you will receive further process updates like audition location, time, and date directly via the CrewCanvas platform and your email.\n\n" +
+                "Great news! You have been shortlisted for: " + eventTitle + " (" + eventType + ").\n\n" +
+                "The organizers are impressed with your profile. " +
+                "Soon you will receive further updates regarding the " + phase + " (location, time, and date) directly via the CrewCanvas platform and your email.\n\n" +
                 "Keep an eye on your messages and notifications for the next steps.\n\n" +
                 "Best of luck!\n\n" +
                 "Best regards,\n" +
@@ -62,7 +66,7 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
-        String subjectLabel = "Audition".equalsIgnoreCase(eventType) ? "Audition Details" : "Important Details";
+        String subjectLabel = getBroadcastSubject(eventType);
         message.setSubject(subjectLabel + ": " + eventTitle + " 🎬");
 
         String body = "Hi " + name + ",\n\n" +
@@ -79,15 +83,21 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendFinalSelectionEmail(String to, String name, String eventTitle) {
+    public void sendFinalSelectionEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
+        
+        String context = getEventContext(eventType);
+        String phase = getEventPhase(eventType);
+        String action = getEventAction(eventType);
+        String details = getEventDetailsLabel(eventType);
+        
         message.setSubject("Congratulations! You are SELECTED for " + eventTitle + " 🎉");
 
         String body = "Hi " + name + ",\n\n" +
-                "We are thrilled to inform you that you have been SELECTED for the role you auditioned for in '" + eventTitle + "'.\n\n" +
-                "The organizers were highly impressed with your performance during the audition phase. " +
-                "They will connect with you manually soon to discuss the next steps and contract details.\n\n" +
+                "We are thrilled to inform you that you have been SELECTED for the " + context + " you " + action + " in '" + eventTitle + "'.\n\n" +
+                "The organizers were highly impressed with your performance during the " + phase + ". " +
+                "They will connect with you manually soon to discuss the next steps and " + details + ".\n\n" +
                 "Welcome to the team!\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
@@ -96,20 +106,99 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendFinalRejectionEmail(String to, String name, String eventTitle) {
+    public void sendFinalRejectionEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Update regarding your audition for " + eventTitle);
+        
+        String phase = getEventPhase(eventType);
+        message.setSubject("Update regarding your application for " + eventTitle);
 
         String body = "Hi " + name + ",\n\n" +
-                "Thank you for participating in the auditions for '" + eventTitle + "'.\n\n" +
-                "While we were impressed with your talent, we regret to inform you that we have decided to move forward with other candidates for this specific role.\n\n" +
-                "We truly appreciate the effort you put into your audition. Please don't be discouraged, as many more opportunities will be coming up on CrewCanvas soon.\n\n" +
+                "Thank you for participating in the " + phase + " for '" + eventTitle + "'.\n\n" +
+                "While we were impressed with your profile, we regret to inform you that the organizers have decided to move forward with other candidates for this specific opportunity.\n\n" +
+                "We truly appreciate the effort you put in. Please don't be discouraged, as many more opportunities will be coming up on CrewCanvas soon.\n\n" +
                 "We wish you the very best in your future endeavors.\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
 
         message.setText(body);
         mailSender.send(message);
+    }
+
+    public void sendFollowNotificationEmail(String to, String followerName, String profileLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(followerName + " is now following you on CrewCanvas! 🚀");
+
+        String body = "Hi,\n\n" +
+                "Great news! " + followerName + " has just started following you on CrewCanvas. 🎬\n\n" +
+                "Check out their profile here: " + profileLink + "\n\n" +
+                "Building connections is a great way to grow your professional network in the creative industry.\n\n" +
+                "Keep creating and connecting!\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    public String getBroadcastSubject(String eventType) {
+        if (eventType == null) return "Event Details";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "Audition Details";
+            case "course": return "Course Schedule";
+            case "workshop": return "Workshop Details";
+            case "contest": return "Contest Venue & Time";
+            case "film event": return "Event Logistics";
+            default: return "Important Details";
+        }
+    }
+
+    public String getEventAction(String eventType) {
+        if (eventType == null) return "applied for";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "auditioned for";
+            case "course": return "applied for";
+            case "workshop": return "applied for";
+            case "contest": return "participated";
+            case "film event": return "registered";
+            default: return "applied for";
+        }
+    }
+
+    public String getEventDetailsLabel(String eventType) {
+        if (eventType == null) return "further details";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "contract details";
+            case "course": return "enrollment details";
+            case "workshop": return "participation details";
+            case "contest": return "prize details";
+            case "film event": return "entry details";
+            default: return "further details";
+        }
+    }
+
+    public String getEventContext(String eventType) {
+        if (eventType == null) return "opportunity";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "role";
+            case "course": return "seat";
+            case "workshop": return "spot";
+            case "contest": return "entry";
+            case "film event": return "registration";
+            default: return "opportunity";
+        }
+    }
+
+    public String getEventPhase(String eventType) {
+        if (eventType == null) return "application phase";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "audition phase";
+            case "course": return "admission phase";
+            case "workshop": return "selection phase";
+            case "contest": return "participation phase";
+            case "film event": return "registration phase";
+            default: return "application phase";
+        }
     }
 }

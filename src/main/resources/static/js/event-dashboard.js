@@ -213,7 +213,7 @@ function renderApplicantsTable() {
                             </button>
                         ` : ''}
 
-                        ${app.status === 'SHORTLISTED' ? `
+                        ${app.status === 'SHORTLISTED' && ['audition', 'contest'].includes((currentEvent.eventType || '').toLowerCase()) ? `
                             <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'SELECTED')" title="Final Select" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;">
                                 <i class="fas fa-trophy"></i>
                             </button>
@@ -367,7 +367,7 @@ async function toggleEventStatus() {
         });
         
         if (res.ok) {
-            showMessage(`Audition ${newStatus === 'CLOSED' ? 'closed' : 'reopened'} successfully!`, 'success');
+            showMessage(`${type} ${newStatus === 'CLOSED' ? 'closed' : 'reopened'} successfully!`, 'success');
             fetchEventDetails(); // Refresh UI
         } else {
             showMessage('Failed to update status', 'error');
@@ -384,7 +384,7 @@ async function sendBroadcast() {
     const time = document.getElementById('bcTime').value.trim();
     
     if (!location || !date || !time) {
-        showMessage('Please fill in all audition details', 'error');
+        showMessage(`Please fill in all ${type.toLowerCase()} details`, 'error');
         return;
     }
     

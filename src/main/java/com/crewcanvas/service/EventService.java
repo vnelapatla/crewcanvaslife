@@ -363,57 +363,87 @@ public class EventService {
     }
 
     private void triggerShortlistNotifications(EventApplication application) {
-        try {
-            User officialUser = userService.getOfficialUser();
-            User applicant = userRepository.findById(application.getUserId()).orElse(null);
-            
-            if (applicant != null) {
-                String messageContent = "Congratulations! You've been shortlisted for: " + (application.getEventTitle() != null ? application.getEventTitle() : "the event") + ". " +
-                        "Soon you will receive further process updates like audition location, time and date. " +
-                        "Stay tuned for more updates!";
+        new Thread(() -> {
+            try {
+                User officialUser = userService.getOfficialUser();
+                User applicant = userRepository.findById(application.getUserId()).orElse(null);
                 
-                // 1. Send In-App Message from Official Account
-                Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                messageRepository.save(shortlistMsg);
-                
-                // 2. Send Email
-                emailService.sendShortlistEmail(applicant.getEmail(), applicant.getName(), application.getEventTitle());
-                System.out.println("DEBUG: Shortlist message and email sent to: " + applicant.getEmail());
+                if (applicant != null) {
+                    String phase = getEventPhase(application.getEventType());
+                    String messageContent = "Congratulations! You've been shortlisted for: " + (application.getEventTitle() != null ? application.getEventTitle() : "the event") + " (" + application.getEventType() + "). " +
+                            "Soon you will receive further updates regarding the " + phase + " (location, time and date). " +
+                            "Stay tuned for more updates!";
+                    
+                    // 1. Send In-App Message from Official Account
+                    Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                    messageRepository.save(shortlistMsg);
+                    
+                    // 2. Send Email
+                    emailService.sendShortlistEmail(applicant.getEmail(), applicant.getName(), application.getEventTitle(), application.getEventType());
+                    System.out.println("DEBUG: Shortlist message and email sent to: " + applicant.getEmail());
+                }
+            } catch (Exception e) {
+                System.err.println("ERROR: Failed to send shortlist notifications: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to send shortlist notifications: " + e.getMessage());
-        }
+        }).start();
     }
 
     private void triggerPhase2Notifications(EventApplication application, String status) {
-        try {
-            User applicant = userRepository.findById(application.getUserId()).orElse(null);
-            if (applicant == null) return;
+        new Thread(() -> {
+            try {
+                User applicant = userRepository.findById(application.getUserId()).orElse(null);
+                if (applicant == null) return;
 
-            User officialUser = userService.getOfficialUser();
-            String eventTitle = application.getEventTitle();
+                User officialUser = userService.getOfficialUser();
+                String eventTitle = application.getEventTitle();
 
-            if (status.equalsIgnoreCase("SELECTED")) {
-                String messageContent = "Final Selection Update: Congratulations! You have been SELECTED for the role in '" + eventTitle + "'. The organizers will reach out to you manually for the next steps. Best of luck!";
-                
-                // 1. Send In-App Message from Official Account
-                Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                messageRepository.save(msg);
-                
-                // 2. Send Email
-                emailService.sendFinalSelectionEmail(applicant.getEmail(), applicant.getName(), eventTitle);
-            } else if (status.equalsIgnoreCase("NOT_SELECTED")) {
-                String messageContent = "Final Selection Update for '" + eventTitle + "': We appreciate your participation, but unfortunately, we've decided to proceed with other candidates. Keep trying, and more opportunities await you!";
-                
-                // 1. Send In-App Message from Official Account
-                Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                messageRepository.save(msg);
-                
-                // 2. Send Email
-                emailService.sendFinalRejectionEmail(applicant.getEmail(), applicant.getName(), eventTitle);
+                if (status.equalsIgnoreCase("SELECTED")) {
+                    String context = getEventContext(application.getEventType());
+                    String messageContent = "Final Selection Update: Congratulations! You have been SELECTED for the " + context + " in '" + eventTitle + "'. The organizers will reach out to you manually for the next steps. Best of luck!";
+                    
+                    // 1. Send In-App Message from Official Account
+                    Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                    messageRepository.save(msg);
+                    
+                    // 2. Send Email
+                    emailService.sendFinalSelectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
+                } else if (status.equalsIgnoreCase("NOT_SELECTED")) {
+                    String messageContent = "Final Selection Update for '" + eventTitle + "': We appreciate your participation, but unfortunately, the organizers have decided to proceed with other candidates. Keep trying, and more opportunities await you!";
+                    
+                    // 1. Send In-App Message from Official Account
+                    Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                    messageRepository.save(msg);
+                    
+                    // 2. Send Email
+                    emailService.sendFinalRejectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
+                }
+            } catch (Exception e) {
+                System.err.println("ERROR: Failed to send Phase 2 notifications: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to send Phase 2 notifications: " + e.getMessage());
+        }).start();
+    }
+
+    private String getEventContext(String eventType) {
+        if (eventType == null) return "opportunity";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "role";
+            case "course": return "seat";
+            case "workshop": return "spot";
+            case "contest": return "entry";
+            case "film event": return "registration";
+            default: return "opportunity";
+        }
+    }
+
+    private String getEventPhase(String eventType) {
+        if (eventType == null) return "application phase";
+        switch (eventType.toLowerCase()) {
+            case "audition": return "audition phase";
+            case "course": return "admission phase";
+            case "workshop": return "selection phase";
+            case "contest": return "participation phase";
+            case "film event": return "registration phase";
+            default: return "application phase";
         }
     }
 
@@ -466,7 +496,7 @@ public class EventService {
                     try {
                         User applicant = userRepository.findById(app.getUserId()).orElse(null);
                         if (applicant != null) {
-                            String detailsLabel = "Audition".equalsIgnoreCase(event.getEventType()) ? "Audition Details" : "Important Details";
+                            String detailsLabel = emailService.getBroadcastSubject(event.getEventType());
                             String messageContent = detailsLabel + " for '" + event.getTitle() + "':\n\n" +
                                     "📍 Location: " + location + "\n" +
                                     "⏰ Time: " + time + "\n" +

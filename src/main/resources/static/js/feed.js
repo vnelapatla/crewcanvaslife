@@ -335,8 +335,8 @@ function renderPostHTML(post) {
                 </div>
             ` : ''}
         </div>
-        <div class="post-content" style="padding: 15px 0;">
-            ${post.content ? `<p style="margin-bottom:15px; line-height:1.6;">${post.content}</p>` : ''}
+        <div class="post-content" style="padding: 10px 0 5px 0;">
+            ${post.content ? `<p style="margin-bottom:10px; line-height:1.5;">${post.content}</p>` : ''}
             
             ${pollHtml}
 
@@ -350,7 +350,7 @@ function renderPostHTML(post) {
 
             ${mediaHtml}
         </div>
-        <div class="post-footer" style="padding-top:15px; border-top:1px solid #f1f5f9; display:flex; gap:20px;">
+        <div class="post-footer" style="padding-top:12px; border-top:1px solid #f1f5f9; display:flex; gap:20px;">
             <button class="post-action-btn ${post.likedByUsers && post.likedByUsers.includes(parseInt(currentUserId)) ? 'liked' : ''}" onclick="likePost(${post.id})">
                 ❤️ <span id="likes-count-${post.id}">${post.likes || 0}</span>
             </button>

@@ -224,15 +224,24 @@
 /* Responsive */
 /* Responsive Optimization - Force 100% Width */
 @media (max-width: 768px) {
-    .content-body, .feed-container, .main-content {
-        padding: 70px 0 20px 0 !important;
+    .main-content {
+        padding: 70px 0 80px 0 !important; /* Top for header, bottom for nav */
         margin: 0 !important;
         width: 100% !important;
-        max-width: 100% !important;
+    }
+
+    .content-body, .feed-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    .section-header {
+        display: none !important;
     }
     
     .create-post-card, .post-card {
-        padding: 20px 0 !important;
+        padding: 10px 0 !important;
         margin: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -243,13 +252,13 @@
     }
 
     .create-post-card {
-        border-bottom: 8px solid #f1f5f9;
+        border-bottom: 6px solid #f1f5f9 !important;
     }
 
     /* Inner padding for text content so it doesn't touch the screen edge */
     .post-header, .post-content > p, .post-footer, .poll-container, .create-post-card h3, #standardPostInputs {
-        padding-left: 15px !important;
-        padding-right: 15px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
     
     /* Images must touch the edge */
