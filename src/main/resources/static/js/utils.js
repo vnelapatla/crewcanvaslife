@@ -464,7 +464,9 @@ function isVideoFile(src) {
 }
 
 // Double tap to like feature (Mobile only)
-let lastTap = 0;
+let lastTapTime = 0;
+let lastTapPostId = null;
+
 function handleDoubleTap(postId, event) {
     // Only enable for mobile/tablet as requested
     if (window.innerWidth > 1024) return;
@@ -478,38 +480,59 @@ function handleDoubleTap(postId, event) {
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
     
-    // Only trigger if taps are on the same post and within the delay
-    if (now - lastTap < DOUBLE_PRESS_DELAY) {
+    // Check if taps are on the same post and within the delay
+    if (lastTapPostId === postId && (now - lastTapTime < DOUBLE_PRESS_DELAY)) {
+        event.preventDefault(); // Prevent default double-tap zoom/blink
+        
+        const postCard = event.target.closest('.post-card');
+        
         if (typeof likePost === 'function') {
-            likePost(postId);
-            showLikeAnimation(event);
+            const likesCount = document.getElementById(`likes-count-${postId}`);
+            const btn = likesCount ? likesCount.parentElement : null;
+            if (btn && !btn.classList.contains('liked')) {
+                likePost(postId);
+            } else if (!btn) {
+                likePost(postId);
+            }
+            
+            showLikeAnimation(event, postCard);
         }
+        // Reset
+        lastTapTime = 0;
+        lastTapPostId = null;
+    } else {
+        lastTapTime = now;
+        lastTapPostId = postId;
     }
-    lastTap = now;
 }
 
-function showLikeAnimation(event) {
+function showLikeAnimation(event, container) {
     const heart = document.createElement('div');
     heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
     
-    // Get touch position or click position
-    const x = event.clientX || (event.touches && event.touches[0].clientX);
-    const y = event.clientY || (event.touches && event.touches[0].clientY);
+    // If we have a container (post-card), we use absolute centering
+    // If not, we fallback to tap position (fixed)
+    const isLocal = !!container;
+    const parent = container || document.body;
     
     heart.style.cssText = `
-        position: fixed;
-        top: ${y}px;
-        left: ${x}px;
+        position: ${isLocal ? 'absolute' : 'fixed'};
+        top: ${isLocal ? '50%' : (event.clientY || window.innerHeight/2) + 'px'};
+        left: ${isLocal ? '50%' : (event.clientX || window.innerWidth/2) + 'px'};
         transform: translate(-50%, -50%) scale(0);
         color: white;
-        font-size: 80px;
-        text-shadow: 0 0 30px rgba(255,140,0,0.8);
+        font-size: 100px;
+        text-shadow: 0 0 50px rgba(255, 45, 85, 0.8), 0 0 20px rgba(255, 45, 85, 0.4);
         pointer-events: none;
-        z-index: 10000001;
-        animation: heartFade 0.7s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+        user-select: none;
+        -webkit-user-select: none;
+        z-index: 100;
+        animation: premiumHeartFade 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        will-change: transform, opacity;
     `;
-    document.body.appendChild(heart);
-    setTimeout(() => heart.remove(), 700);
+    parent.appendChild(heart);
+    setTimeout(() => heart.remove(), 800);
 }
 
 // Helper to render media content (image or video)
@@ -680,11 +703,12 @@ style.textContent = `
         }
     }
 
-    @keyframes heartFade {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
-        50% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    @keyframes premiumHeartFade {
+        0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
+        25% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); opacity: 0.9; }
+        50% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.8; }
+        80% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 0.4; }
+        100% { transform: translate(-50%, -50%) scale(2) rotate(0deg); opacity: 0; }
     }
 `;
 document.head.appendChild(style);

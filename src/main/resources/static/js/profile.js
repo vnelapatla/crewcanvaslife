@@ -795,24 +795,45 @@ async function saveEditPost() {
 }
 
 async function likePost(postId) {
+    const likesCount = document.getElementById(`likes-count-${postId}`);
+    const btn = likesCount ? likesCount.parentElement : null;
+    if (!likesCount || !btn) return;
+
+    // Optimistic UI Update
+    const isLiked = btn.classList.contains('liked');
+    const currentLikes = parseInt(likesCount.textContent) || 0;
+    
+    // Toggle state immediately
+    btn.classList.toggle('liked');
+    likesCount.textContent = isLiked ? currentLikes - 1 : currentLikes + 1;
+
+    // Play like sound if liking
+    if (!isLiked && typeof playSound === 'function') playSound('like');
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/like`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: currentUserId })
         });
+        
         if (response.ok) {
-            // Play like sound
-            if (typeof playSound === 'function') playSound('like');
-
             const updatedPost = await response.json();
-            const likesCount = document.getElementById(`likes-count-${postId}`);
-            if (likesCount) {
-                likesCount.textContent = updatedPost.likes;
-                likesCount.parentElement.classList.toggle('liked', updatedPost.likedByUsers.includes(parseInt(currentUserId)));
-            }
+            // Sync with server
+            likesCount.textContent = updatedPost.likes;
+            btn.classList.toggle('liked', updatedPost.likedByUsers.includes(parseInt(currentUserId)));
+        } else {
+            // Revert on error
+            btn.classList.toggle('liked', isLiked);
+            likesCount.textContent = currentLikes;
+            showMessage('Unable to like this post. Please try again later.', 'error');
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error('Error:', e);
+        // Revert on error
+        btn.classList.toggle('liked', isLiked);
+        likesCount.textContent = currentLikes;
+    }
 }
 
 function toggleCommentBox(postId) {

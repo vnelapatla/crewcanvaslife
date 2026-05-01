@@ -1,4 +1,6 @@
--- EMERGENCY SCHEMA SYNC: Ensuring all columns in User.java exist in the database
+-- FINAL SCHEMA FIX: Syncing users table with User.java to resolve JDBC exceptions during login
+-- Run this script in your MySQL environment (Workbench, phpMyAdmin, or Command Line)
+
 USE crewcanvas_db;
 
 -- 1. Core Identity & Auth Fields
@@ -82,7 +84,7 @@ ADD COLUMN IF NOT EXISTS event_reminders BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS created_at DATETIME,
 ADD COLUMN IF NOT EXISTS updated_at DATETIME;
 
--- 9. Fix for existing bio, skills, experience, location columns
+-- Fix for existing bio, skills, experience, location columns to ensure they are TEXT
 ALTER TABLE users 
 MODIFY COLUMN bio TEXT,
 MODIFY COLUMN skills TEXT,
@@ -91,4 +93,3 @@ MODIFY COLUMN location TEXT;
 
 -- Final Verification
 SELECT 'Database schema successfully synced with User.java!' AS message;
-

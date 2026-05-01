@@ -38,6 +38,7 @@
     box-sizing: border-box;
     font-family: 'Inter', -apple-system, sans-serif;
     font-display: swap;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
