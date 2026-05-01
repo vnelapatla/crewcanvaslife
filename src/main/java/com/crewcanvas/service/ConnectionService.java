@@ -29,27 +29,25 @@ public class ConnectionService {
     public void followUser(Long followerId, Long followingId) {
         if (followerId.equals(followingId)) return;
 
-        // Robust Deadlock Prevention: Manual Row Locking in Strict Order
+        // Ensure we don't have duplicate connections (Avoids 500 error)
+        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent()) {
+            return; 
+        }
+
+        Connection connection = new Connection();
+        connection.setFollowerId(followerId);
+        connection.setFollowingId(followingId);
+        connection.setCreatedAt(Instant.now());
+        connectionRepository.save(connection);
+
+        // ALWAYS sync in sorted ID order to prevent Deadlocks
         Long firstId = Math.min(followerId, followingId);
         Long secondId = Math.max(followerId, followingId);
+        syncUserCounts(firstId);
+        syncUserCounts(secondId);
 
-        // Lock rows in consistent order before any modifications
-        userRepository.findById(firstId);
-        userRepository.findById(secondId);
-
-        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isEmpty()) {
-            Connection connection = new Connection();
-            connection.setFollowerId(followerId);
-            connection.setFollowingId(followingId);
-            connection.setCreatedAt(Instant.now());
-            connectionRepository.save(connection);
-
-            syncUserCounts(followerId);
-            syncUserCounts(followingId);
-
-            // Notify the user being followed
-            sendFollowNotifications(followerId, followingId);
-        }
+        // Notify the user being followed
+        sendFollowNotifications(followerId, followingId);
     }
 
     private void sendFollowNotifications(Long followerId, Long followingId) {
