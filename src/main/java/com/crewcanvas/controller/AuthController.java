@@ -39,6 +39,11 @@ public class AuthController {
     @Autowired
     private EmailService emailService;
 
+    @GetMapping("/google-client-id")
+    public ResponseEntity<Map<String, String>> getGoogleClientId() {
+        return ResponseEntity.ok(Collections.singletonMap("clientId", googleClientId));
+    }
+
     @PostMapping({"/google", "/app/google"})
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
         try {
@@ -80,14 +85,20 @@ public class AuthController {
                     user = userRepository.save(user);
                 }
 
-                // Auto-generated welcome message
-                userService.sendWelcomeMessage(user);
+                // Auto-generated welcome message - Wrapped in try-catch to ensure login success even if notification fails
+                try {
+                    userService.sendWelcomeMessage(user);
+                } catch (Exception e) {
+                    System.err.println("[AUTH_ERROR]: Failed to send welcome message: " + e.getMessage());
+                }
 
                 return ResponseEntity.ok(user);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
+                System.err.println("[AUTH_ERROR]: Google verification failed for client ID: " + googleClientId);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token. Please check Google Client ID configuration.");
             }
         } catch (Exception e) {
+            System.err.println("[AUTH_ERROR]: Critical failure during Google login");
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error during Google authentication: " + e.getMessage());
@@ -166,8 +177,9 @@ public class AuthController {
             }
         }
 
-        // Always return OK to prevent email enumeration
-        return ResponseEntity.ok(Map.of("message", "If an account with this email exists, a password reset link has been sent."));
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Reset link sent! Please check your email.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset-password")
@@ -186,7 +198,9 @@ public class AuthController {
 
         try {
             userService.changeUserPassword(userOptional.get(), newPassword);
-            return ResponseEntity.ok(Map.of("message", "Password has been reset successfully."));
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password has been reset successfully.");
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

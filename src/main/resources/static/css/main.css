@@ -12,6 +12,26 @@
     --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.08);
 }
 
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--primary-orange);
+}
+
 * {
     margin: 0;
     padding: 0;

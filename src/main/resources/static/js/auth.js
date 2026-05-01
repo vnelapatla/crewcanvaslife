@@ -1,4 +1,4 @@
-const GOOGLE_CLIENT_ID = "804092739623-3khsc57mme7lgb0n7ugj2lg9r43fb1n5.apps.googleusercontent.com";
+let GOOGLE_CLIENT_ID = ""; // Will be fetched from backend
 
 // Auth script for login and signup
 document.addEventListener('DOMContentLoaded', () => {
@@ -109,34 +109,50 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeGoogleIdentity();
 });
 
-function initializeGoogleIdentity() {
-    if (typeof google !== 'undefined') {
-        google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleCredentialResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true
-        });
-
-        // Render the Google button if the container exists
-        const googleBtnDiv = document.getElementById('googleButtonDiv');
-        if (googleBtnDiv) {
-            google.accounts.id.renderButton(
-                googleBtnDiv,
-                { 
-                    type: "icon",
-                    theme: "outline", 
-                    size: "large", 
-                    shape: "circle"
-                }
-            );
+async function initializeGoogleIdentity() {
+    try {
+        // Fetch Client ID from backend if not already set
+        if (!GOOGLE_CLIENT_ID) {
+            const res = await fetch(`${API_BASE_URL}/api/auth/google-client-id`);
+            if (res.ok) {
+                const data = await res.json();
+                GOOGLE_CLIENT_ID = data.clientId;
+            } else {
+                console.error("Failed to fetch Google Client ID from backend");
+                return;
+            }
         }
-        
-        // Also show One Tap dialog (standard GIS behavior)
-        google.accounts.id.prompt(); 
-    } else {
-        // If script hasn't loaded yet, try again in a bit
-        setTimeout(initializeGoogleIdentity, 500);
+
+        if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
+
+            // Render the Google button if the container exists
+            const googleBtnDiv = document.getElementById('googleButtonDiv');
+            if (googleBtnDiv) {
+                google.accounts.id.renderButton(
+                    googleBtnDiv,
+                    { 
+                        type: "icon",
+                        theme: "outline", 
+                        size: "large", 
+                        shape: "circle"
+                    }
+                );
+            }
+            
+            // Also show One Tap dialog (standard GIS behavior)
+            google.accounts.id.prompt(); 
+        } else if (typeof google === 'undefined') {
+            // If script hasn't loaded yet, try again in a bit
+            setTimeout(initializeGoogleIdentity, 500);
+        }
+    } catch (error) {
+        console.error("Error during Google Identity initialization:", error);
     }
 }
 
@@ -187,7 +203,9 @@ async function handleCredentialResponse(response) {
                 }
             }, 1500);
         } else {
-            showMessage('Google login wasn’t successful. Please try signing in with your email.', 'error');
+            const errorMsg = await res.text();
+            console.error('Google login failed:', errorMsg);
+            showMessage('Google login wasn’t successful. ' + (errorMsg || 'Please try signing in with your email.'), 'error');
         }
     } catch (error) {
         console.error('Google Auth error:', error);

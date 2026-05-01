@@ -122,3 +122,23 @@ h1, h2, h3 {
     background: rgba(255, 255, 255, 0.08);
     box-shadow: 0 0 0 4px rgba(255, 142, 60, 0.1);
 }
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 5px;
+    transition: var(--transition-smooth);
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--primary);
+}

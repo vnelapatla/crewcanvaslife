@@ -1282,6 +1282,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 250));
 });
 
+/**
+ * Toggles password visibility for a given input field
+ * @param {string} inputId - The ID of the password input
+ * @param {HTMLElement} icon - The icon element clicked
+ */
+function togglePassword(inputId, icon) {
+    const input = document.getElementById(inputId);
+    if (!input || !icon) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
 // Export for use in other scripts
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
