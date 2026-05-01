@@ -1,69 +1,44 @@
-// Global configuration
-window.API_BASE_URL = window.API_BASE_URL || ''; 
+let API_BASE_URL = ''; // Use relative paths by default for better compatibility
 
 // Fallback for local file opening (file://) or if we need to force a specific backend
 if (window.location.protocol === 'file:') {
-    window.API_BASE_URL = 'http://localhost:8081';
+    API_BASE_URL = 'http://localhost:8081';
 }
-
-// Using 'var' at top level ensures global availability across all script files (crucial for mobile compatibility)
-var API_BASE_URL = window.API_BASE_URL;
-
-// Global error tracking to catch issues that might cause "stuck" states
-window.addEventListener('error', function(e) {
-    console.error('GLOBAL ERROR:', e.message, 'at', e.filename, ':', e.lineno);
-    // Don't show toast for every error to avoid spam, but log it robustly
-});
 
 // Check if user is authenticated
 function checkAuth() {
-    try {
-        const userId = localStorage.getItem('userId');
-        const userEmail = localStorage.getItem('userEmail');
+    const userId = localStorage.getItem('userId');
+    const userEmail = localStorage.getItem('userEmail');
 
-        if (!userId || !userEmail || userId === 'null' || userId === 'undefined') {
-            // Save current URL to redirect back after login (especially for shared links)
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('redirectAfterLogin', window.location.href);
-            }
-            window.location.href = 'index.html';
-            return false;
-        }
-        return true;
-    } catch (e) {
-        console.error("Auth check failed:", e);
+    if (!userId || !userEmail) {
+        // Save current URL to redirect back after login (especially for shared links)
+        sessionStorage.setItem('redirectAfterLogin', window.location.href);
+        window.location.href = 'index.html';
         return false;
     }
+    return true;
 }
 
 // Get current user ID
 function getCurrentUserId() {
-    try {
-        const id = localStorage.getItem('userId');
-        return (id === 'null' || id === 'undefined') ? null : id;
-    } catch (e) { return null; }
+    return localStorage.getItem('userId');
 }
 
 // Get current user email
 function getCurrentUserEmail() {
-    try {
-        const email = localStorage.getItem('userEmail');
-        return email ? email.toLowerCase().trim() : '';
-    } catch (e) { return ''; }
+    const email = localStorage.getItem('userEmail');
+    return email ? email.toLowerCase().trim() : '';
 }
 
 // Get current user admin status
 function getCurrentUserIsAdmin() {
-    try {
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        const isHardcodedAdmin = getCurrentUserEmail() === 'crewcanvas2@gmail.com';
-        return isAdmin || isHardcodedAdmin;
-    } catch (e) { return false; }
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isHardcodedAdmin = getCurrentUserEmail() === 'crewcanvas2@gmail.com';
+    return isAdmin || isHardcodedAdmin;
 }
 
 // Fetch user profile by ID (Cached)
-window.userCache = window.userCache || new Map();
-const userCache = window.userCache;
+const userCache = new Map();
 async function getUserProfile(userId) {
     if (!userId) return null;
     if (userCache.has(userId)) return userCache.get(userId);
@@ -1126,20 +1101,10 @@ const NotificationHandler = {
 };
 
 // Global state to track width category
-// Global state to track width category
-let currentWidthCategory = (window.innerWidth > 0 && window.innerWidth <= 1024) ? 'mobile' : (window.innerWidth > 1024 ? 'desktop' : 'unknown');
-if (currentWidthCategory === 'unknown') {
-    // Fallback for very early execution
-    currentWidthCategory = screen.width <= 1024 ? 'mobile' : 'desktop';
-}
+let currentWidthCategory = window.innerWidth <= 1024 ? 'mobile' : 'desktop';
 
-// Global initialization
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
-    // Re-verify current width category after full load
-    const actualWidth = window.innerWidth || screen.width;
-    currentWidthCategory = actualWidth <= 1024 ? 'mobile' : 'desktop';
-
     // Show a slim progress bar at the top to indicate page is loading
     const loadingBar = document.createElement('div');
     loadingBar.id = 'global-loading-bar';
@@ -1158,9 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Inject standard header immediately
         initUniversalHeader();
         // Init notifications
-        if (typeof NotificationHandler !== 'undefined') {
-            NotificationHandler.init();
-        }
+        NotificationHandler.init();
     } catch (e) { console.error("Header init failed:", e); }
     
     try {
@@ -1187,8 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Listen for resize but only re-init if category changed to avoid flickering on mobile
     window.addEventListener('resize', debounce(() => {
-        const newWidth = window.innerWidth || screen.width;
-        const newCategory = newWidth <= 1024 ? 'mobile' : 'desktop';
+        const newCategory = window.innerWidth <= 1024 ? 'mobile' : 'desktop';
         if (newCategory !== currentWidthCategory) {
             currentWidthCategory = newCategory;
             try {
@@ -1199,42 +1161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error("Resize init failed:", e); }
         }
     }, 250));
-
-    console.log("=== CREWCANVAS CORE INIT COMPLETE ===");
-    console.log("API_BASE_URL:", window.API_BASE_URL);
-    console.log("User ID:", window.getCurrentUserId());
-    console.log("Width Category:", currentWidthCategory);
 });
-
-// Explicitly attach all major functions to window for global access
-window.checkAuth = checkAuth;
-window.getCurrentUserId = getCurrentUserId;
-window.getCurrentUserEmail = getCurrentUserEmail;
-window.getCurrentUserIsAdmin = getCurrentUserIsAdmin;
-window.showMessage = showMessage;
-window.formatDate = formatDate;
-window.formatTime = formatTime;
-window.getUserProfile = getUserProfile;
-window.renderAvatar = renderAvatar;
-window.renderAvatarFallback = renderAvatarFallback;
-window.initUniversalBottomNav = initUniversalBottomNav;
-window.initUniversalSidebar = initUniversalSidebar;
-window.initUniversalHeader = initUniversalHeader;
-window.debounce = debounce;
-window.truncateText = truncateText;
-window.shareContent = shareContent;
-window.getUserId = getUserId;
-window.uploadImage = uploadImage;
-window.logout = logout;
-window.isValidEmail = isValidEmail;
-window.isVideoFile = isVideoFile;
-window.renderMediaContent = renderMediaContent;
-window.viewFileFromBase64 = viewFileFromBase64;
-window.viewImageFull = viewImageFull;
-window.getAvatarFallback = getAvatarFallback;
-window.calculateProfileScore = calculateProfileScore;
-window.NotificationHandler = NotificationHandler;
-window.formatDateForInput = formatDateForInput;
 
 // Export for use in other scripts
 if (typeof module !== 'undefined' && module.exports) {
