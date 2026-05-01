@@ -18,8 +18,8 @@ public class DatabaseFixerConfig {
                     java.util.List<java.util.Map<String, Object>> lastRun = jdbcTemplate.queryForList("SELECT last_run FROM sys_maintenance WHERE id = 1");
                     if (!lastRun.isEmpty()) {
                         java.sql.Timestamp ts = (java.sql.Timestamp) lastRun.get(0).get("last_run");
-                        // If run within last 1 hour, skip heavy maintenance
-                        if (System.currentTimeMillis() - ts.getTime() < 3600000) {
+                        // If run within last 10 seconds, skip heavy maintenance
+                        if (System.currentTimeMillis() - ts.getTime() < 10000) {
                             System.out.println("Database maintenance skipped (recently completed).");
                             return;
                         }
@@ -45,6 +45,7 @@ public class DatabaseFixerConfig {
 
                 // Manually add missing columns that Hibernate might fail to create in Production
                 String[] columnsToAdd = {
+                    "bio TEXT",
                     "age_range TEXT",
                     "profile_score INT DEFAULT 0",
                     "height TEXT",
@@ -65,11 +66,30 @@ public class DatabaseFixerConfig {
                     "availability_to DATE",
                     "expected_movie_remuneration TEXT",
                     "expected_webseries_remuneration TEXT",
+                    "genres TEXT",
+                    "projects_directed TEXT",
+                    "budget_handled TEXT",
+                    "vision_statement TEXT",
+                    "editing_software TEXT",
+                    "portfolio_videos TEXT",
+                    "camera_expertise TEXT",
+                    "sample_tracks TEXT",
+                    "interests TEXT",
+                    "occupation TEXT",
+                    "goals TEXT",
+                    "learning_resources TEXT",
+                    "recent_pictures LONGTEXT",
                     "profile_picture LONGTEXT",
                     "cover_image LONGTEXT",
                     "user_type TEXT",
                     "is_verified_professional BOOLEAN DEFAULT FALSE",
-                    "is_admin BOOLEAN DEFAULT FALSE"
+                    "is_admin BOOLEAN DEFAULT FALSE",
+                    "welcome_sent BOOLEAN DEFAULT FALSE",
+                    "profile_visibility VARCHAR(50) DEFAULT 'Everyone'",
+                    "message_permissions VARCHAR(50) DEFAULT 'Everyone'",
+                    "email_notifications BOOLEAN DEFAULT TRUE",
+                    "follower_notifications BOOLEAN DEFAULT TRUE",
+                    "event_reminders BOOLEAN DEFAULT TRUE"
                 };
 
                 for (String colDef : columnsToAdd) {
@@ -108,6 +128,34 @@ public class DatabaseFixerConfig {
                     System.err.println("Note: Admin designation skipped - " + e.getMessage());
                 }
                 
+                // --- Fix Other Tables ---
+                String[][] tableFixes = {
+                    {"posts", "author_id BIGINT"},
+                    {"posts", "description TEXT"},
+                    {"posts", "aspect_ratio VARCHAR(50) DEFAULT 'original'"},
+                    {"events", "end_date DATE"},
+                    {"events", "time_duration VARCHAR(255)"},
+                    {"events", "org_name TEXT"},
+                    {"events", "org_phone TEXT"},
+                    {"events", "org_email TEXT"},
+                    {"events", "skills TEXT"},
+                    {"events", "status VARCHAR(50) DEFAULT 'OPEN'"},
+                    {"messages", "is_edited BOOLEAN DEFAULT FALSE"}
+                };
+
+                for (String[] fix : tableFixes) {
+                    String table = fix[0];
+                    String colDef = fix[1];
+                    String colName = colDef.split(" ")[0];
+                    try {
+                        jdbcTemplate.queryForList("SELECT " + colName + " FROM " + table + " LIMIT 1");
+                    } catch (Exception e) {
+                        try {
+                            jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + colDef);
+                        } catch (Exception ex) {}
+                    }
+                }
+
                 // --- Optimize Event Applications ---
                 String[] appCols = { "event_title TEXT", "event_type TEXT", "event_location TEXT", "event_date TEXT", "pass_token VARCHAR(255)", "is_scanned BOOLEAN DEFAULT FALSE" };
                 for (String colDef : appCols) {

@@ -519,12 +519,12 @@
                 </div>
                 <div class="edit-modal-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div style="grid-column: span 2;">
-                        <label class="mgmt-label">Event Title</label>
+                        <label class="mgmt-label" id="labelEditTitle">Event Title</label>
                         <input type="text" id="editTitle" class="form-control-premium">
                     </div>
                     <div>
                         <label class="mgmt-label">Event Type</label>
-                        <select id="editType" class="form-control-premium">
+                        <select id="editType" class="form-control-premium" onchange="updateEditFormFields(this.value)">
                             <option value="Audition">Audition</option>
                             <option value="Workshop">Workshop</option>
                             <option value="Course">Course</option>
@@ -533,27 +533,27 @@
                         </select>
                     </div>
                     <div>
-                        <label class="mgmt-label">Start Date</label>
+                        <label class="mgmt-label" id="labelEditDate">Start Date</label>
                         <input type="date" id="editDate" class="form-control-premium">
                     </div>
-                    <div>
-                        <label class="mgmt-label">End Date</label>
+                    <div id="editEndDateGroup">
+                        <label class="mgmt-label" id="labelEditEndDate">End Date</label>
                         <input type="date" id="editEndDate" class="form-control-premium">
                     </div>
                     <div>
-                        <label class="mgmt-label">Time / Duration</label>
+                        <label class="mgmt-label" id="labelEditTime">Time / Duration</label>
                         <input type="text" id="editTimeDuration" class="form-control-premium" placeholder="e.g. 10:00 AM - 4:00 PM">
                     </div>
                     <div>
                         <label class="mgmt-label">Location</label>
                         <input type="text" id="editLocation" class="form-control-premium">
                     </div>
-                    <div>
-                        <label class="mgmt-label">Capacity</label>
+                    <div id="editCapacityGroup">
+                        <label class="mgmt-label" id="labelEditCapacity">Capacity</label>
                         <input type="number" id="editCapacity" class="form-control-premium">
                     </div>
-                    <div>
-                        <label class="mgmt-label">Price (₹)</label>
+                    <div id="editPriceGroup">
+                        <label class="mgmt-label" id="labelEditPrice">Price (₹)</label>
                         <input type="number" id="editPrice" class="form-control-premium">
                     </div>
                     <div>
@@ -572,12 +572,12 @@
                         <label class="mgmt-label">Image URL</label>
                         <input type="text" id="editImageUrl" class="form-control-premium" placeholder="https://image-link.com">
                     </div>
-                    <div style="grid-column: span 2;">
-                        <label class="mgmt-label">Required Skills</label>
+                    <div style="grid-column: span 2;" id="editSkillsGroup">
+                        <label class="mgmt-label" id="labelEditRequirements">Required Skills</label>
                         <input type="text" id="editRequirements" class="form-control-premium">
                     </div>
                     <div style="grid-column: span 2;">
-                        <label class="mgmt-label">Description</label>
+                        <label class="mgmt-label" id="labelEditDescription">Description</label>
                         <textarea id="editDescription" class="form-control-premium" style="min-height: 100px;"></textarea>
                     </div>
                     <div style="grid-column: span 2;">

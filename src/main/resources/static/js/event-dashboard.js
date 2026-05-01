@@ -303,7 +303,92 @@ function openEditModal() {
     const statusEl = document.getElementById('editStatus');
     if (statusEl) statusEl.value = currentEvent.status || 'OPEN';
 
+    updateEditFormFields(currentEvent.eventType || 'Audition');
+
     document.getElementById('editModal').style.display = 'flex';
+}
+
+function updateEditFormFields(type) {
+    const labels = {
+        'Audition': {
+            title: 'Audition Title',
+            date: 'Audition Date',
+            endDate: 'End Date (Optional)',
+            time: 'Time / Slot',
+            price: 'Payout / Stipend (₹)',
+            skills: 'Required Skills',
+            capacity: 'Max Applicants',
+            desc: 'Role Description & Requirements'
+        },
+        'Workshop': {
+            title: 'Workshop Title',
+            date: 'Start Date',
+            endDate: 'End Date',
+            time: 'Session Timing',
+            price: 'Registration Fee (₹)',
+            skills: 'Topics Covered / Prerequisites',
+            capacity: 'Max Seats',
+            desc: 'Workshop Agenda & Details'
+        },
+        'Course': {
+            title: 'Course Title',
+            date: 'Batch Start Date',
+            endDate: 'Batch End Date',
+            time: 'Class Timing',
+            price: 'Course Fee (₹)',
+            skills: 'Syllabus / Prerequisites',
+            capacity: 'Batch Size',
+            desc: 'Course Curriculum & Details'
+        },
+        'Contest': {
+            title: 'Contest Name',
+            date: 'Submission Start',
+            endDate: 'Deadline',
+            time: 'Announcement Time',
+            price: 'Entry Fee (₹)',
+            skills: 'Eligibility Criteria',
+            capacity: 'Max Entries',
+            desc: 'Rules, Prizes & Participation'
+        },
+        'Film Event': {
+            title: 'Event Title',
+            date: 'Event Date',
+            endDate: 'End Date',
+            time: 'Show Time',
+            price: 'Ticket Price (₹)',
+            skills: 'Guest List / Special Instructions',
+            capacity: 'Total Seats',
+            desc: 'Event Details & Highlights'
+        }
+    };
+
+    const config = labels[type] || labels['Audition'];
+    
+    // Update labels
+    if (document.getElementById('labelEditTitle')) document.getElementById('labelEditTitle').innerText = config.title;
+    if (document.getElementById('labelEditDate')) document.getElementById('labelEditDate').innerText = config.date;
+    if (document.getElementById('labelEditEndDate')) document.getElementById('labelEditEndDate').innerText = config.endDate;
+    if (document.getElementById('labelEditTime')) document.getElementById('labelEditTime').innerText = config.time;
+    if (document.getElementById('labelEditPrice')) document.getElementById('labelEditPrice').innerText = config.price;
+    if (document.getElementById('labelEditRequirements')) document.getElementById('labelEditRequirements').innerText = config.skills;
+    if (document.getElementById('labelEditCapacity')) document.getElementById('labelEditCapacity').innerText = config.capacity;
+    if (document.getElementById('labelEditDescription')) document.getElementById('labelEditDescription').innerText = config.desc;
+
+    // Handle visibility
+    const endDateGroup = document.getElementById('editEndDateGroup');
+    const skillsGroup = document.getElementById('editSkillsGroup');
+    const capacityGroup = document.getElementById('editCapacityGroup');
+    const priceGroup = document.getElementById('editPriceGroup');
+
+    if (endDateGroup) endDateGroup.style.display = 'block'; 
+    if (skillsGroup) skillsGroup.style.display = 'block'; 
+    if (capacityGroup) capacityGroup.style.display = 'block';
+    if (priceGroup) priceGroup.style.display = 'block';
+
+    // Specific hiding logic
+    if (type === 'Film Event') {
+        if (endDateGroup) endDateGroup.style.display = 'none';
+    }
 }
 
 function closeEditModal() {

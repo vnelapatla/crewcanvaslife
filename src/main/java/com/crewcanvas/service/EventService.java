@@ -118,7 +118,7 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
-    public Event applyToEvent(Long id, Long userId) {
+    public Event applyToEvent(Long id, Long userId, EventApplication applicationDetails) {
         Optional<Event> eventOpt = eventRepository.findById(id);
         if (eventOpt.isPresent()) {
             Event event = eventOpt.get();
@@ -137,14 +137,25 @@ public class EventService {
             // Create application
             EventApplication application = new EventApplication(id, userId);
             
-            // Populate user details for management
+            // Populate user details from profile (as fallback/base)
             userRepository.findById(userId).ifPresent(user -> {
                 application.setApplicantName(user.getName());
                 application.setApplicantEmail(user.getEmail());
                 application.setRole(user.getRole());
                 application.setLocation(user.getLocation());
-                application.setExperience(user.getBio()); // Using bio as experience summary
+                application.setExperience(user.getBio()); // Default bio
+                application.setPortfolioLink(user.getShowreel() != null ? user.getShowreel() : user.getPortfolioVideos());
             });
+
+            // Override with application details if provided
+            if (applicationDetails != null) {
+                if (applicationDetails.getApplicantName() != null) application.setApplicantName(applicationDetails.getApplicantName());
+                if (applicationDetails.getRole() != null) application.setRole(applicationDetails.getRole());
+                if (applicationDetails.getLocation() != null) application.setLocation(applicationDetails.getLocation());
+                if (applicationDetails.getExperience() != null) application.setExperience(applicationDetails.getExperience());
+                if (applicationDetails.getPortfolioLink() != null) application.setPortfolioLink(applicationDetails.getPortfolioLink());
+                if (applicationDetails.getAdditionalNote() != null) application.setAdditionalNote(applicationDetails.getAdditionalNote());
+            }
             
             // Populate event details
             application.setEventTitle(event.getTitle());

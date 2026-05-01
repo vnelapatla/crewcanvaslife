@@ -415,11 +415,101 @@ function openCreateForm(type, isEdit = false) {
     const formModal = document.getElementById('formModal');
     if (formModal) formModal.style.display = 'flex';
 
+    updateFormFields(type);
+
     // Pre-fill title based on type (as seen in screenshots)
     const titleInput = document.getElementById('eventTitle');
     if (titleInput) {
         titleInput.placeholder = `e.g. ${type} - New Session`;
         if (!isEdit) titleInput.value = ''; 
+    }
+}
+
+function updateFormFields(type) {
+    const labels = {
+        'Audition': {
+            title: 'Audition Title',
+            date: 'Audition Date',
+            endDate: 'End Date (Optional)',
+            time: 'Time / Slot',
+            price: 'Payout / Stipend (₹)',
+            skills: 'Required Skills',
+            capacity: 'Max Applicants',
+            desc: 'Role Description & Requirements'
+        },
+        'Workshop': {
+            title: 'Workshop Title',
+            date: 'Start Date',
+            endDate: 'End Date',
+            time: 'Session Timing',
+            price: 'Registration Fee (₹)',
+            skills: 'Topics Covered / Prerequisites',
+            capacity: 'Max Seats',
+            desc: 'Workshop Agenda & Details'
+        },
+        'Course': {
+            title: 'Course Title',
+            date: 'Batch Start Date',
+            endDate: 'Batch End Date',
+            time: 'Class Timing',
+            price: 'Course Fee (₹)',
+            skills: 'Syllabus / Prerequisites',
+            capacity: 'Batch Size',
+            desc: 'Course Curriculum & Details'
+        },
+        'Contest': {
+            title: 'Contest Name',
+            date: 'Submission Start',
+            endDate: 'Deadline',
+            time: 'Announcement Time',
+            price: 'Entry Fee (₹)',
+            skills: 'Eligibility Criteria',
+            capacity: 'Max Entries',
+            desc: 'Rules, Prizes & Participation'
+        },
+        'Film Event': {
+            title: 'Event Title',
+            date: 'Event Date',
+            endDate: 'End Date',
+            time: 'Show Time',
+            price: 'Ticket Price (₹)',
+            skills: 'Guest List / Special Instructions',
+            capacity: 'Total Seats',
+            desc: 'Event Details & Highlights'
+        }
+    };
+
+    const config = labels[type] || labels['Audition'];
+    
+    // Update labels
+    if (document.getElementById('labelTitle')) document.getElementById('labelTitle').innerText = config.title;
+    if (document.getElementById('labelDate')) document.getElementById('labelDate').innerText = config.date;
+    if (document.getElementById('labelEndDate')) document.getElementById('labelEndDate').innerText = config.endDate;
+    if (document.getElementById('labelTime')) document.getElementById('labelTime').innerText = config.time;
+    if (document.getElementById('labelPrice')) document.getElementById('labelPrice').innerText = config.price;
+    if (document.getElementById('labelSkills')) document.getElementById('labelSkills').innerText = config.skills;
+    if (document.getElementById('labelCapacity')) document.getElementById('labelCapacity').innerText = config.capacity;
+    if (document.getElementById('labelDesc')) document.getElementById('labelDesc').innerText = config.desc;
+
+    // Handle visibility
+    const endDateGroup = document.getElementById('endDateGroup');
+    const skillsGroup = document.getElementById('skillsGroup');
+    const capacityGroup = document.getElementById('capacityGroup');
+    const priceGroup = document.getElementById('priceGroup');
+
+    if (endDateGroup) endDateGroup.style.display = 'block'; // Default
+    if (skillsGroup) skillsGroup.style.display = 'block'; 
+    if (capacityGroup) capacityGroup.style.display = 'block';
+    if (priceGroup) priceGroup.style.display = 'block';
+
+    // Specific hiding logic
+    if (type === 'Film Event') {
+        if (endDateGroup) endDateGroup.style.display = 'none';
+    }
+    
+    // Update placeholders for better UX
+    if (document.getElementById('eventPrice')) {
+        document.getElementById('eventPrice').placeholder = type === 'Audition' ? 'e.g. 5000 (Payout)' : 'e.g. 500 (Fee)';
     }
 }
 
@@ -530,116 +620,131 @@ async function submitEvent() {
 // Apply to event (continued)
 // Apply to event
 async function applyToEvent(eventId) {
-    // Check if user has required details
-    if (!currentUser || !currentUser.name || !currentUser.phone || !currentUser.location) {
-        pendingEventId = eventId;
-        
-        // Pre-fill what we have
-        if (document.getElementById('completeName')) document.getElementById('completeName').value = currentUser?.name || '';
-        if (document.getElementById('completePhone')) document.getElementById('completePhone').value = currentUser?.phone || '';
-        if (document.getElementById('completeLocation')) document.getElementById('completeLocation').value = currentUser?.location || '';
-        
-        document.getElementById('profileCompletionModal').style.display = 'flex';
+    if (!currentUserId) {
+        showMessage('Please log in to apply', 'error');
         return;
     }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/apply?userId=${currentUserId}`, {
-            method: 'POST'
-        });
-
-        if (response.ok) {
-            const updatedEvent = await response.json();
-            showMessage('Registration successful!', 'success');
-            
-            // Update local applications list so UI knows we're registered
-            // We need to fetch it or just push a mock application
-            try {
-                const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
-                if (appsResponse.ok) {
-                    userApplications = await appsResponse.json();
-                }
-            } catch(e) {}
-            
-            // Update the specific card's button and count
-            const countEl = document.getElementById(`applicant-count-${eventId}`);
-            if (countEl) countEl.textContent = updatedEvent.applicants;
-            
-            const applyContainer = document.getElementById(`apply-container-${eventId}`);
-            if (applyContainer) {
-                // Determine if it's a film event to show "View Pass" or just "Registered"
-                const isFilmEvent = updatedEvent.eventType && updatedEvent.eventType.trim().toLowerCase() === 'film event';
-                const userApp = userApplications.find(app => app.eventId === eventId);
-                
-                if (isFilmEvent && userApp && userApp.passToken) {
-                    applyContainer.innerHTML = `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
-                } else if (userApp && userApp.status === 'SHORTLISTED' && userApp.passToken) {
-                     applyContainer.innerHTML = `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
-                } else {
-                    applyContainer.innerHTML = `<button class="apply-btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">Registered</button>`;
-                }
-            }
-        } else {
-            const errorMsg = await response.text();
-            if (errorMsg === 'AUDITION_CLOSED') {
-                showMessage('Sorry, auditions are now closed for this event.', 'error');
-            } else {
-                showMessage('Registration failed. Please try again later.', 'error');
-            }
-        }
-    } catch (error) {
-        console.error('Error applying to event:', error);
-        showMessage('Network error. Unable to register at this time.', 'error');
-    }
+    
+    // Always open the application modal now, for a premium dynamic experience
+    openAppModal(eventId);
 }
 
-// Profile Completion Functions
-function closeProfileModal() {
-    document.getElementById('profileCompletionModal').style.display = 'none';
+function openAppModal(eventId) {
+    pendingEventId = eventId;
+    const event = allEvents.find(e => e.id == eventId);
+    if (!event) return;
+
+    const type = event.eventType || 'Audition';
+    
+    // Show submission link only for Contest or Film Event (if it might be a short film contest)
+    const submissionGroup = document.getElementById('appSubmissionGroup');
+    if (submissionGroup) {
+        if (type === 'Contest' || type === 'Film Event') {
+            submissionGroup.style.display = 'block';
+        } else {
+            submissionGroup.style.display = 'none';
+        }
+    }
+    
+    // Pre-fill fields
+    if (document.getElementById('appFullName')) document.getElementById('appFullName').value = currentUser?.name || '';
+    if (document.getElementById('appWhatsApp')) document.getElementById('appWhatsApp').value = currentUser?.phone || '';
+    if (document.getElementById('appEmail')) document.getElementById('appEmail').value = currentUser?.email || '';
+    if (document.getElementById('appSubmissionLink')) document.getElementById('appSubmissionLink').value = '';
+
+    // Show Linked Profile Preview
+    if (document.getElementById('appUserProfileName')) {
+        document.getElementById('appUserProfileName').innerText = currentUser?.username ? `@${currentUser.username}` : (currentUser?.email || 'User Profile');
+    }
+    
+    const imgEl = document.getElementById('appUserImg');
+    const initialsEl = document.getElementById('appUserInitials');
+    if (imgEl && initialsEl) {
+        if (currentUser?.profilePicture) {
+            imgEl.src = currentUser.profilePicture;
+            imgEl.style.display = 'block';
+            initialsEl.style.display = 'none';
+        } else {
+            imgEl.style.display = 'none';
+            initialsEl.style.display = 'flex';
+            initialsEl.innerText = (currentUser?.name || '?').charAt(0).toUpperCase();
+        }
+    }
+
+    document.getElementById('applicationModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAppModal() {
+    document.getElementById('applicationModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
     pendingEventId = null;
 }
 
-async function submitProfileAndRegister() {
-    const name = document.getElementById('completeName').value.trim();
-    const phone = document.getElementById('completePhone').value.trim();
-    const location = document.getElementById('completeLocation').value.trim();
+async function submitEventApplication() {
+    if (!pendingEventId) return;
 
-    if (!name || !phone || !location) {
+    const btn = document.querySelector('button[onclick="submitEventApplication()"]');
+    const originalText = btn.innerText;
+    
+    const name = document.getElementById('appFullName').value.trim();
+    const whatsapp = document.getElementById('appWhatsApp').value.trim();
+    const email = document.getElementById('appEmail').value.trim();
+    const submissionLink = document.getElementById('appSubmissionLink').value.trim();
+
+    if (!name || !whatsapp || !email) {
         showMessage('Please fill in all details', 'error');
         return;
     }
 
+    // Collect App Info
+    const appData = {
+        applicantName: name,
+        applicantEmail: email,
+        location: whatsapp, // Using location field temporarily for phone/whatsapp if needed, or just send in body
+        portfolioLink: submissionLink, // YouTube/Short film link
+    };
+
+    btn.disabled = true;
+    btn.innerText = 'Applying...';
+
     try {
-        // Update user profile first
-        const updateData = { ...currentUser, id: currentUserId, name, phone, location };
-        const response = await fetch(`${API_BASE_URL}/api/profile`, {
-            method: 'PUT',
+        // Submit Application with Body
+        const response = await fetch(`${API_BASE_URL}/api/events/${pendingEventId}/apply?userId=${currentUserId}`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateData)
+            body: JSON.stringify(appData)
         });
 
         if (response.ok) {
-            currentUser = updateData; // Update local state
+            const updatedEvent = await response.json();
+            showMessage('Registered successfully!', 'success');
             
-            // Update UI elements in header
-            const nameEle = document.getElementById('currentUserName') || document.getElementById('userNameHeader');
-            if (nameEle) nameEle.textContent = name;
-
-            const eventId = pendingEventId;
-            closeProfileModal();
+            // Sync applications
+            const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
+            if (appsResponse.ok) userApplications = await appsResponse.json();
             
-            // Now proceed with registration
-            if (eventId) {
-                await applyToEvent(eventId);
-            }
+            closeAppModal();
+            
+            // Update UI
+            const countEl = document.getElementById(`applicant-count-${pendingEventId}`);
+            if (countEl) countEl.textContent = updatedEvent.applicants;
+            
+            searchEvents(); 
         } else {
-            showMessage('We couldn’t update your profile details. Please try again.', 'error');
+            const err = await response.text();
+            showMessage(err === 'AUDITION_CLOSED' ? 'Registration closed.' : 'Failed to register.', 'error');
         }
     } catch (error) {
-        console.error('Error updating profile:', error);
-        showMessage('Oops! Something went wrong while saving. Please try again.', 'error');
+        console.error(error);
+        showMessage('Connection error.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
     }
 }
+
+// Legacy Profile Completion Functions removed and replaced by dynamic application modal
 
 function switchEventTab(type, element) {
     document.querySelectorAll('.event-feature-card').forEach(c => c.classList.remove('active'));

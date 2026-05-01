@@ -57,6 +57,12 @@ public class EventApplication {
     @Column(name = "is_scanned")
     private Boolean scanned = false;
 
+    @Column(name = "portfolio_link")
+    private String portfolioLink;
+
+    @Column(name = "additional_note", length = 1000)
+    private String additionalNote;
+
     @PrePersist
     protected void onCreate() {
         appliedAt = LocalDateTime.now();
@@ -119,4 +125,10 @@ public class EventApplication {
 
     public Boolean isScanned() { return scanned != null && scanned; }
     public void setScanned(Boolean scanned) { this.scanned = scanned; }
+
+    public String getPortfolioLink() { return portfolioLink; }
+    public void setPortfolioLink(String portfolioLink) { this.portfolioLink = portfolioLink; }
+
+    public String getAdditionalNote() { return additionalNote; }
+    public void setAdditionalNote(String additionalNote) { this.additionalNote = additionalNote; }
 }

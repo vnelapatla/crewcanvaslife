@@ -97,9 +97,9 @@ public class EventController {
     }
 
     @PostMapping("/{id}/apply")
-    public ResponseEntity<?> applyToEvent(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> applyToEvent(@PathVariable Long id, @RequestParam Long userId, @RequestBody(required = false) EventApplication applicationDetails) {
         try {
-            Event event = eventService.applyToEvent(id, userId);
+            Event event = eventService.applyToEvent(id, userId, applicationDetails);
             return ResponseEntity.ok(event);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

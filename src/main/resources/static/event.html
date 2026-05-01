@@ -840,19 +840,19 @@
             <div class="content-body-modal" style="padding: 5px 25px 25px;">
                 <div class="form-grid-2">
                     <div class="form-group full-width">
-                        <label class="form-label-premium">Event Name / Title</label>
+                        <label class="form-label-premium" id="labelTitle">Event Name / Title</label>
                         <input type="text" id="eventTitle" class="form-control-premium" placeholder="e.g. Audition - New Session">
                     </div>
                     <div class="form-group">
-                        <label class="form-label-premium">Start Date</label>
+                        <label class="form-label-premium" id="labelDate">Start Date</label>
                         <input type="date" id="eventDate" class="form-control-premium">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label-premium">End Date</label>
+                    <div class="form-group" id="endDateGroup">
+                        <label class="form-label-premium" id="labelEndDate">End Date</label>
                         <input type="date" id="eventEndDate" class="form-control-premium">
                     </div>
                     <div class="form-group">
-                        <label class="form-label-premium">Time / Duration</label>
+                        <label class="form-label-premium" id="labelTime">Time / Duration</label>
                         <input type="text" id="eventTimeDuration" class="form-control-premium" placeholder="e.g. 10:00 AM - 4:00 PM">
                     </div>
                     <div class="form-group">
@@ -879,24 +879,24 @@
                             <input type="tel" id="eventOrgPhone" class="form-control-premium" placeholder="10-digit number">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label-premium">Max Capacity</label>
+                    <div class="form-group" id="capacityGroup">
+                        <label class="form-label-premium" id="labelCapacity">Max Capacity</label>
                         <input type="number" id="eventCapacity" class="form-control-premium" placeholder="e.g. 50">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label-premium">Budget / Price (₹)</label>
+                    <div class="form-group" id="priceGroup">
+                        <label class="form-label-premium" id="labelPrice">Budget / Price (₹)</label>
                         <input type="number" id="eventPrice" class="form-control-premium" placeholder="e.g. 5000">
                     </div>
                     <div class="form-group">
                         <label class="form-label-premium">Image URL (Optional)</label>
                         <input type="text" id="eventImageUrl" class="form-control-premium" placeholder="https://image-link.com">
                     </div>
-                    <div class="form-group full-width">
-                        <label class="form-label-premium">Key Skills Required</label>
+                    <div class="form-group full-width" id="skillsGroup">
+                        <label class="form-label-premium" id="labelSkills">Key Skills Required</label>
                         <input type="text" id="eventSkills" class="form-control-premium" placeholder="e.g. Acting, Dancing, Video Editing">
                     </div>
                     <div class="form-group full-width">
-                        <label class="form-label-premium">Description & Requirements</label>
+                        <label class="form-label-premium" id="labelDesc">Description & Requirements</label>
                         <textarea id="eventDescription" class="form-control-premium" style="height: 120px;" placeholder="Describe the role, detailed skills needed, etc."></textarea>
                     </div>
                 </div>
@@ -908,30 +908,59 @@
         </div>
     </div>
 
-    <!-- Profile Completion Modal -->
-    <div id="profileCompletionModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 440px; padding: 0;">
-            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #f1f5f9;">
-                <h2 style="font-size: 18px; color: #1e293b;">📋 Complete Your Profile</h2>
-                <p style="font-size: 12px; color: #64748b; margin-top: 5px;">Please provide these details to register for the event.</p>
+    <!-- Event Application Modal -->
+    <div id="applicationModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; padding: 0; border-radius: 24px;">
+            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #f1f5f9; position: relative;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; background: #fff8f1; color: var(--primary-orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h2 id="appModalTitle" style="font-size: 18px; color: #1e293b; margin: 0;">Register</h2>
+                        <p id="appModalSubtitle" style="font-size: 11px; color: #64748b; margin-top: 2px;">Quick registration for event</p>
+                    </div>
+                </div>
+                <span class="close" onclick="closeAppModal()" style="position: absolute; top: 20px; right: 20px; font-size: 20px; color: #94a3b8; cursor: pointer;">✕</span>
             </div>
-            <div class="content-body-modal" style="padding: 25px;">
+            <div class="content-body-modal" style="padding: 20px 25px 25px;">
                 <div class="form-group">
                     <label class="form-label-premium">Full Name</label>
-                    <input type="text" id="completeName" class="form-control-premium" placeholder="Enter your full name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label-premium">Mobile Number</label>
-                    <input type="tel" id="completePhone" class="form-control-premium" placeholder="Enter mobile number">
-                </div>
-                <div class="form-group">
-                    <label class="form-label-premium">Hometown / Location</label>
-                    <input type="text" id="completeLocation" class="form-control-premium" placeholder="e.g. Mumbai, Maharashtra">
+                    <input type="text" id="appFullName" class="form-control-premium" placeholder="Your Name">
                 </div>
                 
-                <div style="display: flex; gap: 12px; margin-top: 30px;">
-                    <button class="btn-next-premium" style="flex: 2;" onclick="submitProfileAndRegister()">Submit & Register</button>
-                    <button class="btn-cancel-premium" style="flex: 1;" onclick="closeProfileModal()">Cancel</button>
+                <div class="form-group">
+                    <label class="form-label-premium">WhatsApp Number</label>
+                    <input type="tel" id="appWhatsApp" class="form-control-premium" placeholder="Mobile / WhatsApp">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-premium">Email ID</label>
+                    <input type="email" id="appEmail" class="form-control-premium" placeholder="yourname@email.com">
+                </div>
+
+                <div class="form-group" id="appSubmissionGroup" style="display: none;">
+                    <label class="form-label-premium" id="labelAppSubmission">Submission Link (YouTube/Short Film)</label>
+                    <input type="url" id="appSubmissionLink" class="form-control-premium" placeholder="https://youtube.com/your-video">
+                </div>
+                
+                <div style="margin-top: 20px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="appUserAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; overflow: hidden;">
+                            <img id="appUserImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                            <div id="appUserInitials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #64748b;">?</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 12px; font-weight: 600; color: #1e293b; margin: 0;">Your Profile</p>
+                            <p id="appUserProfileName" style="font-size: 11px; color: #64748b; margin: 0;">@username</p>
+                        </div>
+                        <div style="font-size: 10px; padding: 4px 8px; background: #dcfce7; color: #166534; border-radius: 20px; font-weight: 600;">Linked</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 25px;">
+                    <button class="btn-next-premium" style="flex: 2; padding: 14px;" onclick="submitEventApplication()">Submit Application</button>
+                    <button class="btn-cancel-premium" style="flex: 1; padding: 14px;" onclick="closeAppModal()">Cancel</button>
                 </div>
             </div>
         </div>
