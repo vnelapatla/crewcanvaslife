@@ -2,6 +2,10 @@
 let allUsers = [];
 let currentSearchTab = 'find'; // 'find' or 'connections'
 let currentUserId = null;
+let currentPage = 0;
+let isLoading = false;
+let hasMore = true;
+const PAGE_SIZE = 15;
 
 // Helper to get ID regardless of property name (id vs userId)
 function getUserId(user) {
@@ -9,20 +13,30 @@ function getUserId(user) {
     return user.id || user.userId || user.ID || user.userID || (typeof user !== 'object' ? user : null);
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
+    currentUserId = getCurrentUserId();
     
     // Initial UI Setup
     const toggleContainer = document.querySelector('.toggle-switch-container');
     if (toggleContainer) toggleContainer.style.display = 'none';
     
-    // Load ProfileHandler first to ensure relationship data is ready
     try {
+        // 1. Initialize ProfileHandler (Optimized to ONE request)
         await ProfileHandler.init();
-        currentUserId = getCurrentUserId();
-        await loadAllUsers();
-        await updateDashboardStats(); // Fetch and display the counts
+        
+        // 2. Load first page of users
+        await loadUsersPage(0, true);
+        
+        // 3. Update dashboard stats from already cached profile data if possible
+        const cachedUser = userCache.get(currentUserId);
+        if (cachedUser) {
+            updateStatsUI(cachedUser);
+        } else {
+            updateDashboardStats();
+        }
+        
+        setupInfiniteScroll();
     } catch (e) { 
         console.error("Initial load failed:", e); 
     }
@@ -37,43 +51,9 @@ function refreshProfileData() {
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
     searchInput.addEventListener('input', debounce(async (e) => {
-        searchUsers();
+        hasMore = true;
+        loadUsersPage(0, true);
     }, 500));
-}
-
-// Global search function
-async function searchUsers() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
-    
-    const query = input.value.trim().toLowerCase();
-    console.log("Searching for:", query, "in tab:", currentSearchTab);
-    
-    try {
-        if (currentSearchTab === 'find') {
-            const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}&t=${Date.now()}`);
-            if (response.ok) {
-                const users = await response.json();
-                displayUsers(users);
-            }
-        } else {
-            // Search within Connections list
-            const activeSubTab = document.getElementById('followingTab').classList.contains('active') ? 'following' : 'followers';
-            const userId = getCurrentUserId();
-            const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/${activeSubTab}?t=${Date.now()}`);
-            if (response.ok) {
-                const users = await response.json();
-                const filtered = users.filter(u => 
-                    u.name.toLowerCase().includes(query) || 
-                    (u.role && u.role.toLowerCase().includes(query)) ||
-                    (u.location && u.location.toLowerCase().includes(query))
-                );
-                displayUsers(filtered, activeSubTab === 'following');
-            }
-        }
-    } catch (err) {
-        console.error("Search error:", err);
-    }
 }
 
 // Dashboard stats update helper
@@ -84,71 +64,115 @@ async function updateDashboardStats() {
         const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?t=${Date.now()}`);
         if (profileRes.ok) {
             const user = await profileRes.json();
-            const followingsBadge = document.getElementById('myFollowingCount');
-            const followersBadge = document.getElementById('myConnectionsCount');
-            if (followingsBadge) followingsBadge.innerText = user.following || 0;
-            if (followersBadge) followersBadge.innerText = user.followers || 0;
+            updateStatsUI(user);
         }
     } catch (e) { console.error("Error updating stats:", e); }
 }
 
-async function loadAllUsers() {
+function updateStatsUI(user) {
+    const followingsBadge = document.getElementById('myFollowingCount');
+    const followersBadge = document.getElementById('myConnectionsCount');
+    if (followingsBadge) followingsBadge.innerText = user.following || 0;
+    if (followersBadge) followersBadge.innerText = user.followers || 0;
+}
+
+async function loadUsersPage(page = 0, refresh = false) {
+    if (isLoading || (!hasMore && !refresh)) return;
+    
+    isLoading = true;
+    const query = document.getElementById('searchInput')?.value.trim() || '';
+    const container = document.getElementById('searchResults');
+    const loader = document.querySelector('.scroll-load');
+    
+    if (loader) loader.style.opacity = '1';
+    if (refresh) {
+        currentPage = 0;
+        hasMore = true;
+        if (container) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading crew...</div>';
+    }
+
     try {
-        // Add cache busting to ensure we get latest follower counts
-        const res = await fetch(`${API_BASE_URL}/api/profile/search?query=&t=${Date.now()}`);
-        allUsers = await res.json();
-        if (currentSearchTab === 'find') {
-            displayUsers(allUsers);
-        }
-        
-        // Count visibility logic: Only admin sees total count
-        const totalBadge = document.getElementById('totalCrewCount');
-        if (totalBadge) {
-            const isAdmin = getCurrentUserIsAdmin();
-            if (isAdmin) {
-                const currentUserId = String(getCurrentUserId());
-                const realTotal = allUsers.filter(u => String(getUserId(u)) !== currentUserId).length;
-                totalBadge.innerText = realTotal;
-                totalBadge.style.display = 'flex'; // Show for admin
+        const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}&page=${page}&size=${PAGE_SIZE}&t=${Date.now()}`);
+        if (response.ok) {
+            const data = await response.json();
+            const users = data.content || [];
+            
+            if (users.length < PAGE_SIZE) hasMore = false;
+
+            if (refresh) {
+                displayUsers(users);
+                allUsers = users; // Cache current search set
             } else {
-                totalBadge.style.display = 'none'; // Hide for others
+                appendUsers(users);
+                allUsers = [...allUsers, ...users];
             }
+            
+            currentPage = page + 1;
+            
+            // Update admin total count if needed
+            const totalBadge = document.getElementById('totalCrewCount');
+            if (totalBadge && getCurrentUserIsAdmin()) {
+                totalBadge.innerText = data.totalElements || allUsers.length;
+                totalBadge.style.display = 'flex';
+            }
+        } else {
+            hasMore = false;
+            if (refresh) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">No results found.</div>';
         }
-    } catch (e) { console.error("Error loading all users:", e); }
+    } catch (e) { 
+        console.error("Error loading users:", e);
+    } finally {
+        isLoading = false;
+        if (loader) loader.style.opacity = '0';
+    }
+}
+
+function setupInfiniteScroll() {
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !isLoading && hasMore && currentSearchTab === 'find') {
+            loadUsersPage(currentPage);
+        }
+    }, { threshold: 0.1 });
+
+    const loader = document.querySelector('.scroll-load');
+    if (loader) observer.observe(loader);
 }
 
 // Display users uniformly
 function displayUsers(users, forceFollowingState = false) {
     const container = document.getElementById('searchResults');
-    const currentUserId = String(getCurrentUserId());
+    if (!container) return;
     
     if (!users || users.length === 0) {
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No crew found.</div>`;
         return;
     }
 
-    const finalUsers = [];
+    container.innerHTML = filterAndMapUsers(users, forceFollowingState);
+}
+
+function appendUsers(users, forceFollowingState = false) {
+    const container = document.getElementById('searchResults');
+    if (!container || !users || users.length === 0) return;
+    
+    container.insertAdjacentHTML('beforeend', filterAndMapUsers(users, forceFollowingState));
+}
+
+function filterAndMapUsers(users, forceFollowingState) {
+    const currentUserIdStr = String(currentUserId);
     const seenIds = new Set();
     
-    users.forEach(u => {
+    return users.filter(u => {
         const id = parseInt(getUserId(u));
-        // Filter out self
-        if (id == currentUserId) return;
-        
-        // If in 'find' tab, filter out people we already follow
-        if (currentSearchTab === 'find' && ProfileHandler.isFollowing(id)) return;
-        
-        if (!seenIds.has(id)) {
-            finalUsers.push(u);
-            seenIds.add(id);
-        }
-    });
-
-    container.innerHTML = finalUsers.map(user => {
+        if (id == currentUserIdStr) return false;
+        if (currentSearchTab === 'find' && ProfileHandler.isFollowing(id)) return false;
+        if (seenIds.has(id)) return false;
+        seenIds.add(id);
+        return true;
+    }).map(user => {
         const id = parseInt(getUserId(user));
         const isFollowed = forceFollowingState || ProfileHandler.isFollowing(id);
         const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : false;
-        // In search results, we show message button if they follow us or we are admin
         const canMessage = isAdmin || ProfileHandler.isFollower(id);
         return createUserCard(user, isFollowed, canMessage);
     }).join('');
@@ -171,7 +195,7 @@ function switchSearchTab(tab) {
         if (card) card.classList.add('active');
         const input = document.getElementById('searchInput');
         if (input) input.value = '';
-        displayUsers(allUsers);
+        loadUsersPage(0, true);
     }
 }
 

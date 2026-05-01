@@ -57,22 +57,26 @@ public class PostService {
 
     public org.springframework.data.domain.Page<Post> getAllPosts(int page, int size) {
         org.springframework.data.domain.Page<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(org.springframework.data.domain.PageRequest.of(page, size));
-        posts.getContent().forEach(this::populatePollData);
+        populateExtraData(posts.getContent());
         return posts;
     }
 
     public List<Post> getAllPosts() {
-        return populatePollData(postRepository.findAllByOrderByCreatedAtDesc());
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        populateExtraData(posts);
+        return posts;
     }
 
     public org.springframework.data.domain.Page<Post> getUserPosts(Long userId, int page, int size) {
         org.springframework.data.domain.Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, org.springframework.data.domain.PageRequest.of(page, size));
-        posts.getContent().forEach(this::populatePollData);
+        populateExtraData(posts.getContent());
         return posts;
     }
 
     public List<Post> getUserPosts(Long userId) {
-        return populatePollData(postRepository.findByUserIdOrderByCreatedAtDesc(userId));
+        List<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        populateExtraData(posts);
+        return posts;
     }
 
     public Optional<Post> getPostById(Long id) {
@@ -189,50 +193,61 @@ public class PostService {
         throw new RuntimeException("Post not found");
     }
 
-    private Post populatePollData(Post post) {
-        // Populate User Details for frontend speed (avoid separate API calls)
-        if (post.getUserId() != null) {
-            userRepository.findById(post.getUserId()).ifPresent(user -> {
+    private void populateExtraData(List<Post> posts) {
+        if (posts.isEmpty()) return;
+
+        // 1. Batch fetch all unique user IDs
+        java.util.List<Long> userIds = posts.stream()
+                .map(Post::getUserId)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+
+        java.util.Map<Long, com.crewcanvas.model.User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
+
+        // 2. Populate data for each post
+        posts.forEach(post -> {
+            // User Details
+            com.crewcanvas.model.User user = userMap.get(post.getUserId());
+            if (user != null) {
                 java.util.Map<String, Object> details = new java.util.HashMap<>();
                 details.put("id", user.getId());
                 details.put("name", user.getName());
                 details.put("role", user.getRole());
                 details.put("profilePicture", user.getProfilePicture());
                 post.setUserDetails(details);
-            });
-        }
-        
-        if (post.getPoll() != null) {
-            com.crewcanvas.model.Poll poll = post.getPoll();
-            List<com.crewcanvas.model.PollVote> votes = pollVoteRepository.findByPollId(poll.getId());
-            java.util.Map<Long, Integer> voteMap = new java.util.HashMap<>();
-            
-            // Map option IDs to their indices for frontend compatibility
-            java.util.Map<Long, Integer> optionIdToIndex = new java.util.HashMap<>();
-            for (int i = 0; i < poll.getOptions().size(); i++) {
-                optionIdToIndex.put(poll.getOptions().get(i).getId(), i);
             }
-            
-            for (com.crewcanvas.model.PollVote vote : votes) {
-                Integer index = optionIdToIndex.get(vote.getOptionId());
-                if (index != null) {
-                    voteMap.put(vote.getUserId(), index);
+
+            // Poll Data (Eagerly fetched by Poll relationship, but needs Map conversion)
+            if (post.getPoll() != null) {
+                com.crewcanvas.model.Poll poll = post.getPoll();
+                java.util.List<com.crewcanvas.model.PollVote> votes = pollVoteRepository.findByPollId(poll.getId());
+                java.util.Map<Long, Integer> voteMap = new java.util.HashMap<>();
+
+                java.util.Map<Long, Integer> optionIdToIndex = new java.util.HashMap<>();
+                for (int i = 0; i < poll.getOptions().size(); i++) {
+                    optionIdToIndex.put(poll.getOptions().get(i).getId(), i);
                 }
+
+                for (com.crewcanvas.model.PollVote vote : votes) {
+                    Integer index = optionIdToIndex.get(vote.getOptionId());
+                    if (index != null) {
+                        voteMap.put(vote.getUserId(), index);
+                    }
+                }
+                poll.setPollVotes(voteMap);
+
+                java.util.List<String> optStrings = poll.getOptions().stream()
+                        .map(com.crewcanvas.model.PollOption::getOptionText)
+                        .collect(java.util.stream.Collectors.toList());
+                post.setPollOptions(optStrings);
+                post.setPollQuestion(poll.getQuestion());
             }
-            poll.setPollVotes(voteMap);
-            
-            // Populate pollOptions as string list for frontend
-            java.util.List<String> optStrings = poll.getOptions().stream()
-                .map(com.crewcanvas.model.PollOption::getOptionText)
-                .collect(java.util.stream.Collectors.toList());
-            post.setPollOptions(optStrings);
-            post.setPollQuestion(poll.getQuestion());
-        }
-        return post;
+        });
     }
 
-    private List<Post> populatePollData(List<Post> posts) {
-        posts.forEach(this::populatePollData);
-        return posts;
+    private Post populatePollData(Post post) {
+        populateExtraData(java.util.Collections.singletonList(post));
+        return post;
     }
 }

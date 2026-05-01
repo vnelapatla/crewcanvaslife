@@ -72,13 +72,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function refreshProfileData() {
+    // 1. Fetch onboarding data (Profile + Follow lists) in one go
+    const onboardingPromise = fetch(`${API_BASE_URL}/api/profile/onboarding-data/${profileUserId}?t=${Date.now()}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data) {
+                profileUserData = data.user;
+                displayProfile(data.user);
+                
+                // Update counts directly from consolidated data
+                if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = data.followers?.length || 0;
+                if (document.getElementById('followingCount')) document.getElementById('followingCount').textContent = data.following?.length || 0;
+                
+                // Sync with ProfileHandler
+                if (typeof ProfileHandler !== 'undefined') {
+                    ProfileHandler.init();
+                }
+            }
+        });
+
+    // 2. Load projects and other heavy data in parallel
     return Promise.all([
-        loadProfile(),
+        onboardingPromise,
         loadUserProjects(),
-        loadFollowers(),
-        loadFollowing()
+        loadUserPosts()
     ]).catch(err => {
-        console.error("Profile parallel load error:", err);
+        console.error("Profile optimized parallel load error:", err);
     });
 }
 

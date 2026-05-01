@@ -39,6 +39,24 @@ public class ProfileController {
         }
     }
 
+    @GetMapping("/onboarding-data/{id}")
+    public ResponseEntity<?> getOnboardingData(@PathVariable Long id) {
+        try {
+            Optional<User> user = userService.findById(id);
+            if (user.isPresent()) {
+                Map<String, Object> data = new java.util.HashMap<>();
+                data.put("user", user.get());
+                data.put("following", connectionService.getFollowing(id));
+                data.put("followers", connectionService.getFollowers(id));
+                return ResponseEntity.ok(data);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
     @PutMapping
     public ResponseEntity<?> updateProfile(@RequestBody User updatedUser) {
         try {
@@ -75,10 +93,11 @@ public class ProfileController {
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(@RequestParam(required = false) String query,
             @RequestParam(required = false) String role,
-            @RequestParam(required = false) String location) {
+            @RequestParam(required = false) String location,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
         try {
-            List<User> users = userService.searchUsers(query, role, location);
-            return ResponseEntity.ok(users);
+            return ResponseEntity.ok(userService.searchUsers(query, role, location, page, size));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Search service is temporarily unavailable.");

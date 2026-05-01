@@ -16,27 +16,33 @@ const ProfileHandler = {
             if (!currentUserId) return;
 
             try {
-                // Fetch following/followers in parallel
-                const [followingRes, followersRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following?t=${Date.now()}`),
-                    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers?t=${Date.now()}`)
-                ]);
+                // Fetch consolidated onboarding data (Profile, Following, Followers) in ONE request
+                const res = await fetch(`${API_BASE_URL}/api/profile/onboarding-data/${currentUserId}?t=${Date.now()}`);
 
-                if (followingRes.ok) {
-                    const following = await followingRes.json();
-                    following.forEach(u => this.followingSet.add(parseInt(u.id || u.userId)));
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // 1. Update following set
+                    if (data.following) {
+                        data.following.forEach(u => this.followingSet.add(parseInt(u.id || u.userId)));
+                    }
+                    
+                    // 2. Update follower set
+                    if (data.followers) {
+                        data.followers.forEach(u => this.followerSet.add(parseInt(u.id || u.userId)));
+                    }
+                    
+                    // 3. Cache the user profile for later use (prevents extra fetches)
+                    if (data.user && typeof userCache !== 'undefined') {
+                        userCache.set(currentUserId, data.user);
+                    }
+
+                    console.log(`ProfileHandler: Optimized load complete. Following: ${this.followingSet.size}, Followers: ${this.followerSet.size}`);
+                    this.updateHeader();
+                    this.isInitialized = true;
                 }
-
-                if (followersRes.ok) {
-                    const followers = await followersRes.json();
-                    followers.forEach(u => this.followerSet.add(parseInt(u.id || u.userId)));
-                }
-
-                console.log(`ProfileHandler: Loaded ${this.followingSet.size} following, ${this.followerSet.size} followers`);
-                this.updateHeader();
-                this.isInitialized = true;
             } catch (e) {
-                console.error("ProfileHandler Init Error:", e);
+                console.error("ProfileHandler Optimized Init Error:", e);
             }
         })();
         
