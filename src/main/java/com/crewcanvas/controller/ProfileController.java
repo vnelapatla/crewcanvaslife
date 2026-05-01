@@ -24,12 +24,35 @@ public class ProfileController {
     private ConnectionService connectionService;
 
     @GetMapping("/onboarding-data/{id}")
-    public ResponseEntity<?> getOnboardingData(@PathVariable Long id) {
+    public ResponseEntity<?> getOnboardingData(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
         try {
-            Optional<User> user = userService.findById(id);
-            if (user.isPresent()) {
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                String visibility = user.getProfileVisibility();
+                
+                boolean allowed = false;
+                if (visibility == null || visibility.equals("Everyone")) {
+                    allowed = true;
+                } else if (visibility.equals("Private")) {
+                    allowed = viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false));
+                } else if (visibility.equals("Connections Only")) {
+                    if (viewerId != null) {
+                        if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
+                            allowed = true;
+                        } else {
+                            allowed = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
+                                      connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
+                        }
+                    }
+                }
+                
+                if (!allowed) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is not visible to you.");
+                }
+
                 Map<String, Object> data = new java.util.HashMap<>();
-                data.put("user", user.get());
+                data.put("user", user);
                 data.put("following", connectionService.getFollowing(id));
                 data.put("followers", connectionService.getFollowers(id));
                 return ResponseEntity.ok(data);
@@ -42,11 +65,43 @@ public class ProfileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProfile(@PathVariable Long id) {
+    public ResponseEntity<?> getProfile(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
         try {
-            Optional<User> user = userService.findById(id);
-            if (user.isPresent()) {
-                return ResponseEntity.ok(user.get());
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                String visibility = user.getProfileVisibility();
+                
+                // If visibility is Everyone, anyone can view
+                if (visibility == null || visibility.equals("Everyone")) {
+                    return ResponseEntity.ok(user);
+                }
+                
+                // If visibility is Private, only the user themselves or an admin can view
+                if (visibility.equals("Private")) {
+                    if (viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false))) {
+                        return ResponseEntity.ok(user);
+                    }
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is private.");
+                }
+                
+                // If visibility is Connections Only
+                if (visibility.equals("Connections Only")) {
+                    if (viewerId != null) {
+                        if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
+                            return ResponseEntity.ok(user);
+                        }
+                        // Check connection
+                        boolean isConnected = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
+                                            connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
+                        if (isConnected) {
+                            return ResponseEntity.ok(user);
+                        }
+                    }
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is only visible to connections.");
+                }
+                
+                return ResponseEntity.ok(user); // Fallback
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("User not found");

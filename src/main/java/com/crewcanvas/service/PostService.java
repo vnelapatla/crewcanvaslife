@@ -27,6 +27,9 @@ public class PostService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private EmailService emailService;
+
     public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
         // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
         com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
@@ -165,6 +168,17 @@ public class PostService {
                         "liked your post.",
                         post.getId().toString()
                     );
+
+                    // Send Email Notification
+                    try {
+                        userRepository.findById(post.getUserId()).ifPresent(postOwner -> {
+                            userRepository.findById(userId).ifPresent(liker -> {
+                                emailService.sendLikeNotificationEmail(postOwner.getEmail(), liker.getName(), post.getId());
+                            });
+                        });
+                    } catch (Exception e) {
+                        System.err.println("Failed to send like email notification: " + e.getMessage());
+                    }
                 }
             }
             return postRepository.save(post);

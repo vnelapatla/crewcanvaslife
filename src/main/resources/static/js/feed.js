@@ -371,7 +371,7 @@ function renderPostHTML(post) {
                 </div>
             ` : ''}
         </div>
-        <div class="post-content" style="padding: 10px 0 5px 0;">
+        <div class="post-content" style="padding: 10px 0 5px 0; cursor: pointer;" onclick="handleDoubleTap(${post.id}, event)">
             ${post.content ? `<p style="margin-bottom:10px; line-height:1.5;">${post.content}</p>` : ''}
             
             ${pollHtml}
@@ -614,6 +614,9 @@ async function likePost(postId) {
             body: JSON.stringify({ userId: currentUserId })
         });
         if (response.ok) {
+            // Play like sound
+            if (typeof playSound === 'function') playSound('like');
+
             const updatedPost = await response.json();
             const likesCount = document.getElementById(`likes-count-${postId}`);
             if (likesCount) {

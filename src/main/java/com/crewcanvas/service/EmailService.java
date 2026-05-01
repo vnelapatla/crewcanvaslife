@@ -142,6 +142,54 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendMessageNotificationEmail(String to, String senderName, String messagePreview) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("New message from " + senderName + " on CrewCanvas ✉️");
+
+        String body = "Hi,\n\n" +
+                "You have received a new message from " + senderName + ":\n\n" +
+                "\"" + messagePreview + "\"\n\n" +
+                "Reply to this message on the CrewCanvas platform here: https://crewcanvas.in/messages.html\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    public void sendLikeNotificationEmail(String to, String likerName, Long postId) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(likerName + " liked your post! ❤️");
+
+        String body = "Hi,\n\n" +
+                "Great news! " + likerName + " liked your post on CrewCanvas. 🎬\n\n" +
+                "View your post and see who else is interacting here: https://crewcanvas.in/feed.html\n\n" +
+                "Keep sharing your creative journey!\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    public void sendVerificationEmail(String to, String name) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Congratulations! You are now a Verified Professional on CrewCanvas! ✅");
+
+        String body = "Hi " + name + ",\n\n" +
+                "We are excited to inform you that your profile has been officially verified by the CrewCanvas Admin Team! ✅\n\n" +
+                "As a Verified Professional, you now have a verification badge on your profile and posts, which helps you stand out to productions and collaborators.\n\n" +
+                "Keep up the great work and continue building your professional presence in the industry.\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
     public String getBroadcastSubject(String eventType) {
         if (eventType == null) return "Event Details";
         switch (eventType.toLowerCase()) {

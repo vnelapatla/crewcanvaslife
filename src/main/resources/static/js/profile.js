@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function refreshProfileData() {
     // 1. Fetch onboarding data (Profile + Follow lists) in one go
-    const onboardingPromise = fetch(`${API_BASE_URL}/api/profile/onboarding-data/${profileUserId}?t=${Date.now()}`)
+    const onboardingPromise = fetch(`${API_BASE_URL}/api/profile/onboarding-data/${profileUserId}?viewerId=${currentUserId}&t=${Date.now()}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
             if (data) {
@@ -103,7 +103,7 @@ async function refreshProfileData() {
 
 async function loadProfile() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/profile/${profileUserId}?viewerId=${currentUserId}`);
         if (response.ok) {
             profileUserData = await response.json();
             
@@ -616,7 +616,7 @@ function renderPostHTML(post) {
                 </div>
             ` : ''}
         </div>
-        <div class="post-content">
+        <div class="post-content" style="cursor: pointer;" onclick="handleDoubleTap(${post.id}, event)">
             ${post.content ? `<p>${post.content}</p>` : ''}
             ${pollHtml}
             ${link ? `<a href="${link}" target="_blank" style="color:var(--primary-orange); text-decoration:none; font-size:12px; display:block; margin-bottom:10px;">🔗 ${link}</a>` : ''}
@@ -802,6 +802,9 @@ async function likePost(postId) {
             body: JSON.stringify({ userId: currentUserId })
         });
         if (response.ok) {
+            // Play like sound
+            if (typeof playSound === 'function') playSound('like');
+
             const updatedPost = await response.json();
             const likesCount = document.getElementById(`likes-count-${postId}`);
             if (likesCount) {

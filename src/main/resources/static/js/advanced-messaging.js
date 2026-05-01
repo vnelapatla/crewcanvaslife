@@ -176,9 +176,9 @@ const AdvancedMessaging = {
     async handleAttachment(file) {
         if (!file) return null;
 
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_SIZE = 100 * 1024 * 1024; // 100MB
         if (file.size > MAX_SIZE) {
-            showMessage('File too large (Max 5MB)', 'error');
+            showMessage('File too large (Max 100MB)', 'error');
             return null;
         }
 

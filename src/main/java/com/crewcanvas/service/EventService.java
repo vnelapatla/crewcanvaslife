@@ -352,7 +352,7 @@ public class EventService {
                 // Send Message and Email if shortlisted
                 if (status.equalsIgnoreCase("SHORTLISTED")) {
                     triggerShortlistNotifications(application);
-                } else if (status.equalsIgnoreCase("SELECTED") || status.equalsIgnoreCase("NOT_SELECTED")) {
+                } else if (status.equalsIgnoreCase("SELECTED") || status.equalsIgnoreCase("NOT_SELECTED") || status.equalsIgnoreCase("REJECTED")) {
                     triggerPhase2Notifications(application, status);
                 }
             }
@@ -369,18 +369,27 @@ public class EventService {
                 User applicant = userRepository.findById(application.getUserId()).orElse(null);
                 
                 if (applicant != null) {
-                    String phase = getEventPhase(application.getEventType());
-                    String messageContent = "Congratulations! You've been shortlisted for: " + (application.getEventTitle() != null ? application.getEventTitle() : "the event") + " (" + application.getEventType() + "). " +
-                            "Soon you will receive further updates regarding the " + phase + " (location, time and date). " +
-                            "Stay tuned for more updates!";
-                    
-                    // 1. Send In-App Message from Official Account
-                    Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                    messageRepository.save(shortlistMsg);
-                    
-                    // 2. Send Email
-                    emailService.sendShortlistEmail(applicant.getEmail(), applicant.getName(), application.getEventTitle(), application.getEventType());
-                    System.out.println("DEBUG: Shortlist message and email sent to: " + applicant.getEmail());
+                    boolean sendInApp = Boolean.TRUE.equals(applicant.getEventReminders());
+                    boolean sendEmail = Boolean.TRUE.equals(applicant.getEmailNotifications());
+
+                    if (sendInApp || sendEmail) {
+                        String phase = getEventPhase(application.getEventType());
+                        String messageContent = "Congratulations! You've been shortlisted for: " + (application.getEventTitle() != null ? application.getEventTitle() : "the event") + " (" + application.getEventType() + "). " +
+                                "Soon you will receive further updates regarding the " + phase + " (location, time and date). " +
+                                "Stay tuned for more updates!";
+                        
+                        // 1. Send In-App Message from Official Account if reminders enabled
+                        if (sendInApp) {
+                            Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                            messageRepository.save(shortlistMsg);
+                        }
+                        
+                        // 2. Send Email if email notifications enabled
+                        if (sendEmail) {
+                            emailService.sendShortlistEmail(applicant.getEmail(), applicant.getName(), application.getEventTitle(), application.getEventType());
+                        }
+                        System.out.println("DEBUG: Shortlist notifications processed for: " + applicant.getEmail());
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("ERROR: Failed to send shortlist notifications: " + e.getMessage());
@@ -394,6 +403,11 @@ public class EventService {
                 User applicant = userRepository.findById(application.getUserId()).orElse(null);
                 if (applicant == null) return;
 
+                boolean sendInApp = Boolean.TRUE.equals(applicant.getEventReminders());
+                boolean sendEmail = Boolean.TRUE.equals(applicant.getEmailNotifications());
+
+                if (!sendInApp && !sendEmail) return;
+
                 User officialUser = userService.getOfficialUser();
                 String eventTitle = application.getEventTitle();
 
@@ -402,20 +416,28 @@ public class EventService {
                     String messageContent = "Final Selection Update: Congratulations! You have been SELECTED for the " + context + " in '" + eventTitle + "'. The organizers will reach out to you manually for the next steps. Best of luck!";
                     
                     // 1. Send In-App Message from Official Account
-                    Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                    messageRepository.save(msg);
+                    if (sendInApp) {
+                        Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                        messageRepository.save(msg);
+                    }
                     
                     // 2. Send Email
-                    emailService.sendFinalSelectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
-                } else if (status.equalsIgnoreCase("NOT_SELECTED")) {
+                    if (sendEmail) {
+                        emailService.sendFinalSelectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
+                    }
+                } else if (status.equalsIgnoreCase("NOT_SELECTED") || status.equalsIgnoreCase("REJECTED")) {
                     String messageContent = "Final Selection Update for '" + eventTitle + "': We appreciate your participation, but unfortunately, the organizers have decided to proceed with other candidates. Keep trying, and more opportunities await you!";
                     
                     // 1. Send In-App Message from Official Account
-                    Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                    messageRepository.save(msg);
+                    if (sendInApp) {
+                        Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                        messageRepository.save(msg);
+                    }
                     
                     // 2. Send Email
-                    emailService.sendFinalRejectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
+                    if (sendEmail) {
+                        emailService.sendFinalRejectionEmail(applicant.getEmail(), applicant.getName(), eventTitle, application.getEventType());
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("ERROR: Failed to send Phase 2 notifications: " + e.getMessage());
@@ -496,30 +518,39 @@ public class EventService {
                     try {
                         User applicant = userRepository.findById(app.getUserId()).orElse(null);
                         if (applicant != null) {
-                            String detailsLabel = emailService.getBroadcastSubject(event.getEventType());
-                            String messageContent = detailsLabel + " for '" + event.getTitle() + "':\n\n" +
-                                    "📍 Location: " + location + "\n" +
-                                    "⏰ Time: " + time + "\n" +
-                                    "📅 Date: " + date + "\n\n" +
-                                    "Looking forward to seeing you!";
-                            
-                            // 1. Send In-App Message from Event Creator
-                            if (creator != null) {
-                                Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
-                                messageRepository.save(msg);
+                            boolean sendInApp = Boolean.TRUE.equals(applicant.getEventReminders());
+                            boolean sendEmail = Boolean.TRUE.equals(applicant.getEmailNotifications());
+
+                            if (sendInApp || sendEmail) {
+                                String detailsLabel = emailService.getBroadcastSubject(event.getEventType());
+                                String messageContent = detailsLabel + " for '" + event.getTitle() + "':\n\n" +
+                                        "📍 Location: " + location + "\n" +
+                                        "⏰ Time: " + time + "\n" +
+                                        "📅 Date: " + date + "\n\n" +
+                                        "Looking forward to seeing you!";
+                                
+                                // 1. Send In-App Message from Event Creator
+                                if (sendInApp && creator != null) {
+                                    Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
+                                    messageRepository.save(msg);
+                                }
+                                
+                                // 2. Send Email
+                                if (sendEmail) {
+                                    emailService.sendEventDetailsEmail(applicant.getEmail(), applicant.getName(), event.getTitle(), event.getEventType(), location, time, date);
+                                }
+                                
+                                // 3. Send Notification if reminders enabled
+                                if (sendInApp) {
+                                    notificationService.createNotification(
+                                        applicant.getId(),
+                                        event.getUserId(),
+                                        "UPDATE",
+                                        "New details shared for " + event.getTitle(),
+                                        event.getId().toString()
+                                    );
+                                }
                             }
-                            
-                            // 2. Send Email (This is the slow part)
-                            emailService.sendEventDetailsEmail(applicant.getEmail(), applicant.getName(), event.getTitle(), event.getEventType(), location, time, date);
-                            
-                            // 3. Send Notification
-                            notificationService.createNotification(
-                                applicant.getId(),
-                                event.getUserId(),
-                                "UPDATE",
-                                "New details shared for " + event.getTitle(),
-                                event.getId().toString()
-                            );
                         }
                     } catch (Exception e) {
                         System.err.println("Failed to send broadcast to user " + app.getUserId() + ": " + e.getMessage());

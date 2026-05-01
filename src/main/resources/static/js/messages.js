@@ -156,6 +156,12 @@ function connectWebSocket() {
 
 function onMessageReceived(msg) {
     console.log("WebSocket Message Received:", msg);
+    
+    // Play sound if message is from someone else
+    if (String(msg.senderId) !== String(currentUserId)) {
+        if (typeof playSound === 'function') playSound('message');
+    }
+
     // Robust ID comparison using String conversion
     const isCurrentChat = String(selectedConversationUserId) === String(msg.senderId) || 
                          String(selectedConversationUserId) === String(msg.receiverId);
@@ -465,25 +471,10 @@ async function checkMessagingPermission(senderId, receiverId) {
     if (!inputArea) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/check-permission?senderId=${senderId}&receiverId=${receiverId}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.allowed) {
-                inputArea.style.display = 'flex';
-                const oldMsg = document.getElementById('restriction-msg');
-                if (oldMsg) oldMsg.remove();
-            } else {
-                inputArea.style.display = 'none';
-                let restrictionMsg = document.getElementById('restriction-msg');
-                if (!restrictionMsg) {
-                    restrictionMsg = document.createElement('div');
-                    restrictionMsg.id = 'restriction-msg';
-                    restrictionMsg.style = 'padding: 20px; text-align: center; color: #666; font-size: 13px; background: #f9f9f9; border-top: 1px solid #eee;';
-                    inputArea.parentNode.insertBefore(restrictionMsg, inputArea);
-                }
-                restrictionMsg.innerHTML = `<i class="fa-solid fa-lock" style="margin-right: 8px;"></i> You can only message followers, mutual followers, admins, or event applicants.`;
-            }
-        }
+        // Restrictions removed for live environment - anyone can message anyone
+        inputArea.style.display = 'flex';
+        const oldMsg = document.getElementById('restriction-msg');
+        if (oldMsg) oldMsg.remove();
     } catch (e) {
         console.error("Error checking permission:", e);
     }
@@ -920,17 +911,14 @@ async function handleFileSelect(e, type) {
     }
 
     for (const file of files) {
-        // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
         const isVideo = file.type.startsWith('video/') || 
                         file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
         
-        if (isVideo && !getCurrentUserIsAdmin()) {
-            showMessage('Video uploads in messages are restricted to administrators.', 'error');
-            continue;
-        }
+        // Video upload restriction removed for live environment
 
-        if (file.size > 50 * 1024 * 1024) {
-            showMessage(`${file.name} is too big! (Max 50MB)`, 'error');
+
+        if (file.size > 100 * 1024 * 1024) {
+            showMessage(`${file.name} is too big! (Max 100MB)`, 'error');
             continue;
         }
 

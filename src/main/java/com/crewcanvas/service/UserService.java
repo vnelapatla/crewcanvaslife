@@ -94,8 +94,15 @@ public class UserService {
         // Don't send welcome message to the official account itself
         if (senderId.equals(receiverId)) return;
 
-        // Check if welcome message already sent in-app
+        // Check if welcome message already sent
+        if (Boolean.TRUE.equals(user.getWelcomeSent())) {
+            return;
+        }
+
+        // Secondary fallback check for existing messages
         if (messageRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
+            user.setWelcomeSent(true);
+            userRepository.save(user);
             return;
         }
 
@@ -139,7 +146,47 @@ public class UserService {
         }
         */
         
+        user.setWelcomeSent(true);
+        userRepository.save(user);
+        
         logger.info("Welcome package (Message, Email) initiated for user: {}", user.getEmail());
+    }
+
+    public void sendVerificationPackage(User user) {
+        if (user == null || user.getId() == null) return;
+
+        User officialUser = getOfficialUser();
+        Long senderId = officialUser.getId();
+        Long receiverId = user.getId();
+
+        // Don't send to self
+        if (senderId.equals(receiverId)) return;
+
+        String content = "Congratulations! 🎬 Your profile has been officially verified by CrewCanvas. " +
+                "You are now a Verified Professional! ✅ " +
+                "This badge will help you gain more visibility and trust within the community. " +
+                "Keep showcasing your best work. Cheers!";
+
+        // 1. Send In-App Message
+        Message verifyMsg = new Message(senderId, receiverId, content);
+        messageRepository.save(verifyMsg);
+
+        // 2. Trigger Notification (Already handled in updateProfile, but we can add a message notification too)
+        notificationService.createNotification(
+                receiverId,
+                senderId,
+                "MESSAGE",
+                "You have a new message from CrewCanvas Official regarding your verification.",
+                senderId.toString()
+        );
+
+        // 3. Send Email
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), user.getName());
+            logger.info("Verification email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to send verification email to {}: {}", user.getEmail(), e.getMessage());
+        }
     }
 
     public User registerUser(String name, String email, String password) {
@@ -206,6 +253,9 @@ public class UserService {
                     "Your profile has been verified as a Professional! ✅",
                     null
                 );
+                
+                // Send Email and In-App Message
+                sendVerificationPackage(existingUser);
             }
         }
         
@@ -261,6 +311,13 @@ public class UserService {
         if (updatedUser.getResumeFileName() != null) existingUser.setResumeFileName(updatedUser.getResumeFileName());
         if (updatedUser.getResumeContentType() != null) existingUser.setResumeContentType(updatedUser.getResumeContentType());
         
+        // Settings
+        if (updatedUser.getProfileVisibility() != null) existingUser.setProfileVisibility(updatedUser.getProfileVisibility());
+        if (updatedUser.getMessagePermissions() != null) existingUser.setMessagePermissions(updatedUser.getMessagePermissions());
+        if (updatedUser.getEmailNotifications() != null) existingUser.setEmailNotifications(updatedUser.getEmailNotifications());
+        if (updatedUser.getFollowerNotifications() != null) existingUser.setFollowerNotifications(updatedUser.getFollowerNotifications());
+        if (updatedUser.getEventReminders() != null) existingUser.setEventReminders(updatedUser.getEventReminders());
+
         return userRepository.save(existingUser);
     }
 
@@ -354,7 +411,7 @@ public class UserService {
     }
 
     public List<User> getTopUsers() {
-        return userRepository.findTop10ByOrderByProfileScoreDesc();
+        return userRepository.findTop10Users(org.springframework.data.domain.PageRequest.of(0, 10));
     }
 
     @Transactional

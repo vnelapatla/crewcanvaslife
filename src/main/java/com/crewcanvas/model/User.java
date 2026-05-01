@@ -185,6 +185,24 @@ public class User {
     @Column(name = "profile_score", nullable = false)
     private Integer profileScore = 0;
 
+    @Column(name = "welcome_sent")
+    private Boolean welcomeSent = false;
+
+    @Column(name = "profile_visibility")
+    private String profileVisibility = "Everyone";
+
+    @Column(name = "message_permissions")
+    private String messagePermissions = "Everyone";
+
+    @Column(name = "email_notifications")
+    private Boolean emailNotifications = true;
+
+    @Column(name = "follower_notifications")
+    private Boolean followerNotifications = true;
+
+    @Column(name = "event_reminders")
+    private Boolean eventReminders = true;
+
     @Column(name = "created_at")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime createdAt;
@@ -345,6 +363,24 @@ public class User {
 
     public Boolean getIsAdmin() { return isAdmin; }
     public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
+
+    public Boolean getWelcomeSent() { return welcomeSent; }
+    public void setWelcomeSent(Boolean welcomeSent) { this.welcomeSent = welcomeSent; }
+
+    public String getProfileVisibility() { return profileVisibility; }
+    public void setProfileVisibility(String profileVisibility) { this.profileVisibility = profileVisibility; }
+
+    public String getMessagePermissions() { return messagePermissions; }
+    public void setMessagePermissions(String messagePermissions) { this.messagePermissions = messagePermissions; }
+
+    public Boolean getEmailNotifications() { return emailNotifications; }
+    public void setEmailNotifications(Boolean emailNotifications) { this.emailNotifications = emailNotifications; }
+
+    public Boolean getFollowerNotifications() { return followerNotifications; }
+    public void setFollowerNotifications(Boolean followerNotifications) { this.followerNotifications = followerNotifications; }
+
+    public Boolean getEventReminders() { return eventReminders; }
+    public void setEventReminders(Boolean eventReminders) { this.eventReminders = eventReminders; }
 
     public Integer getProfileScore() {
         return profileScore;

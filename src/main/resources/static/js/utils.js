@@ -243,6 +243,41 @@ function truncateText(text, length = 30) {
     return text.substring(0, length) + '...';
 }
 
+/**
+ * Sound Notification System
+ */
+const AppSounds = {
+    notification: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+    message: 'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
+    like: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'
+};
+
+let lastSoundPlayTime = {};
+function playSound(type) {
+    try {
+        const now = Date.now();
+        // Prevent playing the same sound multiple times within 500ms
+        if (lastSoundPlayTime[type] && (now - lastSoundPlayTime[type] < 500)) {
+            return;
+        }
+        lastSoundPlayTime[type] = now;
+
+        const soundUrl = AppSounds[type] || AppSounds.notification;
+        const audio = new Audio(soundUrl);
+        audio.volume = 0.5;
+        
+        // Handle browser autoplay restrictions
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.warn(`Sound playback failed for ${type}:`, error);
+            });
+        }
+    } catch (e) {
+        console.error("Error playing sound:", e);
+    }
+}
+
 
 // Render a colored circle with initials as an avatar fallback
 
@@ -428,6 +463,55 @@ function isVideoFile(src) {
     return src.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)($|\?)/i);
 }
 
+// Double tap to like feature (Mobile only)
+let lastTap = 0;
+function handleDoubleTap(postId, event) {
+    // Only enable for mobile/tablet as requested
+    if (window.innerWidth > 1024) return;
+
+    // Avoid triggering on buttons, links, or interactive elements
+    if (event.target.closest('button') || event.target.closest('a') || 
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+        return;
+    }
+
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    
+    // Only trigger if taps are on the same post and within the delay
+    if (now - lastTap < DOUBLE_PRESS_DELAY) {
+        if (typeof likePost === 'function') {
+            likePost(postId);
+            showLikeAnimation(event);
+        }
+    }
+    lastTap = now;
+}
+
+function showLikeAnimation(event) {
+    const heart = document.createElement('div');
+    heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
+    
+    // Get touch position or click position
+    const x = event.clientX || (event.touches && event.touches[0].clientX);
+    const y = event.clientY || (event.touches && event.touches[0].clientY);
+    
+    heart.style.cssText = `
+        position: fixed;
+        top: ${y}px;
+        left: ${x}px;
+        transform: translate(-50%, -50%) scale(0);
+        color: white;
+        font-size: 80px;
+        text-shadow: 0 0 30px rgba(255,140,0,0.8);
+        pointer-events: none;
+        z-index: 10000001;
+        animation: heartFade 0.7s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+    `;
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 700);
+}
+
 // Helper to render media content (image or video)
 function renderMediaContent(src, className = 'post-image') {
     if (isVideoFile(src)) {
@@ -594,6 +678,13 @@ style.textContent = `
             from { transform: translateY(0); opacity: 1; }
             to { transform: translateY(20px); opacity: 0; }
         }
+    }
+
+    @keyframes heartFade {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+        50% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
@@ -961,6 +1052,16 @@ const NotificationHandler = {
         this.unreadCount++;
         this.updateBadge();
         
+        // Play specific sound based on type
+        const type = (notification.type || '').toUpperCase();
+        if (type === 'MESSAGE') {
+            playSound('message');
+        } else if (type === 'LIKE') {
+            playSound('like');
+        } else {
+            playSound('notification');
+        }
+
         // Show a temporary toast
         showMessage(`New ${notification.type.toLowerCase()}: ${notification.content}`);
         

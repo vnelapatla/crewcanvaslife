@@ -18,6 +18,9 @@ public class MessageService {
     private NotificationService notificationService;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private com.crewcanvas.repository.UserRepository userRepository;
 
     @Autowired
@@ -28,75 +31,31 @@ public class MessageService {
 
     public boolean canUserMessage(Long senderId, Long receiverId) {
         if (senderId == null || receiverId == null) {
-            System.err.println("Permission Denied: senderId or receiverId is null");
             return false;
         }
-        if (senderId.equals(receiverId)) return true;
 
-        System.out.println("Checking messaging permission: " + senderId + " -> " + receiverId);
+        // Check recipient settings
+        return userRepository.findById(receiverId).map(receiver -> {
+            String permissions = receiver.getMessagePermissions();
+            if (permissions == null || permissions.equals("Everyone")) {
+                return true;
+            }
 
-        // 1. Admin check (Hardcoded whitelist + Admin flag)
-        com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
-        if (sender != null && (Boolean.TRUE.equals(sender.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(sender.getEmail()))) {
-            System.out.println("Permission Granted: Sender is Admin/Whitelisted");
-            return true;
-        }
+            if (permissions.equals("Connections Only")) {
+                // Check if sender follows receiver OR receiver follows sender (standard connection check)
+                return connectionRepository.findByFollowerIdAndFollowingId(senderId, receiverId).isPresent() ||
+                       connectionRepository.findByFollowerIdAndFollowingId(receiverId, senderId).isPresent();
+            }
 
-        com.crewcanvas.model.User receiver = userRepository.findById(receiverId).orElse(null);
-        if (receiver != null && (Boolean.TRUE.equals(receiver.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(receiver.getEmail()))) {
-            System.out.println("Permission Granted: Receiver is Admin/Whitelisted");
-            return true;
-        }
-
-        // 2. Follower/Mutual Follower check
-        boolean senderFollowsReceiver = connectionRepository.findByFollowerIdAndFollowingId(senderId, receiverId).isPresent();
-        boolean receiverFollowsSender = connectionRepository.findByFollowerIdAndFollowingId(receiverId, senderId).isPresent();
-        
-        if (senderFollowsReceiver || receiverFollowsSender) {
-            System.out.println("Permission Granted: Connection exists (SenderFollows: " + senderFollowsReceiver + ", ReceiverFollows: " + receiverFollowsSender + ")");
-            return true;
-        }
-
-        // 3. Event Creator to Applicant check
-        boolean isEventRelation = eventApplicationRepository.isApplicantToCreatorsEvent(senderId, receiverId) ||
-                                  eventApplicationRepository.isApplicantToCreatorsEvent(receiverId, senderId);
-        if (isEventRelation) {
-            System.out.println("Permission Granted: Event Creator/Applicant relation exists");
-            return true;
-        }
-
-        // 4. Existing Conversation check (Continuity)
-        // If they have already chatted, allow them to continue
-        boolean hasPreviousMessages = messageRepository.existsBySenderIdAndReceiverId(senderId, receiverId) ||
-                                      messageRepository.existsBySenderIdAndReceiverId(receiverId, senderId);
-        if (hasPreviousMessages) {
-            System.out.println("Permission Granted: Existing conversation found");
-            return true;
-        }
-
-        System.err.println("Permission Denied: No valid relationship found between " + senderId + " and " + receiverId + 
-                           " (FollowCheck: " + (senderFollowsReceiver || receiverFollowsSender) + 
-                           ", EventCheck: " + isEventRelation + ")");
-        return false;
+            return true; // Fallback
+        }).orElse(true);
     }
 
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
         if (!canUserMessage(senderId, receiverId)) {
-            String reason = "Messaging is restricted. You must be following each other, be mutual followers, or have an active event relationship.";
-            throw new RuntimeException(reason);
+            throw new RuntimeException("This user has restricted their message permissions.");
         }
-
-        // Restriction: Only admin (crewcanvas2@gmail.com) can send videos
-        com.crewcanvas.model.User sender = userRepository.findById(senderId).orElse(null);
-        boolean isAdmin = sender != null && (Boolean.TRUE.equals(sender.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(sender.getEmail()));
         
-        boolean hasVideo = (fileType != null && fileType.toLowerCase().contains("video")) ||
-                          (fileUrl != null && fileUrl.startsWith("data:video/")) ||
-                          (fileUrls != null && fileUrls.stream().anyMatch(url -> url != null && url.startsWith("data:video/")));
-
-        if (hasVideo && !isAdmin) {
-            throw new RuntimeException("Video uploads in messages are restricted to administrators.");
-        }
         Message message = new Message(senderId, receiverId, content);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
@@ -119,6 +78,21 @@ public class MessageService {
             notificationContent,
             senderId.toString()
         );
+
+        // Send Email Notification if enabled
+        try {
+            userRepository.findById(receiverId).ifPresent(receiver -> {
+                if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
+                    userRepository.findById(senderId).ifPresent(senderUser -> {
+                        String preview = notificationContent;
+                        if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
+                        emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
+                    });
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("Failed to send message email notification: " + e.getMessage());
+        }
 
         return savedMessage;
     }

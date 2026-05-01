@@ -64,16 +64,23 @@ public class ConnectionService {
     private void sendFollowNotifications(Long followerId, Long followingId) {
         userRepository.findById(followingId).ifPresent(user -> {
             userRepository.findById(followerId).ifPresent(follower -> {
-                notificationService.createNotification(
-                    followingId, followerId, "FOLLOW",
-                    follower.getName() + " started following you!",
-                    followerId.toString()
-                );
-                try {
-                    String profileLink = "https://crewcanvas.in/profile.html?userId=" + followerId;
-                    emailService.sendFollowNotificationEmail(user.getEmail(), follower.getName(), profileLink);
-                } catch (Exception e) {
-                    System.err.println("Email fail: " + e.getMessage());
+                // In-app notification if enabled
+                if (Boolean.TRUE.equals(user.getFollowerNotifications())) {
+                    notificationService.createNotification(
+                        followingId, followerId, "FOLLOW",
+                        follower.getName() + " started following you!",
+                        followerId.toString()
+                    );
+                }
+                
+                // Email notification if enabled
+                if (Boolean.TRUE.equals(user.getEmailNotifications())) {
+                    try {
+                        String profileLink = "https://crewcanvas.in/profile.html?userId=" + followerId;
+                        emailService.sendFollowNotificationEmail(user.getEmail(), follower.getName(), profileLink);
+                    } catch (Exception e) {
+                        System.err.println("Email fail: " + e.getMessage());
+                    }
                 }
             });
         });
