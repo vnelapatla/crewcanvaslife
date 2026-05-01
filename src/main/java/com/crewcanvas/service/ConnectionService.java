@@ -40,9 +40,11 @@ public class ConnectionService {
         connection.setFollowingId(followingId);
         connectionRepository.save(connection);
 
-        // Sync counts for both users
-        syncUserCounts(followerId);
-        syncUserCounts(followingId);
+        // Sort IDs to ensure consistent locking order (Prevents Deadlocks)
+        Long firstId = Math.min(followerId, followingId);
+        Long secondId = Math.max(followerId, followingId);
+        syncUserCounts(firstId);
+        syncUserCounts(secondId);
 
         // Notify the user being followed
         userRepository.findById(followingId).ifPresent(user -> {
@@ -74,9 +76,11 @@ public class ConnectionService {
 
         connectionRepository.delete(connection);
 
-        // Sync counts for both users
-        syncUserCounts(followerId);
-        syncUserCounts(followingId);
+        // Sort IDs to ensure consistent locking order (Prevents Deadlocks)
+        Long firstId = Math.min(followerId, followingId);
+        Long secondId = Math.max(followerId, followingId);
+        syncUserCounts(firstId);
+        syncUserCounts(secondId);
     }
 
     public void syncUserCounts(Long userId) {
