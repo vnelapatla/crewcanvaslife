@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Service
 public class ConnectionService {
@@ -29,26 +29,36 @@ public class ConnectionService {
     @Transactional
     public void followUser(Long followerId, Long followingId) {
         if (followerId.equals(followingId)) return;
+        System.out.println("Follow request: " + followerId + " -> " + followingId);
 
-        // Ensure we don't have duplicate connections (Avoids 500 error)
-        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent()) {
-            return; 
+        try {
+            // Ensure we don't have duplicate connections
+            if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent()) {
+                System.out.println("Already following, skipping.");
+                return; 
+            }
+
+            Connection connection = new Connection();
+            connection.setFollowerId(followerId);
+            connection.setFollowingId(followingId);
+            connection.setCreatedAt(LocalDateTime.now());
+            connectionRepository.save(connection);
+            connectionRepository.flush(); // Flush here to catch duplicate entry errors early
+
+            // ALWAYS sync in sorted ID order to prevent Deadlocks
+            Long firstId = Math.min(followerId, followingId);
+            Long secondId = Math.max(followerId, followingId);
+            syncUserCounts(firstId);
+            syncUserCounts(secondId);
+
+            // Notify the user being followed
+            sendFollowNotifications(followerId, followingId);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            System.out.println("Duplicate follow request detected and ignored.");
+        } catch (Exception e) {
+            System.err.println("CRITICAL FOLLOW ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        Connection connection = new Connection();
-        connection.setFollowerId(followerId);
-        connection.setFollowingId(followingId);
-        connection.setCreatedAt(Instant.now());
-        connectionRepository.save(connection);
-
-        // ALWAYS sync in sorted ID order to prevent Deadlocks
-        Long firstId = Math.min(followerId, followingId);
-        Long secondId = Math.max(followerId, followingId);
-        syncUserCounts(firstId);
-        syncUserCounts(secondId);
-
-        // Notify the user being followed
-        sendFollowNotifications(followerId, followingId);
     }
 
     private void sendFollowNotifications(Long followerId, Long followingId) {

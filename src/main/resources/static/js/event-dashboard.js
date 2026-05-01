@@ -567,9 +567,18 @@ async function loadCurrentUser() {
         const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
         if (response.ok) {
             currentUser = await response.json();
-            const nameEle = document.getElementById('userNameHeader');
-            if (nameEle) nameEle.textContent = currentUser.name;
-        }
+            const picEle = document.getElementById('userAvatarSmall');
+            if (picEle && currentUser.profilePicture) {
+                picEle.src = currentUser.profilePicture;
+                picEle.style.display = 'block';
+                
+                // Hide initials
+                const initialsEle = document.getElementById('userInitialsSmall');
+                if (initialsEle) initialsEle.style.display = 'none';
+                
+                // Update localStorage
+                localStorage.setItem('userAvatar', currentUser.profilePicture);
+            }
     } catch (error) {
         console.error('Error loading user:', error);
     }

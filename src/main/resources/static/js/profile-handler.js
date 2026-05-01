@@ -140,11 +140,26 @@ const ProfileHandler = {
             nameHeader.innerHTML = name + adminBadge;
         }
 
+        const name = localStorage.getItem('userName') || 'User';
+        const userAvatar = localStorage.getItem('userAvatar');
+        const hasAvatar = (userAvatar && typeof userAvatar === 'string' && userAvatar.length > 10);
+
         // Update initials for the new compact header
         const initialsDiv = document.getElementById('userInitialsSmall');
         if (initialsDiv && typeof getAvatarFallback === 'function') {
-            const name = localStorage.getItem('userName') || 'User';
             initialsDiv.innerText = getAvatarFallback(name);
+            initialsDiv.style.display = hasAvatar ? 'none' : 'flex';
+        }
+
+        // Update avatar image
+        const avatarImg = document.getElementById('userAvatarSmall');
+        if (avatarImg) {
+            if (hasAvatar) {
+                avatarImg.src = userAvatar;
+                avatarImg.style.display = 'block';
+            } else {
+                avatarImg.style.display = 'none';
+            }
         }
     },
 

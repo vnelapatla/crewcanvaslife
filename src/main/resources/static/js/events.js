@@ -152,10 +152,17 @@ async function loadCurrentUser() {
                 nameEle.textContent = currentUser.name;
             }
             
-            const picEle = document.getElementById('currentUserPic') || document.getElementById('userAvatarSmall');
+            const picEle = document.getElementById('userAvatarSmall');
             if (picEle && currentUser.profilePicture) {
                 picEle.src = currentUser.profilePicture;
-                picEle.style.display = 'block'; // Ensure it's visible if it was hidden
+                picEle.style.display = 'block';
+                
+                // Also hide initials if showing picture
+                const initialsEle = document.getElementById('userInitialsSmall');
+                if (initialsEle) initialsEle.style.display = 'none';
+                
+                // Update localStorage to keep it in sync
+                localStorage.setItem('userAvatar', currentUser.profilePicture);
             }
             return currentUser;
         }

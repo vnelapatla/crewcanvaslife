@@ -658,8 +658,8 @@ function displayMessages(messages) {
                         ${msg.isEdited ? '<span class="edited-tag" style="font-size:9px; opacity:0.6; margin-left:5px;">(edited)</span>' : ''}
                     </div>
                     ${isSent ? `
-                    <button class="message-options-btn" onclick="${window.innerWidth <= 768 ? `openBottomSheet(${msg.id})` : `toggleMessageOptions(event, ${msg.id})`}">
-                        <i class="fa-solid fa-chevron-down"></i>
+                    <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     ` : ''}
                     <div id="options-${msg.id}" class="message-dropdown">
@@ -671,14 +671,30 @@ function displayMessages(messages) {
             </div>
         `;
     }).join('');
+
+    // Force scroll to bottom if new message OR first load OR was already at bottom
+    if (isNewMessage || isAtBottomBefore) {
+        requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
+        });
+    }
 }
 
 // Minimal Edit/Delete Logic
 let editingMessageId = null;
 let originalContent = '';
+let activeSheetMessageId = null;
+
+function handleOptionsClick(event, messageId) {
+    event.stopPropagation();
+    if (window.innerWidth <= 768) {
+        openBottomSheet(messageId);
+    } else {
+        toggleMessageOptions(event, messageId);
+    }
+}
 
 function toggleMessageOptions(event, messageId) {
-    event.stopPropagation();
     const dropdown = document.getElementById(`options-${messageId}`);
     const wasActive = dropdown.classList.contains('active');
     document.querySelectorAll('.message-dropdown').forEach(d => d.classList.remove('active'));
@@ -769,22 +785,6 @@ function copyToClipboardText(id) {
     const text = document.getElementById(`msg-${id}`).querySelector('.message-body').innerText;
     navigator.clipboard.writeText(text);
     if (typeof showMessage === 'function') showMessage('Copied', 'success');
-}
-
-    // Force scroll to bottom if new message OR first load OR was already at bottom
-    if (isNewMessage || isAtBottomBefore) {
-        // Using requestAnimationFrame to ensure the scroll happens after DOM update
-        requestAnimationFrame(() => {
-            container.scrollTop = container.scrollHeight;
-            // Also try smooth scroll as a secondary to make it feel better
-            setTimeout(() => {
-                container.scrollTo({
-                    top: container.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 100);
-        });
-    }
 }
 
 
