@@ -128,12 +128,12 @@ function displayProfile(user) {
     
     const statusEl = document.getElementById('profileStatus');
     if (statusEl) {
-        const tier = (user.userType || 'Explorer').toUpperCase();
+        const displayStatus = typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(user) : (user.userType || 'Explorer').toUpperCase();
         if (user.isVerifiedProfessional) {
-            statusEl.innerHTML = `${tier} <i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Film Professional"></i>`;
+            statusEl.innerHTML = `${displayStatus} <i class="fa-solid fa-circle-check" style="color:var(--primary-orange); margin-left:5px;" title="Verified Professional"></i>`;
             statusEl.style.color = 'var(--primary-orange)';
         } else {
-            statusEl.textContent = tier;
+            statusEl.textContent = displayStatus;
             statusEl.style.color = 'var(--text-muted)';
         }
     }
@@ -906,7 +906,7 @@ function unlockPrivateInfo() {
 }
 
 async function verifyProject(projectId) {
-    if (!confirm('Verify this project as official? This will also promote the user to Film Professional status.')) return;
+    if (!confirm('Verify this project as official? This will also promote the user to Verified Professional status based on their role.')) return;
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/verify`, {
@@ -914,7 +914,7 @@ async function verifyProject(projectId) {
         });
 
         if (response.ok) {
-            alert('Project verified successfully! User is now a Film Professional.');
+            alert('Project verified successfully! User has been promoted to Professional status.');
             location.reload();
         }
     } catch (err) {

@@ -288,7 +288,7 @@ function createUserCard(user, isFollowing, canMessage) {
             ${renderAvatar(user, 'user-img')}
             <h3>${user.name}</h3>
             <p class="role" style="color: ${user.isVerifiedProfessional === true ? '#ff8c00' : '#64748b'}; font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-bottom: 5px;">
-                ${user.isVerifiedProfessional === true ? 'FILM PROFESSIONAL' : (user.userType || 'Explorer')}
+                ${typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(user) : (user.isVerifiedProfessional === true ? 'FILM PROFESSIONAL' : (user.userType || 'Explorer'))}
             </p>
             <p class="location">${user.location || 'Location not specified'}</p>
             

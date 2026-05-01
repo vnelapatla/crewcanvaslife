@@ -63,7 +63,7 @@ public class ProjectService {
         project.setVerified(true);
         Project saved = projectRepository.save(project);
 
-        // Promote user to Film Professional status upon verification of a project
+        // Promote user to Verified Professional status upon verification of a project
         userService.findById(project.getUserId()).ifPresent(user -> {
             user.setIsVerifiedProfessional(true);
             userService.updateProfile(user);

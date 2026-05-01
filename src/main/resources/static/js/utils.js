@@ -206,6 +206,24 @@ function getUserId(user) {
     return user.id || user.userId || user.senderId || user.receiverId || user.ID || user.userID;
 }
 
+/**
+ * Returns the professional display status of a user
+ * If verified, returns "VERIFIED PROFESSIONAL [ROLE]"
+ * Otherwise returns their userType (e.g. Explorer, Content Creator)
+ */
+function getUserDisplayStatus(user) {
+    if (!user) return 'EXPLORER';
+    
+    if (user.isVerifiedProfessional === true) {
+        // Primary role from user.role, fallback to "Film Professional" if not specified
+        const primaryRole = user.role || 'Film Professional';
+        return `VERIFIED PROFESSIONAL ${primaryRole.toUpperCase()}`;
+    }
+    
+    // If not verified, return userType (Explorer, YouTuber, etc.)
+    return (user.userType || 'Explorer').toUpperCase();
+}
+
 // Debounce function to limit frequent calls
 function debounce(func, wait) {
     let timeout;
@@ -745,7 +763,7 @@ function initUniversalHeader() {
                     <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
                     <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;">
                     
-                    <div class="profile-dropdown-menu" id="profileDropdown" style="top: 45px;">
+                    <div class="profile-dropdown-menu" id="profileDropdown">
                         <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
                         <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                         <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>

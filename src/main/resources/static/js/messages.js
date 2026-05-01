@@ -242,7 +242,7 @@ function displayUsersList(elementId, users, emptyMessage) {
                         <span class="user-time">active now</span>
                     </div>
                     <div class="user-status-row">
-                        <span class="user-status">${user.role || 'Film Professional'}</span>
+                        <span class="user-status">${typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(user) : (user.role || 'Film Professional')}</span>
                     </div>
                 </div>
             </div>
@@ -447,7 +447,7 @@ async function openConversation(userId) {
             const nameEl = document.getElementById('chatUserName');
             if (nameEl) nameEl.textContent = selectedPartnerProfile.name || 'User';
             const statusEl = document.getElementById('chatUserStatus');
-            if (statusEl) statusEl.textContent = 'active now';
+            if (statusEl) statusEl.textContent = typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(selectedPartnerProfile) : 'active now';
         }
     } catch (error) {
         console.error('Error loading partner info:', error);

@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentEventId = urlParams.get('id');
     toggleBtn = document.getElementById('toggleStatusBtn');
 
+    if (typeof initUniversalHeader === 'function') {
+        initUniversalHeader();
+    }
     await loadCurrentUser();
 
     if (currentEventId) {
@@ -579,6 +582,7 @@ async function loadCurrentUser() {
                 // Update localStorage
                 localStorage.setItem('userAvatar', currentUser.profilePicture);
             }
+        }
     } catch (error) {
         console.error('Error loading user:', error);
     }

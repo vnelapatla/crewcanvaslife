@@ -85,6 +85,10 @@ async function loadProfileData() {
             setVal('editUserType', user.userType || 'Explorer');
             if (user.isVerifiedProfessional) {
                 if (document.getElementById('verifiedStatusContainer')) document.getElementById('verifiedStatusContainer').style.display = 'block';
+                if (document.getElementById('verifiedStatusLabel')) {
+                    const statusText = typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(user) : 'VERIFIED FILM PROFESSIONAL';
+                    document.getElementById('verifiedStatusLabel').innerHTML = `<i class="fa-solid fa-certificate"></i> ${statusText}`;
+                }
                 if (document.getElementById('categoryGroup')) document.getElementById('categoryGroup').style.display = 'block';
                 if (document.getElementById('categoryLockMessage')) document.getElementById('categoryLockMessage').style.display = 'none';
             } else {

@@ -257,8 +257,14 @@ function updatePostWithUser(post) {
         userLink.innerHTML = `
             ${renderAvatar(post.user, 'post-avatar')}
             <div>
-                <h4 style="margin:0; font-size:15px;">${post.user.name || 'Unknown Creative'}</h4>
-                <span style="font-size:11px; color:#999;">${formatDate(post.createdAt)}</span>
+                <h4 style="margin:0; font-size:15px; display: flex; align-items: center; gap: 4px;">
+                    ${post.user.name || 'Unknown Creative'}
+                    ${post.user.isVerifiedProfessional ? `<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); font-size: 11px;" title="Verified Professional"></i>` : ''}
+                </h4>
+                <div style="font-size:9px; color:${post.user.isVerifiedProfessional ? 'var(--primary-orange)' : '#999'}; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;">
+                    ${typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(post.user) : (post.user.userType || 'Explorer').toUpperCase()}
+                </div>
+                <span style="font-size:10px; color:#999; opacity:0.8;">${formatDate(post.createdAt)}</span>
             </div>
         `;
     }
@@ -348,8 +354,14 @@ function renderPostHTML(post) {
             <a href="profile.html?userId=${post.userId}" class="post-user-link" style="display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit;">
                 ${renderAvatar(post.user || { name: 'Unknown' }, 'post-avatar')}
                 <div>
-                    <h4 style="margin:0; font-size:15px;">${post.user?.name || 'Unknown Creative'}</h4>
-                    <span style="font-size:11px; color:#999;">${formatDate(post.createdAt)}</span>
+                    <h4 style="margin:0; font-size:15px; display: flex; align-items: center; gap: 4px;">
+                        ${post.user?.name || 'Unknown Creative'}
+                        ${post.user?.isVerifiedProfessional ? `<i class="fa-solid fa-circle-check" style="color:var(--primary-orange); font-size: 11px;" title="Verified Professional"></i>` : ''}
+                    </h4>
+                    <div style="font-size:9px; color:${post.user?.isVerifiedProfessional ? 'var(--primary-orange)' : '#999'}; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;">
+                        ${typeof getUserDisplayStatus === 'function' ? getUserDisplayStatus(post.user) : (post.user?.userType || 'Explorer').toUpperCase()}
+                    </div>
+                    <span style="font-size:10px; color:#999; opacity:0.8;">${formatDate(post.createdAt)}</span>
                 </div>
             </a>
             ${post.userId == currentUserId ? `
