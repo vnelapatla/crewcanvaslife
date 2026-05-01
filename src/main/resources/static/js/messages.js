@@ -648,16 +648,126 @@ function displayMessages(messages) {
                 ${avatarHtml}
                 <div class="message-text">
                     <div style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
-                    ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
+                    <div class="message-body">
+                        ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
+                    </div>
                     ${attachmentContent}
                     <div class="message-status">
                         ${formatTime(msg.createdAt)}
                         ${isSent ? (msg.isRead ? ' <span style="color:#4fc3f7">✓✓</span>' : ' ✓') : ''}
+                        ${msg.isEdited ? ' <span class="edited-tag">(edited)</span>' : ''}
+                    </div>
+                    <button class="message-options-btn" onclick="${window.innerWidth <= 768 ? `openBottomSheet(${msg.id})` : `toggleMessageOptions(event, ${msg.id})`}">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div id="options-${msg.id}" class="message-dropdown">
+                        ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
+                        ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
+                        <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Minimal Edit/Delete Logic
+let editingMessageId = null;
+let originalContent = '';
+
+function toggleMessageOptions(event, messageId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(`options-${messageId}`);
+    const wasActive = dropdown.classList.contains('active');
+    document.querySelectorAll('.message-dropdown').forEach(d => d.classList.remove('active'));
+    if (!wasActive) dropdown.classList.add('active');
+}
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.message-dropdown').forEach(d => d.classList.remove('active'));
+});
+
+async function confirmDeleteMessage(messageId) {
+    if (!confirm('Delete this message?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/messages/delete/${messageId}`, { method: 'DELETE' });
+        if (res.ok) {
+            document.getElementById(`msg-${messageId}`).remove();
+            if (typeof showMessage === 'function') showMessage('Deleted', 'success');
+        }
+    } catch (e) { console.error(e); }
+}
+
+function editMessageUI(messageId) {
+    const msgEl = document.getElementById(`msg-${messageId}`);
+    const body = msgEl.querySelector('.message-body');
+    originalContent = body.innerText;
+    editingMessageId = messageId;
+    body.innerHTML = `
+        <div class="edit-message-container">
+            <textarea class="edit-message-input">${originalContent}</textarea>
+            <div class="edit-actions">
+                <button class="edit-btn cancel" onclick="cancelEdit(${messageId})">Cancel</button>
+                <button class="edit-btn save" onclick="saveEdit(${messageId})">Save</button>
+            </div>
+        </div>
+    `;
+}
+
+function cancelEdit(messageId) {
+    const msgEl = document.getElementById(`msg-${messageId}`);
+    msgEl.querySelector('.message-body').innerHTML = `<p style="margin:0;">${originalContent}</p>`;
+    editingMessageId = null;
+}
+
+async function saveEdit(messageId) {
+    const msgEl = document.getElementById(`msg-${messageId}`);
+    const newContent = msgEl.querySelector('.edit-message-input').value.trim();
+    if (!newContent || newContent === originalContent) return cancelEdit(messageId);
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/messages/edit/${messageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent })
+        });
+        if (res.ok) {
+            msgEl.querySelector('.message-body').innerHTML = `<p style="margin:0;">${newContent}</p>`;
+            if (!msgEl.querySelector('.edited-tag')) {
+                msgEl.querySelector('.message-status').insertAdjacentHTML('beforeend', ' <span class="edited-tag">(edited)</span>');
+            }
+            editingMessageId = null;
+        }
+    } catch (e) { console.error(e); }
+}
+
+function openBottomSheet(messageId) {
+    activeSheetMessageId = messageId;
+    const isSent = document.getElementById(`msg-${messageId}`).classList.contains('sent');
+    document.getElementById('sheetEditBtn').style.display = isSent ? 'flex' : 'none';
+    document.getElementById('sheetDeleteBtn').style.display = isSent ? 'flex' : 'none';
+    document.getElementById('bottomSheetOverlay').classList.add('active');
+    document.getElementById('messageOptionsBottomSheet').classList.add('active');
+}
+
+function closeBottomSheet() {
+    document.getElementById('bottomSheetOverlay').classList.remove('active');
+    document.getElementById('messageOptionsBottomSheet').classList.remove('active');
+}
+
+function handleSheetAction(action) {
+    const id = activeSheetMessageId;
+    closeBottomSheet();
+    if (action === 'edit') editMessageUI(id);
+    else if (action === 'delete') confirmDeleteMessage(id);
+    else if (action === 'copy') copyToClipboardText(id);
+}
+
+function copyToClipboardText(id) {
+    const text = document.getElementById(`msg-${id}`).querySelector('.message-body').innerText;
+    navigator.clipboard.writeText(text);
+    if (typeof showMessage === 'function') showMessage('Copied', 'success');
+}
 
     // Force scroll to bottom if new message OR first load OR was already at bottom
     if (isNewMessage || isAtBottomBefore) {
