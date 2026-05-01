@@ -27,43 +27,44 @@ public class ConnectionService {
 
     @Transactional
     public void followUser(Long followerId, Long followingId) {
-        if (followerId.equals(followingId)) {
-            throw new RuntimeException("You cannot follow yourself");
-        }
+        if (followerId.equals(followingId)) return;
 
-        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent()) {
-            throw new RuntimeException("Already following this user");
-        }
-
-        Connection connection = new Connection();
-        connection.setFollowerId(followerId);
-        connection.setFollowingId(followingId);
-        connectionRepository.save(connection);
-
-        // Sort IDs to ensure consistent locking order (Prevents Deadlocks)
+        // Robust Deadlock Prevention: Manual Row Locking in Strict Order
         Long firstId = Math.min(followerId, followingId);
         Long secondId = Math.max(followerId, followingId);
-        syncUserCounts(firstId);
-        syncUserCounts(secondId);
 
-        // Notify the user being followed
+        // Lock rows in consistent order before any modifications
+        userRepository.findById(firstId);
+        userRepository.findById(secondId);
+
+        if (connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).isEmpty()) {
+            Connection connection = new Connection();
+            connection.setFollowerId(followerId);
+            connection.setFollowingId(followingId);
+            connection.setCreatedAt(Instant.now());
+            connectionRepository.save(connection);
+
+            syncUserCounts(followerId);
+            syncUserCounts(followingId);
+
+            // Notify the user being followed
+            sendFollowNotifications(followerId, followingId);
+        }
+    }
+
+    private void sendFollowNotifications(Long followerId, Long followingId) {
         userRepository.findById(followingId).ifPresent(user -> {
             userRepository.findById(followerId).ifPresent(follower -> {
-                // 1. In-App Notification
                 notificationService.createNotification(
-                    followingId,
-                    followerId,
-                    "FOLLOW",
+                    followingId, followerId, "FOLLOW",
                     follower.getName() + " started following you!",
                     followerId.toString()
                 );
-
-                // 2. Email Notification
                 try {
                     String profileLink = "https://crewcanvas.in/profile.html?userId=" + followerId;
                     emailService.sendFollowNotificationEmail(user.getEmail(), follower.getName(), profileLink);
                 } catch (Exception e) {
-                    System.err.println("Failed to send follow email: " + e.getMessage());
+                    System.err.println("Email fail: " + e.getMessage());
                 }
             });
         });
@@ -71,16 +72,18 @@ public class ConnectionService {
 
     @Transactional
     public void unfollowUser(Long followerId, Long followingId) {
-        Connection connection = connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId)
-                .orElseThrow(() -> new RuntimeException("Connection not found"));
-
-        connectionRepository.delete(connection);
-
-        // Sort IDs to ensure consistent locking order (Prevents Deadlocks)
         Long firstId = Math.min(followerId, followingId);
         Long secondId = Math.max(followerId, followingId);
-        syncUserCounts(firstId);
-        syncUserCounts(secondId);
+
+        // Consistent locking order
+        userRepository.findById(firstId);
+        userRepository.findById(secondId);
+
+        connectionRepository.findByFollowerIdAndFollowingId(followerId, followingId).ifPresent(connection -> {
+            connectionRepository.delete(connection);
+            syncUserCounts(followerId);
+            syncUserCounts(followingId);
+        });
     }
 
     public void syncUserCounts(Long userId) {
@@ -89,7 +92,7 @@ public class ConnectionService {
             int following = (int) connectionRepository.countByFollowerId(userId);
             user.setFollowers(followers);
             user.setFollowing(following);
-            userRepository.save(user);
+            userRepository.saveAndFlush(user); // Force immediate flush to hold lock briefly
         });
     }
 
