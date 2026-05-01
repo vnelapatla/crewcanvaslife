@@ -2,7 +2,7 @@
 let allUsers = [];
 let currentSearchTab = 'find'; // 'find' or 'connections'
 let currentUserId = null;
-let currentPage = 0;
+let currentSearchPage = 0;
 let isLoading = false;
 let hasMore = true;
 const PAGE_SIZE = 15;
@@ -14,7 +14,7 @@ function getUserId(user) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    checkAuth();
+    if (!checkAuth()) return;
     currentUserId = getCurrentUserId();
     
     // Initial UI Setup
@@ -22,23 +22,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (toggleContainer) toggleContainer.style.display = 'none';
     
     try {
+        console.log("Crew Search: Starting initialization...");
         // 1. Initialize ProfileHandler (Optimized to ONE request)
         await ProfileHandler.init();
+        console.log("Crew Search: ProfileHandler initialized.");
         
         // 2. Load first page of users
         await loadUsersPage(0, true);
+        console.log("Crew Search: First page loaded.");
         
         // 3. Update dashboard stats from already cached profile data if possible
-        const cachedUser = userCache.get(currentUserId);
+        const cachedUser = window.userCache ? window.userCache.get(currentUserId) : null;
         if (cachedUser) {
+            console.log("Crew Search: Using cached user stats.");
             updateStatsUI(cachedUser);
         } else {
+            console.log("Crew Search: Fetching user stats...");
             updateDashboardStats();
         }
         
         setupInfiniteScroll();
     } catch (e) { 
-        console.error("Initial load failed:", e); 
+        console.error("Crew Search: Initial load failed:", e); 
+        const container = document.getElementById('searchResults');
+        if (container) container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">Error: ${e.message}. Please refresh.</div>`;
     }
 });
 
@@ -86,16 +93,28 @@ async function loadUsersPage(page = 0, refresh = false) {
     
     if (loader) loader.style.opacity = '1';
     if (refresh) {
-        currentPage = 0;
+        currentSearchPage = 0;
         hasMore = true;
         if (container) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading crew...</div>';
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/search?query=${query}&page=${page}&size=${PAGE_SIZE}&t=${Date.now()}`);
+        const excludeFollowed = (currentSearchTab === 'find');
+        const userIdParam = currentUserId ? `&currentUserId=${currentUserId}` : '';
+        const url = `${API_BASE_URL}/api/profile/search?query=${encodeURIComponent(query)}${userIdParam}&excludeFollowed=${excludeFollowed}&page=${page}&size=${PAGE_SIZE}&t=${Date.now()}`;
+        console.log("Crew Search: Fetching users from:", url);
+        
+        const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            const users = data.content || [];
+            console.log("Crew Search: Received data:", data);
+            
+            const users = Array.isArray(data) ? data : (data.content || []);
+            console.log("Crew Search: Final users array to display:", users);
+            
+            if (!Array.isArray(users)) {
+                console.warn("Crew Search: Expected users to be an array, got:", typeof users);
+            }
             
             if (users.length < PAGE_SIZE) hasMore = false;
 
@@ -107,20 +126,23 @@ async function loadUsersPage(page = 0, refresh = false) {
                 allUsers = [...allUsers, ...users];
             }
             
-            currentPage = page + 1;
+            currentSearchPage = page + 1;
             
             // Update admin total count if needed
             const totalBadge = document.getElementById('totalCrewCount');
-            if (totalBadge && getCurrentUserIsAdmin()) {
+            if (totalBadge && typeof getCurrentUserIsAdmin === 'function' && getCurrentUserIsAdmin()) {
                 totalBadge.innerText = data.totalElements || allUsers.length;
                 totalBadge.style.display = 'flex';
             }
         } else {
+            const errText = await response.text();
+            console.error("Crew Search: API Error:", response.status, errText);
             hasMore = false;
-            if (refresh) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">No results found.</div>';
+            if (refresh) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">No results found or error occurred.</div>';
         }
     } catch (e) { 
-        console.error("Error loading users:", e);
+        console.error("Crew Search: Fetch Exception:", e);
+        if (refresh && container) container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">Failed to connect to server.</div>`;
     } finally {
         isLoading = false;
         if (loader) loader.style.opacity = '0';
@@ -130,7 +152,7 @@ async function loadUsersPage(page = 0, refresh = false) {
 function setupInfiniteScroll() {
     const observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && !isLoading && hasMore && currentSearchTab === 'find') {
-            loadUsersPage(currentPage);
+            loadUsersPage(currentSearchPage);
         }
     }, { threshold: 0.1 });
 
@@ -138,17 +160,22 @@ function setupInfiniteScroll() {
     if (loader) observer.observe(loader);
 }
 
-// Display users uniformly
 function displayUsers(users, forceFollowingState = false) {
     const container = document.getElementById('searchResults');
     if (!container) return;
     
+    console.log(`displayUsers called with ${users ? users.length : 0} users`);
     if (!users || users.length === 0) {
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No crew found.</div>`;
         return;
     }
 
-    container.innerHTML = filterAndMapUsers(users, forceFollowingState);
+    const html = filterAndMapUsers(users, forceFollowingState);
+    if (!html || html.trim() === '') {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No results found (filtered).</div>`;
+    } else {
+        container.innerHTML = html;
+    }
 }
 
 function appendUsers(users, forceFollowingState = false) {
@@ -161,16 +188,25 @@ function appendUsers(users, forceFollowingState = false) {
 function filterAndMapUsers(users, forceFollowingState) {
     const currentUserIdStr = String(currentUserId);
     const seenIds = new Set();
+    console.log("Filtering users for currentUserId:", currentUserIdStr);
     
-    return users.filter(u => {
-        const id = parseInt(getUserId(u));
-        if (id == currentUserIdStr) return false;
-        if (currentSearchTab === 'find' && ProfileHandler.isFollowing(id)) return false;
+    const filtered = users.filter(u => {
+        const userId = getUserId(u);
+        if (!userId) {
+            console.warn("User object missing ID:", u);
+            return false;
+        }
+        const id = String(userId);
+        if (id === currentUserIdStr) return false;
         if (seenIds.has(id)) return false;
         seenIds.add(id);
         return true;
-    }).map(user => {
-        const id = parseInt(getUserId(user));
+    });
+
+    console.log(`Filtered ${users.length} users down to ${filtered.length}`);
+
+    return filtered.map(user => {
+        const id = getUserId(user);
         const isFollowed = forceFollowingState || ProfileHandler.isFollowing(id);
         const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : false;
         const canMessage = isAdmin || ProfileHandler.isFollower(id);
@@ -245,7 +281,7 @@ async function loadConnections(type) {
 // User Card Generation
 function createUserCard(user, isFollowing, canMessage) {
     const userId = getUserId(user);
-    const messageBtn = canMessage ? `<button class="btn-message" onclick="startMessage(${userId})"><i class="fa-solid fa-paper-plane"></i></button>` : '';
+    const messageBtn = canMessage ? `<button class="btn-message" onclick="startMessage('${userId}')"><i class="fa-solid fa-paper-plane"></i></button>` : '';
     
     return `
         <div class="crew-card">
@@ -268,11 +304,11 @@ function createUserCard(user, isFollowing, canMessage) {
             </div>
 
             <div class="actions" style="margin-top: 15px;">
-                <button class="btn-profile" onclick="viewProfile(${userId})">Profile</button>
+                <button class="btn-profile" onclick="viewProfile('${userId}')">Profile</button>
                 ${messageBtn}
                 ${isFollowing ? 
-                    `<button class="btn-following" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow(${userId}, this)"><i class="fas fa-user-minus"></i> Unfollow</button>` :
-                    `<button class="btn-follow" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow(${userId}, this)"><i class="fas fa-user-plus"></i> Follow</button>`
+                    `<button class="btn-following" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow('${userId}', this)"><i class="fas fa-user-minus"></i> Unfollow</button>` :
+                    `<button class="btn-follow" id="follow-btn-${userId}" data-user-id="${userId}" onclick="ProfileHandler.toggleFollow('${userId}', this)"><i class="fas fa-user-plus"></i> Follow</button>`
                 }
             </div>
         </div>

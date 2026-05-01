@@ -1,4 +1,4 @@
-// v2.1.0 - Resolved selectedImageFiles undefined issue
+// v2.2.0 - Smart Search & Profile-Based Relevance Feed
 let currentFeedPage = 0;
 let isLoading = false;
 let hasMore = true;
@@ -9,6 +9,18 @@ let isPollMode = false;
 let editingPostId = null;
 let editingImages = [];
 let isUploading = false;
+
+// --- Search & Filter State ---
+let searchMode = false;        
+let searchQuery = '';          
+let smartFilterActive = false; 
+let currentUserProfile = null; 
+let searchDebounceTimer = null;
+
+// Advanced Filters
+let currentSortBy = 'latest';
+let currentContentType = 'all';
+let currentTimeframe = 'all';
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
@@ -39,6 +51,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupImageUpload();
     setupEditImageUpload();
     setupInfiniteScroll();
+    setupFeedSearch();
+
+    // Pre-fetch user profile to enable smart filtering
+    if (currentUserId) {
+        getUserProfile(currentUserId).then(profile => {
+            if (profile) {
+                currentUserProfile = profile;
+                checkAndApplySmartFilter(profile);
+            }
+        });
+    }
     
     // Add Load More fallback listener
     const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -53,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Auto-scroll to post if postId is in URL
     scrollToPostFromUrl();
 });
+
 
 function scrollToPostFromUrl() {
     const postId = getQueryParam('postId');
@@ -363,10 +387,10 @@ function renderPostHTML(post) {
         </div>
         
         <div id="comment-box-${post.id}" style="display:none; padding:15px; border-top:1px solid #f1f5f9; background:#fafafa; border-radius:0 0 16px 16px;">
-            <div style="margin-bottom:10px; max-height: 150px; overflow-y: auto;">
+            <div id="comment-list-${post.id}" style="margin-bottom:10px; max-height: 150px; overflow-y: auto;">
                 ${post.actualComments && post.actualComments.length > 0 
                     ? post.actualComments.map(c => `<div style="font-size:13px; margin-bottom:5px; padding:8px; background:white; border-radius:8px; border:1px solid #eee;">💬 ${c}</div>`).join('') 
-                    : '<div style="font-size:12px; color:#aaa; margin-bottom:10px;">No comments yet. Be the first!</div>'}
+                    : '<div class="no-comments-msg" style="font-size:12px; color:#aaa; margin-bottom:10px;">No comments yet. Be the first!</div>'}
             </div>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="comment-input-${post.id}" placeholder="Type a comment..." style="flex:1; padding:8px; border:1px solid #ddd; border-radius:8px; font-size:13px; outline:none;">
@@ -511,6 +535,7 @@ async function createPost() {
         });
 
         if (response.ok) {
+            const newPost = await response.json();
             showMessage('Post created successfully!', 'success');
             if (isPollMode) {
                 document.getElementById('pollQuestion').value = '';
@@ -526,7 +551,13 @@ async function createPost() {
                 selectedImageFiles = [];
                 document.getElementById('imagePreviewContainer').innerHTML = '';
             }
-            loadFeed(0, true);
+            
+            // Prepend new post instead of reloading feed
+            displayPosts([newPost], false, true);
+            
+            // Clear no-data message if it exists
+            const noData = document.querySelector('.no-data');
+            if (noData) noData.remove();
         } else {
             showMessage('We couldn’t post that right now. Please check your content and try again.', 'error');
         }
@@ -549,7 +580,12 @@ async function deletePost(postId) {
         });
         if (response.ok) {
             showMessage('Deleted');
-            loadFeed(0, true);
+            const postEl = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+            if (postEl) {
+                postEl.style.opacity = '0';
+                postEl.style.transform = 'scale(0.9)';
+                setTimeout(() => postEl.remove(), 300);
+            }
         }
     } catch (e) {
         console.error(e);
@@ -627,8 +663,28 @@ async function commentPost(postId) {
         });
         if (response.ok) {
             const updatedPost = await response.json();
-            loadFeed(0, true); // Refresh or we could surgically update the comment list
             showMessage('Your comment has been posted!', 'success');
+            
+            // Update UI surgically
+            input.value = '';
+            
+            // Update comment count
+            const commentBtn = document.querySelector(`.post-card[data-post-id="${postId}"] .post-action-btn[onclick*="toggleCommentBox"] span`);
+            if (commentBtn) {
+                commentBtn.textContent = updatedPost.comments;
+            }
+            
+            // Add comment to list
+            const commentList = document.getElementById(`comment-list-${postId}`);
+            if (commentList) {
+                // Remove "No comments yet" if it exists
+                const noComments = commentList.querySelector('.no-comments-msg');
+                if (noComments) noComments.remove();
+                
+                const newCommentHtml = `<div style="font-size:13px; margin-bottom:5px; padding:8px; background:white; border-radius:8px; border:1px solid #eee; animation: fadeIn 0.3s ease;">💬 ${finalComment}</div>`;
+                commentList.insertAdjacentHTML('beforeend', newCommentHtml);
+                commentList.scrollTop = commentList.scrollHeight;
+            }
         } else {
             showMessage('We couldn’t post your comment. Please try again.', 'error');
         }
@@ -754,9 +810,17 @@ async function saveEditPost() {
         });
 
         if (response.ok) {
+            const updatedPost = await response.json();
             showMessage('Post updated successfully!', 'success');
             closeEditModal();
-            loadFeed(0, true);
+            
+            // Update post card surgically
+            const postCard = document.querySelector(`.post-card[data-post-id="${editingPostId}"]`);
+            if (postCard) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = renderPostHTML(updatedPost);
+                postCard.replaceWith(tempDiv.firstElementChild);
+            }
         } else {
             showMessage('We couldn’t update your post. Please check your connection.', 'error');
         }
@@ -852,3 +916,336 @@ async function votePoll(postId, optionIndex) {
     }
 }
 
+// ============================================================
+//  SMART SEARCH & PROFILE-BASED RELEVANCE FEED
+// ============================================================
+
+/**
+ * Wire up the search bar - debounce input and handle clear button
+ */
+function setupFeedSearch() {
+    const input = document.getElementById('feedSearchInput');
+    const clearBtn = document.getElementById('feedSearchClearBtn');
+    if (!input) return;
+
+    input.addEventListener('input', () => {
+        const val = input.value.trim();
+        if (clearBtn) clearBtn.style.display = val ? 'flex' : 'none';
+
+        clearTimeout(searchDebounceTimer);
+        if (val.length === 0) {
+            clearFeedSearch();
+            return;
+        }
+        if (val.length < 2) return;
+        searchDebounceTimer = setTimeout(() => executeFeedSearch(val), 400);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const val = input.value.trim();
+            if (val.length >= 1) {
+                clearTimeout(searchDebounceTimer);
+                executeFeedSearch(val);
+            }
+        }
+        if (e.key === 'Escape') clearFeedSearch();
+    });
+}
+
+/**
+ * Execute a keyword search against /api/posts/search
+ * Falls back to scanning top 50 posts and suggesting if zero matches
+ */
+async function executeFeedSearch(keyword) {
+    // If keyword is empty, but we have filters, we still allow search
+    searchMode = true;
+    searchQuery = keyword || '';
+    smartFilterActive = false;
+
+    const container = document.getElementById('feedContainer');
+    const loader = document.querySelector('.scroll-load');
+    const infoEl = document.getElementById('searchResultsInfo');
+    const chipEl = document.getElementById('smartFilterChip');
+
+    if (chipEl) chipEl.style.display = 'none';
+    if (loader) loader.style.opacity = '1';
+    if (infoEl) { infoEl.style.display = 'none'; infoEl.textContent = ''; }
+    
+    if (container) {
+        container.innerHTML = `
+            <div class="search-loading-state" style="padding: 60px 20px; text-align: center; color: #94a3b8; animation: fadeIn 0.3s ease;">
+                <div class="loader-dots" style="margin-bottom: 15px; display: flex; justify-content: center;">
+                    <div class="dot dot-1" style="background:#ff8c00;"></div>
+                    <div class="dot dot-2" style="background:#ff8c00;"></div>
+                    <div class="dot dot-3" style="background:#ff8c00;"></div>
+                </div>
+                <p style="font-size: 14px; font-weight: 600; color: #475569;">Searching for "${escapeHtml(searchQuery)}"</p>
+                <p style="font-size: 12px; margin-top: 4px;">Searching for people and posts...</p>
+            </div>
+        `;
+    }
+
+    hasMore = false; // pause infinite scroll during search
+
+    try {
+        const params = new URLSearchParams({
+            q: searchQuery,
+            t: currentTimeframe,
+            sortBy: currentSortBy,
+            type: currentContentType,
+            page: 0,
+            size: 50
+        });
+
+        // Parallel fetch for users and posts
+        const [postsRes, usersRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/posts/search?${params.toString()}`),
+            searchQuery.length >= 2 ? fetch(`${API_BASE_URL}/api/profile/search?query=${encodeURIComponent(searchQuery)}&currentUserId=${currentUserId || ''}&excludeFollowed=false&size=10`) : Promise.resolve({ ok: true, json: () => [] })
+        ]);
+
+        if (!postsRes.ok) throw new Error('Post search failed');
+        const postsData = await postsRes.json();
+        const posts = postsData.content ? postsData.content : postsData;
+        posts.forEach(p => { if (p.userDetails && !p.user) p.user = p.userDetails; });
+
+        let users = [];
+        if (usersRes.ok) {
+            const usersData = await usersRes.json();
+            users = usersData.content ? usersData.content : usersData;
+        }
+
+        if (container) container.innerHTML = ''; // clear loading state
+
+        // 1. Display People Section if found
+        if (users.length > 0) {
+            const peopleSection = document.createElement('div');
+            peopleSection.className = 'search-people-section';
+            peopleSection.innerHTML = `
+                <div class="search-section-header">
+                    <h4>PEOPLE</h4>
+                    <a href="crew-search.html?query=${encodeURIComponent(searchQuery)}" class="view-all-link">View all creators</a>
+                </div>
+                <div class="search-users-grid">
+                    ${users.map(u => `
+                        <div class="search-user-card" onclick="window.location.href='profile.html?userId=${u.id || u.userId}'">
+                            ${renderAvatar(u, 'user-mini-avatar')}
+                            <div class="user-info">
+                                <span class="user-name">${u.name}</span>
+                                <span class="user-role">${u.isVerifiedProfessional ? 'Professional' : (u.role || u.userType || 'Explorer')}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(peopleSection);
+        }
+
+        // 2. Display Posts Section
+        if (posts.length > 0) {
+            const postHeader = document.createElement('div');
+            postHeader.className = 'search-section-header';
+            postHeader.style.marginTop = users.length > 0 ? '20px' : '0';
+            postHeader.innerHTML = `<h4>POSTS</h4>`;
+            container.appendChild(postHeader);
+
+            displayPosts(posts, false); // USE FALSE to append instead of clearing the People section!
+            
+            if (infoEl) {
+                infoEl.style.display = 'block';
+                let timeText = currentTimeframe === 'day' ? 'past 24h' : currentTimeframe === 'week' ? 'past week' : currentTimeframe === 'month' ? 'past month' : '';
+                let sortText = currentSortBy === 'top' ? 'sorted by top' : '';
+                let typeText = currentContentType !== 'all' ? `(${currentContentType})` : '';
+                
+                let msg = `Found <span class="highlight">${posts.length}</span> ${typeText} post${posts.length !== 1 ? 's' : ''}`;
+                if (searchQuery) msg += ` for "<span class="highlight">${escapeHtml(searchQuery)}</span>"`;
+                if (timeText) msg += ` from <span class="highlight">${timeText}</span>`;
+                if (sortText) msg += ` ${sortText}`;
+                
+                infoEl.innerHTML = msg;
+            }
+        } else {
+            if (users.length === 0) {
+                showNoSearchResults(searchQuery);
+            } else {
+                // If we found users but no posts, show a friendly message below the people
+                const noPostsMsg = document.createElement('div');
+                noPostsMsg.className = 'no-posts-found-small';
+                noPostsMsg.style.padding = '30px 20px';
+                noPostsMsg.style.textAlign = 'center';
+                noPostsMsg.innerHTML = `
+                    <p style="color: #64748b; font-size: 14px; font-weight: 500;">No posts found for "${escapeHtml(searchQuery)}"</p>
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 4px;">But you can connect with the creators above!</p>
+                `;
+                container.appendChild(noPostsMsg);
+            }
+        }
+    } catch (err) {
+        console.error('Search error:', err);
+        showNoSearchResults(searchQuery);
+    } finally {
+        if (loader) loader.style.opacity = '0';
+    }
+}
+
+// --- Advanced Filter Functions ---
+
+function toggleFilterModal() {
+    const modal = document.getElementById('filterModal');
+    if (!modal) return;
+    
+    const isShowing = modal.style.display === 'flex';
+    modal.style.display = isShowing ? 'none' : 'flex';
+    
+    if (!isShowing) {
+        // Sync modal UI with current state
+        syncFilterUI();
+        document.body.style.overflow = 'hidden'; // prevent background scroll
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+function handleModalOutsideClick(e) {
+    if (e.target.id === 'filterModal') {
+        toggleFilterModal();
+    }
+}
+
+function syncFilterUI() {
+    // Sort By
+    const sortInputs = document.querySelectorAll('input[name="sortBy"]');
+    sortInputs.forEach(input => {
+        input.checked = input.value === currentSortBy;
+    });
+    
+    // Date Posted
+    const dateInputs = document.querySelectorAll('input[name="datePosted"]');
+    dateInputs.forEach(input => {
+        input.checked = input.value === currentTimeframe;
+    });
+    
+    // Content Type
+    const typeInputs = document.querySelectorAll('input[name="contentType"]');
+    typeInputs.forEach(input => {
+        input.checked = input.value === currentContentType;
+    });
+}
+
+function applyFilters() {
+    // Get values from UI
+    currentSortBy = document.querySelector('input[name="sortBy"]:checked').value;
+    currentTimeframe = document.querySelector('input[name="datePosted"]:checked').value;
+    currentContentType = document.querySelector('input[name="contentType"]:checked').value;
+    
+    // Update the legacy hidden select if needed (optional)
+    const legacySelect = document.getElementById('feedTimeFilter');
+    if (legacySelect) legacySelect.value = currentTimeframe;
+    
+    toggleFilterModal();
+    
+    const input = document.getElementById('feedSearchInput');
+    const keyword = input ? input.value.trim() : '';
+    executeFeedSearch(keyword);
+}
+
+function resetFilters() {
+    currentSortBy = 'latest';
+    currentTimeframe = 'all';
+    currentContentType = 'all';
+    syncFilterUI();
+}
+
+/**
+ * Handle time filter change - re-run search if keyword exists
+ */
+function onTimeFilterChange() {
+    const input = document.getElementById('feedSearchInput');
+    const keyword = input ? input.value.trim() : '';
+    if (keyword) {
+        executeFeedSearch(keyword);
+    }
+}
+
+/**
+ * When no keyword results found, scan top 50 posts and suggest them.
+ */
+async function showNoSearchResults(keyword) {
+    const container = document.getElementById('feedContainer');
+    const infoEl = document.getElementById('searchResultsInfo');
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/posts?page=0&size=50`);
+        let suggestions = [];
+        if (res.ok) {
+            const data = await res.json();
+            suggestions = data.content ? data.content : data;
+            suggestions.forEach(p => { if (p.userDetails && !p.user) p.user = p.userDetails; });
+        }
+
+        if (container) {
+            container.innerHTML = `
+                <div class="no-search-results">
+                    <div class="no-search-icon">🔍</div>
+                    <h3>No results found for "${escapeHtml(keyword)}"</h3>
+                    <p>We couldn't find any exact matches for your search.</p>
+                    <button class="scan-btn" onclick="clearFeedSearch()">
+                        <i class="fa-solid fa-arrow-left"></i> Back to All Posts
+                    </button>
+                </div>
+            `;
+            if (suggestions.length > 0) {
+                const suggestHeader = document.createElement('div');
+                suggestHeader.style.cssText = 'padding: 12px 40px 4px; font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;';
+                suggestHeader.textContent = `Recent Posts (${suggestions.length})`;
+                container.appendChild(suggestHeader);
+                const postsHtml = suggestions.map(p => renderPostHTML(p)).join('');
+                container.insertAdjacentHTML('beforeend', postsHtml);
+            }
+        }
+        if (infoEl) {
+            infoEl.style.display = 'block';
+            infoEl.innerHTML = `No results for "<span class="highlight">${escapeHtml(keyword)}</span>" — showing suggestions`;
+        }
+    } catch (err) {
+        console.error('Error loading suggestions:', err);
+        if (container) container.innerHTML = `<p class="no-data">No posts found for "${escapeHtml(keyword)}".</p>`;
+    }
+}
+
+/**
+ * Clear search mode and restore normal feed
+ */
+function clearFeedSearch() {
+    searchMode = false;
+    searchQuery = '';
+    const input = document.getElementById('feedSearchInput');
+    const clearBtn = document.getElementById('feedSearchClearBtn');
+    const infoEl = document.getElementById('searchResultsInfo');
+    const timeFilter = document.getElementById('feedTimeFilter');
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (infoEl) { infoEl.style.display = 'none'; infoEl.textContent = ''; }
+    if (timeFilter) timeFilter.value = 'all';
+
+    hasMore = true;
+    loadFeed(0, true);
+}
+
+/**
+ * Check user's profile — if role/skills are set, auto-apply smart filter.
+ * Before profile is updated: show normal feed (no filter).
+ * After profile updated: show relevant posts based on role + skills.
+ */
+function checkAndApplySmartFilter(profile) { return; }
+function applySmartFilterToCurrentFeed(keywords) { return; }
+function clearSmartFilter() { return; }
+
+/**
+ * Escape HTML to prevent XSS in search result display
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}

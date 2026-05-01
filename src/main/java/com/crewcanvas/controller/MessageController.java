@@ -18,11 +18,19 @@ import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class MessageController {
 
     @Autowired
     private MessageService messageService;
+
+    @GetMapping
+    public ResponseEntity<?> getRoot(@RequestParam(required = false) Long userId) {
+        if (userId != null) {
+            return getUserMessages(userId, 0, 50);
+        }
+        return ResponseEntity.ok(java.util.Collections.singletonMap("status", "Message API is active"));
+    }
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -55,6 +63,7 @@ public class MessageController {
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
+            map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
@@ -88,6 +97,7 @@ public class MessageController {
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
+            map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
@@ -119,9 +129,15 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getConversation(@PathVariable Long userId, @RequestParam Long otherUserId, 
+    @GetMapping({"/history/{userId}", "/history", "/history/"})
+    public ResponseEntity<?> getConversation(@PathVariable(required = false) Long userId, @RequestParam(required = false) Long otherUserId, 
                                             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("Error: userId in path is required for history (e.g., /api/messages/history/123)");
+        }
+        if (otherUserId == null) {
+            return ResponseEntity.badRequest().body("Error: otherUserId query parameter is required");
+        }
         try {
             org.springframework.data.domain.Page<Message> messages = messageService.getConversation(userId, otherUserId, page, size);
             java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
@@ -136,6 +152,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
+                map.put("isEdited", m.getIsEdited());
                 map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
@@ -167,6 +184,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
+                map.put("isEdited", m.getIsEdited());
                 map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
@@ -196,6 +214,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
+                map.put("isEdited", m.getIsEdited());
                 map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
@@ -218,7 +237,7 @@ public class MessageController {
         }
     }
 
-    @PutMapping("/{id}/read")
+    @PutMapping("/status/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
         try {
             Message message = messageService.markAsRead(id);
@@ -231,11 +250,59 @@ public class MessageController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
         try {
-            messageService.deleteMessage(id);
+            // Get message details before deletion to notify participants
+            java.util.Optional<Message> msgOpt = messageService.getMessageById(id);
+            if (msgOpt.isPresent()) {
+                Message msg = msgOpt.get();
+                Long senderId = msg.getSenderId();
+                Long receiverId = msg.getReceiverId();
+                
+                messageService.deleteMessage(id);
+                
+                // Notify via WebSocket about deletion
+                java.util.Map<String, Object> deleteMap = new java.util.HashMap<>();
+                deleteMap.put("id", id);
+                deleteMap.put("action", "delete");
+                
+                messagingTemplate.convertAndSend("/topic/messages/" + receiverId, deleteMap);
+                messagingTemplate.convertAndSend("/topic/messages/" + senderId, deleteMap);
+            }
+            
             return ResponseEntity.ok("Message deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> updateMessage(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
+        System.out.println("Updating message ID: " + id + " with content length: " + (payload != null && payload.get("content") != null ? payload.get("content").length() : "null"));
+        try {
+            String newContent = payload.get("content");
+            Message updated = messageService.updateMessage(id, newContent);
+            
+            // Notify via WebSocket so other side sees the edit
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", updated.getId());
+            map.put("senderId", updated.getSenderId());
+            map.put("receiverId", updated.getReceiverId());
+            map.put("content", updated.getContent());
+            map.put("imageUrl", updated.getImageUrl());
+            map.put("fileUrl", updated.getFileUrl());
+            map.put("fileType", updated.getFileType());
+            map.put("fileUrls", updated.getFileUrls());
+            map.put("isRead", updated.getIsRead());
+            map.put("isEdited", updated.getIsEdited());
+            map.put("createdAt", updated.getCreatedAt() != null ? ZonedDateTime.ofInstant(updated.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
+
+            messagingTemplate.convertAndSend("/topic/messages/" + updated.getReceiverId(), map);
+            messagingTemplate.convertAndSend("/topic/messages/" + updated.getSenderId(), map);
+
+            return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

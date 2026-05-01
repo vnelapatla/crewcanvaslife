@@ -264,8 +264,8 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    public org.springframework.data.domain.Page<User> searchUsers(String query, String role, String location, int page, int size) {
-        return userRepository.searchUsers(query, role, location, org.springframework.data.domain.PageRequest.of(page, size));
+    public org.springframework.data.domain.Page<User> searchUsers(String query, String role, String location, Long currentUserId, boolean excludeFollowed, int page, int size) {
+        return userRepository.searchUsers(query, role, location, currentUserId, excludeFollowed, org.springframework.data.domain.PageRequest.of(page, size));
     }
 
     public List<User> getAllUsers() {

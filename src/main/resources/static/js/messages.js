@@ -8,17 +8,16 @@ const MessagingUI = {
 // State management
 
 
-// Helper for robust ID retrieval
-// Helper for robust ID retrieval (Handled in utils.js, but keeping a local alias for safety)
-if (typeof getUserId === 'undefined') {
-    window.getUserId = function(user) {
-        if (!user) return null;
-        if (typeof user !== 'object') return user;
-        return user.id || user.userId || user.ID || user.userID;
-    };
-}
+// Helper for robust ID retrieval (Safe access to window.getUserId)
+const getUserId = (user) => {
+    if (typeof window.getUserId === 'function') return window.getUserId(user);
+    if (!user) return null;
+    if (typeof user !== 'object') return user;
+    return user.id || user.userId || user.ID || user.userID;
+};
 
 function switchSidebarTab(tabName) {
+    console.log("Switching tab to:", tabName);
     const chatTab = document.getElementById('conversationsList');
     const followingTab = document.getElementById('followingList');
     const btns = document.querySelectorAll('.list-tabs button');
@@ -47,8 +46,8 @@ async function loadFollowersAndMutuals() {
     
     try {
         const [followersRes, followingRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers`),
-            fetch(`${API_BASE_URL}/api/profile/${currentUserId}/following`)
+            fetch(`${window.API_BASE_URL}/api/profile/${currentUserId}/followers`),
+            fetch(`${window.API_BASE_URL}/api/profile/${currentUserId}/following`)
         ]);
 
         if (followersRes.ok && followingRes.ok) {
@@ -90,7 +89,8 @@ let conversations = [];
 let stompClient = null;
 let isSending = false;
 
-const WS_ENDPOINT = '/ws-chat';
+// WebSocket endpoint should use the correct base URL
+const getWsEndpoint = () => `${window.API_BASE_URL || ''}/ws-chat`;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Messages JS Loaded");
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function connectWebSocket() {
     if (!currentUserId) return;
-    const socket = new SockJS(WS_ENDPOINT);
+    const socket = new SockJS(getWsEndpoint());
     stompClient = Stomp.over(socket);
     stompClient.debug = null;
 
@@ -156,6 +156,27 @@ function connectWebSocket() {
 
 function onMessageReceived(msg) {
     console.log("WebSocket Message Received:", msg);
+    
+    // Handle real-time deletion
+    if (msg.action === 'delete') {
+        const msgEl = document.getElementById(`msg-${msg.id}`);
+        if (msgEl) {
+            msgEl.style.opacity = '0';
+            msgEl.style.transform = 'scale(0.95) translateY(10px)';
+            msgEl.style.transition = 'all 0.3s ease';
+            setTimeout(() => {
+                msgEl.remove();
+                // Check if we need to show "No messages" placeholder
+                const container = document.getElementById('messagesArea');
+                if (container && container.querySelectorAll('.message').length === 0) {
+                    loadMessages(); // Re-render to show placeholder
+                }
+            }, 300);
+        }
+        loadConversations(); // Update sidebar preview
+        return;
+    }
+
     // Robust ID comparison using String conversion
     const isCurrentChat = String(selectedConversationUserId) === String(msg.senderId) || 
                          String(selectedConversationUserId) === String(msg.receiverId);
@@ -167,34 +188,55 @@ function onMessageReceived(msg) {
 }
 
 // Fallback polling every 5 seconds to ensure sync
-setInterval(() => {
-    if (selectedConversationUserId) {
-        loadMessages();
-    }
-    loadConversations();
-}, 5000);
+    // Polling is now handled inside initMessaging
 
 async function initMessaging() {
+    console.log("initMessaging started for user:", currentUserId);
     // Show loading state
     const lists = ['conversationsList', 'followingList', 'followersList'];
     lists.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 13px;">Connecting to server...</div>';
+        if (el) el.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 13px;"><i class="fas fa-spinner fa-spin"></i> Connecting to server...</div>';
     });
 
     try {
-        await loadConversations(); 
-        await loadFollowersAndMutuals();
+        // Load initial data
+        await Promise.all([
+            loadConversations(),
+            loadFollowersAndMutuals()
+        ]);
+
+        // Polling for updates
+        setInterval(() => {
+            if (currentUserId && currentUserId !== 'null' && currentUserId !== 'undefined') {
+                if (selectedConversationUserId) {
+                    loadMessages();
+                }
+                loadConversations();
+            }
+        }, 5000);
         console.log("Messaging initialized successfully");
     } catch (e) {
         console.error("Failed to initialize messaging:", e);
+        const container = document.getElementById('conversationsList');
+        if (container) container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
+            Connection Failed<br>
+            <button onclick="initMessaging()" style="margin-top:10px; padding:5px 10px; border-radius:5px; border:none; background:#ff8c00; color:white; cursor:pointer;">Retry</button>
+        </div>`;
     }
 }
 
 // Load conversations
 async function loadConversations() {
+    if (!currentUserId || currentUserId === 'null' || currentUserId === 'undefined') {
+        console.warn("loadConversations: No valid currentUserId");
+        return;
+    }
+    
     try {
-        const url = `${API_BASE_URL}/api/conversations/${currentUserId}`;
+        // Use the globally available API_BASE_URL (var) or window property
+        const baseUrl = window.API_BASE_URL || (typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '');
+        const url = `${baseUrl}/api/conversations/${currentUserId}`;
         console.log("Fetching conversations from:", url);
         
         const response = await fetch(url);
@@ -204,15 +246,18 @@ async function loadConversations() {
         }
         
         conversations = await response.json();
-        console.log("Conversations loaded:", conversations);
+        console.log("Conversations loaded:", conversations.length);
         displayConversations();
     } catch (error) {
         console.error('Error loading conversations:', error);
         const container = document.getElementById('conversationsList');
-        if (container) container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
-            Connection Error<br>
-            <span style="font-size: 10px; opacity: 0.7;">${error.message.substring(0, 50)}</span>
-        </div>`;
+        if (container && container.innerHTML.includes('Connecting to server')) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
+                Unable to load chats<br>
+                <span style="font-size: 10px; opacity: 0.7; display:block; margin-top:5px;">${error.message.substring(0, 50)}</span>
+                <button onclick="loadConversations()" style="margin-top:10px; padding:5px 10px; border-radius:5px; border:none; background:#ff8c00; color:white; cursor:pointer; font-size:11px;">Try Again</button>
+            </div>`;
+        }
     }
 }
 
@@ -525,8 +570,9 @@ function getRandomColor(name) {
 
 // Load messages
 async function loadMessages() {
+    if (!currentUserId || !selectedConversationUserId || currentUserId === 'null' || currentUserId === 'undefined') return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/${currentUserId}?otherUserId=${selectedConversationUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}`);
         if (!response.ok) {
             const errText = await response.text();
             const container = document.getElementById('messagesArea');
@@ -642,17 +688,38 @@ function displayMessages(messages) {
         }
 
         const senderName = isSent ? (localStorage.getItem('userName') || 'You') : (selectedPartnerProfile?.name || 'User');
+        const content = msg.displayContent || msg.content || '';
+        const isSticker = content.includes('sticker-msg');
 
         return `
-            <div class="message ${isSent ? 'sent' : 'received'}">
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg.id}">
                 ${avatarHtml}
-                <div class="message-text">
-                    <div style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
-                    ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
-                    ${attachmentContent}
-                    <div class="message-status">
-                        ${formatTime(msg.createdAt)}
-                        ${isSent ? (msg.isRead ? ' <span style="color:#4fc3f7">✓✓</span>' : ' ✓') : ''}
+                <div class="message-content-wrapper">
+                    <div class="message-text">
+                        <div class="message-body">
+                            ${content ? `<p style="margin:0;">${content}</p>` : ''}
+                            ${attachmentContent}
+                        </div>
+                        <div class="message-status">
+                            ${formatTime(msg.createdAt)}
+                            ${isSent ? (msg.isRead ? ' <span style="color:#4fc3f7">✓✓</span>' : ' ✓') : ''}
+                            ${msg.isEdited ? '<span class="edited-tag">(edited)</span>' : ''}
+                        </div>
+
+                        <div class="message-options-btn" onclick="toggleMessageOptions(${msg.id}, event)">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </div>
+
+                        ${isSent ? `
+                        <div class="message-dropdown" id="dropdown-${msg.id}">
+                            <div class="message-dropdown-item" onclick="editMessageUI(${msg.id})">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </div>
+                            <div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -772,6 +839,255 @@ async function markAsRead(messageId) {
         });
     } catch (error) {
         console.error('Error marking as read:', error);
+    }
+}
+
+// Message Options Handlers
+function toggleMessageOptions(messageId, event) {
+    event.stopPropagation();
+    
+    // Check if on mobile
+    if (window.innerWidth <= 1024) {
+        openBottomSheet(messageId);
+        return;
+    }
+
+    const dropdown = document.getElementById(`dropdown-${messageId}`);
+    
+    // Close all other dropdowns
+    document.querySelectorAll('.message-dropdown').forEach(d => {
+        if (d.id !== `dropdown-${messageId}`) d.classList.remove('active');
+    });
+    
+    if (dropdown) {
+        dropdown.classList.toggle('active');
+    }
+}
+
+// Global click listener to close dropdowns
+document.addEventListener('click', () => {
+    document.querySelectorAll('.message-dropdown').forEach(d => d.classList.remove('active'));
+});
+
+async function confirmDeleteMessage(messageId) {
+    if (confirm('Are you sure you want to delete this message?')) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/messages/delete/${messageId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                loadMessages();
+                loadConversations();
+            } else {
+                showMessage('Failed to delete message.', 'error');
+            }
+        } catch (e) {
+            console.error('Delete error:', e);
+            showMessage('Network error while deleting.', 'error');
+        }
+    }
+}
+
+let editingMessageId = null;
+let originalContent = '';
+
+function editMessageUI(messageId) {
+    const messageEl = document.getElementById(`msg-${messageId}`);
+    if (!messageEl) return;
+    
+    const bodyEl = messageEl.querySelector('.message-body');
+    const pEl = bodyEl.querySelector('p');
+    
+    editingMessageId = messageId;
+    originalContent = pEl ? pEl.innerText : '';
+    
+    // Decrypt if it's base64 (for the edit box)
+    let contentToEdit = originalContent;
+    if (typeof AdvancedMessaging !== 'undefined' && originalContent) {
+        // The display content might already be decrypted, but let's be safe
+        // msg.content is usually the encrypted one
+    }
+
+    bodyEl.innerHTML = `
+        <div class="edit-message-container">
+            <textarea class="edit-message-input">${contentToEdit}</textarea>
+            <div class="edit-actions">
+                <button class="edit-btn cancel" onclick="cancelEdit(${messageId})">Cancel</button>
+                <button class="edit-btn save" onclick="saveEdit(${messageId})">Save Changes</button>
+            </div>
+        </div>
+    `;
+    
+    // Hide options button during edit
+    const optBtn = messageEl.querySelector('.message-options-btn');
+    if (optBtn) optBtn.style.display = 'none';
+}
+
+function cancelEdit(messageId) {
+    editingMessageId = null;
+    const messageEl = document.getElementById(`msg-${messageId}`);
+    if (messageEl) {
+        const bodyEl = messageEl.querySelector('.message-body');
+        if (bodyEl) {
+            // Restore the original content instantly
+            let displayContent = originalContent;
+            // Re-process hashtags/stickers if needed
+            if (typeof AdvancedMessaging !== 'undefined') {
+                displayContent = AdvancedMessaging.decrypt(originalContent);
+                // Note: displayContent will be re-processed by the renderer later, 
+                // but for instant cancel we just want the text back.
+            }
+            bodyEl.innerHTML = `<p style="margin:0;">${originalContent}</p>`;
+        }
+        // Show options button again
+        const optBtn = messageEl.querySelector('.message-options-btn');
+        if (optBtn) optBtn.style.display = 'flex';
+    }
+}
+
+async function saveEdit(messageId) {
+    const messageEl = document.getElementById(`msg-${messageId}`);
+    if (!messageEl) return;
+
+    const input = messageEl.querySelector('.edit-message-input');
+    const saveBtn = messageEl.querySelector('.edit-btn.save');
+    const newContent = input.value.trim();
+    
+    if (!newContent) return;
+    if (newContent === originalContent) {
+        cancelEdit(messageId);
+        return;
+    }
+
+    // Encrypt if AdvancedMessaging is present
+    const finalContent = (typeof AdvancedMessaging !== 'undefined') 
+        ? AdvancedMessaging.encrypt(newContent) 
+        : newContent;
+
+    try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/messages/edit/${messageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: finalContent })
+        });
+        
+        if (response.ok) {
+            const savedMsg = await response.json();
+            editingMessageId = null;
+            
+            // Instant UI Update
+            const bodyEl = messageEl.querySelector('.message-body');
+            if (bodyEl) {
+                let displayContent = newContent;
+                // If AdvancedMessaging exists, it might have specific rendering for stickers etc.
+                if (typeof enhanceMessageDisplay === 'function') {
+                    displayContent = enhanceMessageDisplay(savedMsg);
+                }
+                bodyEl.innerHTML = `<p style="margin:0;">${displayContent}</p>`;
+            }
+            
+            // Show options button again
+            const optBtn = messageEl.querySelector('.message-options-btn');
+            if (optBtn) optBtn.style.display = 'flex';
+
+            // Update edited tag instantly
+            const statusEl = messageEl.querySelector('.message-status');
+            if (statusEl && !statusEl.querySelector('.edited-tag')) {
+                statusEl.insertAdjacentHTML('beforeend', ' <span class="edited-tag">(edited)</span>');
+            }
+
+            if (typeof showMessage === 'function') showMessage('Message updated!', 'success');
+            
+            // Still sync in background to be safe
+            loadMessages();
+            loadConversations();
+        } else {
+            const errText = await response.text();
+            let errorMessage = 'Server error';
+            try {
+                const errObj = JSON.parse(errText);
+                errorMessage = errObj.message || errObj.error || errorMessage;
+            } catch (e) {
+                errorMessage = errText.substring(0, 100) || errorMessage;
+            }
+            console.error('Save edit error details:', errText);
+            if (typeof showMessage === 'function') showMessage('Failed to save: ' + errorMessage, 'error');
+            
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save Changes';
+            }
+        }
+    } catch (e) {
+        console.error('Save edit error:', e);
+        if (typeof showMessage === 'function') showMessage('Network error: ' + e.message, 'error');
+        
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Changes';
+        }
+    }
+}
+
+// Bottom Sheet Logic (Mobile)
+let activeSheetMessageId = null;
+
+function openBottomSheet(messageId) {
+    activeSheetMessageId = messageId;
+    const overlay = document.getElementById('bottomSheetOverlay');
+    const sheet = document.getElementById('messageOptionsBottomSheet');
+    
+    if (!overlay || !sheet) return;
+
+    // Check message state
+    const messageEl = document.getElementById(`msg-${messageId}`);
+    const isSent = messageEl && messageEl.classList.contains('sent');
+    const isSticker = messageEl && messageEl.querySelector('.sticker-msg');
+    const attachmentContent = messageEl && messageEl.querySelector('.message-body a');
+    const hasText = messageEl && messageEl.querySelector('.message-body p');
+    
+    // Toggle buttons based on ownership and content
+    const editBtn = document.getElementById('sheetEditBtn');
+    const deleteBtn = document.getElementById('sheetDeleteBtn');
+    const copyBtn = document.getElementById('sheetCopyBtn');
+    
+    if (editBtn) editBtn.style.display = (isSent && !isSticker && !attachmentContent) ? 'flex' : 'none';
+    if (deleteBtn) deleteBtn.style.display = isSent ? 'flex' : 'none';
+    if (copyBtn) copyBtn.style.display = hasText ? 'flex' : 'none';
+
+    overlay.classList.add('active');
+    sheet.classList.add('active');
+}
+
+function closeBottomSheet() {
+    const overlay = document.getElementById('bottomSheetOverlay');
+    const sheet = document.getElementById('messageOptionsBottomSheet');
+    if (overlay) overlay.classList.remove('active');
+    if (sheet) sheet.classList.remove('active');
+    activeSheetMessageId = null;
+}
+
+function handleSheetAction(action) {
+    const messageId = activeSheetMessageId;
+    if (!messageId) return;
+
+    closeBottomSheet();
+
+    if (action === 'edit') {
+        editMessageUI(messageId);
+    } else if (action === 'delete') {
+        confirmDeleteMessage(messageId);
+    } else if (action === 'copy') {
+        const messageEl = document.getElementById(`msg-${messageId}`);
+        const pEl = messageEl ? messageEl.querySelector('.message-body p') : null;
+        if (pEl && typeof copyToClipboard === 'function') {
+            copyToClipboard(pEl.innerText, 'Message copied to clipboard!');
+        }
     }
 }
 

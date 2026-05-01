@@ -2,6 +2,8 @@ package com.crewcanvas.repository;
 
 import com.crewcanvas.model.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,6 +17,29 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     org.springframework.data.domain.Page<Post> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 
     List<Post> findAllByOrderByCreatedAtDesc();
+
+    @Query("SELECT p FROM Post p WHERE LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.poll.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY p.createdAt DESC")
+    org.springframework.data.domain.Page<Post> searchByKeyword(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE (LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.poll.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.user.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND p.createdAt >= :sinceDate ORDER BY p.createdAt DESC")
+    org.springframework.data.domain.Page<Post> searchByKeywordAndTime(@Param("keyword") String keyword, @Param("sinceDate") java.time.LocalDateTime sinceDate, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Post p LEFT JOIN p.user u LEFT JOIN p.poll pol WHERE " +
+           "(LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(pol.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:sinceDate IS NULL OR p.createdAt >= :sinceDate) " +
+           "AND (:contentType IS NULL " +
+           "OR (:contentType = 'images' AND p.imageUrls IS NOT EMPTY AND NOT EXISTS (SELECT img FROM p.imageUrls img WHERE img LIKE 'data:video/%')) " +
+           "OR (:contentType = 'videos' AND EXISTS (SELECT img FROM p.imageUrls img WHERE img LIKE 'data:video/%')) " +
+           "OR (:contentType = 'polls' AND p.poll IS NOT NULL)) " +
+           "ORDER BY " +
+           "CASE WHEN :sortBy = 'latest' THEN p.createdAt END DESC, " +
+           "CASE WHEN :sortBy = 'top' THEN (p.likes + p.comments) END DESC, p.id DESC")
+    org.springframework.data.domain.Page<Post> searchAdvanced(
+            @Param("keyword") String keyword, 
+            @Param("sinceDate") java.time.LocalDateTime sinceDate, 
+            @Param("contentType") String contentType, 
+            @Param("sortBy") String sortBy, 
+            org.springframework.data.domain.Pageable pageable);
     
     @org.springframework.transaction.annotation.Transactional
     void deleteByUserId(Long userId);

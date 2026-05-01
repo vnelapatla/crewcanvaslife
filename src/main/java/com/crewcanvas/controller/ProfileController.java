@@ -23,22 +23,6 @@ public class ProfileController {
     @Autowired
     private ConnectionService connectionService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getProfile(@PathVariable Long id) {
-        try {
-            Optional<User> user = userService.findById(id);
-            if (user.isPresent()) {
-                return ResponseEntity.ok(user.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("User not found");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Unable to load profile. Please try again later.");
-        }
-    }
-
     @GetMapping("/onboarding-data/{id}")
     public ResponseEntity<?> getOnboardingData(@PathVariable Long id) {
         try {
@@ -54,6 +38,22 @@ public class ProfileController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProfile(@PathVariable Long id) {
+        try {
+            Optional<User> user = userService.findById(id);
+            if (user.isPresent()) {
+                return ResponseEntity.ok(user.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("User not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unable to load profile. Please try again later.");
         }
     }
 
@@ -94,10 +94,12 @@ public class ProfileController {
     public ResponseEntity<?> searchUsers(@RequestParam(required = false) String query,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) Long currentUserId,
+            @RequestParam(defaultValue = "false") boolean excludeFollowed,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
         try {
-            return ResponseEntity.ok(userService.searchUsers(query, role, location, page, size));
+            return ResponseEntity.ok(userService.searchUsers(query, role, location, currentUserId, excludeFollowed, page, size));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Search service is temporarily unavailable.");

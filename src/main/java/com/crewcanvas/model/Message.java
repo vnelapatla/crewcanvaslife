@@ -40,6 +40,9 @@ public class Message {
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
+    @Column(name = "is_edited", nullable = true)
+    private Boolean isEdited = false;
+
     @Column(name = "created_at")
     private java.time.Instant createdAt = java.time.Instant.now();
 
@@ -134,6 +137,14 @@ public class Message {
 
     public void setIsRead(Boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public Boolean getIsEdited() {
+        return isEdited;
+    }
+
+    public void setIsEdited(Boolean isEdited) {
+        this.isEdited = isEdited;
     }
 
     public java.time.Instant getCreatedAt() {

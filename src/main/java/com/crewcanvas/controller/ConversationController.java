@@ -26,10 +26,10 @@ public class ConversationController {
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getConversations(@PathVariable Long userId) {
+    @GetMapping({"", "/", "/{userId}"})
+    public ResponseEntity<?> getConversations(@PathVariable(required = false) Long userId) {
         if (userId == null) {
-            return ResponseEntity.badRequest().body("User ID is required");
+            return ResponseEntity.ok(java.util.Collections.emptyList());
         }
         try {
             System.out.println("Fetching conversations for user: " + userId);

@@ -67,6 +67,36 @@ public class PostService {
         return posts;
     }
 
+    public org.springframework.data.domain.Page<Post> searchPosts(String keyword, String timeFrame, int page, int size) {
+        return searchAdvanced(keyword, timeFrame, null, "latest", page, size);
+    }
+
+    public org.springframework.data.domain.Page<Post> searchAdvanced(String keyword, String timeFrame, String contentType, String sortBy, int page, int size) {
+        java.time.LocalDateTime sinceDate = null;
+        if (timeFrame != null) {
+            switch (timeFrame.toLowerCase()) {
+                case "day":
+                    sinceDate = java.time.LocalDateTime.now().minusDays(1);
+                    break;
+                case "week":
+                    sinceDate = java.time.LocalDateTime.now().minusWeeks(1);
+                    break;
+                case "month":
+                    sinceDate = java.time.LocalDateTime.now().minusMonths(1);
+                    break;
+            }
+        }
+
+        if (sortBy == null || sortBy.isEmpty()) sortBy = "latest";
+        if (contentType != null && (contentType.isEmpty() || contentType.equals("all"))) contentType = null;
+
+        org.springframework.data.domain.Page<Post> posts = postRepository.searchAdvanced(
+            keyword, sinceDate, contentType, sortBy, org.springframework.data.domain.PageRequest.of(page, size));
+        
+        populateExtraData(posts.getContent());
+        return posts;
+    }
+
     public org.springframework.data.domain.Page<Post> getUserPosts(Long userId, int page, int size) {
         org.springframework.data.domain.Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, org.springframework.data.domain.PageRequest.of(page, size));
         populateExtraData(posts.getContent());

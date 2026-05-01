@@ -498,9 +498,11 @@ async function submitEvent() {
             console.log('Event operation successful:', result);
             showMessage(editModeId ? 'Event updated successfully!' : 'Event created successfully!', 'success');
             
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            closeFormModal();
+            closeCreateEvent();
+            
+            // Re-load events to update UI without full page refresh
+            loadEvents();
         } else {
             const errorText = await response.text();
             console.error('Server error:', errorText);
@@ -541,13 +543,35 @@ async function applyToEvent(eventId) {
 
         if (response.ok) {
             const updatedEvent = await response.json();
-            showMessage('Registration successful! Generating your pass...', 'success');
+            showMessage('Registration successful!', 'success');
             
-            // Reload after a short delay so the user sees the 'View Pass' button immediately
-            // Especially critical for Film Events where tokens are generated server-side
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            // Update local applications list so UI knows we're registered
+            // We need to fetch it or just push a mock application
+            try {
+                const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
+                if (appsResponse.ok) {
+                    userApplications = await appsResponse.json();
+                }
+            } catch(e) {}
+            
+            // Update the specific card's button and count
+            const countEl = document.getElementById(`applicant-count-${eventId}`);
+            if (countEl) countEl.textContent = updatedEvent.applicants;
+            
+            const applyContainer = document.getElementById(`apply-container-${eventId}`);
+            if (applyContainer) {
+                // Determine if it's a film event to show "View Pass" or just "Registered"
+                const isFilmEvent = updatedEvent.eventType && updatedEvent.eventType.trim().toLowerCase() === 'film event';
+                const userApp = userApplications.find(app => app.eventId === eventId);
+                
+                if (isFilmEvent && userApp && userApp.passToken) {
+                    applyContainer.innerHTML = `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
+                } else if (userApp && userApp.status === 'SHORTLISTED' && userApp.passToken) {
+                     applyContainer.innerHTML = `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
+                } else {
+                    applyContainer.innerHTML = `<button class="apply-btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">Registered</button>`;
+                }
+            }
         } else {
             const errorMsg = await response.text();
             if (errorMsg === 'AUDITION_CLOSED') {

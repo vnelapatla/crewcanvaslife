@@ -122,9 +122,33 @@
     <!-- WebSocket Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script src="js/utils.js?v=2.2"></script>
-    <script src="js/profile-handler.js?v=1.1"></script>
-    <script src="js/advanced-messaging.js?v=1.1"></script>
-    <script src="js/messages.js?v=1.1"></script>
+    <script src="js/utils.js?v=2.3"></script>
+    <script src="js/profile-handler.js?v=2.3"></script>
+    <script src="js/advanced-messaging.js?v=2.3"></script>
+    <script src="js/messages.js?v=2.3"></script>
+
+    <!-- Premium Bottom Sheet for Message Options (Mobile) -->
+    <div id="bottomSheetOverlay" class="bottom-sheet-overlay" onclick="closeBottomSheet()"></div>
+    <div id="messageOptionsBottomSheet" class="bottom-sheet">
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-header">
+            <h3>Message Options</h3>
+            <button class="close-sheet" onclick="closeBottomSheet()">&times;</button>
+        </div>
+        <div class="bottom-sheet-content">
+            <div id="sheetEditBtn" class="sheet-item" onclick="handleSheetAction('edit')">
+                <div class="sheet-icon"><i class="fa-solid fa-pen"></i></div>
+                <span>Edit Message</span>
+            </div>
+            <div id="sheetCopyBtn" class="sheet-item" onclick="handleSheetAction('copy')">
+                <div class="sheet-icon"><i class="fa-solid fa-copy"></i></div>
+                <span>Copy Text</span>
+            </div>
+            <div id="sheetDeleteBtn" class="sheet-item delete" onclick="handleSheetAction('delete')">
+                <div class="sheet-icon"><i class="fa-solid fa-trash"></i></div>
+                <span>Delete Message</span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

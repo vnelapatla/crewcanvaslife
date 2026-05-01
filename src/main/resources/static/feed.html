@@ -24,6 +24,38 @@
                 <h2 class="section-title">Community Feed</h2>
             </div>
 
+            <!-- Smart Search Bar -->
+            <div class="feed-search-wrapper" id="feedSearchWrapper">
+                <div class="feed-search-bar">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="feedSearchInput" 
+                        placeholder="Search posts, accounts, topics, roles..." 
+                        autocomplete="off"
+                    >
+                    <button id="feedSearchClearBtn" class="search-clear-btn" style="display:none;" onclick="clearFeedSearch()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <select id="feedTimeFilter" class="time-filter-select" onchange="onTimeFilterChange()" style="display:none;">
+                        <option value="all">All Time</option>
+                        <option value="day">Past 24h</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                    </select>
+                    <button class="filter-toggle-btn" onclick="toggleFilterModal()" title="Search filters">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+                <!-- Profile-based smart filter chip (shown after profile update) -->
+                <div id="smartFilterChip" class="smart-filter-chip" style="display:none;">
+                    <i class="fa-solid fa-sparkles"></i>
+                    <span id="smartFilterLabel">Posts for you</span>
+                    <button class="chip-close" onclick="clearSmartFilter()" title="Clear filter"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="searchResultsInfo" class="search-results-info" style="display:none;"></div>
+            </div>
+
             <!-- Create Post Section -->
             <div class="create-post-card card" style="margin-bottom: 30px;">
                 <div id="standardPostInputs">
@@ -106,9 +138,99 @@
         </div>
     </div>
 
-    <script src="js/utils.js?v=2.2"></script>
-    <script src="js/profile-handler.js?v=2.1"></script>
-    <script src="js/feed.js?v=2.1"></script>
+    <!-- Advanced Filter Modal -->
+    <div id="filterModal" class="filter-modal-overlay" style="display:none;" onclick="handleModalOutsideClick(event)">
+        <div class="filter-modal-content" onclick="event.stopPropagation()">
+            <div class="filter-modal-header">
+                <div class="drag-handle"></div>
+                <div class="header-top">
+                    <h3 class="modal-title">Posts filters</h3>
+                    <button class="reset-link" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+            
+            <div class="filter-modal-body">
+                <!-- Sort By -->
+                <div class="filter-section">
+                    <h4 class="filter-section-title">Sort by</h4>
+                    <div class="filter-options">
+                        <label class="filter-radio-option">
+                            <span>Top Match</span>
+                            <input type="radio" name="sortBy" value="top">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Latest</span>
+                            <input type="radio" name="sortBy" value="latest" checked>
+                            <span class="radio-custom"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Date Posted -->
+                <div class="filter-section">
+                    <h4 class="filter-section-title">Date posted</h4>
+                    <div class="filter-options">
+                        <label class="filter-radio-option">
+                            <span>Past 24 hours</span>
+                            <input type="radio" name="datePosted" value="day">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Past week</span>
+                            <input type="radio" name="datePosted" value="week">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Past month</span>
+                            <input type="radio" name="datePosted" value="month">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Any time</span>
+                            <input type="radio" name="datePosted" value="all" checked>
+                            <span class="radio-custom"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Content Type -->
+                <div class="filter-section">
+                    <h4 class="filter-section-title">Content type</h4>
+                    <div class="filter-options">
+                        <label class="filter-radio-option">
+                            <span>Videos</span>
+                            <input type="radio" name="contentType" value="videos">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Images</span>
+                            <input type="radio" name="contentType" value="images">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>Polls</span>
+                            <input type="radio" name="contentType" value="polls">
+                            <span class="radio-custom"></span>
+                        </label>
+                        <label class="filter-radio-option">
+                            <span>All</span>
+                            <input type="radio" name="contentType" value="all" checked>
+                            <span class="radio-custom"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-modal-footer">
+                <button class="show-results-btn" onclick="applyFilters()">Show results</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js?v=2.3"></script>
+    <script src="js/profile-handler.js?v=2.3"></script>
+    <script src="js/feed.js?v=2.3"></script>
 </body>
 
 </html>

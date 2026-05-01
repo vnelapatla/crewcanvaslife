@@ -36,6 +36,32 @@ public class PostController {
         }
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPosts(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "all") String t,
+            @RequestParam(defaultValue = "latest") String sortBy,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        try {
+            if (q == null || q.trim().isEmpty()) {
+                // If keywords are empty, we still apply filters if present
+                if ((type != null && !type.equals("all")) || !sortBy.equals("latest") || !t.equals("all")) {
+                    org.springframework.data.domain.Page<Post> posts = postService.searchAdvanced("", t, type, sortBy, page, size);
+                    return ResponseEntity.ok(posts);
+                }
+                // fallback: return paginated all posts
+                org.springframework.data.domain.Page<Post> posts = postService.getAllPosts(page, size);
+                return ResponseEntity.ok(posts);
+            }
+            org.springframework.data.domain.Page<Post> posts = postService.searchAdvanced(q.trim(), t, type, sortBy, page, size);
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Search failed.");
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {

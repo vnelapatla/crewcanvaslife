@@ -160,4 +160,19 @@ public class MessageService {
     public void deleteMessage(Long id) {
         messageRepository.deleteById(id);
     }
+
+    public Optional<Message> getMessageById(Long id) {
+        return messageRepository.findById(id);
+    }
+
+    public Message updateMessage(Long id, String newContent) {
+        Optional<Message> messageOpt = messageRepository.findById(id);
+        if (messageOpt.isPresent()) {
+            Message message = messageOpt.get();
+            message.setContent(newContent);
+            message.setIsEdited(true);
+            return messageRepository.save(message);
+        }
+        throw new RuntimeException("Message not found");
+    }
 }
