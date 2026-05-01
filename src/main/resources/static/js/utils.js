@@ -162,28 +162,25 @@ function formatDateForInput(val) {
 function parseSafeDate(dateString) {
     if (!dateString) return null;
     
-    // 1. Direct parse
+    // 1. Direct parse (Modern browsers handle ISO strings well)
     let date = new Date(dateString);
     if (!isNaN(date.getTime())) return date;
 
-    // 2. Try fixing common ISO-like formats
+    // 2. Try fixing common ISO-like formats (space to T)
     let fixed = dateString.replace(' ', 'T');
-    
-    // If it lacks a timezone but has T, try assuming UTC if it looks like a full ISO string
-    if (fixed.includes('T') && !fixed.includes('Z') && !/[+-]\d{2}:\d{2}$/.test(fixed)) {
-        const utcDate = new Date(fixed + 'Z');
-        if (!isNaN(utcDate.getTime())) return utcDate;
-    }
-
     date = new Date(fixed);
     if (!isNaN(date.getTime())) return date;
 
-    // 3. Last ditch effort for very weird formats
-    try {
-        const cleaned = dateString.replace(/[^\d-T:.Z+]/g, '');
-        const d = new Date(cleaned);
-        if (!isNaN(d.getTime())) return d;
-    } catch (e) {}
+    // 3. Fallback for strings that *might* be UTC but lack 'Z'
+    // ONLY do this if the date is very far in the past or future (heuristic)
+    // Actually, it's safer to just try parsing it as is.
+    
+    // 4. Handle Java object format if it leaks through
+    if (typeof dateString === 'object' && dateString.year) {
+        const d = new Date(dateString.year, (dateString.monthValue || dateString.month || 1) - 1, dateString.dayOfMonth || dateString.day || 1);
+        if (dateString.hour !== undefined) d.setHours(dateString.hour, dateString.minute || 0, dateString.second || 0);
+        return d;
+    }
 
     return null;
 }
@@ -230,14 +227,7 @@ function truncateText(text, length = 30) {
 
 
 // Render a colored circle with initials as an avatar fallback
-function renderAvatarFallback(name, className = '', size = '40px') {
-    const initials = (name || 'U').charAt(0).toUpperCase();
-    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#4caf50', '#ffc107', '#ff9800', '#ff5722'];
-    const charCode = initials.charCodeAt(0);
-    const color = colors[charCode % colors.length];
-    
-    return `<div class="${className}" style="width: ${size}; height: ${size}; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: calc(${size} * 0.4); flex-shrink: 0;">${initials}</div>`;
-}
+
 
 /**
  * Returns a default image URL based on the event type
@@ -423,7 +413,7 @@ function isVideoFile(src) {
 // Helper to render media content (image or video)
 function renderMediaContent(src, className = 'post-image') {
     if (isVideoFile(src)) {
-        return `<video src="${src}" class="${className}" controls muted playsinline style="width:100%; max-height:500px; background:#000; border-radius:8px; display:block; object-fit:contain;"></video>`;
+        return `<video src="${src}" class="${className}" controls muted playsinline style="width:100%; display:block;"></video>`;
     } else {
         return `<img src="${src}" class="${className}" alt="Media content" loading="lazy">`;
     }
@@ -476,6 +466,46 @@ function viewFileFromBase64(base64Data) {
         console.error("View Error:", e);
         window.open(base64Data, '_blank');
     }
+}
+
+/**
+ * Displays an image in a full-screen premium modal
+ */
+function viewImageFull(src) {
+    if (!src) return;
+    
+    let modal = document.getElementById('imageFullModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'imageFullModal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 10000000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+            cursor: zoom-out;
+        `;
+        modal.innerHTML = `
+            <img id="fullImageContent" src="" style="max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <button onclick="document.getElementById('imageFullModal').style.opacity='0'; setTimeout(()=>document.getElementById('imageFullModal').style.display='none', 300)" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px;">&times;</button>
+        `;
+        document.body.appendChild(modal);
+        modal.onclick = (e) => {
+            if (e.target.id !== 'fullImageContent') {
+                modal.style.opacity = '0';
+                modal.querySelector('img').style.transform = 'scale(0.9)';
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+        };
+    }
+    
+    const img = document.getElementById('fullImageContent');
+    img.src = src;
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        img.style.transform = 'scale(1)';
+    }, 10);
 }
 
 // Add CSS animations and Premium Toast Styles
@@ -566,7 +596,7 @@ function getAvatarFallback(name) {
 // Render avatar or fallback
 function renderAvatar(user, className = '', size = '40px') {
     const style = `width: ${size}; height: ${size}; min-width: ${size}; min-height: ${size}; object-fit: cover; border-radius: 50%;`;
-    if (user && user.profilePicture && user.profilePicture.length > 50) { 
+    if (user && user.profilePicture && user.profilePicture.trim().length > 0) { 
         return `<img src="${user.profilePicture}" alt="${user.name}" class="${className}" style="${style}" onerror="this.onerror=null; this.outerHTML=renderAvatarFallback('${user.name}', '${className}', '${size}')">`;
     } else {
         return renderAvatarFallback(user ? user.name : 'User', className, size);
@@ -697,32 +727,50 @@ function initUniversalHeader() {
     const initials = getAvatarFallback(userName);
     const adminBadge = isAdmin ? '<span style="background:var(--primary-orange); color:#fff; font-size:9px; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:800; vertical-align:middle; text-transform:uppercase;">ADMIN</span>' : '';
 
-    // Standardized Header HTML (Matches user screenshot)
-    header.innerHTML = `
-        <div class="header-left">
-            <h2 class="brand-logo">CrewCanvas</h2>
-        </div>
-        <div class="status-bar">
-            <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
-                <div class="user-initials" id="userInitialsSmall" style="${(userAvatar && userAvatar.length > 10) ? 'display:none' : 'display:flex'}">${initials}</div>
-                <img id="userAvatarSmall" src="${(userAvatar && userAvatar.length > 10) ? userAvatar : ''}" alt="" loading="lazy" style="${(userAvatar && userAvatar.length > 10) ? 'display:block' : 'display:none'}; width:28px; height:28px; border-radius:50%; object-fit:cover; border: 1px solid #f1f5f9;">
-                <span id="userNameHeader" style="font-size: 14px; font-weight: 700; color: #1e293b; margin-left: 2px;">${userName}${adminBadge}</span>
-                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px; opacity: 0.4;"></i>
-                
-                <div class="profile-dropdown-menu" id="profileDropdown">
-                    <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
-                    <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
-                    <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
-                    <a href="notifications.html" class="dropdown-item notifications-link">
-                        <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
-                        <span id="notifBadge" class="notif-pill" style="display:none;">0</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    // Standardized Header HTML (Compact Version requested by user)
+    const userId = localStorage.getItem('userId');
+    const avatarVisible = (userAvatar && typeof userAvatar === 'string' && userAvatar.length > 10);
+    
+    if (userId) {
+        header.innerHTML = `
+            <div class="header-left">
+                <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
+            </div>
+            <div class="status-bar" style="gap: 12px; display: flex; align-items: center;">
+                <a href="notifications.html" class="notification-icon-link" title="Notifications" style="color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative;">
+                    <i class="fa-solid fa-bell"></i>
+                    <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
+                </a>
+                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+                    <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
+                    <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                    
+                    <div class="profile-dropdown-menu" id="profileDropdown" style="top: 45px;">
+                        <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
+                        <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
+                        <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Crew Canvas</a>
+                        <a href="notifications.html" class="dropdown-item notifications-link">
+                            <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
+                            <span id="notifBadge" class="notif-pill" style="display:none;">0</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        // Guest Header
+        header.innerHTML = `
+            <div class="header-left">
+                <h2 class="brand-logo" onclick="window.location.href='index.html'">CrewCanvas</h2>
+            </div>
+            <div class="status-bar">
+                <a href="index.html" style="color: #1e293b; text-decoration: none; font-weight: 700; font-size: 13px; background: #f1f5f9; padding: 8px 18px; border-radius: 50px;">Login</a>
+            </div>
+        `;
+    }
     header.classList.add('top-header');
     
     // Sync with ProfileHandler if it exists
@@ -812,8 +860,9 @@ function calculateProfileScore(user) {
     
     // Portfolio & Social (Max 25)
     if (user.showreel || user.portfolioVideos) score += 10;
+    if (user.recentPictures && user.recentPictures.length > 5) score += 5;
     if (user.resume) score += 5;
-    if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 10;
+    if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 5;
     
     return Math.min(score, 100);
 }
@@ -912,17 +961,23 @@ const NotificationHandler = {
             if (res.ok) {
                 const data = await res.json();
                 this.unreadCount = data.count;
-                const badge = document.getElementById('notifBadge');
-                if (badge) {
-                    if (this.unreadCount > 0) {
-                        badge.textContent = this.unreadCount;
-                        badge.style.display = 'inline-flex';
-                    } else {
-                        badge.style.display = 'none';
+                
+                // Update both potential badge IDs
+                const badges = [document.getElementById('notifBadge'), document.getElementById('notifBadgeHeader')];
+                badges.forEach(badge => {
+                    if (badge) {
+                        if (this.unreadCount > 0) {
+                            badge.textContent = this.unreadCount;
+                            badge.style.display = 'inline-flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
                     }
-                }
+                });
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error("Badge update failed:", e);
+        }
     },
 
     toggleDropdown: function(event) {

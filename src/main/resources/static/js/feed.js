@@ -425,7 +425,6 @@ function setupImageUpload() {
     });
 }
 
-// Remove specifically selected image from array
 function removeSelectedImage(btnElement, base64) {
     const index = selectedImageFiles.indexOf(base64);
     if (index > -1) {

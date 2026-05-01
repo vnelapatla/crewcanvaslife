@@ -1,6 +1,7 @@
 package com.crewcanvas.service;
 
 import com.crewcanvas.model.User;
+import com.crewcanvas.model.Message;
 import com.crewcanvas.repository.UserRepository;
 import com.crewcanvas.repository.EventApplicationRepository;
 import com.crewcanvas.repository.PollVoteRepository;
@@ -54,6 +55,92 @@ public class UserService {
 
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private WhatsAppService whatsappService;
+
+    public User getOfficialUser() {
+        String officialEmail = "crewcanvas2@gmail.com";
+        Optional<User> officialUserOpt = userRepository.findByEmail(officialEmail);
+        User officialUser;
+
+        if (officialUserOpt.isEmpty()) {
+            logger.info("Official account not found. Creating default official account...");
+            officialUser = new User("CrewCanvas Official", officialEmail, "admin123");
+            officialUser.setIsAdmin(true);
+            officialUser.setUserType("Admin");
+            officialUser = userRepository.save(officialUser);
+        } else {
+            officialUser = officialUserOpt.get();
+            // Ensure the name is professional
+            if (!"CrewCanvas Official".equals(officialUser.getName())) {
+                officialUser.setName("CrewCanvas Official");
+                userRepository.save(officialUser);
+            }
+        }
+        return officialUser;
+    }
+
+    public void sendWelcomeMessage(User user) {
+        if (user == null || user.getId() == null) return;
+
+        User officialUser = getOfficialUser();
+        Long senderId = officialUser.getId();
+        Long receiverId = user.getId();
+
+        // Don't send welcome message to the official account itself
+        if (senderId.equals(receiverId)) return;
+
+        // Check if welcome message already sent in-app
+        if (messageRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
+            return;
+        }
+
+        String profileLink = "https://crewcanvas.in/profile.html?userId=" + receiverId;
+
+        String content = "Welcome to CrewCanvas! 🎬 We're thrilled to have you here. " +
+                "To get the most out of this platform and catch up with upcoming openings, " +
+                "please make sure to fill your profile to 100%. " +
+                "Productions and recruiters will look into your profile for recommendations and casting. " +
+                "You can view and complete your profile here: " + profileLink + " " +
+                "Let's build something great together!";
+
+        // 1. Send In-App Message
+        Message welcomeMsg = new Message(senderId, receiverId, content);
+        messageRepository.save(welcomeMsg);
+
+        // 2. Trigger Notification
+        notificationService.createNotification(
+                receiverId,
+                senderId,
+                "MESSAGE",
+                "Welcome to CrewCanvas! Check your messages for a quick guide.",
+                senderId.toString()
+        );
+
+        // 3. Send Email
+        try {
+            String profileLinkEmail = "https://crewcanvas.in/profile.html?userId=" + user.getId();
+            emailService.sendWelcomeEmail(user.getEmail(), user.getName(), profileLinkEmail);
+            logger.info("Welcome email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to send welcome email to {}: {}", user.getEmail(), e.getMessage());
+        }
+
+        // 4. Send WhatsApp (Disabled for now - requires paid API)
+        /*
+        try {
+            whatsappService.sendWelcomeWhatsApp(user.getPhone(), user.getName());
+        } catch (Exception e) {
+            logger.error("Failed to send welcome WhatsApp to {}: {}", user.getPhone(), e.getMessage());
+        }
+        */
+        
+        logger.info("Welcome package (Message, Email) initiated for user: {}", user.getEmail());
+    }
 
     public User registerUser(String name, String email, String password) {
         if (userRepository.existsByEmail(email)) {
@@ -169,6 +256,7 @@ public class UserService {
         // Images
         if (updatedUser.getProfilePicture() != null) existingUser.setProfilePicture(updatedUser.getProfilePicture());
         if (updatedUser.getCoverImage() != null) existingUser.setCoverImage(updatedUser.getCoverImage());
+        if (updatedUser.getRecentPictures() != null) existingUser.setRecentPictures(updatedUser.getRecentPictures());
         if (updatedUser.getResume() != null) existingUser.setResume(updatedUser.getResume());
         if (updatedUser.getResumeFileName() != null) existingUser.setResumeFileName(updatedUser.getResumeFileName());
         if (updatedUser.getResumeContentType() != null) existingUser.setResumeContentType(updatedUser.getResumeContentType());

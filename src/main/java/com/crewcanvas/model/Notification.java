@@ -37,11 +37,11 @@ public class Notification {
     private boolean isRead = false;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private java.time.Instant createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = java.time.Instant.now();
     }
 
     public Notification() {}
@@ -65,6 +65,6 @@ public class Notification {
     public void setTargetId(String targetId) { this.targetId = targetId; }
     public boolean isRead() { return isRead; }
     public void setRead(boolean read) { isRead = read; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public java.time.Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.Instant createdAt) { this.createdAt = createdAt; }
 }

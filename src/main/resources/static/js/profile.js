@@ -207,6 +207,37 @@ function displayProfile(user) {
         }
     }
 
+    // Recent Pictures (Professional Gallery)
+    const recentPicSection = document.getElementById('recentPicturesSection');
+    const recentPicGrid = document.getElementById('recentPicturesGrid');
+
+    if (recentPicSection && recentPicGrid) {
+        let pictures = [];
+        if (user.recentPictures) {
+            try {
+                const parsed = JSON.parse(user.recentPictures);
+                pictures = Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                pictures = (user.recentPictures || '').split(',').filter(p => p.trim() !== '');
+            }
+        }
+
+        if (pictures && pictures.length > 0) {
+            recentPicSection.style.display = 'block';
+            
+            recentPicGrid.innerHTML = pictures.map((pic, idx) => `
+                <div class="project-item" style="position:relative; cursor:pointer;" onclick="viewImageFull('${pic}')">
+                    <img src="${pic}" style="width:100%; height:260px; object-fit:cover; border-radius:15px; border:1px solid #222;" loading="lazy">
+                    <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); color:white; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:800;">
+                        PIC ${idx + 1}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            recentPicSection.style.display = 'none';
+        }
+    }
+
     // Dynamic Craft Specifications
     displayCraftSpecs(user);
 

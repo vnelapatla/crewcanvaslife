@@ -48,7 +48,7 @@ echo [4/4] Starting CrewCanvas...
 echo.
 echo ========================================
 echo   Application is starting...
-echo   Access at: http://localhost:9095
+echo   Access at: http://localhost:8081
 echo.
 echo   Database: MySQL (crewcanvas_db)
 echo.

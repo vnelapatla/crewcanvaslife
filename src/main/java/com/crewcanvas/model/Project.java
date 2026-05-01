@@ -35,7 +35,7 @@ public class Project {
     private String videoUrl;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private java.time.Instant createdAt;
 
     @Column(nullable = false)
     private Boolean verified = false;
@@ -46,7 +46,7 @@ public class Project {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = java.time.Instant.now();
     }
 
     // Constructors
@@ -133,11 +133,11 @@ public class Project {
         this.videoUrl = videoUrl;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public java.time.Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(java.time.Instant createdAt) {
         this.createdAt = createdAt;
     }
 

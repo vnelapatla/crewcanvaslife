@@ -176,4 +176,15 @@ public class EventController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/{id}/broadcast")
+    public ResponseEntity<?> broadcastUpdate(@PathVariable Long id, @RequestBody java.util.Map<String, String> details) {
+        try {
+            eventService.broadcastEventDetails(id, details.get("location"), details.get("time"), details.get("date"));
+            return ResponseEntity.ok("Broadcast sent successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

@@ -614,6 +614,31 @@
         }
 
         /* Responsive */
+        /* Gallery Slider for Mobile */
+        .gallery-slider {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-slider {
+                display: flex !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory;
+                gap: 15px !important;
+                padding-bottom: 10px;
+                scrollbar-width: none; /* Hide scrollbar Firefox */
+            }
+            .gallery-slider::-webkit-scrollbar {
+                display: none; /* Hide scrollbar Chrome/Safari */
+            }
+            .gallery-slider .project-item {
+                flex: 0 0 240px !important;
+                scroll-snap-align: center;
+            }
+        }
+
         @media (max-width: 1080px) {
             body { display: block; }
             .sidebar { display: none !important; }
@@ -853,6 +878,14 @@
 
             <!-- Row 4: Tab Contents -->
             <div id="portfolioTab" class="tab-content active">
+                <div id="recentPicturesSection" class="portfolio-single-grid" style="display: none; margin-bottom: 30px;">
+                    <div class="info-card uniform-card">
+                        <h3><i class="fa-solid fa-camera-retro"></i> Professional Gallery</h3>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 15px;">Latest headshots and portfolio pictures.</p>
+                        <div class="card-content gallery-slider" id="recentPicturesGrid"></div>
+                    </div>
+                </div>
+
                 <div class="portfolio-single-grid">
                     <div class="info-card uniform-card">
                         <h3><i class="fa-solid fa-film"></i> Movie Projects</h3>
@@ -903,7 +936,7 @@
         </div>
     </div>
 
-    <script src="js/utils.js?v=2.0"></script>
+    <script src="js/utils.js?v=2.2"></script>
     <script src="js/profile-handler.js?v=2.0"></script>
     <script src="js/profile.js?v=2.0"></script>
 </body>

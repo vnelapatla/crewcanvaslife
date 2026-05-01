@@ -211,6 +211,8 @@
         .status-shortlisted { background: #fff8f1; color: #f59e0b; }
         .status-registered { background: #dcfce7; color: #15803d; }
         .status-rejected { background: #fef2f2; color: #ef4444; }
+        .status-selected { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .status-not_selected { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
 
         .action-icons {
             display: flex;
@@ -496,9 +498,11 @@
                             <div class="mgmt-label">Event Management</div>
                             <h1 id="mgmtEventTitle" style="font-size: 24px; color: #1e293b; margin: 5px 0;">Event Title</h1>
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                            <button class="export-btn" onclick="openBroadcastModal()" style="padding: 6px 12px; font-size: 11px; background: #0f172a; color: white; border: none;"><i class="fas fa-bullhorn"></i> Broadcast Details</button>
                             <button class="export-btn" onclick="exportApplicantsData()" style="padding: 6px 12px; font-size: 11px;"><i class="fas fa-file-export"></i> Export</button>
                             <button class="manage-btn" onclick="openEditModal()" style="margin-top: 0; padding: 6px 12px; font-size: 11px; border-color: var(--primary-orange); color: var(--primary-orange);"><i class="fas fa-edit"></i> Edit</button>
+                            <button id="toggleStatusBtn" class="export-btn" onclick="toggleEventStatus()" style="margin-top: 0; padding: 6px 12px; font-size: 11px; background: #f8fafc; color: #475569;"><i class="fas fa-lock"></i> Close Audition</button>
                             <button class="delete-btn" onclick="deleteEvent(currentEventId)" style="margin-top: 0; padding: 6px 12px; font-size: 11px;"><i class="fas fa-trash"></i> Delete</button>
                         </div>
                     </div>
@@ -612,6 +616,13 @@
                         <label class="mgmt-label">Description</label>
                         <textarea id="editDescription" class="form-control-premium" style="min-height: 100px;"></textarea>
                     </div>
+                    <div style="grid-column: span 2;">
+                        <label class="mgmt-label">Audition Status</label>
+                        <select id="editStatus" class="form-control-premium">
+                            <option value="OPEN">Open (Accepting Applications)</option>
+                            <option value="CLOSED">Closed (Stop Applications)</option>
+                        </select>
+                    </div>
                 </div>
                 <div style="margin-top: 30px; display: flex; gap: 15px;">
                     <button onclick="saveEventEdits()" style="flex: 2; background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange)); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);">Save Changes</button>
@@ -619,11 +630,42 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Broadcast Details Modal -->
+        <div id="broadcastModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); overflow: hidden;">
+            <div class="modal-content" style="background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; color: #1e293b; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h2 style="margin: 0; font-family: 'Outfit';">Broadcast Audition Details</h2>
+                    <button onclick="closeBroadcastModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">✕</button>
+                </div>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
+                    This will send the audition location, time, and date to <b>all shortlisted applicants</b> via in-app message and email.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label class="mgmt-label">Audition Location</label>
+                        <input type="text" id="bcLocation" class="form-control-premium" placeholder="e.g. Studio A, Film City, Mumbai">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Audition Date</label>
+                        <input type="date" id="bcDate" class="form-control-premium">
+                    </div>
+                    <div>
+                        <label class="mgmt-label">Audition Time</label>
+                        <input type="text" id="bcTime" class="form-control-premium" placeholder="e.g. 11:00 AM onwards">
+                    </div>
+                </div>
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button onclick="sendBroadcast()" style="flex: 2; background: #0f172a; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);">Send to All Shortlisted</button>
+                    <button onclick="closeBroadcastModal()" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+                </div>
+            </div>
+        </div>
     </main>
 
 
 
-    <script src="js/utils.js?v=1.1"></script>
+    <script src="js/utils.js?v=2.2"></script>
     <script src="js/profile-handler.js?v=1.1"></script>
     <script src="js/event-dashboard.js?v=1.1"></script>
 </body>

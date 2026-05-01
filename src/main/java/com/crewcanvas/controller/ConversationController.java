@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -26,13 +28,23 @@ public class ConversationController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getConversations(@PathVariable Long userId) {
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("User ID is required");
+        }
         try {
+            System.out.println("Fetching conversations for user: " + userId);
             List<Message> allMessages = messageService.getUserMessages(userId);
             
             // Group by other user to get unique conversations
+            // LinkedHashMap preserves order (latest messages first)
             Map<Long, Message> latestMessageMap = new LinkedHashMap<>();
             for (Message m : allMessages) {
-                Long otherId = m.getSenderId().equals(userId) ? m.getReceiverId() : m.getSenderId();
+                Long senderId = m.getSenderId();
+                Long receiverId = m.getReceiverId();
+                
+                if (senderId == null || receiverId == null) continue;
+
+                Long otherId = Objects.equals(senderId, userId) ? receiverId : senderId;
                 if (!latestMessageMap.containsKey(otherId)) {
                     latestMessageMap.put(otherId, m);
                 }
@@ -57,7 +69,17 @@ public class ConversationController {
                     convMap.put("user2Id", otherUserId);
                     convMap.put("user2", otherUserMap);
                     convMap.put("lastMessage", lastMsg.getContent());
-                    convMap.put("updatedAt", lastMsg.getCreatedAt() != null ? lastMsg.getCreatedAt().format(ISO_FORMATTER) : null);
+                    
+                    // Safe date formatting for Instant
+                    String formattedDate = null;
+                    if (lastMsg.getCreatedAt() != null) {
+                        try {
+                            formattedDate = ZonedDateTime.ofInstant(lastMsg.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER);
+                        } catch (Exception dateEx) {
+                            formattedDate = lastMsg.getCreatedAt().toString(); // Fallback to ISO-8601
+                        }
+                    }
+                    convMap.put("updatedAt", formattedDate);
                     
                     result.add(convMap);
                 }
@@ -65,8 +87,9 @@ public class ConversationController {
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
+            System.err.println("Error in getConversations for user " + userId + ": " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error loading conversations: " + e.getMessage());
         }
     }
 

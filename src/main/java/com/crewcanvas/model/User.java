@@ -144,6 +144,10 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String learningResources;
 
+    @Lob
+    @Column(name = "recent_pictures", columnDefinition = "LONGTEXT")
+    private String recentPictures;
+
     // --- Social Links ---
     @Column(columnDefinition = "TEXT")
     private String instagram;
@@ -330,6 +334,9 @@ public class User {
     public String getLearningResources() { return learningResources; }
     public void setLearningResources(String learningResources) { this.learningResources = learningResources; }
 
+    public String getRecentPictures() { return recentPictures; }
+    public void setRecentPictures(String recentPictures) { this.recentPictures = recentPictures; }
+
     public String getUserType() { return userType; }
     public void setUserType(String userType) { this.userType = userType; }
 
@@ -366,7 +373,8 @@ public class User {
         if (experience != null && !experience.isEmpty()) score += 10;
         
         // Portfolio & Social (Max 25)
-        if (showreel != null && !showreel.isEmpty() || portfolioVideos != null && !portfolioVideos.isEmpty()) score += 15;
+        if (showreel != null && !showreel.isEmpty() || portfolioVideos != null && !portfolioVideos.isEmpty()) score += 10;
+        if (recentPictures != null && !recentPictures.isEmpty()) score += 5;
         if (instagram != null || youtube != null || twitter != null || tiktok != null) score += 10;
         
         return Math.min(score, 100);

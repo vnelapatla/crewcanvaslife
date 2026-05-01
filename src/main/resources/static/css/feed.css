@@ -140,11 +140,11 @@
 
 .post-image {
     width: 100%;
-    max-height: 600px;
-    object-fit: contain;
-    background: #f8fafc;
-    border-radius: 8px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 12px;
     margin-top: 10px;
+    display: block;
 }
 
 .post-footer {
@@ -279,7 +279,7 @@
 /* Post Image Slider */
 .post-slider-container {
     position: relative;
-    background: #000;
+    background: transparent;
     border-radius: 12px;
     overflow: hidden;
     margin-top: 10px;
@@ -309,9 +309,10 @@
 .post-slider-item img {
     width: 100%;
     height: auto;
-    max-height: 500px;
+    max-height: 80vh;
     object-fit: contain;
     display: block;
+    margin: 0 auto;
 }
 
 .slider-nav-btn {
@@ -523,3 +524,5 @@
     color: #ff8c00;
     font-size: 14px;
 }
+
+/* Removed ratio-btn styles */

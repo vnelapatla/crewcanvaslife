@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Crew Canvas | The Film Professional's Ecosystem</title>
+    <meta name="description" content="Discover Crew Canvas - the ultimate networking and management platform for film industry professionals. Connect, collaborate, and grow your cinema career.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --primary-red: #ff2d55;
+            --gradient-main: linear-gradient(135deg, #ff8c00, #ff2d55);
+            --dark-bg: #0c0d0f;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .about-hero {
+            position: relative;
+            padding: 120px 20px 80px;
+            text-align: center;
+            background: radial-gradient(circle at top right, rgba(255, 140, 0, 0.15), transparent),
+                        radial-gradient(circle at bottom left, rgba(255, 45, 85, 0.1), transparent);
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 30px;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 30px rgba(255, 140, 0, 0.3));
+        }
+
+        .about-hero h1 {
+            font-size: clamp(48px, 8vw, 72px);
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .about-hero p {
+            font-size: clamp(18px, 3vw, 24px);
+            color: #94a3b8;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 60px;
+            margin-bottom: 60px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 140, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-title i {
+            color: var(--primary-orange);
+            font-size: 28px;
+        }
+
+        .content-text {
+            font-size: 18px;
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-box {
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .feature-box:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 140, 0, 0.2);
+        }
+
+        .feature-box i {
+            font-size: 32px;
+            margin-bottom: 20px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-box h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .feature-box p {
+            color: #94a3b8;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table th {
+            color: var(--primary-orange);
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .comparison-table td {
+            color: #94a3b8;
+        }
+
+        .highlight-text {
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(to bottom, transparent, rgba(255, 140, 0, 0.05));
+        }
+
+        .btn-premium {
+            background: var(--gradient-main);
+            color: white;
+            padding: 18px 45px;
+            border-radius: 100px;
+            font-size: 20px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(255, 45, 85, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-premium:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 45, 85, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .glass-card {
+                padding: 30px;
+            }
+            .section-title {
+                font-size: 28px;
+            }
+            .comparison-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Micro-animations */
+        [data-aos] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        [data-aos].aos-animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body class="about-page">
+    <header class="top-header"></header>
+
+    <main class="main-wrapper" style="padding-top: 0;">
+        <section class="about-hero">
+            <div class="logo-container" id="about-logo">
+                <img src="images/crew_canvas_logo.png" alt="Crew Canvas Logo">
+            </div>
+            <h1 data-aos="fade-up">The Canvas of Cinema</h1>
+            <p data-aos="fade-up" style="transition-delay: 0.1s;">Crew Canvas is more than a network. It's a professional ecosystem where directors find visionaries, and visionaries find their legacy.</p>
+            <a href="index.html" id="heroCtaBtn" class="btn-premium" data-aos="fade-up" style="transition-delay: 0.2s;">Join the Crew</a>
+        </section>
+
+        <div class="section-container">
+            <!-- What is Crew Canvas -->
+            <div class="glass-card" data-aos="fade-up">
+                <h2 class="section-title"><i class="fas fa-clapperboard"></i> What is Crew Canvas?</h2>
+                <p class="content-text">
+                    Crew Canvas is a <span class="highlight-text">specialized professional ecosystem</span> meticulously designed for the global film and media industry. It serves as a digital stage where talent across all departments—from Cinematographers and Directors to Technicians and Actors—can showcase their work, manage their professional presence, and connect with high-impact opportunities.
+                </p>
+                <p class="content-text">
+                    In an industry built on collaboration, Crew Canvas provides the infrastructure to build your "Crew"—a trusted network of professionals ready to turn a script into a masterpiece.
+                </p>
+            </div>
+
+            <!-- Why for Film Professionals -->
+            <div class="glass-card" data-aos="fade-up">
+                <h2 class="section-title"><i class="fas fa-vial-circle-check"></i> Why Crew Canvas?</h2>
+                <div class="feature-grid">
+                    <div class="feature-box">
+                        <i class="fas fa-video"></i>
+                        <h3>Showreel Integration</h3>
+                        <p>Unlike general platforms, we prioritize your visual portfolio. Attach your showreels directly to your profile for instant review by casting directors and producers.</p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-ticket"></i>
+                        <h3>Cinema Event Access</h3>
+                        <p>Exclusive access to film festivals, auditions, and industry workshops with our built-in QR-based entry pass system.</p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>Verified Industry Status</h3>
+                        <p>Build credibility with a professional profile that highlights your filmography, expertise, and industry endorsements.</p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-magnifying-glass-chart"></i>
+                        <h3>Talent Scouting</h3>
+                        <p>Advanced filters allow producers to find exactly the talent they need based on gear, location, and specific film experience.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How it differs -->
+            <div class="glass-card" data-aos="fade-up">
+                <h2 class="section-title"><i class="fas fa-code-compare"></i> Beyond General Social Media</h2>
+                <p class="content-text">
+                    General social media is built for entertainment and broad consumption. Crew Canvas is built for <span class="highlight-text">work, collaboration, and industry growth</span>. We've stripped away the noise to give you a pure cinema experience.
+                </p>
+                
+                <div class="table-responsive">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Crew Canvas</th>
+                                <th>Instagram / Social Media</th>
+                                <th>WhatsApp / Telegram</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Purpose</td>
+                                <td>Professional Cinema Career</td>
+                                <td>Social Engagement / Fun</td>
+                                <td>Instant Communication</td>
+                            </tr>
+                            <tr>
+                                <td>Portfolio</td>
+                                <td>Structured Showreels & CVs</td>
+                                <td>Fragmented Grid/Posts</td>
+                                <td>Lost in Chat History</td>
+                            </tr>
+                            <tr>
+                                <td>Discovery</td>
+                                <td>Search by Role, Gear, Experience</td>
+                                <td>Algorithm-driven (Random)</td>
+                                <td>Limited to Contacts</td>
+                            </tr>
+                            <tr>
+                                <td>Events</td>
+                                <td>Integrated Tickets & QR Passes</td>
+                                <td>Promotional Ads Only</td>
+                                <td>Unorganized Links</td>
+                            </tr>
+                            <tr>
+                                <td>Distraction</td>
+                                <td>Zero (Pure Industry Feed)</td>
+                                <td>High (Ads, Memes, Reels)</td>
+                                <td>Moderate (Personal Chats)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Usefulness -->
+            <div class="glass-card" data-aos="fade-up">
+                <h2 class="section-title"><i class="fas fa-briefcase"></i> Professional Utility</h2>
+                <div class="content-text">
+                    For a <strong>Director</strong>, it's a scouting tool. For an <strong>Actor</strong>, it's a global casting board. For <strong>Crew</strong>, it's a job marketplace.
+                </div>
+                <div class="content-text">
+                    Crew Canvas eliminates the "Chaos of Channels." Instead of juggling 50 WhatsApp groups for a single production, you have a centralized hub where talent is verified, communication is professional, and opportunities are authentic.
+                </div>
+            </div>
+        </div>
+
+        <section class="cta-section">
+            <h2 data-aos="fade-up">Ready to Paint Your Cinema Legacy?</h2>
+            <p data-aos="fade-up" style="color: #94a3b8; margin-bottom: 40px;">Join thousands of film professionals already connecting on Crew Canvas.</p>
+            <a href="index.html" id="bottomCtaBtn" class="btn-premium" data-aos="fade-up">Create My Profile</a>
+        </section>
+    </main>
+
+    <footer style="padding: 40px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); color: #64748b; font-size: 14px;">
+        &copy; 2026 Crew Canvas. Built for the creators of tomorrow.
+    </footer>
+
+    <script src="js/utils.js?v=2.2"></script>
+    <script src="js/profile-handler.js?v=2.1"></script>
+    <script>
+        // Simple AOS (Animate On Scroll) implementation
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('aos-animate');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('[data-aos]').forEach(el => {
+                observer.observe(el);
+            });
+
+            // AUTH CHECK - DYNAMIC BUTTONS
+            const userId = localStorage.getItem('userId');
+            const headerAuthBtn = document.getElementById('headerAuthBtn');
+            const heroCtaBtn = document.getElementById('heroCtaBtn');
+            const bottomCtaBtn = document.getElementById('bottomCtaBtn');
+
+            if (userId) {
+                if (headerAuthBtn) {
+                    headerAuthBtn.innerText = 'Go to Feed';
+                    headerAuthBtn.href = 'feed.html';
+                }
+                if (heroCtaBtn) {
+                    heroCtaBtn.innerText = 'Back to Feed';
+                    heroCtaBtn.href = 'feed.html';
+                }
+                if (bottomCtaBtn) {
+                    bottomCtaBtn.innerText = 'View My Profile';
+                    bottomCtaBtn.href = 'profile.html';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

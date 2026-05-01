@@ -66,8 +66,11 @@ public class Event {
 
     private String skills;
 
+    @Column(nullable = false)
+    private String status = "OPEN"; // OPEN, CLOSED
+
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private java.time.Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
@@ -75,7 +78,7 @@ public class Event {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = java.time.Instant.now();
     }
 
     // Constructors
@@ -203,11 +206,11 @@ public class Event {
         this.applicants = applicants;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public java.time.Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(java.time.Instant createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -265,5 +268,13 @@ public class Event {
 
     public void setSkills(String skills) {
         this.skills = skills;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

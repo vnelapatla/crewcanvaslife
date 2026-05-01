@@ -279,6 +279,7 @@ function displayEvents(events, prepend = false) {
             <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s">
                 <div class="card-image-box">
                     <div class="type-tag ${typeClass}">${event.eventType || 'Audition'}</div>
+                    ${event.status === 'CLOSED' ? `<div class="type-tag" style="top: 40px; background: #ef4444; border: none; color: white; font-weight: 800;"><i class="fas fa-lock"></i> CLOSED</div>` : ''}
                     <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" alt="${event.title}">
                 </div>
                 <div class="card-content">
@@ -330,6 +331,9 @@ function displayEvents(events, prepend = false) {
                             ` : (() => {
                                 const userApp = userApplications.find(app => app.eventId === event.id);
                                 if (!userApp) {
+                                    if (event.status === 'CLOSED') {
+                                        return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; opacity: 1;">Closed</button>`;
+                                    }
                                     return `<button class="apply-btn" onclick="applyToEvent(${event.id})">Register</button>`;
                                 }
                                 
@@ -545,7 +549,12 @@ async function applyToEvent(eventId) {
                 window.location.reload();
             }, 1000);
         } else {
-            showMessage('Registration failed. Please try again later.', 'error');
+            const errorMsg = await response.text();
+            if (errorMsg === 'AUDITION_CLOSED') {
+                showMessage('Sorry, auditions are now closed for this event.', 'error');
+            } else {
+                showMessage('Registration failed. Please try again later.', 'error');
+            }
         }
     } catch (error) {
         console.error('Error applying to event:', error);

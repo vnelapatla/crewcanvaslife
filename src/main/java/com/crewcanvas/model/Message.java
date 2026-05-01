@@ -41,7 +41,7 @@ public class Message {
     private Boolean isRead = false;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private java.time.Instant createdAt = java.time.Instant.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", insertable = false, updatable = false)
@@ -57,7 +57,7 @@ public class Message {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = java.time.Instant.now();
         }
     }
 
@@ -136,11 +136,11 @@ public class Message {
         this.isRead = isRead;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public java.time.Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(java.time.Instant createdAt) {
         this.createdAt = createdAt;
     }
 

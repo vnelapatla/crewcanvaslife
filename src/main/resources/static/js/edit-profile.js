@@ -6,6 +6,7 @@ let selectedResume = null;
 let selectedResumeName = null;
 let selectedResumeType = null;
 let skillsList = [];
+let recentPicturesList = [];
 let originalUserData = {};
 let editingProjectId = null;
 
@@ -153,6 +154,15 @@ async function loadProfileData() {
                 renderSkills();
             }
 
+            if (user.recentPictures) {
+                try {
+                    recentPicturesList = JSON.parse(user.recentPictures);
+                } catch (e) {
+                    recentPicturesList = user.recentPictures.split(',').filter(s => s.trim() !== '');
+                }
+                renderRecentPictures();
+            }
+
             if (user.profilePicture) {
                 const avatar = document.getElementById('currentAvatar');
                 if (avatar) avatar.src = user.profilePicture;
@@ -292,6 +302,133 @@ function setupImageHandlers() {
             }
         }
     });
+
+    // Recent Pictures for Actors
+    const recentPicInput = document.getElementById('recentPicInput');
+    if (recentPicInput) {
+        recentPicInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (recentPicturesList.length + files.length > 10) {
+                showMessage('You can upload a maximum of 10 recent pictures.', 'error');
+                return;
+            }
+
+            for (const file of files) {
+                try {
+                    const url = await uploadImage(file);
+                    if (url) {
+                        recentPicturesList.push(url);
+                    }
+                } catch (err) {
+                    console.error("Picture upload failed:", err);
+                }
+            }
+            renderRecentPictures();
+            recentPicInput.value = '';
+        });
+    }
+}
+
+function renderRecentPictures() {
+    const container = document.getElementById('recentPicturesContainer');
+    if (!container) return;
+
+    container.innerHTML = recentPicturesList.map((pic, index) => `
+        <div style="position:relative; width:100px; height:120px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color);">
+            <img src="${pic}" style="width:100%; height:100%; object-fit:cover;">
+            <button onclick="removeRecentPicture(${index})" style="position:absolute; top:5px; right:5px; background:rgba(255,0,0,0.7); color:white; border:none; width:20px; height:20px; border-radius:50%; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;">✕</button>
+        </div>
+    `).join('');
+}
+
+function removeRecentPicture(index) {
+    recentPicturesList.splice(index, 1);
+    renderRecentPictures();
+}
+
+let selectedImportImages = [];
+
+async function openImportPicturesModal() {
+    const modal = document.getElementById('importPicturesModal');
+    const grid = document.getElementById('postImagesGrid');
+    if (!modal || !grid) return;
+
+    modal.style.display = 'flex';
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Fetching your posts...</div>';
+    selectedImportImages = [];
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/user/${currentUserId}`);
+        if (response.ok) {
+            const data = await response.json();
+            const posts = data.content || data;
+            
+            let allImages = [];
+            if (Array.isArray(posts)) {
+                posts.forEach(post => {
+                    if (post.imageUrls && post.imageUrls.length > 0) {
+                        allImages.push(...post.imageUrls);
+                    } else if (post.imageUrl) {
+                        allImages.push(...post.imageUrl.split(','));
+                    }
+                });
+            }
+
+            if (allImages.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b;">No images found in your posts.</div>';
+                return;
+            }
+
+            // Remove duplicates and empty strings
+            allImages = [...new Set(allImages)].filter(img => img && img.trim() !== '');
+
+            grid.innerHTML = allImages.map((img, i) => `
+                <div class="import-img-item" onclick="toggleImportSelect(this, '${img}')" style="position:relative; aspect-ratio:1; cursor:pointer; border-radius:8px; overflow:hidden; border:2px solid transparent; transition: all 0.2s; background:#f1f5f9;">
+                    <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.style.display='none'">
+                    <div class="check-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(99,102,241,0.4); display:none; align-items:center; justify-content:center; color:white; font-size:20px;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error("Import fetch failed:", err);
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#ef4444;">Failed to load posts.</div>';
+    }
+}
+
+function toggleImportSelect(el, src) {
+    const overlay = el.querySelector('.check-overlay');
+    if (selectedImportImages.includes(src)) {
+        selectedImportImages = selectedImportImages.filter(i => i !== src);
+        el.style.borderColor = 'transparent';
+        overlay.style.display = 'none';
+    } else {
+        if (recentPicturesList.length + selectedImportImages.length >= 10) {
+            showMessage("Gallery limit reached (max 10).", "error");
+            return;
+        }
+        selectedImportImages.push(src);
+        el.style.borderColor = '#6366f1';
+        overlay.style.display = 'flex';
+    }
+}
+
+function confirmImportImages() {
+    if (selectedImportImages.length === 0) {
+        closeImportModal();
+        return;
+    }
+    
+    recentPicturesList.push(...selectedImportImages);
+    renderRecentPictures();
+    closeImportModal();
+    showMessage(`Added ${selectedImportImages.length} images to gallery.`, 'success');
+}
+
+function closeImportModal() {
+    const modal = document.getElementById('importPicturesModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function addSkill() {
@@ -439,7 +576,8 @@ async function saveProfile() {
             expectedWebseriesRemuneration: getVal('editBudgetWeb'),
             resume: (selectedResume !== null) ? selectedResume : (originalUserData.resume || ''),
             resumeFileName: (selectedResume !== null) ? selectedResumeName : (originalUserData.resumeFileName || ''),
-            resumeContentType: (selectedResume !== null) ? selectedResumeType : (originalUserData.resumeContentType || '')
+            resumeContentType: (selectedResume !== null) ? selectedResumeType : (originalUserData.resumeContentType || ''),
+            recentPictures: JSON.stringify(recentPicturesList)
         };
 
         if (selectedResume) {
@@ -455,9 +593,15 @@ async function saveProfile() {
         }
 
         // Recalculate profile score before saving
-        updatedUser.profileScore = typeof calculateProfileScore === 'function' ? calculateProfileScore(updatedUser) : (originalUserData ? (originalUserData.profileScore || 0) : 0);
+        try {
+            updatedUser.profileScore = typeof calculateProfileScore === 'function' ? calculateProfileScore(updatedUser) : (originalUserData ? (originalUserData.profileScore || 0) : 0);
+        } catch (e) {
+            console.error("Score Error:", e);
+        }
 
-        console.log('Sending Profile Update Payload:', updatedUser);
+        const photoCount = recentPicturesList ? recentPicturesList.length : 0;
+        const hasResume = updatedUser.resume ? "YES" : "NO";
+        console.log(`[Save] Data count - Photos: ${photoCount}, Resume: ${hasResume}`);
 
         const response = await fetch(`${API_BASE_URL}/api/profile`, {
             method: 'PUT',

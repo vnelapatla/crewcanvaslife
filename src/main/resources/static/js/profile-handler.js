@@ -123,6 +123,13 @@ const ProfileHandler = {
             const name = localStorage.getItem('userName') || 'User';
             nameHeader.innerHTML = name + adminBadge;
         }
+
+        // Update initials for the new compact header
+        const initialsDiv = document.getElementById('userInitialsSmall');
+        if (initialsDiv && typeof getAvatarFallback === 'function') {
+            const name = localStorage.getItem('userName') || 'User';
+            initialsDiv.innerText = getAvatarFallback(name);
+        }
     },
 
     toggleProfileDropdown() {

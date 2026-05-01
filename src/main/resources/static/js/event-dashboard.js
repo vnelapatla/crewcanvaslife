@@ -1,6 +1,7 @@
 // Event Dashboard & Application Management
 let currentEventId = null;
 let currentEvent = null;
+let toggleBtn = null;
 let allApplicants = [];
 let filteredApplicants = [];
 let eventsCache = [];
@@ -9,6 +10,7 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentEventId = urlParams.get('id');
+    toggleBtn = document.getElementById('toggleStatusBtn');
 
     await loadCurrentUser();
 
@@ -79,56 +81,67 @@ function renderEventList(events) {
     `).join('');
 }
 
+async function fetchEventDetails() {
+    const eventRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}`);
+    if (!eventRes.ok) return;
+    currentEvent = await eventRes.json();
+    
+    document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
+    
+    const detailsHtml = `
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
+            <span id="mgmtStatusBadge" class="status-badge" style="background: ${currentEvent.status === 'CLOSED' ? '#fee2e2' : '#dcfce7'}; color: ${currentEvent.status === 'CLOSED' ? '#ef4444' : '#15803d'}; font-size: 11px; font-weight: 800; padding: 4px 12px;">
+                <i class="fas ${currentEvent.status === 'CLOSED' ? 'fa-lock' : 'fa-lock-open'}"></i> ${currentEvent.status || 'OPEN'}
+            </span>
+            <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
+            <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
+            ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
+        </div>
+        <button class="btn-premium-sm" style="background: var(--primary-orange, #ff8c00); margin-top: 15px; color: white; width: auto; padding: 8px 16px;" onclick="shareContent('event', ${currentEvent.id}, '${currentEvent.title.replace(/'/g, "\\'")}')">
+            <i class="fas fa-share-alt"></i> Share Event Link
+        </button>
+        ${currentEvent.eventType === 'Film Event' ? `
+            <button class="btn-premium-sm" style="background: #0f172a; margin-top: 15px; color: white; width: auto; padding: 8px 16px; margin-left: 10px;" onclick="window.location.href='scan.html'">
+                <i class="fas fa-qrcode"></i> Scan Tickets
+            </button>
+        ` : ''}
+    `;
+    
+    let detailsContainer = document.getElementById('mgmtEventDetails');
+    if (!detailsContainer) {
+        const titleEl = document.getElementById('mgmtEventTitle');
+        detailsContainer = document.createElement('div');
+        detailsContainer.id = 'mgmtEventDetails';
+        titleEl.parentNode.insertBefore(detailsContainer, titleEl.nextSibling);
+    }
+    detailsContainer.innerHTML = detailsHtml;
+
+    const type = currentEvent.eventType || 'Event';
+    const badge = document.getElementById('mgmtStatusBadge');
+    if (currentEvent.status === 'CLOSED') {
+        badge.className = 'status-badge status-rejected';
+        badge.innerHTML = '<i class="fas fa-lock"></i> CLOSED';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fas fa-lock-open"></i> Open ${type}`;
+            toggleBtn.style.color = '#16a34a';
+        }
+    } else {
+        badge.className = 'status-badge status-registered';
+        badge.innerHTML = '<i class="fas fa-lock-open"></i> OPEN';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fas fa-lock"></i> Close ${type}`;
+            toggleBtn.style.color = '#ef4444';
+        }
+    }
+}
+
 async function showManagementView() {
     document.getElementById('listView').style.display = 'none';
     document.getElementById('mgmtView').style.display = 'block';
 
     try {
-        console.log(`Loading management view for event: ${currentEventId}`);
+        await fetchEventDetails();
         
-        // Load Event Details
-        const eventRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}`);
-        if (eventRes.ok) {
-            currentEvent = await eventRes.json();
-            
-            // Add to cache if not already there
-            if (!eventsCache.some(e => e.id === currentEvent.id)) {
-                eventsCache.push(currentEvent);
-            } else {
-                // Update in cache
-                const idx = eventsCache.findIndex(e => e.id === currentEvent.id);
-                eventsCache[idx] = currentEvent;
-            }
-
-            document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
-            
-            // Enrich header with more details
-            const detailsHtml = `
-                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
-                    <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
-                    ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
-                </div>
-                <button class="btn-premium-sm" style="background: var(--primary-orange, #ff8c00); margin-top: 15px; color: white; width: auto; padding: 8px 16px;" onclick="shareContent('event', ${currentEvent.id}, '${currentEvent.title.replace(/'/g, "\\'")}')">
-                    <i class="fas fa-share-alt"></i> Share Event Link
-                </button>
-                ${currentEvent.eventType === 'Film Event' ? `
-                    <button class="btn-premium-sm" style="background: #0f172a; margin-top: 15px; color: white; width: auto; padding: 8px 16px; margin-left: 10px;" onclick="window.location.href='scan.html'">
-                        <i class="fas fa-qrcode"></i> Scan Tickets
-                    </button>
-                ` : ''}
-            `;
-            
-            let detailsContainer = document.getElementById('mgmtEventDetails');
-            if (!detailsContainer) {
-                const titleEl = document.getElementById('mgmtEventTitle');
-                detailsContainer = document.createElement('div');
-                detailsContainer.id = 'mgmtEventDetails';
-                titleEl.parentNode.insertBefore(detailsContainer, titleEl.nextSibling);
-            }
-            detailsContainer.innerHTML = detailsHtml;
-        }
-
         // Load Applicants
         const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants`);
         if (applicantsRes.ok) {
@@ -181,7 +194,7 @@ function renderApplicantsTable() {
                 <td data-label="Location">${app.location || '-'}</td>
                 <td data-label="Status">
                     <div style="display:flex; flex-direction:column; gap:4px;">
-                        <span class="status-badge status-${(app.status || 'PENDING').toLowerCase() === 'pending' ? 'registered' : (app.status || '').toLowerCase()}">${(app.status || 'PENDING') === 'PENDING' ? 'REGISTERED' : app.status}</span>
+                        <span class="status-badge status-${(app.status || 'PENDING').toLowerCase()}">${(app.status || 'PENDING') === 'PENDING' ? 'REGISTERED' : app.status.replace('_', ' ')}</span>
                         ${app.scanned ? '<span style="font-size:10px; color:#10b981; font-weight:700;"><i class="fas fa-check-double"></i> SCANNED</span>' : ''}
                     </div>
                 </td>
@@ -193,17 +206,33 @@ function renderApplicantsTable() {
                         <button class="icon-btn" onclick="window.location.href='messages.html?userId=${app.userId}&from=applicant'" title="Message" style="background:#fef3c7; color:#d97706; border: 1px solid #fde68a; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-comment" style="font-size: 12px;"></i>
                         </button>
-                        <button class="icon-btn btn-check" onclick="updateAppStatus(${app.id}, 'SHORTLISTED')" title="Shortlist">
-                            <i class="fas fa-check"></i>
-                        </button>
+                        
+                        ${app.status === 'PENDING' ? `
+                            <button class="icon-btn btn-check" onclick="updateAppStatus(${app.id}, 'SHORTLISTED')" title="Shortlist">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        ` : ''}
+
+                        ${app.status === 'SHORTLISTED' ? `
+                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'SELECTED')" title="Final Select" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;">
+                                <i class="fas fa-trophy"></i>
+                            </button>
+                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'NOT_SELECTED')" title="Final Reject" style="background:#fee2e2; color:#ef4444; border: 1px solid #fecaca;">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        ` : ''}
+
                         ${!app.scanned && app.status === 'SHORTLISTED' && currentEvent.eventType === 'Film Event' ? `
                             <button class="icon-btn" onclick="manualCheckIn(${app.id})" title="Manual Check-in" style="background:#dcfce7; color:#166534; border: 1px solid #bbf7d0;">
                                 <i class="fas fa-qrcode"></i>
                             </button>
                         ` : ''}
-                        <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'REJECTED')" title="Reject">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        
+                        ${app.status === 'PENDING' ? `
+                            <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'REJECTED')" title="Reject">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -267,12 +296,124 @@ function openEditModal() {
     if (reqEl) reqEl.value = currentEvent.requirements || '';
     
     document.getElementById('editDescription').value = currentEvent.description || '';
+    
+    const statusEl = document.getElementById('editStatus');
+    if (statusEl) statusEl.value = currentEvent.status || 'OPEN';
+
     document.getElementById('editModal').style.display = 'flex';
 }
 
 function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
     document.body.style.overflow = 'auto';
+}
+
+function openBroadcastModal() {
+    if (allApplicants.filter(a => a.status === 'SHORTLISTED').length === 0) {
+        showMessage('No shortlisted applicants to broadcast to.', 'info');
+        return;
+    }
+    
+    const type = currentEvent.eventType || 'Event';
+    const isAudition = type.toLowerCase() === 'audition';
+    
+    // Update Modal Title and Text
+    const modalTitle = document.querySelector('#broadcastModal h2');
+    const modalDesc = document.querySelector('#broadcastModal p b');
+    const modalLabels = document.querySelectorAll('#broadcastModal .mgmt-label');
+    const submitBtn = document.querySelector('button[onclick="sendBroadcast()"]');
+    
+    if (modalTitle) modalTitle.innerText = `Broadcast ${type} Details`;
+    if (modalDesc) modalDesc.innerText = `all shortlisted applicants`;
+    
+    if (modalLabels.length >= 3) {
+        modalLabels[0].innerText = `${type} Location`;
+        modalLabels[1].innerText = `${type} Date`;
+        modalLabels[2].innerText = `${type} Time`;
+    }
+    
+    if (submitBtn) submitBtn.innerText = `Send to All Shortlisted`;
+
+    document.getElementById('broadcastModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Pre-fill with event date if available
+    if (currentEvent && currentEvent.date) {
+        document.getElementById('bcDate').value = formatDateForInput(currentEvent.date);
+    }
+}
+
+function closeBroadcastModal() {
+    document.getElementById('broadcastModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+async function toggleEventStatus() {
+    if (!currentEvent) return;
+    
+    const type = currentEvent.eventType || 'Event';
+    const newStatus = currentEvent.status === 'CLOSED' ? 'OPEN' : 'CLOSED';
+    const confirmMsg = newStatus === 'CLOSED' ? 
+        `Are you sure you want to close this ${type.toLowerCase()}? No more applications will be accepted.` : 
+        `Reopen this ${type.toLowerCase()} for new applications?`;
+        
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/events/${currentEventId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...currentEvent, status: newStatus })
+        });
+        
+        if (res.ok) {
+            showMessage(`Audition ${newStatus === 'CLOSED' ? 'closed' : 'reopened'} successfully!`, 'success');
+            fetchEventDetails(); // Refresh UI
+        } else {
+            showMessage('Failed to update status', 'error');
+        }
+    } catch (error) {
+        console.error('Error toggling status:', error);
+        showMessage('Connection error', 'error');
+    }
+}
+
+async function sendBroadcast() {
+    const location = document.getElementById('bcLocation').value.trim();
+    const date = document.getElementById('bcDate').value;
+    const time = document.getElementById('bcTime').value.trim();
+    
+    if (!location || !date || !time) {
+        showMessage('Please fill in all audition details', 'error');
+        return;
+    }
+    
+    const btn = document.querySelector('button[onclick="sendBroadcast()"]');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Sending...';
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/broadcast`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location, date, time })
+        });
+        
+        if (res.ok) {
+            showMessage('Broadcast initiated! Emails and messages are being sent in the background.', 'success');
+            setTimeout(closeBroadcastModal, 1000);
+        } else {
+            const err = await res.text();
+            showMessage('Failed to send broadcast: ' + err, 'error');
+        }
+    } catch (error) {
+        console.error('Error sending broadcast:', error);
+        showMessage('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
 }
 
 async function saveEventEdits() {
@@ -294,7 +435,8 @@ async function saveEventEdits() {
         orgPhone: document.getElementById('editOrgPhone') ? document.getElementById('editOrgPhone').value.trim() : (currentEvent.orgPhone || ''),
         imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value.trim() : (currentEvent.imageUrl || ''),
         requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value.trim() : (currentEvent.requirements || ''),
-        description: document.getElementById('editDescription').value.trim()
+        description: document.getElementById('editDescription').value.trim(),
+        status: document.getElementById('editStatus') ? document.getElementById('editStatus').value : (currentEvent.status || 'OPEN')
     };
 
     console.log('Updated Event Payload:', updatedData);
@@ -319,18 +461,7 @@ async function saveEventEdits() {
             setTimeout(() => {
                 closeEditModal();
                 currentEvent = savedEvent;
-                document.getElementById('mgmtEventTitle').innerText = currentEvent.title;
-                
-                const detailsContainer = document.getElementById('mgmtEventDetails');
-                if (detailsContainer) {
-                    detailsContainer.innerHTML = `
-                        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 13px; color: #64748b;">
-                            <span><i class="far fa-calendar-alt"></i> ${formatDate(currentEvent.date)}${currentEvent.endDate ? ` to ${formatDate(currentEvent.endDate)}` : ''}</span>
-                            <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
-                            ${currentEvent.timeDuration ? `<span><i class="far fa-clock"></i> ${currentEvent.timeDuration}</span>` : ''}
-                        </div>
-                    `;
-                }
+                fetchEventDetails();
                 
                 const idx = eventsCache.findIndex(e => e.id == currentEventId);
                 if (idx > -1) eventsCache[idx] = currentEvent;

@@ -80,6 +80,9 @@ public class AuthController {
                     user = userRepository.save(user);
                 }
 
+                // Auto-generated welcome message
+                userService.sendWelcomeMessage(user);
+
                 return ResponseEntity.ok(user);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
@@ -99,7 +102,10 @@ public class AuthController {
             Optional<User> user = userService.loginUser(request.getEmail(), request.getPassword());
 
             if (user.isPresent()) {
-                return ResponseEntity.ok(user.get());
+                User foundUser = user.get();
+                // Auto-generated welcome message
+                userService.sendWelcomeMessage(foundUser);
+                return ResponseEntity.ok(foundUser);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("Invalid email or password");
@@ -117,6 +123,9 @@ public class AuthController {
                     request.getName(),
                     request.getEmail(),
                     request.getPassword());
+
+            // Auto-generated welcome message
+            userService.sendWelcomeMessage(user);
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(user);

@@ -235,7 +235,7 @@ function displayUsersList(elementId, users, emptyMessage) {
         
         return `
             <div class="user-row">
-                <div class="initials-avatar" style="background: ${color}">${initials}</div>
+                ${renderAvatar(user, 'initials-avatar', '45px')}
                 <div class="user-main" onclick="openConversation(${userId})">
                     <div class="user-name-row">
                         <h4>${user.name || 'User'}</h4>
@@ -327,7 +327,7 @@ async function displayConversations(listToDisplay = null) {
 
             return `
                 <div class="user-row ${isActive ? 'active' : ''}" onclick="openConversation(${otherUserId})">
-                    <div class="initials-avatar" style="background: ${color}">${initials}</div>
+                    ${renderAvatar(otherUser, 'initials-avatar', '45px')}
                     <div class="user-main">
                         <div class="user-name-row">
                             <h4>${name}</h4>
@@ -441,9 +441,8 @@ async function openConversation(userId) {
         if (selectedPartnerProfile) {
             const avatar = document.getElementById('chatUserAvatar');
             if (avatar) {
-                const initials = (selectedPartnerProfile.name || 'U').charAt(0).toUpperCase();
-                avatar.textContent = initials;
-                avatar.style.background = getRandomColor(selectedPartnerProfile.name);
+                avatar.innerHTML = renderAvatar(selectedPartnerProfile, 'main-avatar', '45px');
+                avatar.style.background = 'none';
             }
             const nameEl = document.getElementById('chatUserName');
             if (nameEl) nameEl.textContent = selectedPartnerProfile.name || 'User';
@@ -639,13 +638,16 @@ function displayMessages(messages) {
 
         let avatarHtml = '';
         if (!isSent && selectedPartnerProfile) {
-            avatarHtml = `<div style="margin-right:10px; align-self: flex-end; margin-bottom: 5px;">${renderAvatar(selectedPartnerProfile, 'nav-avatar')}</div>`;
+            avatarHtml = `<div style="margin-right:10px; align-self: flex-start; margin-bottom: 5px;">${renderAvatar(selectedPartnerProfile, 'nav-avatar')}</div>`;
         }
+
+        const senderName = isSent ? (localStorage.getItem('userName') || 'You') : (selectedPartnerProfile?.name || 'User');
 
         return `
             <div class="message ${isSent ? 'sent' : 'received'}">
                 ${avatarHtml}
                 <div class="message-text">
+                    <div style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
                     ${(msg.displayContent || msg.content) ? `<p style="margin:0;">${msg.displayContent || msg.content}</p>` : ''}
                     ${attachmentContent}
                     <div class="message-status">

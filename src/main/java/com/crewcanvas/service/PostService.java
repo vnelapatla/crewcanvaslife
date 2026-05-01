@@ -27,7 +27,7 @@ public class PostService {
     @Autowired
     private NotificationService notificationService;
 
-    public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks) {
+    public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
         // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
         com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
         boolean isAdmin = user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()));
@@ -39,6 +39,7 @@ public class PostService {
         }
 
         Post post = new Post(userId, content, imageUrls, externalLinks);
+        if (aspectRatio != null) post.setAspectRatio(aspectRatio);
         return postRepository.save(post);
     }
 
@@ -78,7 +79,7 @@ public class PostService {
         return postRepository.findById(id).map(this::populatePollData);
     }
 
-    public Post updatePost(Long id, String content, List<String> imageUrls, List<String> externalLinks) {
+    public Post updatePost(Long id, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
@@ -99,6 +100,8 @@ public class PostService {
                 post.setImageUrls(imageUrls);
             if (externalLinks != null)
                 post.setExternalLinks(externalLinks);
+            if (aspectRatio != null)
+                post.setAspectRatio(aspectRatio);
             return postRepository.save(post);
         }
         throw new RuntimeException("Post not found");

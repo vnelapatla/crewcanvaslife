@@ -652,6 +652,44 @@
                 </div>
             </div>
 
+            <!-- Professional Gallery (Recent Pictures) -->
+            <div class="card" data-step="03.5">
+                <h3><i class="fa-solid fa-camera-retro"></i> Professional Gallery</h3>
+                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Upload up to 10 high-quality pictures to showcase your current look or professional work samples.</p>
+                <div id="recentPicturesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <!-- Pictures will be rendered here -->
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="document.getElementById('recentPicInput').click()" style="background: white; border: 1px solid var(--primary-orange); color: var(--primary-orange); padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13px;">
+                        <i class="fa-solid fa-plus"></i> Add Picture
+                    </button>
+                    <button type="button" onclick="openImportPicturesModal()" style="background: white; border: 1px solid #6366f1; color: #6366f1; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13px;">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Import from Posts
+                    </button>
+                </div>
+                <input type="file" id="recentPicInput" style="display: none" accept="image/*" multiple>
+            </div>
+
+            <!-- Import Pictures Modal -->
+            <div id="importPicturesModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>Import from My Posts</h3>
+                        <button onclick="closeImportModal()" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Select images from your previous posts to add to your Professional Gallery.</p>
+                        <div id="postImagesGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; padding: 5px;">
+                            <!-- Images will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button onclick="closeImportModal()" class="action-btn btn-secondary">Cancel</button>
+                        <button onclick="confirmImportImages()" class="action-btn btn-primary" id="confirmImportBtn">Add Selected</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 4. Social Presence -->
             <div class="card" data-step="04">
                 <h3><i class="fa-solid fa-hashtag"></i> Social Presence</h3>
@@ -682,8 +720,8 @@
         </div>
     </main>
 
-    <script src="js/utils.js?v=1.4"></script>
-    <script src="js/profile-handler.js?v=1.4"></script>
-    <script src="js/edit-profile.js?v=1.4"></script>
+    <script src="js/utils.js?v=2.2"></script>
+    <script src="js/profile-handler.js?v=2.1"></script>
+    <script src="js/edit-profile.js?v=2.2"></script>
 </body>
 </html>

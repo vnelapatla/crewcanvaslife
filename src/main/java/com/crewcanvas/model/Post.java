@@ -60,8 +60,11 @@ public class Post {
     @Column(name = "link", length = 500)
     private java.util.List<String> externalLinks = new java.util.ArrayList<>();
 
+    @Column(name = "aspect_ratio")
+    private String aspectRatio = "original"; // original, square, portrait
+
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private java.time.Instant createdAt;
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -136,7 +139,7 @@ public class Post {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = java.time.Instant.now();
     }
 
     // Constructors
@@ -239,11 +242,19 @@ public class Post {
         this.actualComments = actualComments;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getAspectRatio() {
+        return aspectRatio;
+    }
+
+    public void setAspectRatio(String aspectRatio) {
+        this.aspectRatio = aspectRatio;
+    }
+
+    public java.time.Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(java.time.Instant createdAt) {
         this.createdAt = createdAt;
     }
 

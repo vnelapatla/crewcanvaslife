@@ -187,11 +187,11 @@ img, video, iframe {
 
 .brand-logo {
     color: var(--primary-orange);
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 900;
     margin: 0;
     cursor: pointer;
-    letter-spacing: -0.8px;
+    letter-spacing: -0.6px;
     text-decoration: none;
     font-family: 'Inter', sans-serif;
 }
@@ -225,15 +225,17 @@ img, video, iframe {
 }
 
 .user-profile-box {
-    padding: 6px 15px;
-    background: #ffffff;
-    border-radius: 50px;
+    padding: 3px;
+    background: #f1f5f9;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.2s ease;
     position: relative;
 }
@@ -243,18 +245,17 @@ img, video, iframe {
 }
 
 .user-initials {
-    width: 32px;
-    height: 32px;
-    background: #fef08a;
-    color: #854d0e;
+    width: 24px;
+    height: 24px;
+    background: #ff8c00;
+    color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 12px;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-weight: 800;
+    font-size: 10px;
+    box-shadow: none;
 }
 
 /* Profile Dropdown - Updated to Match User's White Premium Design */
@@ -548,21 +549,15 @@ img, video, iframe {
         gap: 0;
     }
 
-    /* Ensure the User Menu is prominent */
+    /* Ensure the User Menu is prominent and circular */
     .user-profile-box {
-        background: white;
-        padding: 4px 10px;
-        border: 1px solid rgba(0,0,0,0.05);
-        border-radius: 30px;
+        background: #f1f5f9;
+        padding: 3px;
+        border: 1px solid #e2e8f0;
+        border-radius: 50%;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .user-profile-box span {
-        display: inline-block;
-        max-width: 80px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        width: 32px;
+        height: 32px;
     }
 }
 .auth-btn:hover {

@@ -27,7 +27,7 @@ public class PostController {
                 System.out.println("Poll question: " + request.getPollQuestion());
                 post = postService.createPoll(request.getUserId(), request.getPollQuestion(), request.getPollOptions());
             } else {
-                post = postService.createPost(request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks());
+                post = postService.createPost(request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks(), request.getAspectRatio());
             }
             return ResponseEntity.status(HttpStatus.CREATED).body(post);
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody PostRequest request) {
         try {
-            Post post = postService.updatePost(id, request.getContent(), request.getImageUrls(), request.getExternalLinks());
+            Post post = postService.updatePost(id, request.getContent(), request.getImageUrls(), request.getExternalLinks(), request.getAspectRatio());
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -148,6 +148,8 @@ class PostRequest {
     private String pollQuestion;
     private List<String> pollOptions;
 
+    private String aspectRatio = "original";
+
     public Long getUserId() {
         return userId;
     }
@@ -204,5 +206,13 @@ class PostRequest {
 
     public void setPollOptions(List<String> pollOptions) {
         this.pollOptions = pollOptions;
+    }
+
+    public String getAspectRatio() {
+        return aspectRatio;
+    }
+
+    public void setAspectRatio(String aspectRatio) {
+        this.aspectRatio = aspectRatio;
     }
 }

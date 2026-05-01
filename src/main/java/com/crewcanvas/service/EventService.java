@@ -17,7 +17,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import com.crewcanvas.model.User;
+import com.crewcanvas.model.Message;
+import com.crewcanvas.repository.MessageRepository;
 import com.crewcanvas.service.NotificationService;
+import com.crewcanvas.service.EmailService;
+import com.crewcanvas.service.UserService;
 
 @Service
 public class EventService {
@@ -33,6 +37,15 @@ public class EventService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private MessageRepository messageRepository;
 
     public Event createEvent(Event event) {
         return eventRepository.save(event);
@@ -92,6 +105,8 @@ public class EventService {
                 event.setSkills(updatedEvent.getSkills());
             if (updatedEvent.getEndDate() != null)
                 event.setEndDate(updatedEvent.getEndDate());
+            if (updatedEvent.getStatus() != null)
+                event.setStatus(updatedEvent.getStatus());
             return eventRepository.save(event);
         }
         throw new RuntimeException("Event not found");
@@ -107,6 +122,11 @@ public class EventService {
         Optional<Event> eventOpt = eventRepository.findById(id);
         if (eventOpt.isPresent()) {
             Event event = eventOpt.get();
+            
+            // Check if audition is closed
+            if ("CLOSED".equalsIgnoreCase(event.getStatus())) {
+                throw new RuntimeException("AUDITION_CLOSED");
+            }
             
             // Check if already applied
             Optional<EventApplication> existing = applicationRepository.findByEventIdAndUserId(id, userId);
@@ -138,6 +158,9 @@ public class EventService {
                 // Generate pass token immediately
                 String token = "PASS-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + System.currentTimeMillis();
                 application.setPassToken(token);
+                
+                // Trigger Message and Email for auto-shortlist
+                triggerShortlistNotifications(application);
             }
 
             applicationRepository.save(application);
@@ -325,11 +348,73 @@ public class EventService {
                     content,
                     application.getEventId().toString()
                 );
+
+                // Send Message and Email if shortlisted
+                if (status.equalsIgnoreCase("SHORTLISTED")) {
+                    triggerShortlistNotifications(application);
+                } else if (status.equalsIgnoreCase("SELECTED") || status.equalsIgnoreCase("NOT_SELECTED")) {
+                    triggerPhase2Notifications(application, status);
+                }
             }
 
             return savedApp;
         }
         throw new RuntimeException("Application not found");
+    }
+
+    private void triggerShortlistNotifications(EventApplication application) {
+        try {
+            User officialUser = userService.getOfficialUser();
+            User applicant = userRepository.findById(application.getUserId()).orElse(null);
+            
+            if (applicant != null) {
+                String messageContent = "Congratulations! You've been shortlisted for: " + (application.getEventTitle() != null ? application.getEventTitle() : "the event") + ". " +
+                        "Soon you will receive further process updates like audition location, time and date. " +
+                        "Stay tuned for more updates!";
+                
+                // 1. Send In-App Message from Official Account
+                Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                messageRepository.save(shortlistMsg);
+                
+                // 2. Send Email
+                emailService.sendShortlistEmail(applicant.getEmail(), applicant.getName(), application.getEventTitle());
+                System.out.println("DEBUG: Shortlist message and email sent to: " + applicant.getEmail());
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to send shortlist notifications: " + e.getMessage());
+        }
+    }
+
+    private void triggerPhase2Notifications(EventApplication application, String status) {
+        try {
+            User applicant = userRepository.findById(application.getUserId()).orElse(null);
+            if (applicant == null) return;
+
+            User officialUser = userService.getOfficialUser();
+            String eventTitle = application.getEventTitle();
+
+            if (status.equalsIgnoreCase("SELECTED")) {
+                String messageContent = "Final Selection Update: Congratulations! You have been SELECTED for the role in '" + eventTitle + "'. The organizers will reach out to you manually for the next steps. Best of luck!";
+                
+                // 1. Send In-App Message from Official Account
+                Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                messageRepository.save(msg);
+                
+                // 2. Send Email
+                emailService.sendFinalSelectionEmail(applicant.getEmail(), applicant.getName(), eventTitle);
+            } else if (status.equalsIgnoreCase("NOT_SELECTED")) {
+                String messageContent = "Final Selection Update for '" + eventTitle + "': We appreciate your participation, but unfortunately, we've decided to proceed with other candidates. Keep trying, and more opportunities await you!";
+                
+                // 1. Send In-App Message from Official Account
+                Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
+                messageRepository.save(msg);
+                
+                // 2. Send Email
+                emailService.sendFinalRejectionEmail(applicant.getEmail(), applicant.getName(), eventTitle);
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to send Phase 2 notifications: " + e.getMessage());
+        }
     }
 
     public EventApplication validatePass(String token) {
@@ -365,5 +450,54 @@ public class EventService {
             .collect(java.util.stream.Collectors.toList());
             
         return applicationRepository.findByEventIdIn(eventIds);
+    }
+
+    public void broadcastEventDetails(Long eventId, String location, String time, String date) {
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isPresent()) {
+            Event event = eventOpt.get();
+            List<EventApplication> shortlistedApps = applicationRepository.findByEventIdAndStatus(eventId, "SHORTLISTED");
+            
+            User creator = userRepository.findById(event.getUserId()).orElse(null);
+            
+            // Run broadcast in a background thread to prevent blocking the UI
+            new Thread(() -> {
+                for (EventApplication app : shortlistedApps) {
+                    try {
+                        User applicant = userRepository.findById(app.getUserId()).orElse(null);
+                        if (applicant != null) {
+                            String detailsLabel = "Audition".equalsIgnoreCase(event.getEventType()) ? "Audition Details" : "Important Details";
+                            String messageContent = detailsLabel + " for '" + event.getTitle() + "':\n\n" +
+                                    "📍 Location: " + location + "\n" +
+                                    "⏰ Time: " + time + "\n" +
+                                    "📅 Date: " + date + "\n\n" +
+                                    "Looking forward to seeing you!";
+                            
+                            // 1. Send In-App Message from Event Creator
+                            if (creator != null) {
+                                Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
+                                messageRepository.save(msg);
+                            }
+                            
+                            // 2. Send Email (This is the slow part)
+                            emailService.sendEventDetailsEmail(applicant.getEmail(), applicant.getName(), event.getTitle(), event.getEventType(), location, time, date);
+                            
+                            // 3. Send Notification
+                            notificationService.createNotification(
+                                applicant.getId(),
+                                event.getUserId(),
+                                "UPDATE",
+                                "New details shared for " + event.getTitle(),
+                                event.getId().toString()
+                            );
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to send broadcast to user " + app.getUserId() + ": " + e.getMessage());
+                    }
+                }
+            }).start();
+        } else {
+            throw new RuntimeException("Event not found");
+        }
     }
 }

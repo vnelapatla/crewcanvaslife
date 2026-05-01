@@ -12,6 +12,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 @RestController
@@ -53,7 +55,7 @@ public class MessageController {
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
-            map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
+            map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
             messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
@@ -86,7 +88,7 @@ public class MessageController {
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
             map.put("isRead", savedMessage.getIsRead());
-            map.put("createdAt", savedMessage.getCreatedAt() != null ? savedMessage.getCreatedAt().format(ISO_FORMATTER) : null);
+            map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
             messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
@@ -134,7 +136,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
+                map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
@@ -165,7 +167,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
+                map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
@@ -194,7 +196,7 @@ public class MessageController {
                 map.put("fileType", m.getFileType());
                 map.put("fileUrls", m.getFileUrls());
                 map.put("isRead", m.getIsRead());
-                map.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().format(ISO_FORMATTER) : null);
+                map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
                 result.add(map);
             }
             return ResponseEntity.ok(result);
