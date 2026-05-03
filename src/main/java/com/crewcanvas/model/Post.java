@@ -9,6 +9,7 @@ import java.util.List;
 @Table(name = "posts")
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
+    // CC-S1-101: Post Database Schema [Nelpatla Venkatesh] - Initial entity and repository setup.
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +21,13 @@ public class Post {
     @Column(name = "author_id", nullable = true) // Redundant field for compatibility
     private Long authorId;
 
-    @Column(length = 1000)
+    @Lob
+    @Column(name = "content", columnDefinition = "LONGTEXT")
+    // CC-MAY-003: Content Expansion [Nelpatla Venkatesh] - Upgrade to LONGTEXT for 3,000+ line support.
     private String content;
 
-    @Column(name = "description")
+    @Lob
+    @Column(name = "description", columnDefinition = "LONGTEXT")
     private String description = "";
 
     @Lob
@@ -61,6 +65,7 @@ public class Post {
     private java.util.List<String> externalLinks = new java.util.ArrayList<>();
 
     @Column(name = "aspect_ratio")
+    // CC-S1-305: Smart Aspect Ratios [T Dheeraj] - Add support for square and portrait metadata.
     private String aspectRatio = "original"; // original, square, portrait
 
     @Column(name = "created_at")

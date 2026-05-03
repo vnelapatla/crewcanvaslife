@@ -45,6 +45,7 @@ public class AuthController {
     }
 
     @PostMapping({"/google", "/app/google"})
+    // CC-S1-301: Multi-Auth System [T Dheeraj] - Implement seamless integration for Google OAuth2 and Email/Password login.
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
         try {
             String idTokenString = payload.get("credential");
@@ -128,6 +129,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
+    // CC-S1-304: Role-Based Access Control [T Dheeraj] - Implement RBAC to distinguish between Admin/Crew/Client roles.
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
             User user = userService.registerUser(

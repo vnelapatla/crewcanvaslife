@@ -31,6 +31,7 @@ public class PostService {
     private EmailService emailService;
 
     public Post createPost(Long userId, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
+        // CC-S1-103: Media Processing [Nelpatla Venkatesh] - Implement multi-image upload support and video processing logic.
         // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
         com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
         boolean isAdmin = user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()));
@@ -47,6 +48,7 @@ public class PostService {
     }
 
     public Post createPoll(Long userId, String question, List<String> options) {
+        // CC-S1-104: Polling System [Nelpatla Venkatesh] - Develop the full lifecycle for post-based polls including vote tracking.
         Post post = new Post(userId, question);
         com.crewcanvas.model.Poll poll = new com.crewcanvas.model.Poll(question);
         
@@ -93,8 +95,11 @@ public class PostService {
         if (sortBy == null || sortBy.isEmpty()) sortBy = "latest";
         if (contentType != null && (contentType.isEmpty() || contentType.equals("all"))) contentType = null;
 
+        // CC-MAY-004: Fix Hibernate 6 Query Validation [T Dheeraj] - Pre-format keyword pattern
+        String keywordPattern = (keyword == null || keyword.isEmpty()) ? "%" : "%" + keyword.toLowerCase() + "%";
+
         org.springframework.data.domain.Page<Post> posts = postRepository.searchAdvanced(
-            keyword, sinceDate, contentType, sortBy, org.springframework.data.domain.PageRequest.of(page, size));
+            keywordPattern, sinceDate, contentType, sortBy, org.springframework.data.domain.PageRequest.of(page, size));
         
         populateExtraData(posts.getContent());
         return posts;
@@ -144,11 +149,22 @@ public class PostService {
         throw new RuntimeException("Post not found");
     }
 
-    public void deletePost(Long id) {
-        postRepository.deleteById(id);
+    public void deletePost(Long id, Long userId) {
+        // CC-S1-101: Secure Post Deletion [Nelpatla Venkatesh] - Added ownership validation
+        Optional<Post> postOpt = postRepository.findById(id);
+        if (postOpt.isPresent()) {
+            if (postOpt.get().getUserId().equals(userId)) {
+                postRepository.deleteById(id);
+            } else {
+                throw new RuntimeException("Unauthorized: You do not own this post.");
+            }
+        } else {
+            throw new RuntimeException("Post not found");
+        }
     }
 
     public Post likePost(Long id, Long userId) {
+        // CC-S1-102: Social Interactions [Nelpatla Venkatesh] - Refine backend logic for Like/Comment/Share interactions.
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();

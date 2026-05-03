@@ -1,5 +1,80 @@
 let API_BASE_URL = ''; // Use relative paths by default for better compatibility
 
+// CC-MAY-002: Multi-Language Support [M Sumanth] - Global Translation Engine
+window.Translations = {
+    'en': {
+        'nav_feed': 'Feed',
+        'nav_dashboard': 'Dashboard',
+        'nav_search': 'Search',
+        'nav_messages': 'Messages',
+        'nav_events': 'Events',
+        'post_placeholder': "Share your latest project or news...",
+        'btn_post': 'Post',
+        'btn_media': 'Media',
+        'btn_poll': 'Poll',
+        'search_placeholder': 'Search posts, accounts, topics...',
+        'lang_en': 'English',
+        'lang_hi': 'हिन्दी (Hindi)',
+        'lang_te': 'తెలుగు (Telugu)'
+    },
+    'hi': {
+        'nav_feed': 'फ़ीड',
+        'nav_dashboard': 'डैशबोर्ड',
+        'nav_search': 'खोजें',
+        'nav_messages': 'संदेश',
+        'nav_events': 'इवेंट्स',
+        'post_placeholder': "अपनी नवीनतम परियोजना या समाचार साझा करें...",
+        'btn_post': 'पोस्ट करें',
+        'btn_media': 'मीडिया',
+        'btn_poll': 'पोल',
+        'search_placeholder': 'पोस्ट, खाते, विषय खोजें...',
+        'lang_en': 'English',
+        'lang_hi': 'हिन्दी',
+        'lang_te': 'తెలుగు'
+    },
+    'te': {
+        'nav_feed': 'ఫీడ్',
+        'nav_dashboard': 'డాష్‌బోర్డ్',
+        'nav_search': 'వెతకండి',
+        'nav_messages': 'సందేశాలు',
+        'nav_events': 'ఈవెంట్‌లు',
+        'post_placeholder': "మీ తాజా ప్రాజెక్ట్ లేదా వార్తలను పంచుకోండి...",
+        'btn_post': 'పోస్ట్',
+        'btn_media': 'మీడియా',
+        'btn_poll': 'పోల్',
+        'search_placeholder': 'పోస్ట్లు, ఖాతాలు, అంశాలను వెతకండి...',
+        'lang_en': 'English',
+        'lang_hi': 'హిందీ',
+        'lang_te': 'తెలుగు'
+    }
+};
+
+window.currentLang = localStorage.getItem('appLang') || 'en';
+
+function t(key) {
+    const langSet = window.Translations[window.currentLang] || window.Translations['en'];
+    return langSet[key] || key;
+}
+
+function setLanguage(lang) {
+    if (window.Translations[lang]) {
+        window.currentLang = lang;
+        localStorage.setItem('appLang', lang);
+        // Refresh UI
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = t(key);
+            } else {
+                el.innerText = t(key);
+            }
+        });
+        // Optional: show toast for language change
+        const langName = window.Translations[lang][`lang_${lang}`];
+        if (typeof showMessage === 'function') showMessage(`Language changed to ${langName}`, 'success');
+    }
+}
+
 // Fallback for local file opening (file://) or if we need to force a specific backend
 if (window.location.protocol === 'file:') {
     API_BASE_URL = 'http://localhost:8081';

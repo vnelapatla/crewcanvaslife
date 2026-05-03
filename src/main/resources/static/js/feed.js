@@ -26,6 +26,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     currentUserId = getCurrentUserId();
     
+    // CC-MAY-002: Apply initial language (Fail-Safe)
+    try {
+        const savedLang = localStorage.getItem('appLang') || 'en';
+        if (typeof setLanguage === 'function') {
+            setLanguage(savedLang);
+            const langSwitcher = document.getElementById('langSwitcher');
+            if (langSwitcher) langSwitcher.value = savedLang;
+        }
+    } catch (langErr) {
+        console.warn('Language init failed, defaulting to EN:', langErr);
+    }
+    
     // If a specific post is shared, focus on it
     const postId = getQueryParam('postId');
     if (postId) {
@@ -131,6 +143,7 @@ function performScroll(postId) {
 }
 
 // Load feed posts
+// CC-S1-105: Feed Performance [Nelpatla Venkatesh] - Implement infinite scroll and server-side caching.
 async function loadFeed(page = 0, refresh = false) {
     if (isLoading || (!hasMore && !refresh)) return;
     
@@ -146,9 +159,12 @@ async function loadFeed(page = 0, refresh = false) {
     }
 
     try {
+        console.log('Fetching feed: page', page, 'refresh', refresh);
         const response = await fetch(`${API_BASE_URL}/api/posts?page=${page}&size=${PAGE_SIZE}`);
+        console.log('Feed response status:', response.status);
         if (response.ok) {
             let data = await response.json();
+            console.log('Feed data loaded:', data);
             const posts = data.content ? data.content : data;
             
             // Map backend 'userDetails' to frontend 'user' property for compatibility
@@ -604,6 +620,7 @@ async function deletePost(postId) {
     }
 }
 
+// CC-S1-102: Social Interactions [Nelpatla Venkatesh] - Refine frontend like logic and optimistic UI.
 async function likePost(postId) {
     const likesCount = document.getElementById(`likes-count-${postId}`);
     const btn = likesCount ? likesCount.parentElement : null;

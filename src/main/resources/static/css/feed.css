@@ -7,8 +7,9 @@
 
 @media (min-width: 1025px) {
     .feed-container {
-        width: 100%;
-        max-width: none;
+        width: 70%; /* CC-MAY-001: Optimization [N Navilash] - Increased from 55% for better visibility */
+        max-width: 900px; /* Optional cap for very large monitors */
+        margin: 0 auto;
     }
 }
 

@@ -12,12 +12,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body>
+<body class="with-sidebar">
     <!-- Sidebar is dynamically injected by utils.js -->
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="top-header"></header>
+        <header class="top-header">
+            <div class="header-left">
+                <div class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <a href="feed.html" class="brand-logo">CrewCanvas</a>
+            </div>
+            <div class="status-bar">
+                <i class="fa-solid fa-bell notification-bell-icon" onclick="toggleNotificationDropdown()"></i>
+                <div class="user-profile-box" onclick="window.location.href='profile.html'">
+                    <!-- Profile avatar will be injected by JS -->
+                    <div class="user-avatar-placeholder"></div>
+                </div>
+            </div>
+        </header>
 
         <div class="content-body">
             <div class="section-header">
@@ -31,17 +45,18 @@
                     <input 
                         type="text" 
                         id="feedSearchInput" 
+                        data-i18n="search_placeholder"
                         placeholder="Search posts, accounts, topics, roles..." 
                         autocomplete="off"
                     >
                     <button id="feedSearchClearBtn" class="search-clear-btn" style="display:none;" onclick="clearFeedSearch()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <select id="feedTimeFilter" class="time-filter-select" onchange="onTimeFilterChange()" style="display:none;">
-                        <option value="all">All Time</option>
-                        <option value="day">Past 24h</option>
-                        <option value="week">Past Week</option>
-                        <option value="month">Past Month</option>
+                    <!-- Language Selector -->
+                    <select id="langSwitcher" class="time-filter-select" onchange="setLanguage(this.value)" style="border-left:none; margin-left:0; color:var(--primary-orange);">
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="hi">🇮🇳 HI</option>
+                        <option value="te">🇮🇳 TE</option>
                     </select>
                     <button class="filter-toggle-btn" onclick="toggleFilterModal()" title="Search filters">
                         <i class="fa-solid fa-sliders"></i>
@@ -59,7 +74,7 @@
             <!-- Create Post Section -->
             <div class="create-post-card card" style="margin-bottom: 30px;">
                 <div id="standardPostInputs">
-                    <textarea id="postContent" placeholder="Share your latest project or news..." maxlength="1000"
+                    <textarea id="postContent" data-i18n="post_placeholder" placeholder="Share your latest project or news..." maxlength="150000"
                         style="background:#fcfcfc; border:1px solid #eee; border-radius:12px; height:100px; resize:none; padding:15px; margin-bottom: 10px; width:100%;"></textarea>
                     
                     <input type="url" id="postLink" placeholder="📎 Add external link (e.g. YouTube, Movie Projects)" 
@@ -88,7 +103,7 @@
                             <span class="filter-icon">📊</span> Poll
                         </button>
                     </div>
-                    <button id="submitPostBtn" class="auth-btn" style="width:120px; padding:10px;" onclick="createPost()">Post</button>
+                    <button id="submitPostBtn" class="auth-btn" style="width:120px; padding:10px;" onclick="createPost()" data-i18n="btn_post">Post</button>
                 </div>
                 <!-- Image Preview Container -->
                 <div id="imagePreviewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
@@ -123,7 +138,7 @@
                 <button onclick="closeEditModal()" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <textarea id="editPostContent" maxlength="1000" placeholder="What's on your mind?"></textarea>
+                <textarea id="editPostContent" maxlength="150000" placeholder="What's on your mind?"></textarea>
                 <div id="editImagePreviewContainer" class="image-preview-grid"></div>
                 <div class="modal-actions">
                     <div style="display: flex; gap: 10px;">

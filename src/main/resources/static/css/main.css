@@ -38,7 +38,8 @@
     box-sizing: border-box;
     font-family: 'Inter', -apple-system, sans-serif;
     font-display: swap;
-    -webkit-tap-highlight-color: transparent;
+    font-display: swap;
+    -webkit-tap-highlight-color: transparent; /* CC-S1-201: Mobile Tap Fix [N Navilash] - Disable tap-highlight */
 }
 
 body {
@@ -410,6 +411,7 @@ img, video, iframe {
 }
 
 @media (max-width: 1024px) {
+    /* CC-S1-201: Mobile Tap Fix [N Navilash] - Hard-lock viewport and disable tap-highlight */
     /* Hard limit any rogue elements pushing the screen wide */
     img, video, iframe, .card, .content-body {
         max-width: 100%;

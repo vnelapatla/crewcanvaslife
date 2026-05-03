@@ -19,6 +19,7 @@ public class PostController {
     private PostService postService;
 
     @PostMapping
+    // CC-S1-103: Media Processing [Nelpatla Venkatesh] - Implement multi-image upload support and video processing logic.
     public ResponseEntity<?> createPost(@RequestBody PostRequest request) {
         try {
             System.out.println("Creating post. isPoll: " + request.isPoll());
@@ -113,10 +114,13 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+    // CC-S1-101: Secure Post Deletion [Nelpatla Venkatesh] - Implement ownership validation to ensure only the author can delete a post.
+    public ResponseEntity<?> deletePost(@PathVariable Long id, @RequestParam Long userId) {
         try {
-            postService.deletePost(id);
+            postService.deletePost(id, userId);
             return ResponseEntity.ok("Post deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

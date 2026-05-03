@@ -18,14 +18,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByOrderByCreatedAtDesc();
 
-    @Query("SELECT p FROM Post p WHERE LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.poll.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY p.createdAt DESC")
+    // CC-MAY-004: Stability Fix [T Dheeraj] - Simplified JPQL to resolve Hibernate 6 validation crash.
+    @Query("SELECT p FROM Post p WHERE p.content LIKE :keyword OR p.poll.question LIKE :keyword OR p.user.name LIKE :keyword ORDER BY p.createdAt DESC")
     org.springframework.data.domain.Page<Post> searchByKeyword(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
 
-    @Query("SELECT p FROM Post p WHERE (LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.poll.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.user.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND p.createdAt >= :sinceDate ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Post p JOIN p.user u WHERE (p.content LIKE :keyword OR p.poll.question LIKE :keyword OR u.name LIKE :keyword) AND p.createdAt >= :sinceDate ORDER BY p.createdAt DESC")
     org.springframework.data.domain.Page<Post> searchByKeywordAndTime(@Param("keyword") String keyword, @Param("sinceDate") java.time.LocalDateTime sinceDate, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT p FROM Post p LEFT JOIN p.user u LEFT JOIN p.poll pol WHERE " +
-           "(LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(pol.question) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "(p.content LIKE :keyword OR pol.question LIKE :keyword OR u.name LIKE :keyword) " +
            "AND (:sinceDate IS NULL OR p.createdAt >= :sinceDate) " +
            "AND (:contentType IS NULL " +
            "OR (:contentType = 'images' AND p.imageUrls IS NOT EMPTY AND NOT EXISTS (SELECT img FROM p.imageUrls img WHERE img LIKE 'data:video/%')) " +
