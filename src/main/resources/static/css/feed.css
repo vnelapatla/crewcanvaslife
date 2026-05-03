@@ -13,6 +13,48 @@
     }
 }
 
+/* CC-MAY-001: Mobile Spacing Fix [N Navilash] - Added margins to prevent collision with search bar */
+.feed-search-wrapper {
+    padding: 15px 20px;
+    background: white;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 1024px) {
+    .feed-search-wrapper {
+        margin-top: 10px;
+        margin-bottom: 20px; /* Push create post card down */
+    }
+}
+
+.feed-search-bar {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0 15px;
+    height: 48px;
+    transition: all 0.3s ease;
+}
+
+.feed-search-bar:focus-within {
+    border-color: var(--primary-orange);
+    background: white;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.08);
+}
+
+.feed-search-bar input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    font-size: 14px;
+    outline: none;
+    color: #1f2937;
+}
+
 /* Create Post Card */
 .create-post-card {
     background: white;
@@ -21,6 +63,13 @@
     border-bottom: 8px solid #f1f5f9; /* Thick separator for create post */
     border-radius: 0 !important;
     box-shadow: none !important;
+}
+
+@media (max-width: 1024px) {
+    .create-post-card {
+        padding: 20px 15px; /* Reduced padding for mobile */
+        margin-top: 5px;
+    }
 }
 
 .create-post-card h3 {
