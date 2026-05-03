@@ -6,10 +6,14 @@
 }
 
 @media (min-width: 1025px) {
-    .feed-container {
-        width: 70%; /* CC-MAY-001: Optimization [N Navilash] - Increased from 55% for better visibility */
-        max-width: 900px; /* Optional cap for very large monitors */
+    .feed-search-wrapper,
+    .create-post-card,
+    .feed-container,
+    .section-header {
+        width: 85%; /* CC-MAY-001: Optimization [N Navilash] - Increased to 85% of container to reach ~70% of total screen */
+        max-width: 1400px; 
         margin: 0 auto;
+        box-sizing: border-box;
     }
 }
 
@@ -23,8 +27,12 @@
 
 @media (max-width: 1024px) {
     .feed-search-wrapper {
+        margin-top: 25px; /* Increased to push below header properly */
+        margin-bottom: 35px; /* Increased to push create post card down */
+    }
+    .create-post-card {
+        padding: 20px 15px; /* Reduced padding for mobile */
         margin-top: 10px;
-        margin-bottom: 20px; /* Push create post card down */
     }
 }
 
@@ -53,6 +61,23 @@
     font-size: 14px;
     outline: none;
     color: #1f2937;
+}
+
+.time-filter-select {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    padding-right: 5px;
+}
+
+@media (max-width: 600px) {
+    .time-filter-select {
+        font-size: 11px;
+        max-width: 65px;
+    }
 }
 
 /* Create Post Card */
@@ -100,6 +125,13 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 15px;
+}
+
+@media (max-width: 1024px) {
+    .section-header {
+        padding: 10px 15px 0;
+        margin-bottom: -5px;
+    }
 }
 
 /* Post Cards */
