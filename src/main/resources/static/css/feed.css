@@ -27,12 +27,12 @@
 
 @media (max-width: 1024px) {
     .feed-search-wrapper {
-        margin-top: 25px; /* Increased to push below header properly */
-        margin-bottom: 35px; /* Increased to push create post card down */
+        margin-top: 30px; /* Increased slightly */
+        margin-bottom: 55px; /* Significant increase for more gap */
     }
     .create-post-card {
-        padding: 20px 15px; /* Reduced padding for mobile */
-        margin-top: 10px;
+        padding: 20px 15px; 
+        margin-top: 20px; /* Increased gap from above */
     }
 }
 

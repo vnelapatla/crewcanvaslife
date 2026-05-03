@@ -580,6 +580,11 @@ async function createPost() {
                 document.getElementById('imagePreviewContainer').innerHTML = '';
             }
             
+            // Ensure user data is mapped for immediate display
+            if (newPost.userDetails && !newPost.user) {
+                newPost.user = newPost.userDetails;
+            }
+            
             // Prepend new post instead of reloading feed
             displayPosts([newPost], false, true);
             

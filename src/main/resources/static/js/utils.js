@@ -69,9 +69,7 @@ function setLanguage(lang) {
                 el.innerText = t(key);
             }
         });
-        // Optional: show toast for language change
-        const langName = window.Translations[lang][`lang_${lang}`];
-        if (typeof showMessage === 'function') showMessage(`Language changed to ${langName}`, 'success');
+        // Language change toast removed as requested
     }
 }
 
