@@ -44,7 +44,8 @@ public class PostService {
 
         Post post = new Post(userId, content, imageUrls, externalLinks);
         if (aspectRatio != null) post.setAspectRatio(aspectRatio);
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        return populatePollData(savedPost);
     }
 
     public Post createPoll(Long userId, String question, List<String> options) {
