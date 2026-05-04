@@ -197,6 +197,7 @@ public class EventController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
+    }
     @PostMapping("/sync-counts")
     public ResponseEntity<?> syncCounts() {
         try {
