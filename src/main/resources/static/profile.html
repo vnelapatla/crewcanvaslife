@@ -106,11 +106,13 @@
         #profileName {
             font-size: 42px;
             font-weight: 900;
-            margin: 10px 0;
-            letter-spacing: -1.5px;
-            text-transform: lowercase;
-            line-height: 1.1;
+            margin: 15px 0 10px;
+            letter-spacing: -1px;
+            text-transform: capitalize;
+            line-height: 1.2;
             word-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
         }
 
         #profileBio {
@@ -649,8 +651,8 @@
             .main-content { margin-left: 0 !important; width: 100% !important; padding-top: 60px; padding-bottom: 80px; }
             .top-header { padding: 0 15px; height: 60px; }
             .profile-container { width: 92%; margin: 20px auto; }
-            #profileName { font-size: 28px; }
-            .avatar-glow-wrapper { width: 140px; height: 140px; margin-bottom: 15px; }
+            #profileName { font-size: 32px; line-height: 1.2; margin-top: 20px; }
+            .avatar-glow-wrapper { width: 150px; height: 150px; margin-bottom: 25px; }
             .stats-pills { gap: 10px; margin-bottom: 30px; }
             .stat-pill { 
                 padding: 10px 15px; 
@@ -738,7 +740,7 @@
         }
 
         @media (max-width: 480px) {
-            #profileName { font-size: 24px; }
+            #profileName { font-size: 26px; }
             .stat-pill span { display: inline; }
             .data-row { padding: 10px 12px; }
         }

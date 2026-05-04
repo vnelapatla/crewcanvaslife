@@ -463,6 +463,7 @@
                             <h1 id="mgmtEventTitle" style="font-size: 24px; color: #1e293b; margin: 5px 0;">Event Title</h1>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                            <button id="shareCastingDeckBtn" class="export-btn" onclick="copyShareLink()" style="display: none; padding: 6px 12px; font-size: 11px; background: #fff8f1; color: #ff8c00; border: 1px solid #ffe4d3;"><i class="fas fa-link"></i> Copy Casting Deck</button>
                             <button class="export-btn" onclick="openBroadcastModal()" style="padding: 6px 12px; font-size: 11px; background: #0f172a; color: white; border: none;"><i class="fas fa-bullhorn"></i> Broadcast Details</button>
                             <button class="export-btn" onclick="exportApplicantsData()" style="padding: 6px 12px; font-size: 11px;"><i class="fas fa-file-export"></i> Export</button>
                             <button class="manage-btn" onclick="openEditModal()" style="margin-top: 0; padding: 6px 12px; font-size: 11px; border-color: var(--primary-orange); color: var(--primary-orange);"><i class="fas fa-edit"></i> Edit</button>
@@ -698,6 +699,12 @@
                         <label class="mgmt-label">Resume / Portfolio</label>
                         <a id="detResumeLink" href="#" target="_blank" style="display: flex; align-items: center; gap: 8px; margin-top: 8px; background: #f1f5f9; padding: 12px; border-radius: 12px; text-decoration: none; color: #475569; font-weight: 700; border: 1px solid #e2e8f0;">
                             <i class="fas fa-file-pdf" style="color: #ef4444; font-size: 18px;"></i> View Resume / Portfolio
+                        </a>
+                    </div>
+                    <div id="detVideoGroup" style="margin-bottom: 20px; display: none;">
+                        <label class="mgmt-label">Performance Video / Portfolio</label>
+                        <a id="detVideoLink" href="#" target="_blank" style="display: flex; align-items: center; gap: 8px; margin-top: 8px; background: #fff8f1; padding: 12px; border-radius: 12px; text-decoration: none; color: #ff8c00; font-weight: 700; border: 1px solid #ffe4d3;">
+                            <i class="fas fa-play-circle" style="color: #ff8c00; font-size: 18px;"></i> Watch Performance Tape
                         </a>
                     </div>
                     <div>

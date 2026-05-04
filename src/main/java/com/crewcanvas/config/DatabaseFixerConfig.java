@@ -43,6 +43,16 @@ public class DatabaseFixerConfig {
                     }
                 }
 
+                // Fix event image_url column size
+                try {
+                    System.out.println("DEBUG: Running Event table fix...");
+                    try { jdbcTemplate.execute("ALTER TABLE events MODIFY COLUMN image_url LONGTEXT"); } catch (Exception e1) { jdbcTemplate.execute("ALTER TABLE events CHANGE image_url image_url LONGTEXT"); }
+                    try { jdbcTemplate.execute("ALTER TABLE events MODIFY COLUMN requirements TEXT"); } catch (Exception e2) { jdbcTemplate.execute("ALTER TABLE events CHANGE requirements requirements TEXT"); }
+                    System.out.println("SUCCESS: Upgraded event table columns (image_url, requirements)");
+                } catch (Exception e) {
+                    System.err.println("Note: Event table fix skipped - " + e.getMessage());
+                }
+
                 // Manually add missing columns that Hibernate might fail to create in Production
                 String[] columnsToAdd = {
                     "bio TEXT",

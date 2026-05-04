@@ -353,7 +353,18 @@ public class UserService {
     }
 
     public org.springframework.data.domain.Page<User> searchUsers(String query, String role, String location, Long currentUserId, boolean excludeFollowed, int page, int size) {
-        return userRepository.searchUsers(query, role, location, currentUserId, excludeFollowed, org.springframework.data.domain.PageRequest.of(page, size));
+        String viewerRole = null;
+        String viewerAgeRange = null;
+        
+        if (currentUserId != null) {
+            Optional<User> viewer = userRepository.findById(currentUserId);
+            if (viewer.isPresent()) {
+                viewerRole = viewer.get().getRole();
+                viewerAgeRange = viewer.get().getAgeRange();
+            }
+        }
+        
+        return userRepository.searchUsers(query, role, location, currentUserId, viewerRole, viewerAgeRange, excludeFollowed, org.springframework.data.domain.PageRequest.of(page, size));
     }
 
     public List<User> getAllUsers() {

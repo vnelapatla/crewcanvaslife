@@ -1,0 +1,8 @@
+Ticket ID,Status,Category,Title,Description
+CC-ADMIN-001,COMPLETED,Notifications,Automated Requirement Notifications,Automatically notify all users via email and in-app notifications whenever admin publishes a requirement.
+CC-ADMIN-002,COMPLETED,Onboarding,Global Admin Auto-Follow,Ensures all new users follow CrewCanvas Official upon registration to populate their feed.
+CC-ADMIN-003,COMPLETED,Admin Tool,Retroactive Community Sync,Added a manual sync button to make existing users follow the admin account.
+CC-ADMIN-004,COMPLETED,Notifications,Enhanced Email Content,Updated requirement emails to include the full text of the admin post instead of a preview.
+CC-S1-301,COMPLETED,Auth,Multi-Auth System,Seamless integration for Google OAuth2 and Email/Password login.
+CC-S1-304,COMPLETED,Security,Role-Based Access Control,Implementation of RBAC to distinguish between Admin/Crew/Client roles.
+CC-MAY-002,COMPLETED,Localization,Multi-Language Support,Global Translation Engine for English/Hindi/Telugu support.

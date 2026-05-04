@@ -40,12 +40,13 @@ public class Event {
     @Column(name = "time_duration")
     private String timeDuration;
 
+    @Column(length = 2000)
     private String requirements;
 
     @Column(name = "contact_info")
     private String contactInfo;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "LONGTEXT")
     private String imageUrl;
 
     @Column(nullable = false)
@@ -64,6 +65,7 @@ public class Event {
     @Column(name = "org_email")
     private String orgEmail;
 
+    @Column(length = 2000)
     private String skills;
     
     @Column(name = "role_type")
@@ -84,6 +86,12 @@ public class Event {
     @Column(name = "created_at")
     private java.time.Instant createdAt;
 
+    @Column(name = "is_managed")
+    private Boolean isManaged = false;
+
+    @Column(name = "share_key", unique = true)
+    private String shareKey;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -91,6 +99,9 @@ public class Event {
     @PrePersist
     protected void onCreate() {
         createdAt = java.time.Instant.now();
+        if (isManaged != null && isManaged && (shareKey == null || shareKey.isEmpty())) {
+            shareKey = java.util.UUID.randomUUID().toString().substring(0, 8);
+        }
     }
 
     // Constructors
@@ -301,4 +312,10 @@ public class Event {
 
     public String getPrizePool() { return prizePool; }
     public void setPrizePool(String prizePool) { this.prizePool = prizePool; }
+
+    public Boolean getIsManaged() { return isManaged; }
+    public void setIsManaged(Boolean isManaged) { this.isManaged = isManaged; }
+
+    public String getShareKey() { return shareKey; }
+    public void setShareKey(String shareKey) { this.shareKey = shareKey; }
 }

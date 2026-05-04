@@ -899,6 +899,14 @@
             </div>
             <div class="content-body-modal" style="padding: 5px 25px 25px;">
                 <div class="form-grid-2">
+                    <div class="form-group full-width" id="managedGroup" style="display: none; background: #fff8f1; padding: 12px; border-radius: 12px; border: 1px solid #ffe4d3; margin-bottom: 5px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="isManaged" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-orange);">
+                            <label for="isManaged" style="font-size: 12px; font-weight: 700; color: #1e293b; cursor: pointer;">
+                                Managed by CrewCanvas <span style="font-size: 10px; color: #ff8c00; font-weight: 500;">(Secret Link enabled)</span>
+                            </label>
+                        </div>
+                    </div>
                     <div class="form-group full-width">
                         <label class="form-label-premium" id="labelTitle">Event Name / Title</label>
                         <input type="text" id="eventTitle" class="form-control-premium" placeholder="e.g. Audition - New Session">
@@ -986,10 +994,10 @@
                                     <p style="font-size: 11px; font-weight: 600;">Click to upload banner</p>
                                 </div>
                                 <img id="previewImg" src="" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                                <input type="file" id="eventImageInput" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
+                                <input type="hidden" id="eventImageUrl">
                             </div>
-                            <input type="file" id="eventImageInput" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <input type="text" id="eventImageUrl" class="form-control-premium" placeholder="Or paste image URL here..." style="font-size: 11px;">
                                 <button type="button" id="clearImageBtn" class="btn-cancel-premium" style="padding: 8px 12px; display: none;" onclick="clearEventImage()">
                                     <i class="fas fa-trash"></i>
                                 </button>

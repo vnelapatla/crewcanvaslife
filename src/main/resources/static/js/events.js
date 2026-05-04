@@ -133,6 +133,12 @@ async function loadEventForEdit(id) {
             if (document.getElementById('eventGender')) document.getElementById('eventGender').value = event.genderPreference || 'Any';
             if (document.getElementById('eventPrizePool')) document.getElementById('eventPrizePool').value = event.prizePool || '';
             
+            // Populate isManaged
+            const isManagedCheckbox = document.getElementById('isManaged');
+            if (isManagedCheckbox) {
+                isManagedCheckbox.checked = event.isManaged === true;
+            }
+            
             // Handle Image Preview in Edit Mode
             const previewImg = document.getElementById('previewImg');
             const placeholder = document.getElementById('previewPlaceholder');
@@ -310,8 +316,11 @@ function displayEvents(events, prepend = false) {
         
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 20px; cursor: pointer;" onclick="applyToEvent(${event.id})">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                    <div class="type-tag ${typeClass}" style="position: static; margin: 0;">${event.eventType || 'Audition'}</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div class="type-tag ${typeClass}" style="position: static; margin: 0;">${event.eventType || 'Audition'}</div>
+                        ${event.isManaged ? `<div class="type-tag" style="position: static; margin: 0; background: #fff8f1; color: #ff8c00; border: 1px solid #ffe4d3;"><i class="fas fa-check-circle"></i> Managed</div>` : ''}
+                    </div>
                     ${event.status === 'CLOSED' ? `<div class="type-tag" style="position: static; background: #ef4444; border: none; color: white; font-weight: 800;"><i class="fas fa-lock"></i> CLOSED</div>` : ''}
                 </div>
                 <div class="card-content" style="padding: 0;">
@@ -455,6 +464,14 @@ function openCreateForm(type, isEdit = false) {
 
     if (!isEdit) {
         clearEventImage(); // Reset image for new form
+        if (document.getElementById('isManaged')) document.getElementById('isManaged').checked = false;
+    }
+
+    // Admin-only: Managed Audition toggle
+    const managedGroup = document.getElementById('managedGroup');
+    if (managedGroup) {
+        const isAdmin = (currentUser && currentUser.isAdmin) || localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com';
+        managedGroup.style.display = isAdmin ? 'block' : 'none';
     }
 }
 
@@ -665,7 +682,8 @@ async function submitEvent() {
         roleType: document.getElementById('eventRoleType') ? document.getElementById('eventRoleType').value : '',
         ageRange: document.getElementById('eventAgeRange') ? document.getElementById('eventAgeRange').value.trim() : '',
         genderPreference: document.getElementById('eventGender') ? document.getElementById('eventGender').value : '',
-        prizePool: document.getElementById('eventPrizePool') ? document.getElementById('eventPrizePool').value.trim() : ''
+        prizePool: document.getElementById('eventPrizePool') ? document.getElementById('eventPrizePool').value.trim() : '',
+        isManaged: document.getElementById('isManaged') ? document.getElementById('isManaged').checked : false
     };
 
     const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
@@ -770,21 +788,63 @@ async function openAppModal(eventId) {
     if (auditionFields) auditionFields.style.display = 'none';
     if (contestFields) contestFields.style.display = 'none';
 
-    // Reset forms visibility (done above)
-    
-    // LAYER 1: Pre-fill from Profile
-    if (document.getElementById('appFullName')) document.getElementById('appFullName').value = currentUser?.fullName || '';
+    // LAYER 1: Pre-fill from Profile (Baseline)
+    if (document.getElementById('appFullName')) document.getElementById('appFullName').value = currentUser?.fullName || currentUser?.name || '';
     if (document.getElementById('appEmail')) document.getElementById('appEmail').value = currentUser?.email || '';
     if (document.getElementById('appWhatsApp')) document.getElementById('appWhatsApp').value = currentUser?.phone || '';
     
-    // LAYER 2: Fetch and Pre-fill from Latest Application
+    // Default specific fields from profile
+    if (document.getElementById('appAge')) document.getElementById('appAge').value = currentUser?.ageRange || '';
+    if (document.getElementById('appHeight')) document.getElementById('appHeight').value = currentUser?.height || '';
+    if (document.getElementById('appLocation')) document.getElementById('appLocation').value = currentUser?.location || '';
+    
+    // Clear dynamic fields before potentially auto-filling from last app
+    if (document.getElementById('appSubmissionLink')) document.getElementById('appSubmissionLink').value = '';
+    if (document.getElementById('appRole')) document.getElementById('appRole').value = '';
+    if (document.getElementById('appNote')) document.getElementById('appNote').value = '';
+    if (document.getElementById('appShortFilmTitle')) document.getElementById('appShortFilmTitle').value = '';
+    if (document.getElementById('appTeamName')) document.getElementById('appTeamName').value = '';
+
+    // Pictures Pre-population from Gallery (Profile Default)
+    if (currentUser?.recentPictures) {
+        try {
+            let pics = [];
+            if (currentUser.recentPictures.startsWith('[')) {
+                pics = JSON.parse(currentUser.recentPictures);
+            } else {
+                pics = currentUser.recentPictures.split(',').filter(p => p.trim() !== '');
+            }
+            pics.slice(0, 3).forEach((pic, i) => {
+                if (pic) {
+                    setAppPhotoPreview(i + 1, pic);
+                    window._appState.photos[i] = pic;
+                }
+            });
+        } catch (e) { console.error("Gallery parse failed:", e); }
+    } else {
+        for(let i=1; i<=3; i++) clearAppPhotoPreview(i);
+    }
+
+    // Resume Pre-population (Profile Default)
+    const resumeStatus = document.getElementById('resumeStatus');
+    if (currentUser?.resume && resumeStatus) {
+        resumeStatus.innerText = 'Resume selected from profile (Click to change)';
+        resumeStatus.style.color = '#10b981';
+        window._appState.resumeData = currentUser.resume;
+        window._appState.resumeName = currentUser.resumeFileName || 'Resume.pdf';
+    } else if (resumeStatus) {
+        resumeStatus.innerText = 'Click to upload or select from profile';
+        resumeStatus.style.color = '#64748b';
+        window._appState.resumeData = null;
+    }
+
+    // LAYER 2: Fetch and Pre-fill from Latest Application (Preferred Overwrites)
     try {
         const latestResp = await fetch(`${API_BASE_URL}/api/events/user-applications/latest?userId=${currentUserId}`);
         if (latestResp.status === 200) {
             const lastApp = await latestResp.json();
-            console.log("Found previous application, auto-filling fields...");
+            console.log("Found previous application, refining fields...");
             
-            // Auto-fill common fields if they were missing or as preferred defaults
             const fieldsToFill = {
                 'appAge': lastApp.age,
                 'appHeight': lastApp.height,
@@ -798,30 +858,20 @@ async function openAppModal(eventId) {
             
             for (const [id, value] of Object.entries(fieldsToFill)) {
                 const el = document.getElementById(id);
-                if (el && value && (!el.value || el.value === '')) {
+                if (el && value && value.trim() !== '') {
                     el.value = value;
                 }
             }
             
-            // Auto-fill photos if none picked
-            if (lastApp.photo1 && !window._appState.photos[0]) {
-                setAppPhotoPreview(1, lastApp.photo1);
-                window._appState.photos[0] = lastApp.photo1;
-            }
-            if (lastApp.photo2 && !window._appState.photos[1]) {
-                setAppPhotoPreview(2, lastApp.photo2);
-                window._appState.photos[1] = lastApp.photo2;
-            }
-            if (lastApp.photo3 && !window._appState.photos[2]) {
-                setAppPhotoPreview(3, lastApp.photo3);
-                window._appState.photos[2] = lastApp.photo3;
-            }
+            // Overwrite photos if last app had them (usually more relevant for specific roles)
+            if (lastApp.photo1) { setAppPhotoPreview(1, lastApp.photo1); window._appState.photos[0] = lastApp.photo1; }
+            if (lastApp.photo2) { setAppPhotoPreview(2, lastApp.photo2); window._appState.photos[1] = lastApp.photo2; }
+            if (lastApp.photo3) { setAppPhotoPreview(3, lastApp.photo3); window._appState.photos[2] = lastApp.photo3; }
             
-            // Auto-fill resume if none picked
-            if (lastApp.resumeUrl && !window._appState.resumeData) {
+            // Overwrite resume if last app had one
+            if (lastApp.resumeUrl) {
                 window._appState.resumeData = lastApp.resumeUrl;
                 window._appState.resumeName = lastApp.resumeFileName || 'Resume.pdf';
-                const resumeStatus = document.getElementById('resumeStatus');
                 if (resumeStatus) {
                     resumeStatus.innerText = `Selected from previous: ${truncateText(window._appState.resumeName, 20)}`;
                     resumeStatus.style.color = '#10b981';
@@ -832,73 +882,11 @@ async function openAppModal(eventId) {
         console.warn("Failed to fetch latest application for auto-fill:", e);
     }
 
+    // LAYER 3: Type-Specific UI Adjustments
     if (type === 'Audition') {
         if (auditionFields) auditionFields.style.display = 'block';
         if (roleGroup) roleGroup.style.display = 'block';
         if (labelNote) labelNote.innerText = 'Additional Notes';
-        
-        // Audition Pre-population
-        if (document.getElementById('appAge')) document.getElementById('appAge').value = currentUser?.ageRange || '';
-        if (document.getElementById('appHeight')) document.getElementById('appHeight').value = currentUser?.height || '';
-        if (document.getElementById('appLocation')) document.getElementById('appLocation').value = currentUser?.location || '';
-        
-        // Pictures Pre-population from Gallery
-        if (currentUser?.recentPictures) {
-            try {
-                let pics = [];
-                if (currentUser.recentPictures.startsWith('[')) {
-                    pics = JSON.parse(currentUser.recentPictures);
-                } else {
-                    pics = currentUser.recentPictures.split(',').filter(p => p.trim() !== '');
-                }
-                
-                pics.slice(0, 3).forEach((pic, i) => {
-                    if (pic) {
-                        setAppPhotoPreview(i + 1, pic);
-                        window._appState.photos[i] = pic;
-                    }
-                });
-            } catch (e) {
-                console.error("Gallery parse failed:", e);
-            }
-        } else {
-            // Clear previews
-            for(let i=1; i<=3; i++) clearAppPhotoPreview(i);
-        }
-
-        // Resume Pre-population
-        const resumeStatus = document.getElementById('resumeStatus');
-        if (currentUser?.resume && resumeStatus) {
-            resumeStatus.innerText = 'Resume selected from profile (Click to change)';
-            resumeStatus.style.color = '#10b981';
-            window._appState.resumeData = currentUser.resume;
-            window._appState.resumeName = currentUser.resumeFileName || 'Resume.pdf';
-        } else {
-            const resumeStatus = document.getElementById('resumeStatus');
-            if (resumeStatus) {
-                resumeStatus.innerText = 'Click to upload or select from profile';
-                resumeStatus.style.color = '#64748b';
-            }
-            window._appState.resumeData = null;
-        }
-
-        // Clear video state
-        window._appState.videoData = null;
-        window._appState.videoName = null;
-        const videoStatus = document.getElementById('videoStatus');
-        if (videoStatus) {
-            videoStatus.innerText = 'Click to upload video';
-            videoStatus.style.color = '#64748b';
-        }
-
-        // Clear poster state
-        window._appState.posterData = null;
-        const posterStatus = document.getElementById('posterStatus');
-        if (posterStatus) {
-            posterStatus.innerText = 'Click to upload poster image';
-            posterStatus.style.color = '#64748b';
-        }
-
     } else if (type === 'Contest') {
         if (contestFields) contestFields.style.display = 'block';
         if (submissionGroup) submissionGroup.style.display = 'block';
@@ -911,17 +899,24 @@ async function openAppModal(eventId) {
         }
         if (labelNote) labelNote.innerText = 'Special Note';
     } else {
-        // Workshop / Course
         if (labelNote) labelNote.innerText = 'Message to Organizer';
     }
     
-    // Pre-fill common fields
-    if (document.getElementById('appFullName')) document.getElementById('appFullName').value = currentUser?.name || '';
-    if (document.getElementById('appWhatsApp')) document.getElementById('appWhatsApp').value = currentUser?.phone || '';
-    if (document.getElementById('appEmail')) document.getElementById('appEmail').value = currentUser?.email || '';
-    if (document.getElementById('appSubmissionLink')) document.getElementById('appSubmissionLink').value = '';
-    if (document.getElementById('appRole')) document.getElementById('appRole').value = '';
-    if (document.getElementById('appNote')) document.getElementById('appNote').value = '';
+    // LAYER 4: Final Cleanup & UI Prep
+    window._appState.videoData = null;
+    window._appState.videoName = null;
+    const videoStatus = document.getElementById('videoStatus');
+    if (videoStatus) {
+        videoStatus.innerText = 'Click to upload video';
+        videoStatus.style.color = '#64748b';
+    }
+
+    window._appState.posterData = null;
+    const posterStatus = document.getElementById('posterStatus');
+    if (posterStatus) {
+        posterStatus.innerText = 'Click to upload poster image';
+        posterStatus.style.color = '#64748b';
+    }
 
     // Show Linked Profile Preview
     if (document.getElementById('appUserProfileName')) {

@@ -874,7 +874,7 @@ const currentPage = path.split("/").pop() || 'index.html';
 
 // Helper to check if current page is an authentication page
 function isAuthPage() {
-    const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html', 'pass.html', 'scan.html'];
+    const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html', 'pass.html', 'scan.html', 'shared-audition.html'];
     return authPages.includes(currentPage) || path === '/' || path === '';
 }
 
@@ -1482,4 +1482,63 @@ if (typeof module !== 'undefined' && module.exports) {
         formatDateForInput,
         shareContent
     };
+}
+
+/**
+ * Safely opens a file (URL or Base64) in a new tab
+ */
+function openBase64InNewTab(data, contentType = '', fileName = '') {
+    try {
+        if (!data) return;
+        
+        // Case 1: It's a standard URL (HTTP or relative)
+        if (data.startsWith('http') || (data.startsWith('/') && !data.startsWith('/9j/') && !data.startsWith('data:'))) {
+            window.open(data, '_blank');
+            return;
+        }
+
+        // Case 2: It's Base64 data
+        let actualContentType = contentType;
+        let realData = data;
+
+        if (data.includes(";base64,")) {
+            let parts = data.split(";base64,");
+            actualContentType = parts[0].split(":")[1];
+            realData = parts[1];
+        } else if (data.startsWith('data:')) {
+            let parts = data.split(",");
+            actualContentType = parts[0].split(":")[1].split(";")[0];
+            realData = parts[1];
+        }
+        
+        // Sanitize
+        realData = realData.replace(/\s/g, '');
+
+        try {
+            const byteCharacters = atob(realData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: actualContentType || 'application/octet-stream' });
+            
+            const blobUrl = URL.createObjectURL(blob);
+            const win = window.open(blobUrl, '_blank');
+            
+            if (!win || win.closed || typeof win.closed == 'undefined') {
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                const finalExt = actualContentType.split('/')[1] || 'file';
+                link.download = fileName || `file_${Date.now()}.${finalExt}`;
+                link.click();
+            }
+        } catch (innerError) {
+            console.error("Base64 conversion failed:", innerError);
+            window.open(data, '_blank');
+        }
+    } catch (e) {
+        console.error("Critical error opening file:", e);
+        window.open(data, '_blank');
+    }
 }

@@ -100,6 +100,10 @@ public class EventService {
         return eventRepository.findById(id);
     }
 
+    public Optional<Event> getEventByShareKey(String shareKey) {
+        return eventRepository.findByShareKey(shareKey);
+    }
+
     public Event updateEvent(Long id, Event updatedEvent) {
         Optional<Event> eventOpt = eventRepository.findById(id);
         if (eventOpt.isPresent()) {
@@ -148,6 +152,12 @@ public class EventService {
                 event.setGenderPreference(updatedEvent.getGenderPreference());
             if (updatedEvent.getPrizePool() != null)
                 event.setPrizePool(updatedEvent.getPrizePool());
+            if (updatedEvent.getIsManaged() != null) {
+                event.setIsManaged(updatedEvent.getIsManaged());
+                if (event.getIsManaged() && (event.getShareKey() == null || event.getShareKey().isEmpty())) {
+                    event.setShareKey("AUD-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-" + (System.currentTimeMillis() % 10000));
+                }
+            }
             Event savedEvent = eventRepository.save(event);
             
             // Notify registered users of the update

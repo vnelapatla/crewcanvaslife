@@ -27,31 +27,29 @@ public class EventController {
     @PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
-    private void maskSensitiveData(EventApplication app, Long viewerId) {
+    private void maskSensitiveData(EventApplication app, Long viewerId, Long eventOwnerId, boolean isAdmin) {
         if (app == null) return;
         
+        // Authorization check: If viewer is the applicant, the event creator, or a global admin, do NOT mask.
         boolean isOwner = viewerId != null && viewerId.equals(app.getUserId());
+        boolean isEventCreator = viewerId != null && viewerId.equals(eventOwnerId);
         
-        // Find the event to see if the viewer is the event creator
-        boolean isEventCreator = false;
-        Optional<Event> eventOpt = eventService.getEventById(app.getEventId());
-        if (eventOpt.isPresent()) {
-            isEventCreator = viewerId != null && viewerId.equals(eventOpt.get().getUserId());
+        if (isOwner || isEventCreator || isAdmin) {
+            return; // Authorized - show full data
+        }
+
+        // Unauthorized view - apply masking
+        // Detach to prevent persistence of masked data back to the database
+        if (entityManager.contains(app)) {
+            entityManager.detach(app);
         }
         
-        boolean isAdmin = viewerId != null && userService.findById(viewerId).map(com.crewcanvas.model.User::getIsAdmin).orElse(false);
-        
-        if (!isOwner && !isEventCreator && !isAdmin) {
-            // Detach to prevent persistence of masked data
-            entityManager.detach(app);
-            
-            // Mask Phone: Only last 2 digits
-            String phone = app.getMobileNumber();
-            if (phone != null && phone.length() > 2) {
-                app.setMobileNumber("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
-            } else if (phone != null) {
-                app.setMobileNumber("XX");
-            }
+        // Mask Phone: Only show last 2 digits
+        String phone = app.getMobileNumber();
+        if (phone != null && phone.length() > 2) {
+            app.setMobileNumber("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
+        } else if (phone != null) {
+            app.setMobileNumber("XX");
         }
     }
 
@@ -159,7 +157,16 @@ public class EventController {
     public ResponseEntity<?> getEventApplicants(@PathVariable("id") Long id, @RequestParam(required = false) Long viewerId) {
         try {
             List<com.crewcanvas.model.EventApplication> applicants = eventService.getApplicantsForEvent(id);
-            applicants.forEach(app -> maskSensitiveData(app, viewerId));
+            
+            // Fetch event info once to identify creator
+            Long eventOwnerId = eventService.getEventById(id).map(Event::getUserId).orElse(null);
+            
+            // Check if viewer is a global admin once
+            boolean isGlobalAdmin = viewerId != null && userService.findById(viewerId)
+                .map(u -> Boolean.TRUE.equals(u.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()))
+                .orElse(false);
+            
+            applicants.forEach(app -> maskSensitiveData(app, viewerId, eventOwnerId, isGlobalAdmin));
             return ResponseEntity.ok(applicants);
         } catch (Exception e) {
             System.err.println("Error fetching applicants for event " + id + ": " + e.getMessage());
@@ -209,7 +216,13 @@ public class EventController {
         try {
             List<EventApplication> applicants = eventService.getAllApplicantsForUser(userId);
             // In this endpoint, the viewer is the event owner (userId)
-            applicants.forEach(app -> maskSensitiveData(app, userId));
+            // We can assume isGlobalAdmin is not needed if the viewer is already verified as the owner of these events
+            // But to be safe, let's fetch it once
+            boolean isGlobalAdmin = userId != null && userService.findById(userId)
+                .map(u -> Boolean.TRUE.equals(u.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()))
+                .orElse(false);
+                
+            applicants.forEach(app -> maskSensitiveData(app, userId, userId, isGlobalAdmin));
             return ResponseEntity.ok(applicants);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -233,7 +246,13 @@ public class EventController {
             Optional<EventApplication> appOpt = eventService.getLatestApplicationForUser(userId);
             if (appOpt.isPresent()) {
                 EventApplication app = appOpt.get();
-                maskSensitiveData(app, viewerId);
+                // For this specific app, fetch its event info once
+                Long eventOwnerId = eventService.getEventById(app.getEventId()).map(Event::getUserId).orElse(null);
+                boolean isGlobalAdmin = viewerId != null && userService.findById(viewerId)
+                    .map(u -> Boolean.TRUE.equals(u.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()))
+                    .orElse(false);
+                
+                maskSensitiveData(app, viewerId, eventOwnerId, isGlobalAdmin);
                 return ResponseEntity.ok(app);
             }
             return ResponseEntity.noContent().build();

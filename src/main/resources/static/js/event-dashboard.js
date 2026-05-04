@@ -141,6 +141,41 @@ async function fetchEventDetails() {
             toggleBtn.style.color = '#ef4444';
         }
     }
+
+    // Handle Managed Audition Share Link
+    const shareBtn = document.getElementById('shareCastingDeckBtn');
+    if (shareBtn) {
+        if (currentEvent.isManaged && currentEvent.shareKey) {
+            shareBtn.style.display = 'block';
+        } else {
+            shareBtn.style.display = 'none';
+        }
+    }
+}
+
+function copyShareLink() {
+    if (!currentEvent || !currentEvent.shareKey) {
+        showMessage('This is not a managed audition.', 'error');
+        return;
+    }
+    
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/shared-audition.html?key=${currentEvent.shareKey}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        showMessage('Casting Deck Link copied to clipboard!', 'success');
+        
+        // Visual feedback on button
+        const btn = document.getElementById('shareCastingDeckBtn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Link Copied!';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        prompt('Copy the link manually:', shareUrl);
+    });
 }
 
 async function showManagementView() {
@@ -151,7 +186,8 @@ async function showManagementView() {
         await fetchEventDetails();
         
         // Load Applicants
-        const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants`);
+        const viewerId = getCurrentUserId();
+        const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants?viewerId=${viewerId}`);
         if (applicantsRes.ok) {
             const rawApplicants = await applicantsRes.json();
             allApplicants = rawApplicants;
@@ -703,6 +739,22 @@ function openApplicantDetailModal(appId) {
         resumeLink.href = "#";
     }
 
+    // Video / Portfolio Link
+    const videoGroup = document.getElementById('detVideoGroup');
+    const videoLink = document.getElementById('detVideoLink');
+    const portLink = app.portfolioLink || app.videoUrl;
+
+    if (portLink && portLink.length > 5) {
+        videoGroup.style.display = 'block';
+        videoLink.href = portLink;
+        videoLink.onclick = (e) => {
+            e.preventDefault();
+            window.open(portLink, '_blank');
+        };
+    } else {
+        videoGroup.style.display = 'none';
+    }
+
     // Notes
     document.getElementById('detNotes').innerText = app.additionalNote || app.experience || 'No additional notes provided.';
 
@@ -714,64 +766,6 @@ function openApplicantDetailModal(appId) {
     rejectBtn.onclick = () => { updateAppStatus(app.id, 'REJECTED'); closeApplicantDetailModal(); };
 
     modal.style.display = 'flex';
-}
-
-/**
- * Safely opens a file (URL or Base64) in a new tab
- */
-function openBase64InNewTab(data, contentType = '', fileName = '') {
-    try {
-        if (!data) return;
-        
-        // Case 1: It's a standard URL (HTTP or relative)
-        if (data.startsWith('http') || (data.startsWith('/') && !data.startsWith('/9j/'))) {
-            window.open(data, '_blank');
-            return;
-        }
-
-        // Case 2: It's Base64 data
-        let actualContentType = contentType;
-        let realData = data;
-
-        if (data.includes(";base64,")) {
-            let parts = data.split(";base64,");
-            actualContentType = parts[0].split(":")[1];
-            realData = parts[1];
-        }
-        
-        // Sanitize realData (remove any whitespace/newlines that might break atob)
-        realData = realData.replace(/\s/g, '');
-
-        try {
-            const byteCharacters = atob(realData);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: actualContentType || 'application/pdf' });
-            
-            const blobUrl = URL.createObjectURL(blob);
-            
-            // Simpler, more reliable way to open Blob URLs in most browsers
-            const win = window.open(blobUrl, '_blank');
-            
-            // Fallback: If popup is blocked, trigger a download
-            if (!win || win.closed || typeof win.closed == 'undefined') {
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                const finalName = fileName || `file_${Date.now()}.${actualContentType.includes('pdf') ? 'pdf' : 'jpg'}`;
-                link.download = finalName;
-                link.click();
-            }
-        } catch (innerError) {
-            console.error("Base64 conversion failed, trying direct open:", innerError);
-            window.open(data, '_blank');
-        }
-    } catch (e) {
-        console.error("Critical error opening file:", e);
-        window.open(data, '_blank');
-    }
 }
 
 function closeApplicantDetailModal() {

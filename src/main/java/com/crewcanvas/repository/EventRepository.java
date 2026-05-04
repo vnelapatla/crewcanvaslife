@@ -21,5 +21,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT e.id FROM Event e WHERE e.userId = ?1")
     List<Long> findIdsByUserId(Long userId);
 
+    java.util.Optional<Event> findByShareKey(String shareKey);
+
     long countByCreatedAtAfter(java.time.Instant instant);
 }
