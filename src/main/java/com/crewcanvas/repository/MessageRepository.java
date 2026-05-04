@@ -13,7 +13,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE (m.senderId = ?1 AND m.receiverId = ?2) OR (m.senderId = ?2 AND m.receiverId = ?1) ORDER BY m.createdAt ASC")
     List<Message> findConversation(Long userId1, Long userId2);
 
-    @Query("SELECT m FROM Message m WHERE (m.senderId = ?1 AND m.receiverId = ?2) OR (m.senderId = ?2 AND m.receiverId = ?1) ORDER BY m.createdAt ASC")
+    @Query("SELECT m FROM Message m WHERE (m.senderId = ?1 AND m.receiverId = ?2) OR (m.senderId = ?2 AND m.receiverId = ?1) ORDER BY m.createdAt DESC")
     org.springframework.data.domain.Page<Message> findConversation(Long userId1, Long userId2, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT m FROM Message m WHERE m.receiverId = ?1 AND m.isRead = false")

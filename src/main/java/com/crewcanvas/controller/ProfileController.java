@@ -214,6 +214,11 @@ public class ProfileController {
     @GetMapping("/{id}/followers")
     public ResponseEntity<?> getFollowers(@PathVariable Long id) {
         try {
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isPresent() && (Boolean.TRUE.equals(userOpt.get().getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(userOpt.get().getEmail()))) {
+                // If Admin viewing own profile, show RECENT LOGINS
+                return ResponseEntity.ok(userService.getAllUsersSortedByLogin());
+            }
             List<User> followers = connectionService.getFollowers(id);
             return ResponseEntity.ok(followers);
         } catch (Exception e) {
@@ -225,6 +230,11 @@ public class ProfileController {
     @GetMapping("/{id}/following")
     public ResponseEntity<?> getFollowing(@PathVariable Long id) {
         try {
+            Optional<User> userOpt = userService.findById(id);
+            if (userOpt.isPresent() && (Boolean.TRUE.equals(userOpt.get().getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(userOpt.get().getEmail()))) {
+                // If Admin viewing own profile, show RECENT LOGINS
+                return ResponseEntity.ok(userService.getAllUsersSortedByLogin());
+            }
             List<User> following = connectionService.getFollowing(id);
             return ResponseEntity.ok(following);
         } catch (Exception e) {

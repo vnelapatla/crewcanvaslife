@@ -280,6 +280,32 @@ function getUserId(user) {
 }
 
 /**
+ * Global utility to decrypt/decode messages if they are Base64 encoded
+ */
+function decryptMessage(encodedText) {
+    if (!encodedText || encodedText.length < 4) return encodedText;
+    
+    // If AdvancedMessaging is already available, use its more robust version
+    if (typeof AdvancedMessaging !== 'undefined' && typeof AdvancedMessaging.decrypt === 'function') {
+        return AdvancedMessaging.decrypt(encodedText);
+    }
+    
+    try {
+        // Only attempt decryption if it looks like a Base64 string (no spaces)
+        if (/\s/.test(encodedText)) return encodedText;
+        
+        // Handle URL-safe base64 (replace - with + and _ with /) 
+        // and handle missing padding if necessary
+        let normalized = encodedText.replace(/-/g, '+').replace(/_/g, '/');
+        
+        // Basic Base64 decode fallback
+        return decodeURIComponent(escape(atob(normalized)));
+    } catch (e) {
+        return encodedText; // Return original if not base64 or decoding fails
+    }
+}
+
+/**
  * Returns the professional display status of a user
  * If verified, returns "VERIFIED PROFESSIONAL [ROLE]"
  * Otherwise returns their userType (e.g. Explorer, Content Creator)
@@ -783,6 +809,26 @@ style.textContent = `
         80% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 0.4; }
         100% { transform: translate(-50%, -50%) scale(2) rotate(0deg); opacity: 0; }
     }
+
+    .back-nav-btn {
+        background: transparent;
+        border: none;
+        color: #64748b;
+        font-size: 18px;
+        padding: 8px;
+        margin-right: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .back-nav-btn:hover {
+        background: #f1f5f9;
+        color: #ff8c00;
+    }
 `;
 document.head.appendChild(style);
 
@@ -937,9 +983,12 @@ function initUniversalHeader() {
     const userId = localStorage.getItem('userId');
     const avatarVisible = (userAvatar && typeof userAvatar === 'string' && userAvatar.length > 10);
     
+    const isPrimaryPage = currentPage.includes('feed.html') || currentPage.includes('home.html') || currentPage.includes('index.html');
+    
     if (userId) {
         header.innerHTML = `
             <div class="header-left">
+                ${!isPrimaryPage ? `<button class="back-nav-btn" onclick="window.history.back()" title="Go Back"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
                 <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
             </div>
             <div class="status-bar" style="gap: 12px; display: flex; align-items: center;">
@@ -1160,7 +1209,11 @@ const NotificationHandler = {
         }
 
         // Show a temporary toast
-        showMessage(`New ${notification.type.toLowerCase()}: ${notification.content}`);
+        let displayContent = notification.content;
+        if (type === 'MESSAGE') {
+            displayContent = decryptMessage(displayContent);
+        }
+        showMessage(`New ${notification.type.toLowerCase()}: ${displayContent}`);
         
         // If on notifications page, refresh it
         if (window.location.pathname.includes('notifications.html') && typeof loadNotifications === 'function') {

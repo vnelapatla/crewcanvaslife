@@ -41,22 +41,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // If a specific post is shared, focus on it
     const postId = getQueryParam('postId');
     if (postId) {
-        // If guest, ensure create box stays hidden
-        const createCard = document.querySelector('.create-post-card');
-        if (createCard) createCard.style.display = 'none';
-        
-        // Add a "View All Feed" button at the top
-        const sectionHeader = document.querySelector('.section-header');
-        if (sectionHeader) {
-            sectionHeader.innerHTML += `
-                <button onclick="window.location.href='feed.html'" class="auth-btn" style="width: auto; padding: 6px 15px; font-size: 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; margin-left: auto;">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Feed
+        // CC-MAY-003: Navigation Fix [N Navilash] - Add a prominent back button that works on mobile
+        const searchWrapper = document.getElementById('feedSearchWrapper');
+        if (searchWrapper) {
+            const backBanner = document.createElement('div');
+            backBanner.className = 'back-to-feed-banner';
+            backBanner.innerHTML = `
+                <button onclick="window.location.href='feed.html'" class="back-btn-premium">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Community Feed
                 </button>
             `;
-            sectionHeader.style.display = 'flex';
-            sectionHeader.style.alignItems = 'center';
-            sectionHeader.style.marginBottom = '20px';
+            searchWrapper.prepend(backBanner);
         }
+
+        // CC-MAY-004: UI Fix [N Navilash] - Ensure create box stays visible so users can still post media
+        const createCard = document.querySelector('.create-post-card');
+        if (createCard) createCard.style.display = 'block';
     }
 
     await loadFeed(0, true);

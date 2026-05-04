@@ -187,4 +187,24 @@ public class EventController {
                     .body("Error: " + e.getMessage());
         }
     }
+    @GetMapping("/user-applications/latest")
+    public ResponseEntity<?> getLatestApplicationForUser(@RequestParam Long userId) {
+        try {
+            return eventService.getLatestApplicationForUser(userId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.noContent().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    @PostMapping("/sync-counts")
+    public ResponseEntity<?> syncCounts() {
+        try {
+            eventService.syncApplicantsCount();
+            return ResponseEntity.ok("Applicant counts synchronized successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error syncing counts: " + e.getMessage());
+        }
+    }
 }

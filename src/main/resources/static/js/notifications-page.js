@@ -39,13 +39,15 @@ function renderNotifications(notifications) {
             `<img src="${n.actorAvatar}" alt="${n.actorName}">` : 
             renderAvatarFallback(n.actorName || 'System', '', '42px');
 
+        const displayContent = (n.type === 'MESSAGE' || n.type === 'message') ? decryptMessage(n.content) : n.content;
+
         return `
             <div class="notif-card ${n.read ? '' : 'unread'}" onclick="handleNotifClick(${n.id}, '${n.type}', '${n.targetId}')">
                 <div class="notif-avatar-box">
                     ${avatarHtml}
                 </div>
                 <div class="notif-info">
-                    <p><strong>${n.actorName || 'System'}</strong> ${n.content}</p>
+                    <p><strong>${n.actorName || 'System'}</strong> ${displayContent}</p>
                     <div class="notif-meta">
                         <span class="notif-type-tag ${typeClass}">${n.type}</span>
                         <span class="notif-time">${formatDate(n.createdAt)}</span>

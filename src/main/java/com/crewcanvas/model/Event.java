@@ -65,6 +65,18 @@ public class Event {
     private String orgEmail;
 
     private String skills;
+    
+    @Column(name = "role_type")
+    private String roleType;
+
+    @Column(name = "age_range")
+    private String ageRange;
+
+    @Column(name = "gender_preference")
+    private String genderPreference;
+
+    @Column(name = "prize_pool")
+    private String prizePool;
 
     @Column(nullable = false)
     private String status = "OPEN"; // OPEN, CLOSED
@@ -277,4 +289,16 @@ public class Event {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getRoleType() { return roleType; }
+    public void setRoleType(String roleType) { this.roleType = roleType; }
+
+    public String getAgeRange() { return ageRange; }
+    public void setAgeRange(String ageRange) { this.ageRange = ageRange; }
+
+    public String getGenderPreference() { return genderPreference; }
+    public void setGenderPreference(String genderPreference) { this.genderPreference = genderPreference; }
+
+    public String getPrizePool() { return prizePool; }
+    public void setPrizePool(String prizePool) { this.prizePool = prizePool; }
 }

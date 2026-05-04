@@ -2,6 +2,7 @@ package com.crewcanvas.controller;
 
 import com.crewcanvas.model.Message;
 import com.crewcanvas.service.MessageService;
+import com.crewcanvas.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
+import java.util.Optional;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,7 +41,7 @@ public class MessageController {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private com.crewcanvas.service.NotificationService notificationService;
+    private NotificationService notificationService;
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -77,6 +82,7 @@ public class MessageController {
 
     @PostMapping
     public ResponseEntity<?> sendMessage(@RequestBody MessageRequest request) {
+        System.out.println("DEBUG: POST /api/messages request from sender: " + request.getSenderId() + " to receiver: " + request.getReceiverId());
         try {
             Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
@@ -87,7 +93,13 @@ public class MessageController {
                     request.getFileType(),
                     request.getFileUrls());
 
-            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            if (savedMessage == null) {
+                System.err.println("ERROR: messageService.sendMessage returned null");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save message.");
+            }
+
+            // Prepare WebSocket payload
+            Map<String, Object> map = new HashMap<>();
             map.put("id", savedMessage.getId());
             map.put("senderId", savedMessage.getSenderId());
             map.put("receiverId", savedMessage.getReceiverId());
@@ -100,13 +112,15 @@ public class MessageController {
             map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
+            System.out.println("DEBUG: Notifying participants via WebSocket...");
             messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
             messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
 
-
-
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            System.err.println("CRITICAL ERROR in sendMessage: " + e.getMessage());
+            e.printStackTrace();
+            
             String msg = e.getMessage();
             // If it's one of our known business logic errors, show it
             if (msg != null && (msg.contains("restricted") || msg.contains("allowed") || msg.contains("relationship"))) {
@@ -114,7 +128,7 @@ public class MessageController {
             }
             // Otherwise show a friendly generic message
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("We're having trouble sending your message. Please try again in a moment.");
+                    .body("We're having trouble sending your message. Error: " + (msg != null ? msg : "Unknown error"));
         }
     }
 

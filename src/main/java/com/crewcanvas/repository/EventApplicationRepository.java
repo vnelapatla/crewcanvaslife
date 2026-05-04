@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface EventApplicationRepository extends JpaRepository<EventApplication, Long> {
     List<EventApplication> findByUserId(Long userId);
+    List<EventApplication> findByUserIdOrderByAppliedAtDesc(Long userId);
     @org.springframework.data.jpa.repository.Query("SELECT ea FROM EventApplication ea WHERE ea.eventId = :eventId")
     List<EventApplication> findByEventId(@org.springframework.data.repository.query.Param("eventId") Long eventId);
     List<EventApplication> findByEventIdAndStatus(Long eventId, String status);

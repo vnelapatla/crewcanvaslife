@@ -1,9 +1,14 @@
 package com.crewcanvas.service;
 
 import com.crewcanvas.model.Message;
+import com.crewcanvas.model.User;
 import com.crewcanvas.repository.MessageRepository;
+import com.crewcanvas.repository.UserRepository;
+import com.crewcanvas.repository.ConnectionRepository;
+import com.crewcanvas.repository.EventApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,17 +26,23 @@ public class MessageService {
     private EmailService emailService;
 
     @Autowired
-    private com.crewcanvas.repository.UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private com.crewcanvas.repository.ConnectionRepository connectionRepository;
+    private ConnectionRepository connectionRepository;
 
     @Autowired
-    private com.crewcanvas.repository.EventApplicationRepository eventApplicationRepository;
+    private EventApplicationRepository eventApplicationRepository;
 
     public boolean canUserMessage(Long senderId, Long receiverId) {
         if (senderId == null || receiverId == null) {
             return false;
+        }
+
+        // Admins can message anyone
+        Optional<User> senderOpt = userRepository.findById(senderId);
+        if (senderOpt.isPresent() && Boolean.TRUE.equals(senderOpt.get().getIsAdmin())) {
+            return true;
         }
 
         // Check recipient settings
@@ -51,6 +62,7 @@ public class MessageService {
         }).orElse(true);
     }
 
+    @Transactional
     public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
         if (!canUserMessage(senderId, receiverId)) {
             throw new RuntimeException("This user has restricted their message permissions.");
@@ -64,6 +76,11 @@ public class MessageService {
             message.setFileUrls(fileUrls);
         }
         Message savedMessage = messageRepository.save(message);
+        
+        // Initialize lazy collection to avoid LazyInitializationException during serialization
+        if (savedMessage.getFileUrls() != null) {
+            savedMessage.getFileUrls().size();
+        }
 
         // Trigger Notification
         String notificationType = "MESSAGE";
@@ -102,6 +119,9 @@ public class MessageService {
     }
 
     public org.springframework.data.domain.Page<Message> getConversation(Long userId1, Long userId2, int page, int size) {
+        // Use a DESC sort in the PageRequest if the repository doesn't have it hardcoded,
+        // but our repository HAS it hardcoded as ASC. We should change the repository to DESC
+        // to get the newest messages on page 0.
         return messageRepository.findConversation(userId1, userId2, org.springframework.data.domain.PageRequest.of(page, size));
     }
 

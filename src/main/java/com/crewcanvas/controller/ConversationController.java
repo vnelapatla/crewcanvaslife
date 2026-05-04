@@ -66,8 +66,8 @@ public class ConversationController {
                     otherUserMap.put("profilePicture", otherUser.getProfilePicture());
 
                     convMap.put("user1Id", userId);
-                    convMap.put("user2Id", otherUserId);
-                    convMap.put("user2", otherUserMap);
+                    convMap.put("otherUserId", otherUserId);
+                    convMap.put("otherUser", otherUserMap);
                     convMap.put("lastMessage", lastMsg.getContent());
                     
                     // Safe date formatting for Instant

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/multi-upload.css">
     <style>
         :root {
             --primary-orange: #ff8c00;
@@ -36,12 +37,44 @@
             gap: 20px;
             overflow-x: auto;
             padding: 10px 0 30px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-orange) transparent;
+            cursor: grab;
+            user-select: none;
+            -webkit-overflow-scrolling: touch;
+            min-height: 120px;
+            align-items: center;
+        }
+
+        .horizontal-cards:active {
+            cursor: grabbing;
         }
 
         .horizontal-cards::-webkit-scrollbar {
-            display: none;
+            height: 6px;
+        }
+
+        .horizontal-cards::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .horizontal-cards::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .horizontal-cards::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-orange);
+        }
+
+        @media (max-width: 1024px) {
+            .horizontal-cards {
+                scrollbar-width: none;
+            }
+            .horizontal-cards::-webkit-scrollbar {
+                display: none;
+            }
         }
 
         .event-feature-card {
@@ -221,6 +254,33 @@
             position: relative;
             animation: cardAppear 0.5s ease backwards;
         }
+
+        .remove-photo-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(4px);
+        }
+        .remove-photo-btn:hover { 
+            background: #ef4444; 
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .photo-preview-slot.has-image .remove-photo-btn { display: flex; }
+        .photo-preview-slot { position: relative; }
 
         @keyframes cardAppear {
             from {
@@ -887,9 +947,54 @@
                         <label class="form-label-premium" id="labelPrice">Budget / Price (₹)</label>
                         <input type="number" id="eventPrice" class="form-control-premium" placeholder="e.g. 5000">
                     </div>
+                    <div class="form-group" id="auditionFields" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label class="form-label-premium">Role Type</label>
+                                <select id="eventRoleType" class="form-control-premium">
+                                    <option value="Lead">Lead</option>
+                                    <option value="Supporting">Supporting</option>
+                                    <option value="Cameo">Cameo</option>
+                                    <option value="Extra">Extra/Background</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label-premium">Age Range</label>
+                                <input type="text" id="eventAgeRange" class="form-control-premium" placeholder="e.g. 18-30">
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label class="form-label-premium">Gender Preference</label>
+                            <select id="eventGender" class="form-control-premium">
+                                <option value="Any">Any</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="contestFields" style="display: none;">
+                        <label class="form-label-premium">Prize Pool / Rewards</label>
+                        <input type="text" id="eventPrizePool" class="form-control-premium" placeholder="e.g. Cash Prize ₹10k + Certificate">
+                    </div>
                     <div class="form-group">
-                        <label class="form-label-premium">Image URL (Optional)</label>
-                        <input type="text" id="eventImageUrl" class="form-control-premium" placeholder="https://image-link.com">
+                        <label class="form-label-premium">Event Banner Image</label>
+                        <div id="imageUploadContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div id="imagePreview" style="width: 100%; height: 120px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed #cbd5e1; cursor: pointer;" onclick="document.getElementById('eventImageInput').click()">
+                                <div id="previewPlaceholder" style="text-align: center; color: #94a3b8;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i>
+                                    <p style="font-size: 11px; font-weight: 600;">Click to upload banner</p>
+                                </div>
+                                <img id="previewImg" src="" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <input type="file" id="eventImageInput" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="text" id="eventImageUrl" class="form-control-premium" placeholder="Or paste image URL here..." style="font-size: 11px;">
+                                <button type="button" id="clearImageBtn" class="btn-cancel-premium" style="padding: 8px 12px; display: none;" onclick="clearEventImage()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group full-width" id="skillsGroup">
                         <label class="form-label-premium" id="labelSkills">Key Skills Required</label>
@@ -925,23 +1030,111 @@
             </div>
             <div class="content-body-modal" style="padding: 20px 25px 25px;">
                 <div class="form-group">
-                    <label class="form-label-premium">Full Name</label>
+                    <label class="form-label-premium">Full Name *</label>
                     <input type="text" id="appFullName" class="form-control-premium" placeholder="Your Name">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label-premium">WhatsApp Number</label>
+                    <label class="form-label-premium">WhatsApp Number *</label>
                     <input type="tel" id="appWhatsApp" class="form-control-premium" placeholder="Mobile / WhatsApp">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label-premium">Email ID</label>
+                    <label class="form-label-premium">Email ID *</label>
                     <input type="email" id="appEmail" class="form-control-premium" placeholder="yourname@email.com">
                 </div>
 
-                <div class="form-group" id="appSubmissionGroup" style="display: none;">
-                    <label class="form-label-premium" id="labelAppSubmission">Submission Link (YouTube/Short Film)</label>
-                    <input type="url" id="appSubmissionLink" class="form-control-premium" placeholder="https://youtube.com/your-video">
+                <div class="form-group" id="appRoleGroup" style="display: none;">
+                    <label class="form-label-premium">Role Applying For *</label>
+                    <input type="text" id="appRole" class="form-control-premium" placeholder="e.g. Lead Actor, Dancer">
+                </div>
+
+                <!-- Contest Specific Form Fields -->
+                <div id="contestAppSpecificFields" style="display: none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <div class="form-group">
+                        <label class="form-label-premium">Short Film Title *</label>
+                        <input type="text" id="appShortFilmTitle" class="form-control-premium" placeholder="Enter title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Team Name *</label>
+                        <input type="text" id="appTeamName" class="form-control-premium" placeholder="Enter team name">
+                    </div>
+                    <div class="form-group" id="appSubmissionGroup">
+                        <label class="form-label-premium" id="labelAppSubmission">Short Film Link *</label>
+                        <input type="url" id="appSubmissionLink" class="form-control-premium" placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Short Film Poster (Optional)</label>
+                        <div id="posterPreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appPosterInput').click()">
+                            <span id="posterStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload poster image</span>
+                        </div>
+                        <input type="file" id="appPosterInput" hidden accept="image/*" onchange="handleAppPosterUpload(this)">
+                    </div>
+                </div>
+
+                <!-- Audition Specific Form Fields -->
+                <div id="auditionAppSpecificFields" style="display: none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label class="form-label-premium">Age *</label>
+                            <input type="number" id="appAge" class="form-control-premium" placeholder="Age">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-premium">Height *</label>
+                            <input type="text" id="appHeight" class="form-control-premium" placeholder="Height">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Location *</label>
+                        <input type="text" id="appLocation" class="form-control-premium" placeholder="City / State">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Photos * (Min 1, Max 3)</label>
+                        <div class="multi-upload-area" onclick="document.getElementById('multiPhotoInput').click()" id="multiPhotoBox">
+                            <i class="fas fa-images"></i>
+                            <div class="upload-text">
+                                <span class="main-text">Upload Gallery Photos</span>
+                                <span class="sub-text">Select up to 3 best pictures</span>
+                            </div>
+                            <input type="file" id="multiPhotoInput" hidden multiple accept="image/*" onchange="handleMultiPhotoUpload(this)">
+                        </div>
+                        <div id="multiPhotoPreviewGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px;">
+                            <div class="photo-preview-slot" id="slot1">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(1, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev1" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div class="photo-preview-slot" id="slot2">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(2, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev2" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div class="photo-preview-slot" id="slot3">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(3, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev3" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Resume / Portfolio PDF *</label>
+                        <div id="resumePreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appResumeInput').click()">
+                            <span id="resumeStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload or select from profile</span>
+                        </div>
+                        <input type="file" id="appResumeInput" hidden onchange="handleAppResumeUpload(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Audition Video (Max 50MB)</label>
+                        <div id="videoPreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appVideoInput').click()">
+                            <span id="videoStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload video</span>
+                        </div>
+                        <input type="file" id="appVideoInput" hidden accept="video/*" onchange="handleAppVideoUpload(this)">
+                    </div>
+                </div>
+
+                <div class="form-group" id="appNoteGroup">
+                    <label class="form-label-premium" id="labelAppNote">Additional Note / Category</label>
+                    <input type="text" id="appNote" class="form-control-premium" placeholder="Anything else you want to mention?">
                 </div>
                 
                 <div style="margin-top: 20px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
@@ -970,6 +1163,36 @@
     <script src="js/profile-handler.js"></script>
     <script src="js/events.js"></script>
     <script>
+        // Drag to scroll for horizontal-cards
+        const slider = document.querySelector('.horizontal-cards');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        if (slider) {
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                slider.classList.add('active');
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+            slider.addEventListener('mouseleave', () => {
+                isDown = false;
+                slider.classList.remove('active');
+            });
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.classList.remove('active');
+            });
+            slider.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2; // scroll-fast
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
         function showChoiceModal() { 
             document.getElementById('choiceModal').style.display = 'flex'; 
             document.body.style.overflow = 'hidden';
@@ -985,6 +1208,31 @@
         const originalOpenCreateForm = window.openCreateForm;
         window.openCreateForm = function(type) {
             document.body.style.overflow = 'hidden';
+            
+            // Pictures Pre-population from Gallery
+            if (currentUser?.recentPictures) {
+                try {
+                    let pics = [];
+                    if (currentUser.recentPictures.startsWith('[')) {
+                        pics = JSON.parse(currentUser.recentPictures);
+                    } else {
+                        pics = currentUser.recentPictures.split(',').filter(p => p.trim() !== '');
+                    }
+                    
+                    pics.slice(0, 3).forEach((pic, i) => {
+                        if (pic) {
+                            setAppPhotoPreview(i + 1, pic);
+                            window._appState.photos[i] = pic;
+                        }
+                    });
+                } catch (e) {
+                    console.error("Gallery parse failed:", e);
+                }
+            } else {
+                // Clear previews
+                for(let i=1; i<=3; i++) clearAppPhotoPreview(i);
+            }
+
             if (typeof originalOpenCreateForm === 'function') originalOpenCreateForm(type);
         }
         
@@ -994,6 +1242,76 @@
             if (typeof originalCloseFormModal === 'function') originalCloseFormModal();
         }
     </script>
+    <style>
+        .photo-upload-box {
+            aspect-ratio: 3/4;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .photo-upload-box:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .photo-upload-box i {
+            font-size: 24px;
+            color: rgba(255,255,255,0.3);
+        }
+        .photo-upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .photo-upload-box.has-image {
+            border-style: solid;
+            border-color: #10b981;
+        }
+    </style>
+    <style>
+        .photo-upload-box {
+            aspect-ratio: 3/4;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .photo-upload-box:hover {
+            border-color: var(--primary-orange);
+            background: #fff8f1;
+        }
+        .photo-upload-box i {
+            font-size: 20px;
+            color: #94a3b8;
+        }
+        .photo-upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .photo-upload-box.has-image {
+            border-style: solid;
+            border-color: var(--primary-orange);
+        }
+    </style>
 </body>
 
 </html>

@@ -107,6 +107,14 @@ public class EventService {
                 event.setEndDate(updatedEvent.getEndDate());
             if (updatedEvent.getStatus() != null)
                 event.setStatus(updatedEvent.getStatus());
+            if (updatedEvent.getRoleType() != null)
+                event.setRoleType(updatedEvent.getRoleType());
+            if (updatedEvent.getAgeRange() != null)
+                event.setAgeRange(updatedEvent.getAgeRange());
+            if (updatedEvent.getGenderPreference() != null)
+                event.setGenderPreference(updatedEvent.getGenderPreference());
+            if (updatedEvent.getPrizePool() != null)
+                event.setPrizePool(updatedEvent.getPrizePool());
             return eventRepository.save(event);
         }
         throw new RuntimeException("Event not found");
@@ -145,6 +153,33 @@ public class EventService {
                 application.setLocation(user.getLocation());
                 application.setExperience(user.getBio()); // Default bio
                 application.setPortfolioLink(user.getShowreel() != null ? user.getShowreel() : user.getPortfolioVideos());
+                
+                // New Audition Fields from Profile
+                application.setAge(user.getAgeRange());
+                application.setHeight(user.getHeight());
+                application.setMobileNumber(user.getPhone());
+                application.setResumeUrl(user.getResume());
+                application.setResumeFileName(user.getResumeFileName());
+                
+                if (user.getRecentPictures() != null && !user.getRecentPictures().isEmpty()) {
+                    try {
+                        // Handle both JSON and comma-separated formats for backward compatibility
+                        String[] pics;
+                        if (user.getRecentPictures().startsWith("[")) {
+                            // Basic JSON parse (since we don't have a full JSON library here, we use a robust string approach)
+                            String clean = user.getRecentPictures().replace("[", "").replace("]", "").replace("\"", "");
+                            pics = clean.split(",");
+                        } else {
+                            pics = user.getRecentPictures().split(",");
+                        }
+                        
+                        if (pics.length > 0 && !pics[0].trim().isEmpty()) application.setPhoto1(pics[0].trim());
+                        if (pics.length > 1 && !pics[1].trim().isEmpty()) application.setPhoto2(pics[1].trim());
+                        if (pics.length > 2 && !pics[2].trim().isEmpty()) application.setPhoto3(pics[2].trim());
+                    } catch (Exception e) {
+                        System.err.println("Error parsing profile pictures: " + e.getMessage());
+                    }
+                }
             });
 
             // Override with application details if provided
@@ -155,6 +190,21 @@ public class EventService {
                 if (applicationDetails.getExperience() != null) application.setExperience(applicationDetails.getExperience());
                 if (applicationDetails.getPortfolioLink() != null) application.setPortfolioLink(applicationDetails.getPortfolioLink());
                 if (applicationDetails.getAdditionalNote() != null) application.setAdditionalNote(applicationDetails.getAdditionalNote());
+                
+                // Audition specific overrides
+                if (applicationDetails.getAge() != null) application.setAge(applicationDetails.getAge());
+                if (applicationDetails.getHeight() != null) application.setHeight(applicationDetails.getHeight());
+                if (applicationDetails.getMobileNumber() != null) application.setMobileNumber(applicationDetails.getMobileNumber());
+                if (applicationDetails.getPhoto1() != null) application.setPhoto1(applicationDetails.getPhoto1());
+                if (applicationDetails.getPhoto2() != null) application.setPhoto2(applicationDetails.getPhoto2());
+                if (applicationDetails.getPhoto3() != null) application.setPhoto3(applicationDetails.getPhoto3());
+                if (applicationDetails.getResumeUrl() != null) application.setResumeUrl(applicationDetails.getResumeUrl());
+                if (applicationDetails.getResumeFileName() != null) application.setResumeFileName(applicationDetails.getResumeFileName());
+                if (applicationDetails.getShortFilmTitle() != null) application.setShortFilmTitle(applicationDetails.getShortFilmTitle());
+                if (applicationDetails.getTeamName() != null) application.setTeamName(applicationDetails.getTeamName());
+                if (applicationDetails.getVideoUrl() != null) application.setVideoUrl(applicationDetails.getVideoUrl());
+                if (applicationDetails.getVideoFileName() != null) application.setVideoFileName(applicationDetails.getVideoFileName());
+                if (applicationDetails.getPosterUrl() != null) application.setPosterUrl(applicationDetails.getPosterUrl());
             }
             
             // Populate event details
@@ -570,6 +620,24 @@ public class EventService {
             }).start();
         } else {
             throw new RuntimeException("Event not found");
+        }
+    }
+
+    public Optional<EventApplication> getLatestApplicationForUser(Long userId) {
+        List<EventApplication> apps = applicationRepository.findByUserIdOrderByAppliedAtDesc(userId);
+        return apps.isEmpty() ? Optional.empty() : Optional.of(apps.get(0));
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void syncApplicantsCount() {
+        List<Event> events = eventRepository.findAll();
+        for (Event event : events) {
+            List<EventApplication> apps = applicationRepository.findByEventId(event.getId());
+            if (event.getApplicants() != apps.size()) {
+                System.out.println("Syncing Event [" + event.getTitle() + "]: " + event.getApplicants() + " -> " + apps.size());
+                event.setApplicants(apps.size());
+                eventRepository.save(event);
+            }
         }
     }
 }

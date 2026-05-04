@@ -216,10 +216,47 @@ function displayProfile(user) {
     if (resumeSection && resumeDownload) {
         if (user.resume) {
             resumeSection.style.display = 'flex';
-            resumeDownload.href = user.resume;
+            
+            // Clear any old click handlers
+            resumeDownload.onclick = null;
+
             // Use original filename if available
-            if (user.resumeFileName) {
-                resumeDownload.download = user.resumeFileName;
+            const fileName = user.resumeFileName || 'Resume_CrewCanvas.pdf';
+            resumeDownload.download = fileName;
+            
+            // For Base64 strings, we use a Blob to ensure the filename is respected by the browser
+            if (user.resume.startsWith('data:')) {
+                resumeDownload.onclick = (e) => {
+                    e.preventDefault();
+                    try {
+                        const parts = user.resume.split(';base64,');
+                        const contentType = parts[0].split(':')[1];
+                        const byteCharacters = atob(parts[1].replace(/\s/g, ''));
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: contentType });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        // Cleanup
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                    } catch (err) {
+                        console.error("Resume download failed:", err);
+                        // Fallback to direct href
+                        window.open(user.resume, '_blank');
+                    }
+                };
+            } else {
+                resumeDownload.href = user.resume;
             }
         } else {
             resumeSection.style.display = 'none';

@@ -3,6 +3,7 @@ package com.crewcanvas.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,6 +12,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Async
     public void sendResetPasswordEmail(String to, String resetLink) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -21,6 +23,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendWelcomeEmail(String to, String name, String profileLink) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -40,6 +43,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendShortlistEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -62,6 +66,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendEventDetailsEmail(String to, String name, String eventTitle, String eventType, String location, String time, String date) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -83,6 +88,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendFinalSelectionEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -106,6 +112,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendFinalRejectionEmail(String to, String name, String eventTitle, String eventType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -125,6 +132,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendFollowNotificationEmail(String to, String followerName, String profileLink) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -142,6 +150,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendMessageNotificationEmail(String to, String senderName, String messagePreview) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -158,6 +167,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendLikeNotificationEmail(String to, String likerName, Long postId) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -174,6 +184,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendVerificationEmail(String to, String name) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -186,6 +197,25 @@ public class EmailService {
                 "Best regards,\n" +
                 "The CrewCanvas Team";
 
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    @Async
+    public void sendProfileReminderEmail(String to, String name, String profileLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Complete Your Profile for Better Opportunities! 🚀");
+        
+        String body = "Hi " + name + ",\n\n" +
+                "We noticed your profile is not yet complete! 🎬\n\n" +
+                "To get the most out of CrewCanvas and find better opportunities, please make sure to fill out your bio, role, and portfolio link. " +
+                "A complete profile makes it much easier for productions and recruiters to find and recommend you.\n\n" +
+                "Update your profile here: " + profileLink + "\n\n" +
+                "More opportunities are waiting for you!\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+        
         message.setText(body);
         mailSender.send(message);
     }

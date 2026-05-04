@@ -670,6 +670,50 @@
     background: #fff;
 }
 
+/* CC-MAY-003: Premium Back Button Styles [N Navilash] */
+.back-to-feed-banner {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.back-btn-premium {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.back-btn-premium:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateX(-2px);
+}
+
+.back-btn-premium i {
+    color: #ff8c00;
+    font-size: 14px;
+}
+
+@media (max-width: 1024px) {
+    .back-btn-premium {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        background: #f1f5f9;
+        border: none;
+    }
+}
+
+
 .feed-search-bar .search-icon {
     color: #94a3b8;
     font-size: 14px;

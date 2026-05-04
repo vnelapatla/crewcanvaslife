@@ -134,6 +134,7 @@
 .tag-workshop { background: rgba(236, 72, 153, 0.9); color: white; }
 .tag-course { background: rgba(16, 185, 129, 0.9); color: white; }
 .tag-contest { background: rgba(245, 158, 11, 0.9); color: white; }
+.tag-film-event { background: rgba(249, 115, 22, 0.9); color: white; }
 
 .card-content {
     padding: 25px;

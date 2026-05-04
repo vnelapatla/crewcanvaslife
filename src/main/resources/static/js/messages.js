@@ -236,15 +236,14 @@ function displayUsersList(elementId, users, emptyMessage) {
 
     container.innerHTML = users.map(user => {
         const userId = getUserId(user);
-        const initials = (user.name || 'U').charAt(0).toUpperCase();
-        const color = getRandomColor(user.name);
+        const name = user.name || 'User';
         
         return `
-            <div class="user-row">
+            <div class="user-row" onclick="openConversation(${userId})">
                 ${renderAvatar(user, 'initials-avatar', '45px')}
-                <div class="user-main" onclick="openConversation(${userId})">
+                <div class="user-main">
                     <div class="user-name-row">
-                        <h4>${user.name || 'User'}</h4>
+                        <h4>${name}</h4>
                         <span class="user-time">active now</span>
                     </div>
                     <div class="user-status-row">
@@ -315,10 +314,13 @@ async function displayConversations(listToDisplay = null) {
     // Display all conversations that exist in the database
     container.innerHTML = items.map(conv => {
         try {
-            const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
-            const otherUserId = getUserId(otherUser);
+            const otherUser = conv.otherUser || conv.user2 || conv.partner; 
+            const otherUserId = conv.otherUserId || conv.user2Id || (otherUser ? otherUser.id : null); 
             
-            if (!otherUserId) return ''; // Skip invalid conversations
+            if (!otherUserId) {
+                console.warn("Skipping conversation with no partner ID:", conv);
+                return ''; 
+            }
 
             const isActive = String(selectedConversationUserId) === String(otherUserId);
             const name = otherUser?.name || 'User';
@@ -327,6 +329,10 @@ async function displayConversations(listToDisplay = null) {
             
             // Format preview text
             let previewText = conv.lastMessage || 'Start a conversation...';
+            
+            // Decrypt preview using global utility
+            previewText = decryptMessage(previewText);
+            
             if (previewText.startsWith('[STICKER:')) {
                 previewText = 'Sticker';
             }
@@ -525,8 +531,17 @@ async function loadMessages() {
             return;
         }
         
-        const messages = await response.json();
+        let messages = await response.json();
+        
+        // Backend now returns messages in DESC order (newest first) for paged fetching.
+        // We reverse them for correct chronological display in the chat interface.
+        if (Array.isArray(messages)) {
+            messages.reverse();
+        }
         if (!Array.isArray(messages)) return;
+        
+        // Filter out technical signaling messages
+        messages = messages.filter(m => !m.content || !m.content.startsWith('__CALL_SIGNAL__'));
 
         // Mark messages as read using the optimized bulk endpoint
         const hasUnread = messages.some(m => m.receiverId == currentUserId && !m.isRead);
@@ -601,6 +616,7 @@ function displayMessages(messages) {
         if (allFiles.length > 0) {
             attachmentContent = '<div class="message-attachments-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; margin-top: 8px;">';
             allFiles.forEach((url, idx) => {
+                if (!url) return;
                 const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || url.startsWith('data:image/');
                 const isVideo = isVideoFile(url);
                 
@@ -631,8 +647,6 @@ function displayMessages(messages) {
         if (!isSent && selectedPartnerProfile) {
             avatarHtml = `<div style="margin-right:10px; align-self: flex-start; margin-bottom: 5px;">${renderAvatar(selectedPartnerProfile, 'nav-avatar')}</div>`;
         }
-
-        const senderName = isSent ? (localStorage.getItem('userName') || 'You') : (selectedPartnerProfile?.name || 'User');
 
         return `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg.id}">
@@ -669,6 +683,95 @@ function displayMessages(messages) {
             container.scrollTop = container.scrollHeight;
         });
     }
+}
+
+/**
+ * Optimistically appends a single message to the UI without full re-render
+ */
+function appendSingleMessage(msg) {
+    const container = document.getElementById('messagesArea');
+    if (!container) return;
+
+    // Skip technical signaling messages
+    if (msg.content && msg.content.startsWith('__CALL_SIGNAL__')) {
+        return;
+    }
+
+    // Remove empty state if present
+    const emptyState = container.querySelector('div[style*="text-align: center; color: #999"]');
+    if (emptyState) emptyState.remove();
+
+    const isSent = msg.senderId == currentUserId;
+    const senderName = isSent ? (localStorage.getItem('userName') || 'You') : (selectedPartnerProfile?.name || 'User');
+    
+    // Check for attachments
+    let attachmentContent = '';
+    const allFiles = [...(msg.fileUrls || [])];
+    if (msg.imageUrl && !allFiles.includes(msg.imageUrl)) allFiles.unshift(msg.imageUrl);
+    
+    if (allFiles.length > 0) {
+        attachmentContent = '<div class="message-attachments-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; margin-top: 8px;">';
+        allFiles.forEach((url, idx) => {
+            if (!url) return;
+            const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || url.startsWith('data:image/');
+            const isVideo = url.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)/i) || url.startsWith('data:video/');
+            
+            if (isImage) {
+                attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="viewFile('${url}')">`;
+            } else if (isVideo) {
+                attachmentContent += `
+                    <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
+                        <video src="${url}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; pointer-events: none;"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                `;
+            } else {
+                attachmentContent += `
+                    <div class="file-attachment mini" onclick="downloadFile('${url}', 'file_${idx + 1}')" style="display: flex; align-items: center; gap: 5px; background: rgba(255,136,0,0.1); padding: 8px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,136,0,0.2);">
+                        <div style="width: 25px; height: 25px; background: var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">
+                            <i class="fa-solid fa-file-arrow-down"></i>
+                        </div>
+                        <div style="font-size: 11px; font-weight: 700; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">File ${idx + 1}</div>
+                    </div>
+                `;
+            }
+        });
+        attachmentContent += '</div>';
+    }
+
+    let avatarHtml = '';
+    if (!isSent && selectedPartnerProfile) {
+        avatarHtml = `<div style="margin-right:10px; align-self: flex-start; margin-bottom: 5px;">${renderAvatar(selectedPartnerProfile, 'nav-avatar')}</div>`;
+    }
+
+    const html = `
+        <div class="message ${isSent ? 'sent' : 'received'} optimistic" id="msg-${msg.id}" style="opacity: 0.7;">
+            ${avatarHtml}
+            <div class="message-text">
+                <div class="message-sender-name" style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
+                <div class="message-body">
+                    <p style="margin:0; white-space: pre-wrap;">${msg.displayContent || msg.content}</p>
+                </div>
+                ${attachmentContent}
+                <div class="message-status">
+                    <span class="time">${formatTime(msg.createdAt)}</span>
+                    ${isSent ? `<span class="checkmarks" style="margin-left:5px; color:#888">✓</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', html);
+    
+    // Auto scroll to bottom
+    requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+    });
+
+    // Update internal count tracker to avoid jumpy re-render on next poll
+    const conversationId = selectedConversationUserId;
+    const currentCount = lastMessageCountMap.get(conversationId) || 0;
+    lastMessageCountMap.set(conversationId, currentCount + 1);
 }
 
 // Minimal Edit/Delete Logic
@@ -813,14 +916,29 @@ async function sendMessage() {
         fileUrls: selectedFiles.map(f => f.url)
     };
 
+    // OPTIMISTIC UI: Append message immediately
+    const tempMsg = {
+        id: Date.now(),
+        senderId: currentUserId,
+        receiverId: selectedConversationUserId,
+        content: content,
+        imageUrl: payload.imageUrl,
+        fileUrl: payload.fileUrl,
+        fileUrls: payload.fileUrls,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        displayContent: typeof enhanceMessageDisplay === 'function' ? enhanceMessageDisplay({content: content}) : content
+    };
+    
+    appendSingleMessage(tempMsg);
+
     // Clear input and previews immediately for snappy UI
     input.value = '';
     clearPreview();
     isSending = true;
     const sendBtn = document.querySelector('.send-btn');
     if (sendBtn) {
-        sendBtn.style.opacity = '0.5';
-        sendBtn.style.pointerEvents = 'none';
+        sendBtn.classList.add('sending');
     }
 
     try {
@@ -833,27 +951,46 @@ async function sendMessage() {
         });
 
         if (response.ok) {
-            // Load messages and conversations in background
-            loadMessages();
+            const savedMsg = await response.json();
+            
+            // Resolve optimistic UI
+            const tempEl = document.getElementById(`msg-${tempMsg.id}`);
+            if (tempEl) {
+                tempEl.style.opacity = '1';
+                tempEl.classList.remove('optimistic');
+                const checkmarks = tempEl.querySelector('.checkmarks');
+                if (checkmarks) checkmarks.textContent = '✓'; // Single check for sent
+            }
+
+            // Load conversations in background to update sidebar
             loadConversations();
             // Re-focus input
             input.focus();
         } else {
             const err = await response.text();
             console.error('Error sending message:', err);
-            // ...
+            
+            // Remove optimistic message on failure
+            const tempEl = document.getElementById(`msg-${tempMsg.id}`);
+            if (tempEl) tempEl.remove();
+
             const errorMsg = err.includes('Error sending message:') ? err.split('Error sending message:')[1] : err;
             showMessage(errorMsg || 'We couldn’t send your message. Please try again.', 'error');
+            loadMessages();
         }
     } catch (error) {
         console.error('Error sending message:', error);
+        // Remove optimistic message on failure
+        const tempEl = document.getElementById(`msg-${tempMsg.id}`);
+        if (tempEl) tempEl.remove();
+        
         showMessage('Network error. Please check your internet connection.', 'error');
+        loadMessages();
     } finally {
         isSending = false;
         const sendBtn = document.querySelector('.send-btn');
         if (sendBtn) {
-            sendBtn.style.opacity = '1';
-            sendBtn.style.pointerEvents = 'auto';
+            sendBtn.classList.remove('sending');
         }
     }
 }
@@ -887,7 +1024,7 @@ const searchConversations = debounce(() => {
     
     // Filter existing conversations
     const filtered = conversations.filter(conv => {
-        const otherUser = String(conv.user1Id) === String(currentUserId) ? conv.user2 : conv.user1;
+        const otherUser = conv.otherUser;
         const nameMatch = (otherUser?.name || 'User').toLowerCase().includes(query);
         const contentMatch = (conv.lastMessage || '').toLowerCase().includes(query);
         return nameMatch || contentMatch;

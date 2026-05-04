@@ -93,6 +93,17 @@ public class AuthController {
                     System.err.println("[AUTH_ERROR]: Failed to send welcome message: " + e.getMessage());
                 }
 
+                // Set last login time
+                user.setLastLogin(java.time.LocalDateTime.now());
+                userRepository.save(user);
+
+                // Check and send profile reminder if incomplete
+                try {
+                    userService.checkAndSendProfileReminder(user);
+                } catch (Exception e) {
+                    System.err.println("[AUTH_ERROR]: Failed to send profile reminder: " + e.getMessage());
+                }
+
                 return ResponseEntity.ok(user);
             } else {
                 System.err.println("[AUTH_ERROR]: Google verification failed for client ID: " + googleClientId);
@@ -117,6 +128,18 @@ public class AuthController {
                 User foundUser = user.get();
                 // Auto-generated welcome message
                 userService.sendWelcomeMessage(foundUser);
+                
+                // Set last login time
+                foundUser.setLastLogin(java.time.LocalDateTime.now());
+                userRepository.save(foundUser);
+
+                // Check and send profile reminder if incomplete
+                try {
+                    userService.checkAndSendProfileReminder(foundUser);
+                } catch (Exception e) {
+                    System.err.println("[AUTH_ERROR]: Failed to send profile reminder: " + e.getMessage());
+                }
+
                 return ResponseEntity.ok(foundUser);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

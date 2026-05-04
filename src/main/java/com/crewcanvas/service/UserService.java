@@ -213,6 +213,26 @@ public class UserService {
         return Optional.empty();
     }
 
+    public void checkAndSendProfileReminder(User user) {
+        if (user == null || user.getId() == null) return;
+        
+        // Skip for Admin
+        if (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail())) {
+            return;
+        }
+
+        // Only send if profile is incomplete (Score < 70)
+        if (user.getProfileScore() < 70) {
+            try {
+                String profileLink = "https://crewcanvas.in/profile.html?userId=" + user.getId();
+                emailService.sendProfileReminderEmail(user.getEmail(), user.getName(), profileLink);
+                logger.info("Profile reminder email sent to: {}", user.getEmail());
+            } catch (Exception e) {
+                logger.error("Failed to send profile reminder email to {}: {}", user.getEmail(), e.getMessage());
+            }
+        }
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -439,5 +459,9 @@ public class UserService {
         user.setPassword(newPassword);
         userRepository.save(user);
         tokenRepository.deleteByUser(user); // Invalidate token after use
+    }
+
+    public List<User> getAllUsersSortedByLogin() {
+        return userRepository.findAllByOrderByLastLoginDesc();
     }
 }

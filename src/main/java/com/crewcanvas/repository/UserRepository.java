@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     java.util.List<User> findTop3ByOrderByFollowersDesc();
     
+    java.util.List<User> findAllByOrderByLastLoginDesc();
+    
     @org.springframework.data.jpa.repository.Query("SELECT u FROM User u ORDER BY u.isVerifiedProfessional DESC, u.followers DESC, u.profileScore DESC")
     java.util.List<User> findTop10Users(org.springframework.data.domain.Pageable pageable);
 

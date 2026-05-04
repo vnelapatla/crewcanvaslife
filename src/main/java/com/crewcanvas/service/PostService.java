@@ -178,24 +178,32 @@ public class PostService {
                 
                 // Trigger Notification
                 if (!post.getUserId().equals(userId)) {
-                    notificationService.createNotification(
-                        post.getUserId(),
-                        userId,
-                        "LIKE",
-                        "liked your post.",
-                        post.getId().toString()
-                    );
-
-                    // Send Email Notification
-                    try {
-                        userRepository.findById(post.getUserId()).ifPresent(postOwner -> {
-                            userRepository.findById(userId).ifPresent(liker -> {
-                                emailService.sendLikeNotificationEmail(postOwner.getEmail(), liker.getName(), post.getId());
-                            });
-                        });
-                    } catch (Exception e) {
-                        System.err.println("Failed to send like email notification: " + e.getMessage());
-                    }
+                    final int currentLikes = post.getLikes();
+                    userRepository.findById(post.getUserId()).ifPresent(postOwner -> {
+                        boolean isAdmin = Boolean.TRUE.equals(postOwner.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(postOwner.getEmail());
+                        
+                        // If admin, only notify on multiples of 5 (5, 10, 15...)
+                        boolean shouldNotify = !isAdmin || (currentLikes > 0 && currentLikes % 5 == 0);
+                        
+                        if (shouldNotify) {
+                            notificationService.createNotification(
+                                post.getUserId(),
+                                userId,
+                                "LIKE",
+                                isAdmin ? "Your post reached " + currentLikes + " likes!" : "liked your post.",
+                                post.getId().toString()
+                            );
+        
+                            // Send Email Notification
+                            try {
+                                userRepository.findById(userId).ifPresent(liker -> {
+                                    emailService.sendLikeNotificationEmail(postOwner.getEmail(), liker.getName(), post.getId());
+                                });
+                            } catch (Exception e) {
+                                System.err.println("Failed to send like email notification: " + e.getMessage());
+                            }
+                        }
+                    });
                 }
             }
             return postRepository.save(post);

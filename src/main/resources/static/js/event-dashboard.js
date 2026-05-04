@@ -58,27 +58,32 @@ function renderEventList(events) {
     }
 
     list.innerHTML = events.map(event => `
-        <div class="event-card">
-            <div class="event-image-sm" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
-                <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="event-info">
-                <h3>${event.title}</h3>
-                <div class="event-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; background: #f8fafc; padding: 12px; border-radius: 12px; font-size: 13px;">
-                    <div><b style="width: auto;">Type:</b> ${event.eventType}</div>
-                    <div><b style="width: auto;">Date:</b> ${formatDate(event.date || event.startDate)}${event.endDate ? ` to ${formatDate(event.endDate)}` : ''}</div>
-                    <div><b style="width: auto;">Loc:</b> ${event.location}</div>
-                    <div><b style="width: auto;">Price:</b> ${event.price === 0 ? 'Free' : `₹${event.price || 0}`}</div>
-                    <div><b style="width: auto;">Seats:</b> ${event.capacity || 'Unlimited'}</div>
-                    <div><i class="fas fa-users"></i> ${event.applicants || 0} Registered</div>
-                    <div style="grid-column: span 2; margin-top:2px; color: #64748b; font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><b>Desc:</b> ${event.description || ''}</div>
+        <div class="event-card" style="display: block; padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div class="event-info">
+                    <h3 style="margin: 0; font-size: 20px; color: #1e293b; font-family: 'Outfit', sans-serif;">${event.title}</h3>
+                    <div style="display: flex; gap: 8px; margin-top: 5px;">
+                        <span style="background: #eef2ff; color: #4338ca; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">${event.eventType}</span>
+                        <span style="background: #fff7ed; color: #c2410c; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">${event.location}</span>
+                    </div>
                 </div>
-            <div class="event-actions">
-                <button class="manage-btn" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage Applications</button>
-                <button class="manage-btn" style="background: #f1f5f9; color: #64748b; margin-top: 8px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')">
-                    <i class="fas fa-share-alt"></i> Share Link
-                </button>
-                <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete</button>
+                <div class="event-actions" style="display: flex; gap: 8px;">
+                    <button class="manage-btn" style="margin:0; padding: 8px 16px;" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
+                    <button class="manage-btn" style="margin:0; width: 40px; padding: 0; background: #f1f5f9; color: #64748b;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')" title="Share Link">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="delete-btn" style="margin:0; width: 40px; padding: 0; background: #fee2e2; color: #ef4444;" onclick="deleteEvent(${event.id})" title="Delete Event">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="event-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: #f8fafc; padding: 16px; border-radius: 16px; font-size: 13px;">
+                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Date</b> ${formatDate(event.date || event.startDate)}${event.endDate ? ` to ${formatDate(event.endDate)}` : ''}</div>
+                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Price</b> ${event.price === 0 ? 'Free' : `₹${event.price || 0}`}</div>
+                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Seats</b> ${event.capacity || 'Unlimited'}</div>
+                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Registrations</b> <i class="fas fa-users" style="color: var(--primary-orange);"></i> ${event.applicants || 0}</div>
+                <div style="grid-column: 1 / -1;"><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Description</b> ${event.description || 'No description provided.'}</div>
             </div>
         </div>
     `).join('');
@@ -166,10 +171,29 @@ async function showManagementView() {
 
 function renderApplicantsTable() {
     const body = document.getElementById('applicantsBody');
-    if (!body) return;
+    const table = document.querySelector('.applicants-table');
+    if (!body || !table) return;
+
+    const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
+    const isAudition = (currentEvent.eventType || '').toLowerCase() === 'audition';
+
+    // Update Headers
+    const thead = table.querySelector('thead');
+    if (thead) {
+        thead.innerHTML = `
+            <tr>
+                <th style="width: 50px;">RANK</th>
+                <th>NAME</th>
+                <th>EMAIL ADDRESS</th>
+                <th>MOBILE NUMBER</th>
+                <th style="width: 100px;">STATUS</th>
+                <th style="width: 150px;">ACTIONS</th>
+            </tr>
+        `;
+    }
 
     if (filteredApplicants.length === 0) {
-        body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">No applicants found.</td></tr>';
+        body.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:#94a3b8;">No applicants found.</td></tr>`;
         return;
     }
 
@@ -178,36 +202,37 @@ function renderApplicantsTable() {
         const rankLabel = isLowCompleteness ? 'NEXT ORDER' : `#${index + 1} MATCH`;
         const rankColor = isLowCompleteness ? '#94a3b8' : '#ff8c00';
 
+        const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
+        
         return `
             <tr>
                 <td data-label="Rank">
                     <div style="width:32px; height:32px; background:${rankColor}; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px;">
                         ${isLowCompleteness ? '!' : index + 1}
                     </div>
-                    <div style="font-size:9px; color:${rankColor}; font-weight:800; margin-top:4px;">${rankLabel}</div>
                 </td>
                 <td data-label="Name">
-                    <div class="applicant-info">
-                        <div class="name">${app.applicantName || 'Unknown'}</div>
-                        <div class="email">${app.applicantEmail || ''}</div>
-                    </div>
+                    <div style="font-weight:700; color:#1e293b;">${app.applicantName || 'Unknown'}</div>
                 </td>
-                <td data-label="Role">${app.role || '-'}</td>
-                <td data-label="Experience">${app.experience || '-'}</td>
-                <td data-label="Location">${app.location || '-'}</td>
+                <td data-label="Email">
+                    <div style="color:#64748b; font-size:13px;">${app.applicantEmail || ''}</div>
+                </td>
+                <td data-label="Mobile">
+                    <div style="font-weight:600; color:#1e293b; font-size:13px;">${app.mobileNumber || '-'}</div>
+                </td>
                 <td data-label="Status">
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <span class="status-badge status-${(app.status || 'PENDING').toLowerCase()}">${(app.status || 'PENDING') === 'PENDING' ? 'REGISTERED' : app.status.replace('_', ' ')}</span>
-                        ${app.scanned ? '<span style="font-size:10px; color:#10b981; font-weight:700;"><i class="fas fa-check-double"></i> SCANNED</span>' : ''}
-                    </div>
+                    <span class="status-badge status-${(app.status || 'PENDING').toLowerCase()}" style="font-size:9px;">${(app.status || 'PENDING') === 'PENDING' ? 'REG' : app.status.replace('_', ' ')}</span>
                 </td>
                 <td data-label="Actions">
                     <div class="action-icons">
-                        <button class="icon-btn" onclick="window.location.href='profile.html?userId=${app.userId}'" title="View Profile" style="background:#e0e7ff; color:#4338ca; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user" style="font-size: 12px;"></i>
+                        <button class="icon-btn" onclick="openApplicantDetailModal(${app.id})" title="View Details" style="background:#fff8f1; color:#ff8c00; border: 1px solid #ffedd5;">
+                            <i class="fas fa-eye"></i>
                         </button>
-                        <button class="icon-btn" onclick="window.location.href='messages.html?userId=${app.userId}&from=applicant'" title="Message" style="background:#fef3c7; color:#d97706; border: 1px solid #fde68a; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-comment" style="font-size: 12px;"></i>
+                        <button class="icon-btn" onclick="window.location.href='profile.html?userId=${app.userId}'" title="Profile" style="background:#e0e7ff; color:#4338ca; border: 1px solid #c7d2fe;">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="icon-btn" onclick="window.location.href='messages.html?userId=${app.userId}&from=applicant'" title="Message" style="background:#fef3c7; color:#d97706; border: 1px solid #fde68a;">
+                            <i class="fas fa-comment"></i>
                         </button>
                         
                         ${app.status === 'PENDING' ? `
@@ -217,22 +242,13 @@ function renderApplicantsTable() {
                         ` : ''}
 
                         ${app.status === 'SHORTLISTED' && ['audition', 'contest'].includes((currentEvent.eventType || '').toLowerCase()) ? `
-                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'SELECTED')" title="Final Select" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;">
+                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'SELECTED')" title="Select" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;">
                                 <i class="fas fa-trophy"></i>
-                            </button>
-                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'NOT_SELECTED')" title="Final Reject" style="background:#fee2e2; color:#ef4444; border: 1px solid #fecaca;">
-                                <i class="fas fa-user-minus"></i>
-                            </button>
-                        ` : ''}
-
-                        ${!app.scanned && app.status === 'SHORTLISTED' && currentEvent.eventType === 'Film Event' ? `
-                            <button class="icon-btn" onclick="manualCheckIn(${app.id})" title="Manual Check-in" style="background:#dcfce7; color:#166534; border: 1px solid #bbf7d0;">
-                                <i class="fas fa-qrcode"></i>
                             </button>
                         ` : ''}
                         
                         ${app.status === 'PENDING' ? `
-                            <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'REJECTED')" title="Reject">
+                            <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'Reject')" title="Reject">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
@@ -577,9 +593,189 @@ function filterApplicants(query) {
     filteredApplicants = allApplicants.filter(app => 
         (app.applicantName || '').toLowerCase().includes(query) || 
         (app.applicantEmail || '').toLowerCase().includes(query) ||
-        (app.role || '').toLowerCase().includes(query)
+        (app.role || '').toLowerCase().includes(query) ||
+        (app.teamName || '').toLowerCase().includes(query) ||
+        (app.shortFilmTitle || '').toLowerCase().includes(query)
     );
     renderApplicantsTable();
+}
+
+function openApplicantDetailModal(appId) {
+    const app = allApplicants.find(a => a.id == appId);
+    if (!app) return;
+
+    const modal = document.getElementById('applicantDetailModal');
+    const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
+    const isAudition = (currentEvent.eventType || '').toLowerCase() === 'audition';
+    
+    // Header
+    document.getElementById('detName').innerText = app.applicantName || 'Unknown';
+    document.getElementById('detEmail').innerText = app.applicantEmail || '';
+    const avatar = document.getElementById('detAvatar');
+    avatar.innerText = (app.applicantName || '?').charAt(0).toUpperCase();
+
+    // Basic Info
+    document.getElementById('detPhone').innerText = app.mobileNumber || '-';
+    document.getElementById('detLocation').innerText = app.location || '-';
+    
+    // Audition specific (Hide for contests)
+    document.getElementById('detAgeGroup').style.display = isAudition ? 'block' : 'none';
+    document.getElementById('detHeightGroup').style.display = isAudition ? 'block' : 'none';
+    document.getElementById('detRoleGroup').style.display = (isAudition && app.role) ? 'block' : 'none';
+    
+    if (isAudition) {
+        document.getElementById('detAge').innerText = app.age || '-';
+        document.getElementById('detHeight').innerText = app.height || '-';
+        document.getElementById('detRole').innerText = app.role || '-';
+    }
+
+    // Contest specific
+    const contestGroup = document.getElementById('detContestGroup');
+    contestGroup.style.display = isContest ? 'block' : 'none';
+    if (isContest) {
+        document.getElementById('detFilmTitle').innerText = app.shortFilmTitle || '-';
+        document.getElementById('detTeamName').innerText = app.teamName || '-';
+        const filmLink = document.getElementById('detFilmLink');
+        if (app.portfolioLink) {
+            filmLink.innerText = "Watch Film Submission";
+            filmLink.href = app.portfolioLink;
+            filmLink.style.color = "#2563eb";
+        } else {
+            filmLink.innerText = "No link provided";
+            filmLink.href = "#";
+            filmLink.style.color = "#94a3b8";
+        }
+    }
+
+    // Photos (Strictly hide for contests)
+    const photoGroup = document.getElementById('detPhotoGroup');
+    const photoGrid = document.getElementById('detPhotoGrid');
+    photoGrid.innerHTML = '';
+    const photos = [app.photo1, app.photo2, app.photo3].filter(p => p && p.trim() !== '');
+    
+    if (!isContest && photos.length > 0) {
+        photoGroup.style.display = 'block';
+        photos.forEach(p => {
+            const img = document.createElement('img');
+            img.src = p;
+            img.style.width = '100%';
+            img.style.aspectRatio = '3/4';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '12px';
+            img.onclick = () => openBase64InNewTab(p);
+            img.style.cursor = 'pointer';
+            img.title = "Click to view full image";
+            photoGrid.appendChild(img);
+        });
+    } else {
+        photoGroup.style.display = 'none';
+    }
+
+    // Resume
+    const resumeGroup = document.getElementById('detResumeGroup');
+    const resumeLink = document.getElementById('detResumeLink');
+    
+    // Always clear the old click handler first to prevent opening the previous applicant's resume/photo
+    resumeLink.onclick = null;
+
+    if (!isContest && app.resumeUrl) {
+        resumeGroup.style.display = 'block';
+        resumeLink.href = app.resumeUrl;
+        
+        // Add a visual indicator if the resume is actually an image (which might be the case if uploaded incorrectly)
+        const isImageResume = app.resumeUrl.startsWith('data:image/');
+        if (isImageResume) {
+            resumeLink.innerHTML = '<i class="fas fa-image" style="color: #f59e0b; font-size: 18px;"></i> View Resume (Image Format)';
+        } else {
+            resumeLink.innerHTML = '<i class="fas fa-file-pdf" style="color: #ef4444; font-size: 18px;"></i> View Resume / Portfolio';
+        }
+
+        // Use a clean, fresh handler for the current applicant's resume
+        const currentResumeData = app.resumeUrl;
+        const currentResumeName = app.resumeFileName;
+        resumeLink.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openBase64InNewTab(currentResumeData, 'application/pdf', currentResumeName);
+        };
+    } else {
+        resumeGroup.style.display = 'none';
+        resumeLink.href = "#";
+    }
+
+    // Notes
+    document.getElementById('detNotes').innerText = app.additionalNote || app.experience || 'No additional notes provided.';
+
+    // Action Buttons
+    const shortlistBtn = document.getElementById('detShortlistBtn');
+    const rejectBtn = document.getElementById('detRejectBtn');
+    
+    shortlistBtn.onclick = () => { updateAppStatus(app.id, 'SHORTLISTED'); closeApplicantDetailModal(); };
+    rejectBtn.onclick = () => { updateAppStatus(app.id, 'REJECTED'); closeApplicantDetailModal(); };
+
+    modal.style.display = 'flex';
+}
+
+/**
+ * Safely opens a file (URL or Base64) in a new tab
+ */
+function openBase64InNewTab(data, contentType = '', fileName = '') {
+    try {
+        if (!data) return;
+        
+        // Case 1: It's a standard URL (HTTP or relative)
+        if (data.startsWith('http') || (data.startsWith('/') && !data.startsWith('/9j/'))) {
+            window.open(data, '_blank');
+            return;
+        }
+
+        // Case 2: It's Base64 data
+        let actualContentType = contentType;
+        let realData = data;
+
+        if (data.includes(";base64,")) {
+            let parts = data.split(";base64,");
+            actualContentType = parts[0].split(":")[1];
+            realData = parts[1];
+        }
+        
+        // Sanitize realData (remove any whitespace/newlines that might break atob)
+        realData = realData.replace(/\s/g, '');
+
+        try {
+            const byteCharacters = atob(realData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: actualContentType || 'application/pdf' });
+            
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Simpler, more reliable way to open Blob URLs in most browsers
+            const win = window.open(blobUrl, '_blank');
+            
+            // Fallback: If popup is blocked, trigger a download
+            if (!win || win.closed || typeof win.closed == 'undefined') {
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                const finalName = fileName || `file_${Date.now()}.${actualContentType.includes('pdf') ? 'pdf' : 'jpg'}`;
+                link.download = finalName;
+                link.click();
+            }
+        } catch (innerError) {
+            console.error("Base64 conversion failed, trying direct open:", innerError);
+            window.open(data, '_blank');
+        }
+    } catch (e) {
+        console.error("Critical error opening file:", e);
+        window.open(data, '_blank');
+    }
+}
+
+function closeApplicantDetailModal() {
+    document.getElementById('applicantDetailModal').style.display = 'none';
 }
 
 async function updateAppStatus(applicationId, newStatus) {

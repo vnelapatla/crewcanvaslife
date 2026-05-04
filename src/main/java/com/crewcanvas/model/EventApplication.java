@@ -63,6 +63,48 @@ public class EventApplication {
     @Column(name = "additional_note", length = 1000)
     private String additionalNote;
 
+    private String age;
+    private String height;
+
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String photo1;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String photo2;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String photo3;
+
+    @Lob
+    @Column(name = "resume_url", columnDefinition = "LONGTEXT")
+    private String resumeUrl;
+
+    @Column(name = "resume_file_name")
+    private String resumeFileName;
+
+    @Column(name = "short_film_title")
+    private String shortFilmTitle;
+
+    @Column(name = "team_name")
+    private String teamName;
+
+    @Lob
+    @Column(name = "video_url", columnDefinition = "LONGTEXT")
+    private String videoUrl;
+
+    @Column(name = "video_file_name")
+    private String videoFileName;
+
+    @Lob
+    @Column(name = "poster_url", columnDefinition = "LONGTEXT")
+    private String posterUrl;
+
     @PrePersist
     protected void onCreate() {
         appliedAt = LocalDateTime.now();
@@ -131,4 +173,43 @@ public class EventApplication {
 
     public String getAdditionalNote() { return additionalNote; }
     public void setAdditionalNote(String additionalNote) { this.additionalNote = additionalNote; }
+
+    public String getAge() { return age; }
+    public void setAge(String age) { this.age = age; }
+
+    public String getHeight() { return height; }
+    public void setHeight(String height) { this.height = height; }
+
+    public String getMobileNumber() { return mobileNumber; }
+    public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+
+    public String getPhoto1() { return photo1; }
+    public void setPhoto1(String photo1) { this.photo1 = photo1; }
+
+    public String getPhoto2() { return photo2; }
+    public void setPhoto2(String photo2) { this.photo2 = photo2; }
+
+    public String getPhoto3() { return photo3; }
+    public void setPhoto3(String photo3) { this.photo3 = photo3; }
+
+    public String getResumeUrl() { return resumeUrl; }
+    public void setResumeUrl(String resumeUrl) { this.resumeUrl = resumeUrl; }
+
+    public String getResumeFileName() { return resumeFileName; }
+    public void setResumeFileName(String resumeFileName) { this.resumeFileName = resumeFileName; }
+
+    public String getShortFilmTitle() { return shortFilmTitle; }
+    public void setShortFilmTitle(String shortFilmTitle) { this.shortFilmTitle = shortFilmTitle; }
+
+    public String getTeamName() { return teamName; }
+    public void setTeamName(String teamName) { this.teamName = teamName; }
+
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+
+    public String getVideoFileName() { return videoFileName; }
+    public void setVideoFileName(String videoFileName) { this.videoFileName = videoFileName; }
+
+    public String getPosterUrl() { return posterUrl; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
 }

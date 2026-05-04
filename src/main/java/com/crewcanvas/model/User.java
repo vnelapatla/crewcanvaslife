@@ -185,6 +185,9 @@ public class User {
     @Column(name = "profile_score", nullable = false)
     private Integer profileScore = 0;
 
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
     @Column(name = "welcome_sent")
     private Boolean welcomeSent = false;
 
@@ -366,6 +369,9 @@ public class User {
 
     public Boolean getWelcomeSent() { return welcomeSent; }
     public void setWelcomeSent(Boolean welcomeSent) { this.welcomeSent = welcomeSent; }
+
+    public LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
 
     public String getProfileVisibility() { return profileVisibility; }
     public void setProfileVisibility(String profileVisibility) { this.profileVisibility = profileVisibility; }
