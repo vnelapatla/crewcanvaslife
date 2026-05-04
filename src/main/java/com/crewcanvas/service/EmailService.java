@@ -202,6 +202,26 @@ public class EmailService {
     }
 
     @Async
+    public void sendAdminPostNotificationEmail(String to, String name, String postContent, Long postId) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("New Requirement Posted by CrewCanvas Official 🎬");
+
+        String postLink = "https://crewcanvas.in/feed.html?postId=" + postId;
+
+        String body = "Hi " + name + ",\n\n" +
+                "A new requirement has been posted by CrewCanvas Official:\n\n" +
+                "\"" + postContent + "\"\n\n" +
+                "For more details and to interact with this post, check this link:\n" + postLink + "\n\n" +
+                "Stay tuned for more opportunities!\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    @Async
     public void sendProfileReminderEmail(String to, String name, String profileLink) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);

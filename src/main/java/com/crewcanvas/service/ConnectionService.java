@@ -63,6 +63,11 @@ public class ConnectionService {
 
     private void sendFollowNotifications(Long followerId, Long followingId) {
         userRepository.findById(followingId).ifPresent(user -> {
+            // Suppress follow notifications for the official admin account to avoid spam
+            if ("crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail())) {
+                return;
+            }
+
             userRepository.findById(followerId).ifPresent(follower -> {
                 // In-app notification if enabled
                 if (Boolean.TRUE.equals(user.getFollowerNotifications())) {

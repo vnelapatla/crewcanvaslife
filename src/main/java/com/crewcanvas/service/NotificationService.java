@@ -2,10 +2,12 @@ package com.crewcanvas.service;
 
 import com.crewcanvas.model.Notification;
 import com.crewcanvas.model.User;
+import com.crewcanvas.model.Post;
 import com.crewcanvas.repository.NotificationRepository;
 import com.crewcanvas.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -20,6 +22,9 @@ public class NotificationService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private EmailService emailService;
 
     public Notification createNotification(Long recipientId, Long actorId, String type, String content, String targetId) {
         Notification notification = new Notification();
@@ -79,5 +84,34 @@ public class NotificationService {
 
     public void clearNotificationsByActor(Long actorId) {
         notificationRepository.deleteByActorId(actorId);
+    }
+
+    @Async
+    public void broadcastAdminPostNotification(Post post, User admin) {
+        try {
+            List<User> allUsers = userRepository.findAll();
+            String postContent = post.getContent() != null ? post.getContent() : "New Requirement";
+            String preview = postContent.length() > 50 ? postContent.substring(0, 50) + "..." : postContent;
+
+            for (User targetUser : allUsers) {
+                if (targetUser.getId().equals(admin.getId())) continue;
+
+                // 1. Create In-App Notification
+                createNotification(
+                    targetUser.getId(),
+                    admin.getId(),
+                    "ADMIN_POST",
+                    "posted a new requirement: " + preview,
+                    post.getId().toString()
+                );
+
+                // 2. Send Email Notification
+                if (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications())) {
+                    emailService.sendAdminPostNotificationEmail(targetUser.getEmail(), targetUser.getName(), postContent, post.getId());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error broadcasting admin post notification: " + e.getMessage());
+        }
     }
 }

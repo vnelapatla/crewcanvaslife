@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Insights | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        :root {
+            --primary: #ff8c00;
+            --secondary: #ff4c3b;
+            --bg-dark: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        .insights-container {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+        }
+
+        .header-text h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+        .header-text p { color: var(--text-muted); font-size: 15px; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            border: 1px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .stat-trend {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 100px;
+        }
+
+        .trend-up { background: #dcfce7; color: #15803d; }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 25px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            border: 1px solid #f1f5f9;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-title { font-size: 18px; font-weight: 700; }
+
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bar-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .bar-outer {
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .bar-inner {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 100px;
+            transition: width 1s ease;
+        }
+
+        .signup-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .signup-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+            transition: 0.2s;
+        }
+
+        .signup-item:hover { background: #f8fafc; border-color: var(--primary); }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffedd5;
+            color: #f97316;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .user-info b { font-size: 14px; display: block; }
+        .user-info span { font-size: 11px; color: var(--text-muted); }
+
+        .conversion-box {
+            background: var(--bg-dark);
+            color: white;
+            padding: 30px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversion-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            width: 150px;
+            outline: none;
+        }
+
+        .conversion-input:focus { border-color: var(--primary); }
+
+        @media (max-width: 992px) {
+            .insights-grid { grid-template-columns: 1fr; }
+            .header-section { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .conversion-box { flex-direction: column; gap: 20px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar"></aside>
+
+    <main class="main-content">
+        <header class="top-header"></header>
+
+        <div class="insights-container">
+            <div class="header-section">
+                <div class="header-text">
+                    <h1>Performance Insights</h1>
+                    <p>Real-time analytics for CrewCanvas registrations and user engagement.</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 10px;">
+                    <button id="syncFollowsBtn" class="btn-premium-sm" onclick="syncAllFollows()" style="background: var(--bg-dark); color: white; border: none; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-users-cog"></i> Sync All Follows
+                    </button>
+                    <button class="btn-premium-sm" onclick="fetchInsights()" style="background: white; color: var(--text-main); border: 1px solid #e2e8f0; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="conversion-box">
+                <div style="flex: 1;">
+                    <h3 style="margin-bottom: 5px;">Conversion Tracker</h3>
+                    <p style="opacity: 0.7; font-size: 13px;">Enter total website hits to calculate conversion rate.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="text-align: right;">
+                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Total Hits (24h)</label>
+                        <input type="number" id="hitInput" value="100" class="conversion-input" oninput="calculateConversion()">
+                    </div>
+                    <div style="width: 2px; height: 50px; background: rgba(255,255,255,0.1);"></div>
+                    <div style="text-align: center;">
+                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Conversion %</label>
+                        <div id="conversionRate" style="font-size: 32px; font-weight: 800; color: var(--primary);">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Registrations (Last 24h)</span>
+                    <div class="stat-value">
+                        <span id="statNewReg">0</span>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> New</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Total Community Size</span>
+                    <div class="stat-value">
+                        <span id="statTotalUsers">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Profile Completion Avg</span>
+                    <div class="stat-value">
+                        <span id="statAvgCompletion">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title"><i class="fas fa-rss" style="color:var(--primary);"></i> Feed Engagement</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">24h Window</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-around; text-align:center;">
+                        <div>
+                            <div style="font-size:24px; font-weight:800;" id="statNewPosts">0</div>
+                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">POSTS</div>
+                        </div>
+                        <div>
+                            <div style="font-size:24px; font-weight:800;" id="statNewLikes">0</div>
+                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">LIKES</div>
+                        </div>
+                        <div>
+                            <div style="font-size:24px; font-weight:800;" id="statNewComments">0</div>
+                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">COMMENTS</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title"><i class="fas fa-clapperboard" style="color:var(--secondary);"></i> Event Activity</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">24h Window</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-around; text-align:center;">
+                        <div>
+                            <div style="font-size:24px; font-weight:800;" id="statNewEvents">0</div>
+                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">NEW EVENTS</div>
+                        </div>
+                        <div>
+                            <div style="font-size:24px; font-weight:800;" id="statNewApps">0</div>
+                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">APPLICATIONS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Profile Completion Distribution</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">User Data Analysis</span>
+                    </div>
+                    <div class="bar-container" id="distributionBars">
+                        <!-- Bars will be injected here -->
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Recent Signups</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">Last 24 Hours</span>
+                    </div>
+                    <div class="signup-list" id="signupList">
+                        <!-- Signups will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script>
+        let currentNewRegCount = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof initUniversalHeader === 'function') initUniversalHeader();
+            
+            const isAdmin = localStorage.getItem('isAdmin') === 'true' || localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com';
+            if (!isAdmin) {
+                document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:Outfit; flex-direction:column;"><h1>403 Access Denied</h1><p>This area is for official admins only.</p><a href="home.html">Back to Dashboard</a></div>';
+                return;
+            }
+
+            await fetchInsights();
+        });
+
+        async function fetchInsights() {
+            const adminId = localStorage.getItem('userId');
+            if (!adminId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/insights/stats?adminId=${adminId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    renderStats(data);
+                    if (typeof showMessage === 'function') showMessage('Insights updated!', 'success');
+                } else {
+                    if (typeof showMessage === 'function') showMessage('Failed to refresh data', 'error');
+                }
+            } catch (err) {
+                console.error("Failed to fetch insights:", err);
+                if (typeof showMessage === 'function') showMessage('Connection error', 'error');
+            }
+        }
+
+        function renderStats(data) {
+            currentNewRegCount = data.newRegistrations24h;
+            document.getElementById('statNewReg').innerText = data.newRegistrations24h;
+            document.getElementById('statTotalUsers').innerText = data.totalUsers;
+            
+            // New metrics
+            document.getElementById('statNewPosts').innerText = data.newPosts24h;
+            document.getElementById('statNewLikes').innerText = data.newLikes24h;
+            document.getElementById('statNewComments').innerText = data.newComments24h;
+            document.getElementById('statNewEvents').innerText = data.newEvents24h;
+            document.getElementById('statNewApps').innerText = data.newApplications24h;
+
+            // Calculate Avg Completion (Simple weighted average from distribution)
+            const dist = data.profileDistribution;
+            const total = data.totalUsers || 1;
+            const avg = Math.round((
+                (dist['0-25'] * 12.5) + 
+                (dist['26-50'] * 37.5) + 
+                (dist['51-75'] * 62.5) + 
+                (dist['76-100'] * 87.5)
+            ) / total);
+            document.getElementById('statAvgCompletion').innerText = avg + '%';
+
+            calculateConversion();
+
+            // Render Distribution Bars
+            const bars = document.getElementById('distributionBars');
+            bars.innerHTML = '';
+            const labels = {
+                '0-25': 'Needs Work (0-25%)',
+                '26-50': 'Getting Started (26-50%)',
+                '51-75': 'Professional (51-75%)',
+                '76-100': 'Elite / Complete (76-100%)'
+            };
+            const colors = {
+                '0-25': '#f87171',
+                '26-50': '#fb923c',
+                '51-75': '#60a5fa',
+                '76-100': '#10b981'
+            };
+
+            Object.keys(dist).forEach(key => {
+                const count = dist[key];
+                const pct = Math.round((count / total) * 100);
+                bars.innerHTML += `
+                    <div class="bar-item">
+                        <div class="bar-label-row">
+                            <span>${labels[key]}</span>
+                            <span>${count} users (${pct}%)</span>
+                        </div>
+                        <div class="bar-outer">
+                            <div class="bar-inner" style="width: ${pct}%; background: ${colors[key]};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Recent Signups
+            const list = document.getElementById('signupList');
+            list.innerHTML = data.recentSignups.length > 0 ? data.recentSignups.map(user => `
+                <div class="signup-item" onclick="window.location.href='profile.html?userId=${user.id}'" style="cursor:pointer;">
+                    <div class="user-avatar">${(user.name || '?').charAt(0).toUpperCase()}</div>
+                    <div class="user-info">
+                        <b>${user.name}</b>
+                        <span>${user.role || 'Explorer'} • Registered ${formatRelativeTime(user.createdAt)}</span>
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align:center; padding:20px; color:#94a3b8;">No new signups in the last 24h.</p>';
+        }
+
+        function calculateConversion() {
+            const hits = parseInt(document.getElementById('hitInput').value) || 0;
+            const rateEl = document.getElementById('conversionRate');
+            if (hits <= 0) {
+                rateEl.innerText = '0%';
+                return;
+            }
+            const rate = ((currentNewRegCount / hits) * 100).toFixed(1);
+            rateEl.innerText = rate + '%';
+        }
+
+        function formatRelativeTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 600);
+            
+            if (diffMins < 60) return diffMins + 'm ago';
+            if (diffHours < 24) return diffHours + 'h ago';
+            return 'Recently';
+        }
+
+        async function syncAllFollows() {
+            const adminId = localStorage.getItem('userId');
+            const btn = document.getElementById('syncFollowsBtn');
+            const originalText = btn.innerHTML;
+            
+            if (!confirm("This will make ALL existing users follow the official admin account. Continue?")) return;
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                
+                const res = await fetch(`${API_BASE_URL}/api/admin/insights/sync-follows?adminId=${adminId}`, {
+                    method: 'POST'
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    alert(`Success! ${data.newFollowersCount} new followers synced.`);
+                } else {
+                    const err = await res.text();
+                    alert("Failed to sync: " + err);
+                }
+            } catch (err) {
+                alert("System error during sync.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

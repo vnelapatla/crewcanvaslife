@@ -62,6 +62,9 @@ public class UserService {
     @Autowired
     private WhatsAppService whatsappService;
 
+    @Autowired
+    private ConnectionService connectionService;
+
     public User getOfficialUser() {
         String officialEmail = "crewcanvas2@gmail.com";
         Optional<User> officialUserOpt = userRepository.findByEmail(officialEmail);
@@ -145,6 +148,14 @@ public class UserService {
             logger.error("Failed to send welcome WhatsApp to {}: {}", user.getPhone(), e.getMessage());
         }
         */
+
+        // 5. Auto-follow Official Account
+        try {
+            connectionService.followUser(receiverId, senderId);
+            logger.info("User {} auto-followed official account {}", receiverId, senderId);
+        } catch (Exception e) {
+            logger.error("Auto-follow failed for user {}: {}", receiverId, e.getMessage());
+        }
         
         user.setWelcomeSent(true);
         userRepository.save(user);
@@ -463,5 +474,22 @@ public class UserService {
 
     public List<User> getAllUsersSortedByLogin() {
         return userRepository.findAllByOrderByLastLoginDesc();
+    }
+
+    @Transactional
+    public int syncExistingUsersToFollowAdmin() {
+        User officialAdmin = getOfficialUser();
+        List<User> allUsers = userRepository.findAll();
+        int count = 0;
+        for (User user : allUsers) {
+            if (user.getId().equals(officialAdmin.getId())) continue;
+            
+            // Check if already following to avoid unnecessary sync calls
+            if (connectionRepository.findByFollowerIdAndFollowingId(user.getId(), officialAdmin.getId()).isEmpty()) {
+                connectionService.followUser(user.getId(), officialAdmin.getId());
+                count++;
+            }
+        }
+        return count;
     }
 }

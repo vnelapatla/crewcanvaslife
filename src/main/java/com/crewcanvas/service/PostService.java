@@ -45,6 +45,12 @@ public class PostService {
         Post post = new Post(userId, content, imageUrls, externalLinks);
         if (aspectRatio != null) post.setAspectRatio(aspectRatio);
         Post savedPost = postRepository.save(post);
+        
+        // Broadcast notification if Admin
+        if (isAdmin) {
+            notificationService.broadcastAdminPostNotification(savedPost, user);
+        }
+
         return populatePollData(savedPost);
     }
 
@@ -58,7 +64,15 @@ public class PostService {
         }
         
         post.setPoll(poll);
-        return populatePollData(postRepository.save(post));
+        Post savedPost = postRepository.save(post);
+
+        // Broadcast notification if Admin
+        com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
+        if (user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()))) {
+            notificationService.broadcastAdminPostNotification(savedPost, user);
+        }
+
+        return populatePollData(savedPost);
     }
 
     public org.springframework.data.domain.Page<Post> getAllPosts(int page, int size) {

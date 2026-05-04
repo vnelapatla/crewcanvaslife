@@ -953,6 +953,11 @@ function initUniversalSidebar() {
             <a href="profile.html" class="nav-item ${currentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
                 <i class="fa-solid fa-user"></i> My Profile
             </a>
+            ${getCurrentUserIsAdmin() ? `
+            <a href="admin-insights.html" class="nav-item ${currentPage.includes('admin-insights.html') ? 'active' : ''}">
+                <i class="fa-solid fa-chart-line"></i> Performance Insights
+            </a>
+            ` : ''}
         </nav>
     `;
 
@@ -1004,6 +1009,7 @@ function initUniversalHeader() {
                         <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                         <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
                         <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Crew Canvas</a>
+                        ${isAdmin ? `<a href="admin-insights.html" class="dropdown-item"><i class="fas fa-chart-line" style="color: #3b82f6;"></i> Performance Insights</a>` : ''}
                         <a href="notifications.html" class="dropdown-item notifications-link">
                             <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
                             <span id="notifBadge" class="notif-pill" style="display:none;">0</span>

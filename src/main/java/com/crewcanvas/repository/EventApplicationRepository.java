@@ -31,4 +31,6 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(ea) > 0 FROM EventApplication ea WHERE ea.userId = :applicantId AND ea.eventId IN (SELECT e.id FROM Event e WHERE e.userId = :creatorId)")
     boolean isApplicantToCreatorsEvent(@org.springframework.data.repository.query.Param("creatorId") Long creatorId, @org.springframework.data.repository.query.Param("applicantId") Long applicantId);
+
+    long countByAppliedAtAfter(java.time.LocalDateTime dateTime);
 }

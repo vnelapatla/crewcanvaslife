@@ -34,4 +34,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @org.springframework.data.repository.query.Param("currentUserId") Long currentUserId,
         @org.springframework.data.repository.query.Param("excludeFollowed") boolean excludeFollowed,
         org.springframework.data.domain.Pageable pageable);
+    long countByCreatedAtAfter(java.time.LocalDateTime dateTime);
+
+    long countByProfileScoreBetween(int min, int max);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE u.createdAt >= :dateTime ORDER BY u.createdAt DESC")
+    java.util.List<User> findRecentSignups(@org.springframework.data.repository.query.Param("dateTime") java.time.LocalDateTime dateTime);
 }

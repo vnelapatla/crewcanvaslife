@@ -69,4 +69,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Query(value = "DELETE FROM post_links WHERE post_id IN (SELECT p.id FROM posts p WHERE p.user_id = ?1)", nativeQuery = true)
     void deleteLinksOnUserPosts(Long userId);
+
+    long countByCreatedAtAfter(java.time.Instant instant);
+
+    @Query("SELECT COALESCE(SUM(p.likes), 0) FROM Post p WHERE p.createdAt >= :instant")
+    long sumLikesByCreatedAtAfter(@Param("instant") java.time.Instant instant);
+
+    @Query("SELECT COALESCE(SUM(p.comments), 0) FROM Post p WHERE p.createdAt >= :instant")
+    long sumCommentsByCreatedAtAfter(@Param("instant") java.time.Instant instant);
 }
