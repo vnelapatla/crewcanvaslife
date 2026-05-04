@@ -283,8 +283,17 @@ function createUserCard(user, isFollowing, canMessage) {
     const userId = getUserId(user);
     const messageBtn = canMessage ? `<button class="btn-message" onclick="startMessage('${userId}')"><i class="fa-solid fa-paper-plane"></i></button>` : '';
     
+    // Admin-only profile completion percentage
+    const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : false;
+    const profileCompletion = (isAdmin && user.profileScore != null) ? 
+        `<div class="profile-completion-admin" style="margin-bottom: 15px; font-size: 11px; color: #64748b; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e2e8f0;">
+            <i class="fa-solid fa-chart-pie" style="color: #ff8c00;"></i>
+            <span>Profile: <b>${user.profileScore}%</b> filled</span>
+         </div>` : '';
+    
     return `
         <div class="crew-card">
+            ${profileCompletion}
             ${renderAvatar(user, 'user-img')}
             <h3>${user.name}</h3>
             <p class="role" style="color: ${user.isVerifiedProfessional === true ? '#ff8c00' : '#64748b'}; font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-bottom: 5px;">

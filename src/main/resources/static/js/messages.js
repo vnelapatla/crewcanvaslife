@@ -163,8 +163,8 @@ function onMessageReceived(msg) {
     }
 
     // Robust ID comparison using String conversion
-    const isCurrentChat = String(selectedConversationUserId) === String(msg.senderId) || 
-                         String(selectedConversationUserId) === String(msg.receiverId);
+    const isCurrentChat = selectedConversationUserId && (String(selectedConversationUserId) === String(msg.senderId) || 
+                         String(selectedConversationUserId) === String(msg.receiverId));
     
     if (isCurrentChat) {
         loadMessages(); 
@@ -606,7 +606,7 @@ function displayMessages(messages) {
 
     container.innerHTML = messages.map((msg, index) => {
         const isSent = msg.senderId == currentUserId;
-        const name = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
+        const senderName = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
         
         let attachmentContent = '';
         const allFiles = [...(msg.fileUrls || [])];

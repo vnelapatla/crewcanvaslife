@@ -22,6 +22,12 @@ import com.crewcanvas.repository.MessageRepository;
 import com.crewcanvas.service.NotificationService;
 import com.crewcanvas.service.EmailService;
 import com.crewcanvas.service.UserService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EventService {
@@ -46,6 +52,33 @@ public class EventService {
 
     @Autowired
     private MessageRepository messageRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    private void sendRealTimeMessage(Message msg) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", msg.getId());
+            map.put("senderId", msg.getSenderId());
+            map.put("receiverId", msg.getReceiverId());
+            map.put("content", msg.getContent());
+            map.put("imageUrl", msg.getImageUrl());
+            map.put("fileUrl", msg.getFileUrl());
+            map.put("fileType", msg.getFileType());
+            map.put("fileUrls", msg.getFileUrls());
+            map.put("isRead", msg.getIsRead());
+            map.put("isEdited", msg.getIsEdited());
+            map.put("createdAt", msg.getCreatedAt() != null ? ZonedDateTime.ofInstant(msg.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
+
+            messagingTemplate.convertAndSend("/topic/messages/" + msg.getReceiverId(), map);
+            messagingTemplate.convertAndSend("/topic/messages/" + msg.getSenderId(), map);
+        } catch (Exception e) {
+            System.err.println("Failed to send real-time message update: " + e.getMessage());
+        }
+    }
 
     public Event createEvent(Event event) {
         return eventRepository.save(event);
@@ -407,9 +440,10 @@ public class EventService {
                                 "Status update for " + application.getEventTitle() + ": " + status :
                                 "Your application status for " + application.getEventTitle() + " was updated to " + status;
 
+                User officialUser = userService.getOfficialUser();
                 notificationService.createNotification(
                     application.getUserId(),
-                    null, // System or Admin usually
+                    officialUser.getId(),
                     type,
                     content,
                     application.getEventId().toString()
@@ -447,7 +481,8 @@ public class EventService {
                         // 1. Send In-App Message from Official Account if reminders enabled
                         if (sendInApp) {
                             Message shortlistMsg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                            messageRepository.save(shortlistMsg);
+                            Message saved = messageRepository.save(shortlistMsg);
+                            sendRealTimeMessage(saved);
                         }
                         
                         // 2. Send Email if email notifications enabled
@@ -484,7 +519,8 @@ public class EventService {
                     // 1. Send In-App Message from Official Account
                     if (sendInApp) {
                         Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                        messageRepository.save(msg);
+                        Message saved = messageRepository.save(msg);
+                        sendRealTimeMessage(saved);
                     }
                     
                     // 2. Send Email
@@ -497,7 +533,8 @@ public class EventService {
                     // 1. Send In-App Message from Official Account
                     if (sendInApp) {
                         Message msg = new Message(officialUser.getId(), applicant.getId(), messageContent);
-                        messageRepository.save(msg);
+                        Message saved = messageRepository.save(msg);
+                        sendRealTimeMessage(saved);
                     }
                     
                     // 2. Send Email
@@ -598,7 +635,8 @@ public class EventService {
                                 // 1. Send In-App Message from Event Creator
                                 if (sendInApp && creator != null) {
                                     Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
-                                    messageRepository.save(msg);
+                                    Message saved = messageRepository.save(msg);
+                                    sendRealTimeMessage(saved);
                                 }
                                 
                                 // 2. Send Email
@@ -665,7 +703,8 @@ public class EventService {
                                 // 1. Send In-App Message from Event Creator
                                 if (sendInApp && creator != null) {
                                     Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
-                                    messageRepository.save(msg);
+                                    Message saved = messageRepository.save(msg);
+                                    sendRealTimeMessage(saved);
                                 }
                                 
                                 // 2. Send Email

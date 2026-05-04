@@ -154,7 +154,16 @@ public class ProfileController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
         try {
-            return ResponseEntity.ok(userService.searchUsers(query, role, location, currentUserId, excludeFollowed, page, size));
+            org.springframework.data.domain.Page<User> userPage = userService.searchUsers(query, role, location, currentUserId, excludeFollowed, page, size);
+            
+            // SECURITY: Only admins see profile completion percentage
+            boolean isAdmin = currentUserId != null && userService.findById(currentUserId).map(User::getIsAdmin).orElse(false);
+            if (!isAdmin) {
+                // Clear profile score for non-admins to prevent them from seeing it in API response
+                userPage.getContent().forEach(u -> u.setProfileScore(null));
+            }
+            
+            return ResponseEntity.ok(userPage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Search service is temporarily unavailable.");
@@ -214,11 +223,6 @@ public class ProfileController {
     @GetMapping("/{id}/followers")
     public ResponseEntity<?> getFollowers(@PathVariable Long id) {
         try {
-            Optional<User> userOpt = userService.findById(id);
-            if (userOpt.isPresent() && (Boolean.TRUE.equals(userOpt.get().getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(userOpt.get().getEmail()))) {
-                // If Admin viewing own profile, show RECENT LOGINS
-                return ResponseEntity.ok(userService.getAllUsersSortedByLogin());
-            }
             List<User> followers = connectionService.getFollowers(id);
             return ResponseEntity.ok(followers);
         } catch (Exception e) {
@@ -230,11 +234,6 @@ public class ProfileController {
     @GetMapping("/{id}/following")
     public ResponseEntity<?> getFollowing(@PathVariable Long id) {
         try {
-            Optional<User> userOpt = userService.findById(id);
-            if (userOpt.isPresent() && (Boolean.TRUE.equals(userOpt.get().getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(userOpt.get().getEmail()))) {
-                // If Admin viewing own profile, show RECENT LOGINS
-                return ResponseEntity.ok(userService.getAllUsersSortedByLogin());
-            }
             List<User> following = connectionService.getFollowing(id);
             return ResponseEntity.ok(following);
         } catch (Exception e) {

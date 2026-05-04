@@ -72,6 +72,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function refreshProfileData() {
+    // Ensure ProfileHandler is ready so follow status is accurate
+    if (typeof ProfileHandler !== 'undefined') {
+        await ProfileHandler.init();
+    }
+
     // 1. Fetch onboarding data (Profile + Follow lists) in one go
     const onboardingPromise = fetch(`${API_BASE_URL}/api/profile/onboarding-data/${profileUserId}?viewerId=${currentUserId}&t=${Date.now()}`)
         .then(res => res.ok ? res.json() : null)
@@ -83,11 +88,6 @@ async function refreshProfileData() {
                 // Update counts directly from consolidated data
                 if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = data.followers?.length || 0;
                 if (document.getElementById('followingCount')) document.getElementById('followingCount').textContent = data.following?.length || 0;
-                
-                // Sync with ProfileHandler
-                if (typeof ProfileHandler !== 'undefined') {
-                    ProfileHandler.init();
-                }
             }
         });
 
@@ -308,13 +308,15 @@ function displayProfile(user) {
                 </a>
             `;
         } else {
+            // Re-check following state in case ProfileHandler finished late
             const isFollowing = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollowing(profileUserId) : false;
-            const isFollower = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollower(profileUserId) : false;
-            const isAdmin = getCurrentUserIsAdmin();
             
             const followBtnHtml = `
-                <button onclick="ProfileHandler.toggleFollow('${profileUserId}', this)" class="action-btn ${isFollowing ? 'btn-follow following' : 'btn-primary'}">
-                    <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> ${isFollowing ? 'Following' : 'Follow'}
+                <button onclick="ProfileHandler.toggleFollow('${profileUserId}', this)" 
+                        data-user-id="${profileUserId}"
+                        class="action-btn ${isFollowing ? 'btn-follow following' : 'btn-primary'}">
+                    <i class="fa-solid ${isFollowing ? 'fa-check' : 'fa-user-plus'}"></i> 
+                    <span>${isFollowing ? 'Following' : 'Follow'}</span>
                 </button>
             `;
 

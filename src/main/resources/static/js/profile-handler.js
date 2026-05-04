@@ -114,7 +114,7 @@ const ProfileHandler = {
                 const isActionBtn = btn.classList.contains('action-btn');
                 if (isActionBtn) {
                     btn.className = `action-btn btn-primary btn-follow ${newState ? 'following' : ''}`;
-                    btn.innerHTML = `<i class="fa-solid ${newState ? 'fa-check' : 'fa-user-plus'}"></i> ${newState ? 'Following' : 'Follow'}`;
+                    btn.innerHTML = `<i class="fa-solid ${newState ? 'fa-check' : 'fa-user-plus'}"></i> <span>${newState ? 'Following' : 'Follow'}</span>`;
                 } else {
                     btn.className = newState ? 'btn-following' : 'btn-follow';
                     btn.innerHTML = newState ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
@@ -122,11 +122,31 @@ const ProfileHandler = {
             }
         });
 
-        // Update follower count labels if they exist
+        // Update follower count labels
+        // 1. Specific ID for this user (if in a list)
         const countLabel = document.getElementById(`followers-count-${targetId}`);
         if (countLabel) {
             let val = parseInt(countLabel.innerText) || 0;
             countLabel.innerText = newState ? val + 1 : Math.max(0, val - 1);
+        }
+
+        // 2. Global counter for the current profile being viewed (if it matches targetId)
+        if (typeof profileUserId !== 'undefined' && profileUserId == targetId) {
+            const followerCountEl = document.getElementById('followerCount');
+            if (followerCountEl) {
+                let val = parseInt(followerCountEl.innerText) || 0;
+                followerCountEl.innerText = newState ? val + 1 : Math.max(0, val - 1);
+            }
+        }
+
+        // 3. Update 'Following' count if the current user is on their own profile
+        const currentUserId = getCurrentUserId();
+        if (typeof profileUserId !== 'undefined' && profileUserId == currentUserId) {
+            const followingCountEl = document.getElementById('followingCount');
+            if (followingCountEl) {
+                let val = parseInt(followingCountEl.innerText) || 0;
+                followingCountEl.innerText = newState ? val + 1 : Math.max(0, val - 1);
+            }
         }
     },
 

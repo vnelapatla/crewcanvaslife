@@ -988,7 +988,6 @@ function initUniversalHeader() {
     if (userId) {
         header.innerHTML = `
             <div class="header-left">
-                ${!isPrimaryPage ? `<button class="back-nav-btn" onclick="window.history.back()" title="Go Back"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
                 <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
             </div>
             <div class="status-bar" style="gap: 12px; display: flex; align-items: center;">
