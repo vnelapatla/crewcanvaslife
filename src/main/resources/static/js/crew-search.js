@@ -325,5 +325,11 @@ function createUserCard(user, isFollowing, canMessage) {
 }
 
 // Functions viewProfile and startMessage are used in createUserCard
-function viewProfile(id) { window.location.href = `profile.html?userId=${id}`; }
+function viewProfile(id) { 
+    if (!id || id === 'null' || id === 'undefined') {
+        console.error("Cannot view profile: Invalid ID", id);
+        return;
+    }
+    window.location.href = `profile.html?userId=${id}`; 
+}
 function startMessage(id) { window.location.href = `messages.html?userId=${id}`; }

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.PersistenceContext;
+import com.crewcanvas.model.User;
 
 @RestController
 @RequestMapping("/api/events")
@@ -18,6 +20,40 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private com.crewcanvas.service.UserService userService;
+
+    @PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    private void maskSensitiveData(EventApplication app, Long viewerId) {
+        if (app == null) return;
+        
+        boolean isOwner = viewerId != null && viewerId.equals(app.getUserId());
+        
+        // Find the event to see if the viewer is the event creator
+        boolean isEventCreator = false;
+        Optional<Event> eventOpt = eventService.getEventById(app.getEventId());
+        if (eventOpt.isPresent()) {
+            isEventCreator = viewerId != null && viewerId.equals(eventOpt.get().getUserId());
+        }
+        
+        boolean isAdmin = viewerId != null && userService.findById(viewerId).map(com.crewcanvas.model.User::getIsAdmin).orElse(false);
+        
+        if (!isOwner && !isEventCreator && !isAdmin) {
+            // Detach to prevent persistence of masked data
+            entityManager.detach(app);
+            
+            // Mask Phone: Only last 2 digits
+            String phone = app.getMobileNumber();
+            if (phone != null && phone.length() > 2) {
+                app.setMobileNumber("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
+            } else if (phone != null) {
+                app.setMobileNumber("XX");
+            }
+        }
+    }
 
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody Event event) {
@@ -120,9 +156,10 @@ public class EventController {
     }
 
     @GetMapping("/{id}/applicants")
-    public ResponseEntity<?> getEventApplicants(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getEventApplicants(@PathVariable("id") Long id, @RequestParam(required = false) Long viewerId) {
         try {
             List<com.crewcanvas.model.EventApplication> applicants = eventService.getApplicantsForEvent(id);
+            applicants.forEach(app -> maskSensitiveData(app, viewerId));
             return ResponseEntity.ok(applicants);
         } catch (Exception e) {
             System.err.println("Error fetching applicants for event " + id + ": " + e.getMessage());
@@ -170,7 +207,10 @@ public class EventController {
     @GetMapping("/all-applicants")
     public ResponseEntity<?> getAllApplicantsForUser(@RequestParam Long userId) {
         try {
-            return ResponseEntity.ok(eventService.getAllApplicantsForUser(userId));
+            List<EventApplication> applicants = eventService.getAllApplicantsForUser(userId);
+            // In this endpoint, the viewer is the event owner (userId)
+            applicants.forEach(app -> maskSensitiveData(app, userId));
+            return ResponseEntity.ok(applicants);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -188,11 +228,15 @@ public class EventController {
         }
     }
     @GetMapping("/user-applications/latest")
-    public ResponseEntity<?> getLatestApplicationForUser(@RequestParam Long userId) {
+    public ResponseEntity<?> getLatestApplicationForUser(@RequestParam Long userId, @RequestParam(required = false) Long viewerId) {
         try {
-            return eventService.getLatestApplicationForUser(userId)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.noContent().build());
+            Optional<EventApplication> appOpt = eventService.getLatestApplicationForUser(userId);
+            if (appOpt.isPresent()) {
+                EventApplication app = appOpt.get();
+                maskSensitiveData(app, viewerId);
+                return ResponseEntity.ok(app);
+            }
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

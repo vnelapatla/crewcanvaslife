@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import jakarta.persistence.PersistenceContext;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -22,6 +23,29 @@ public class ProfileController {
 
     @Autowired
     private ConnectionService connectionService;
+
+    @PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    private void maskSensitiveData(User user, Long viewerId) {
+        if (user == null) return;
+        
+        boolean isOwner = viewerId != null && viewerId.equals(user.getId());
+        boolean isAdmin = viewerId != null && userService.findById(viewerId).map(User::getIsAdmin).orElse(false);
+        
+        if (!isOwner && !isAdmin) {
+            // Detach to prevent persistence of masked data
+            entityManager.detach(user);
+            
+            // Mask Phone: Only last 2 digits
+            String phone = user.getPhone();
+            if (phone != null && phone.length() > 2) {
+                user.setPhone("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
+            } else if (phone != null) {
+                user.setPhone("XX");
+            }
+        }
+    }
 
     @GetMapping("/onboarding-data/{id}")
     public ResponseEntity<?> getOnboardingData(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
@@ -52,6 +76,7 @@ public class ProfileController {
                 }
 
                 Map<String, Object> data = new java.util.HashMap<>();
+                maskSensitiveData(user, viewerId);
                 data.put("user", user);
                 data.put("following", connectionService.getFollowing(id));
                 data.put("followers", connectionService.getFollowers(id));
@@ -74,12 +99,14 @@ public class ProfileController {
                 
                 // If visibility is Everyone, anyone can view
                 if (visibility == null || visibility.equals("Everyone")) {
+                    maskSensitiveData(user, viewerId);
                     return ResponseEntity.ok(user);
                 }
                 
                 // If visibility is Private, only the user themselves or an admin can view
                 if (visibility.equals("Private")) {
                     if (viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false))) {
+                        maskSensitiveData(user, viewerId);
                         return ResponseEntity.ok(user);
                     }
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is private.");
@@ -89,12 +116,14 @@ public class ProfileController {
                 if (visibility.equals("Connections Only")) {
                     if (viewerId != null) {
                         if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
+                            maskSensitiveData(user, viewerId);
                             return ResponseEntity.ok(user);
                         }
                         // Check connection
                         boolean isConnected = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
                                             connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
                         if (isConnected) {
+                            maskSensitiveData(user, viewerId);
                             return ResponseEntity.ok(user);
                         }
                     }
@@ -163,6 +192,9 @@ public class ProfileController {
                 userPage.getContent().forEach(u -> u.setProfileScore(null));
             }
             
+            // Mask sensitive data for search results
+            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId));
+            
             return ResponseEntity.ok(userPage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -171,11 +203,38 @@ public class ProfileController {
     }
 
     @GetMapping("/top")
-    public ResponseEntity<?> getTopUsers() {
+    public ResponseEntity<?> getTopUsers(@RequestParam(required = false) Long viewerId) {
         try {
             List<User> users = userService.getTopUsers();
+            users.forEach(u -> maskSensitiveData(u, viewerId));
             return ResponseEntity.ok(users);
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/phone")
+    public ResponseEntity<?> getFullPhoneNumber(@PathVariable("id") Long id, @RequestParam("code") String code) {
+        try {
+            System.out.println("Phone Unlock Attempt: ProfileID=" + id + ", Code=" + code);
+            if ("FREE".equalsIgnoreCase(code)) {
+                Optional<User> userOpt = userService.findById(id);
+                if (userOpt.isPresent()) {
+                    String phone = userOpt.get().getPhone();
+                    System.out.println("Phone Unlock Success: Returning " + (phone != null ? (phone.length() > 4 ? "..." + phone.substring(phone.length()-4) : phone) : "null"));
+                    java.util.Map<String, String> response = new java.util.HashMap<>();
+                    response.put("phone", phone != null && !phone.trim().isEmpty() ? phone : "Data Not Available");
+                    return ResponseEntity.ok(response);
+                } else {
+                    System.out.println("Phone Unlock Failed: User " + id + " not found");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+                }
+            }
+            System.out.println("Phone Unlock Failed: Invalid Code " + code);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid access code");
+        } catch (Exception e) {
+            System.err.println("Phone Unlock Critical Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }

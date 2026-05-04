@@ -142,7 +142,7 @@ function displayProfile(user) {
     document.getElementById('profileLocation').textContent = user.location || 'Unknown';
     document.getElementById('profileExperience').textContent = user.experience || 'Junior';
     document.getElementById('profileEmail').textContent = user.email || 'Data Not Available';
-    document.getElementById('profilePhone').textContent = user.phone || 'Data Not Available';
+    document.getElementById('profilePhone').textContent = (user.phone && user.phone.trim()) ? user.phone : 'Data Not Available';
     
     // Followers & Following counts from user object
     if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = user.followers || 0;
@@ -957,14 +957,60 @@ async function loadFollowing() {
     }
 }
 
-function unlockPrivateInfo() {
+async function unlockPrivateInfo() {
     const code = document.getElementById('unlockCodeInput').value.trim();
+    if (!profileUserId || profileUserId === 'null' || profileUserId === 'undefined') {
+        alert('Profile User ID not found or invalid. Please return to home and try again.');
+        console.error("Invalid profileUserId:", profileUserId);
+        return;
+    }
+    
     if (code.toUpperCase() === 'FREE') {
-        document.getElementById('privateLockedState').style.display = 'none';
-        document.getElementById('privateUnlockedState').style.display = 'block';
-        showMessage('Private information unlocked!', 'success');
+        const url = `${API_BASE_URL}/api/profile/${profileUserId}/phone?code=${encodeURIComponent(code)}`;
+        console.log("Unlocking phone for profile:", profileUserId, "with code:", code);
+        
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || `Server returned ${res.status}`);
+            }
+            
+            const data = await res.json();
+            
+            // Update UI State
+            document.getElementById('privateLockedState').style.display = 'none';
+            document.getElementById('privateUnlockedState').style.display = 'block';
+            
+            if (data.phone) {
+                // Update BOTH possible phone elements (legacy and new)
+                const phoneEl1 = document.getElementById('profilePhone');
+                const phoneEl2 = document.getElementById('profileFullPhone');
+                
+                if (phoneEl1) {
+                    phoneEl1.textContent = data.phone;
+                    phoneEl1.style.color = 'var(--primary-orange)';
+                    phoneEl1.style.fontWeight = 'bold';
+                }
+                
+                if (phoneEl2) {
+                    phoneEl2.textContent = data.phone;
+                }
+                
+                if (data.phone.includes('X')) {
+                    showMessage("The unlocked number still appears masked. This user may have accidentally saved a masked number in their profile.", "warning");
+                } else {
+                    showMessage("Phone number unlocked successfully!", "success");
+                }
+            } else {
+                showMessage("Data Not Available", "info");
+            }
+        } catch (err) {
+            console.error('Unlock error:', err);
+            showMessage(err.message || "Failed to unlock phone number.", "error");
+        }
     } else {
-        alert('Invalid access code.');
+        alert('Invalid access code. Please enter FREE.');
     }
 }
 

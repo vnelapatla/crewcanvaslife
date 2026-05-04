@@ -50,11 +50,17 @@ const ProfileHandler = {
     },
 
     isFollowing(userId) {
-        return this.followingSet.has(parseInt(userId));
+        if (!userId) return false;
+        const id = parseInt(userId);
+        const following = this.followingSet.has(id);
+        console.log(`ProfileHandler: isFollowing(${id})? ${following} (Set size: ${this.followingSet.size})`);
+        return following;
     },
 
     isFollower(userId) {
-        return this.followerSet.has(parseInt(userId));
+        if (!userId) return false;
+        const id = parseInt(userId);
+        return this.followerSet.has(id);
     },
 
     async toggleFollow(targetId, btnElement) {
