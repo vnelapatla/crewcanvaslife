@@ -320,7 +320,7 @@ function displayEvents(events, prepend = false) {
                     <div class="meta-group">
                         <div class="meta-item">
                             <i class="far fa-calendar-alt"></i>
-                            <span>${formatDate(event.date || event.startDate)}${event.endDate ? ` to ${formatDate(event.endDate)}` : ''}</span>
+                            <span>${formatEventDate(event.date || event.startDate)}${(event.endDate && event.endDate !== event.date) ? ` to ${formatEventDate(event.endDate)}` : ''}</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-map-marker-alt"></i>
@@ -1267,4 +1267,16 @@ async function adminDeleteEvent(eventId, event) {
         console.error('Error deleting event:', error);
         showMessage('Oops! Something went wrong while deleting. Please check your connection.', 'error');
     }
+}
+
+function formatEventDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    return date.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
 }
