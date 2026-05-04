@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
+@org.springframework.context.annotation.Profile("!test")
 public class StartupSeeder {
 
     @Autowired
@@ -16,8 +17,12 @@ public class StartupSeeder {
 
     @PostConstruct
     public void init() {
-        if (eventRepository.count() == 0) {
-            seedEvents();
+        try {
+            if (eventRepository.count() == 0) {
+                seedEvents();
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Warning: Failed to seed initial events: " + e.getMessage());
         }
     }
 
