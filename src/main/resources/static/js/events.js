@@ -309,7 +309,7 @@ function displayEvents(events, prepend = false) {
         const animationDelay = (index % 10) * 0.1;
         
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 20px;">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 20px; cursor: pointer;" onclick="applyToEvent(${event.id})">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                     <div class="type-tag ${typeClass}" style="position: static; margin: 0;">${event.eventType || 'Audition'}</div>
                     ${event.status === 'CLOSED' ? `<div class="type-tag" style="position: static; background: #ef4444; border: none; color: white; font-weight: 800;"><i class="fas fa-lock"></i> CLOSED</div>` : ''}
@@ -725,11 +725,18 @@ async function applyToEvent(eventId) {
         return;
     }
     
+    // If owner, go to dashboard
+    const event = allEvents.find(e => e.id == eventId);
+    if (event && (event.userId == currentUserId || (currentUser && currentUser.isAdmin))) {
+        window.location.href = `event-dashboard.html?id=${eventId}`;
+        return;
+    }
+    
     // Always open the application modal now, for a premium dynamic experience
     openAppModal(eventId);
 }
 
-function openAppModal(eventId) {
+async function openAppModal(eventId) {
     pendingEventId = eventId;
     const event = allEvents.find(e => e.id == eventId);
     if (!event) return;

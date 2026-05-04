@@ -1159,9 +1159,9 @@
         </div>
     </div>
 
-    <script src="js/utils.js?v=2.2"></script>
-    <script src="js/profile-handler.js"></script>
-    <script src="js/events.js"></script>
+    <script src="js/utils.js?v=3.5"></script>
+    <script src="js/profile-handler.js?v=3.5"></script>
+    <script src="js/events.js?v=3.5"></script>
     <script>
         // Drag to scroll for horizontal-cards
         const slider = document.querySelector('.horizontal-cards');
@@ -1202,44 +1202,6 @@
             if (!document.getElementById('formModal').style.display || document.getElementById('formModal').style.display === 'none') {
                 document.body.style.overflow = 'auto';
             }
-        }
-        
-        // Ensure form modal also handles body scroll
-        const originalOpenCreateForm = window.openCreateForm;
-        window.openCreateForm = function(type) {
-            document.body.style.overflow = 'hidden';
-            
-            // Pictures Pre-population from Gallery
-            if (currentUser?.recentPictures) {
-                try {
-                    let pics = [];
-                    if (currentUser.recentPictures.startsWith('[')) {
-                        pics = JSON.parse(currentUser.recentPictures);
-                    } else {
-                        pics = currentUser.recentPictures.split(',').filter(p => p.trim() !== '');
-                    }
-                    
-                    pics.slice(0, 3).forEach((pic, i) => {
-                        if (pic) {
-                            setAppPhotoPreview(i + 1, pic);
-                            window._appState.photos[i] = pic;
-                        }
-                    });
-                } catch (e) {
-                    console.error("Gallery parse failed:", e);
-                }
-            } else {
-                // Clear previews
-                for(let i=1; i<=3; i++) clearAppPhotoPreview(i);
-            }
-
-            if (typeof originalOpenCreateForm === 'function') originalOpenCreateForm(type);
-        }
-        
-        const originalCloseFormModal = window.closeFormModal;
-        window.closeFormModal = function() {
-            document.body.style.overflow = 'auto';
-            if (typeof originalCloseFormModal === 'function') originalCloseFormModal();
         }
     </script>
     <style>

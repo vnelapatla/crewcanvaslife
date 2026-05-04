@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
-@org.springframework.context.annotation.Profile("!test")
+@org.springframework.context.annotation.Profile("!mysql & !test")
 public class StartupSeeder {
 
     @Autowired

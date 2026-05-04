@@ -279,4 +279,20 @@ public class EmailService {
             default: return "application phase";
         }
     }
+    @Async
+    public void sendEventUpdateEmail(String to, String name, String eventTitle, String eventType, Long eventId) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Important Update: " + eventTitle + " 🎬");
+
+        String body = "Hi " + name + ",\n\n" +
+                "The organizers of '" + eventTitle + "' (" + eventType + ") have updated the event details.\n\n" +
+                "Please review the changes to the location, date, or timing to ensure you have the most current information.\n\n" +
+                "View the updated event here: https://crewcanvas.in/event.html?eventId=" + eventId + "\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
 }

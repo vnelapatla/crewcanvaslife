@@ -115,7 +115,12 @@ public class EventService {
                 event.setGenderPreference(updatedEvent.getGenderPreference());
             if (updatedEvent.getPrizePool() != null)
                 event.setPrizePool(updatedEvent.getPrizePool());
-            return eventRepository.save(event);
+            Event savedEvent = eventRepository.save(event);
+            
+            // Notify registered users of the update
+            notifyApplicantsOfUpdate(savedEvent);
+            
+            return savedEvent;
         }
         throw new RuntimeException("Event not found");
     }
@@ -639,5 +644,54 @@ public class EventService {
                 eventRepository.save(event);
             }
         }
+    }
+
+    private void notifyApplicantsOfUpdate(Event event) {
+        new Thread(() -> {
+            try {
+                List<EventApplication> applications = applicationRepository.findByEventId(event.getId());
+                User creator = userRepository.findById(event.getUserId()).orElse(null);
+                
+                for (EventApplication app : applications) {
+                    try {
+                        User applicant = userRepository.findById(app.getUserId()).orElse(null);
+                        if (applicant != null) {
+                            boolean sendInApp = Boolean.TRUE.equals(applicant.getEventReminders());
+                            boolean sendEmail = Boolean.TRUE.equals(applicant.getEmailNotifications());
+
+                            if (sendInApp || sendEmail) {
+                                String messageContent = "The organizers of '" + event.getTitle() + "' have updated the event details. Please check the event page for the latest information.";
+                                
+                                // 1. Send In-App Message from Event Creator
+                                if (sendInApp && creator != null) {
+                                    Message msg = new Message(creator.getId(), applicant.getId(), messageContent);
+                                    messageRepository.save(msg);
+                                }
+                                
+                                // 2. Send Email
+                                if (sendEmail) {
+                                    emailService.sendEventUpdateEmail(applicant.getEmail(), applicant.getName(), event.getTitle(), event.getEventType(), event.getId());
+                                }
+                                
+                                // 3. Send Notification
+                                if (sendInApp) {
+                                    notificationService.createNotification(
+                                        applicant.getId(),
+                                        event.getUserId(),
+                                        "UPDATE",
+                                        "Event details updated for " + event.getTitle(),
+                                        event.getId().toString()
+                                    );
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to notify user " + app.getUserId() + " of event update: " + e.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to process event update notifications: " + e.getMessage());
+            }
+        }).start();
     }
 }
