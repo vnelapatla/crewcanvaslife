@@ -30,12 +30,26 @@ public class ProfileController {
     private void maskSensitiveData(User user, Long viewerId) {
         if (user == null) return;
         
-        boolean isOwner = viewerId != null && viewerId.equals(user.getId());
-        boolean isAdmin = viewerId != null && userService.findById(viewerId).map(User::getIsAdmin).orElse(false);
+        // CC-MAY-2026: Enhanced Authorization Check [Nelpatla Venkatesh]
+        // Rules: Admin, Verified Professional, or Profile Owner can see full data.
+        boolean isOwner = viewerId != null && user.getId() != null && viewerId.longValue() == user.getId().longValue();
         
-        if (!isOwner && !isAdmin) {
+        User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
+        boolean isAuthorizedProfessional = viewer != null && (
+            Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+            Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+            "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+        );
+        
+        if (!isOwner && !isAuthorizedProfessional) {
             // Detach to prevent persistence of masked data
-            entityManager.detach(user);
+            try {
+                if (entityManager != null && entityManager.contains(user)) {
+                    entityManager.detach(user);
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Could not detach user for masking: " + e.getMessage());
+            }
             
             // Mask Phone: Only last 2 digits
             String phone = user.getPhone();

@@ -347,6 +347,15 @@ public class EventService {
         // Populate and calculate match scores
         for (EventApplication app : applications) {
             userRepository.findById(app.getUserId()).ifPresent(user -> {
+                // CC-MAY-2026: Self-Healing Logic [Nelpatla Venkatesh]
+                // If the mobile number was accidentally masked in the DB, restore it from the user's profile
+                String currentMobile = app.getMobileNumber();
+                if (currentMobile != null && currentMobile.contains("X") && user.getPhone() != null && !user.getPhone().contains("X")) {
+                    System.out.println("Restoring masked phone for AppID " + app.getId() + " from UserID " + user.getId());
+                    app.setMobileNumber(user.getPhone());
+                    applicationRepository.save(app);
+                }
+
                 // Ensure basic details are synced
                 if (app.getApplicantName() == null) {
                     app.setApplicantName(user.getName());

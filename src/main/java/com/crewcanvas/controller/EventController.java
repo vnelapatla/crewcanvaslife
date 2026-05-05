@@ -30,18 +30,23 @@ public class EventController {
     private void maskSensitiveData(EventApplication app, Long viewerId, Long eventOwnerId, boolean isAdmin) {
         if (app == null) return;
         
-        // Authorization check: If viewer is the applicant, the event creator, or a global admin, do NOT mask.
-        boolean isOwner = viewerId != null && viewerId.equals(app.getUserId());
-        boolean isEventCreator = viewerId != null && viewerId.equals(eventOwnerId);
+        // CC-MAY-2026: Enhanced Authorization Check [Nelpatla Venkatesh]
+        // If viewer is the applicant, the event creator, or a global admin, do NOT mask.
+        boolean isOwner = viewerId != null && app.getUserId() != null && viewerId.longValue() == app.getUserId().longValue();
+        boolean isEventCreator = viewerId != null && eventOwnerId != null && viewerId.longValue() == eventOwnerId.longValue();
         
         if (isOwner || isEventCreator || isAdmin) {
             return; // Authorized - show full data
         }
 
         // Unauthorized view - apply masking
-        // Detach to prevent persistence of masked data back to the database
-        if (entityManager.contains(app)) {
-            entityManager.detach(app);
+        // IMPORTANT: We MUST detach the entity BEFORE masking to prevent Hibernate from saving the masked "XXXX" string to the DB
+        try {
+            if (entityManager != null && entityManager.contains(app)) {
+                entityManager.detach(app);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not detach application for masking: " + e.getMessage());
         }
         
         // Mask Phone: Only show last 2 digits
@@ -161,12 +166,15 @@ public class EventController {
             // Fetch event info once to identify creator
             Long eventOwnerId = eventService.getEventById(id).map(Event::getUserId).orElse(null);
             
-            // Check if viewer is a global admin once
-            boolean isGlobalAdmin = viewerId != null && userService.findById(viewerId)
-                .map(u -> Boolean.TRUE.equals(u.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()))
-                .orElse(false);
+            // Check if viewer is a global admin or verified professional
+            User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
+            boolean isAuthorizedProfessional = viewer != null && (
+                Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+                Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+                "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+            );
             
-            applicants.forEach(app -> maskSensitiveData(app, viewerId, eventOwnerId, isGlobalAdmin));
+            applicants.forEach(app -> maskSensitiveData(app, viewerId, eventOwnerId, isAuthorizedProfessional));
             return ResponseEntity.ok(applicants);
         } catch (Exception e) {
             System.err.println("Error fetching applicants for event " + id + ": " + e.getMessage());

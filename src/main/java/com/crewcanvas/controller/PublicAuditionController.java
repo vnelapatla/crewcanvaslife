@@ -36,9 +36,9 @@ public class PublicAuditionController {
         // Fetch all applicants for this managed event
         List<EventApplication> applicants = eventService.getApplicantsForEvent(event.getId());
         
-        // Mask sensitive data for public view (e.g. precise email or phone if needed, 
-        // but for a casting deck, the poster usually needs to see the talent)
-        // For now, we'll provide the data as requested for the curated experience.
+        // CC-MAY-2026: Public Unmasking [Nelpatla Venkatesh]
+        // Casting Decks are shared for the purpose of viewing talent contact info.
+        // Ensure data is not masked for this public endpoint.
         
         Map<String, Object> response = new HashMap<>();
         response.put("event", event);
