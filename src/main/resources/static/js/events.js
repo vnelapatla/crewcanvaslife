@@ -1040,6 +1040,15 @@ function closeAppModal() {
 }
 
 async function submitEventApplication() {
+    if (!currentUserId || currentUserId === 'null' || currentUserId === 'undefined') {
+        currentUserId = localStorage.getItem('userId');
+        if (!currentUserId) {
+            showMessage('Please login again to continue.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+    }
+
     if (!pendingEventId) return;
 
     const btn = document.querySelector('button[onclick="submitEventApplication()"]');

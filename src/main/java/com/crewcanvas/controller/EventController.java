@@ -141,10 +141,13 @@ public class EventController {
             Event event = eventService.applyToEvent(id, userId, applicationDetails);
             return ResponseEntity.ok(event);
         } catch (RuntimeException e) {
+            System.err.println("Registration Business Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
+            System.err.println("CRITICAL ERROR in applyToEvent: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("Server Error: " + e.getMessage());
         }
     }
 
