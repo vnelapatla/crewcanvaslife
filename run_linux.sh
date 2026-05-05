@@ -19,9 +19,9 @@ fi
 echo "Cleaning up port 8081..."
 fuser -k 8081/tcp 2>/dev/null
 
-# Run in background with nohup
+# Run in background with nohup - Giving more memory to handle large photos (1GB heap)
 echo "Starting Spring Boot application in background..."
-nohup java -jar target/*.jar > app.log 2>&1 &
+nohup java -Xms512m -Xmx1g -jar target/*.jar > app.log 2>&1 &
 
 echo ""
 echo "Server is starting!"

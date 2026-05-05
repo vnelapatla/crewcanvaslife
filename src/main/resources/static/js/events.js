@@ -1188,7 +1188,8 @@ async function handleMultiPhotoUpload(input) {
 
         for (let i = 0; i < files.length; i++) {
             try {
-                const base64 = await uploadImage(files[i], 800, 0.6);
+                // Aggressive compression for mobile to prevent OOM (800px max, 0.5 quality)
+                const base64 = await uploadImage(files[i], 800, 0.5);
                 if (base64) {
                     setAppPhotoPreview(i + 1, base64);
                     window._appState.photos[i] = base64;
