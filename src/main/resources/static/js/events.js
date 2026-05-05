@@ -314,17 +314,43 @@ function displayEvents(events, prepend = false) {
         const typeClass = `tag-${eventType.toLowerCase().replace(/\s+/g, '-')}`;
         const animationDelay = (index % 10) * 0.1;
         
+        const detailsItems = [];
+        if (event.orgName && event.orgName.trim()) detailsItems.push(`<div><b style="color: #1e293b;">Org:</b> ${event.orgName}</div>`);
+        if (event.orgEmail && event.orgEmail.trim()) detailsItems.push(`<div><b style="color: #1e293b;">Email:</b> ${event.orgEmail}</div>`);
+        if (event.price !== undefined && event.price !== null) detailsItems.push(`<div><b style="color: #1e293b;">Price:</b> ${event.price === 0 ? 'Free' : '₹' + event.price}</div>`);
+        if (event.capacity !== undefined && event.capacity !== null && event.capacity > 0) detailsItems.push(`<div><b style="color: #1e293b;">Seats:</b> ${event.capacity}</div>`);
+        if (event.roleType && event.roleType.trim()) detailsItems.push(`<div><b style="color: #1e293b;">Role:</b> ${event.roleType}</div>`);
+        if (event.ageRange && event.ageRange.trim()) detailsItems.push(`<div><b style="color: #1e293b;">Age:</b> ${event.ageRange}</div>`);
+        if (event.genderPreference && event.genderPreference !== 'Any') detailsItems.push(`<div><b style="color: #1e293b;">Gender:</b> ${event.genderPreference}</div>`);
+        if (event.prizePool && event.prizePool.trim()) detailsItems.push(`<div style="grid-column: span 2;"><b style="color: #1e293b;">Prizes:</b> ${event.prizePool}</div>`);
+        if ((event.requirements && event.requirements.trim()) || (event.skills && event.skills.trim())) detailsItems.push(`<div style="grid-column: span 2;"><b style="color: #1e293b;">Skills:</b> ${event.requirements || event.skills}</div>`);
+
+        const detailsHtml = detailsItems.length > 0 ? `
+        <div class="details-section" style="margin-bottom: 15px; font-size: 11px; color: #475569; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9;">
+            ${detailsItems.join('')}
+        </div>` : '';
+
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 20px; cursor: pointer;" onclick="applyToEvent(${event.id})">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <div class="type-tag ${typeClass}" style="position: static; margin: 0;">${event.eventType || 'Audition'}</div>
-                        ${event.isManaged ? `<div class="type-tag" style="position: static; margin: 0; background: #fff8f1; color: #ff8c00; border: 1px solid #ffe4d3;"><i class="fas fa-check-circle"></i> Managed</div>` : ''}
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: pointer; display: flex; flex-direction: column; height: 100%; background: #fff;" onclick="applyToEvent(${event.id})">
+                <div class="card-image-box" style="width: 100%; height: 350px; position: relative; overflow: hidden; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                    <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
+                         alt="${event.title}" 
+                         style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                    
+                    <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 10;">
+                        <div class="type-tag ${typeClass}" style="position: static; margin: 0; backdrop-filter: blur(8px);">${event.eventType || 'Audition'}</div>
+                        ${event.isManaged ? `<div class="type-tag" style="position: static; margin: 0; background: rgba(255, 140, 0, 0.9); color: white; border: none; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</div>` : ''}
                     </div>
-                    ${event.status === 'CLOSED' ? `<div class="type-tag" style="position: static; background: #ef4444; border: none; color: white; font-weight: 800;"><i class="fas fa-lock"></i> CLOSED</div>` : ''}
+                    
+                    ${event.status === 'CLOSED' ? `
+                        <div style="position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 100px; font-size: 10px; font-weight: 800; z-index: 10; backdrop-filter: blur(8px);">
+                            <i class="fas fa-lock"></i> CLOSED
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="card-content" style="padding: 0;">
-                    <h3 style="font-size: 22px; margin-bottom: 15px;">${event.title}</h3>
+
+                <div class="card-content" style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+                    <h3 style="font-size: 20px; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">${event.title}</h3>
                     
                     <div class="meta-group">
                         <div class="meta-item">
@@ -343,23 +369,13 @@ function displayEvents(events, prepend = false) {
                         ` : ''}
                     </div>
 
-                    <div class="details-section" style="margin-bottom: 15px; font-size: 11px; color: #475569; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9;">
-                        ${event.orgName ? `<div><b style="color: #1e293b;">Org:</b> ${event.orgName}</div>` : ''}
-                        ${event.orgEmail ? `<div><b style="color: #1e293b;">Email:</b> ${event.orgEmail}</div>` : ''}
-                        ${(event.price !== undefined && event.price !== null) ? `<div><b style="color: #1e293b;">Price:</b> ${event.price === 0 ? 'Free' : `₹${event.price}`}</div>` : ''}
-                        ${(event.capacity !== undefined && event.capacity !== null && event.capacity > 0) ? `<div><b style="color: #1e293b;">Seats:</b> ${event.capacity}</div>` : ''}
-                        ${event.roleType ? `<div><b style="color: #1e293b;">Role:</b> ${event.roleType}</div>` : ''}
-                        ${event.ageRange ? `<div><b style="color: #1e293b;">Age:</b> ${event.ageRange}</div>` : ''}
-                        ${event.genderPreference && event.genderPreference !== 'Any' ? `<div><b style="color: #1e293b;">Gender:</b> ${event.genderPreference}</div>` : ''}
-                        ${event.prizePool ? `<div style="grid-column: span 2;"><b style="color: #1e293b;">Prizes:</b> ${event.prizePool}</div>` : ''}
-                        ${event.requirements || event.skills ? `<div style="grid-column: span 2;"><b style="color: #1e293b;">Skills:</b> ${event.requirements || event.skills}</div>` : ''}
-                    </div>
+                    ${detailsHtml}
                     
-                    <p class="card-desc" style="-webkit-line-clamp: 2; font-size: 13px; margin-bottom: 15px;">
+                    <p class="card-desc" style="font-size: 13px; margin-bottom: 15px;">
                         ${event.description || 'No description provided.'}
                     </p>
                     
-                    <div class="card-footer">
+                    <div class="card-footer" style="margin-top: auto;">
                         <div class="applicants-text">
                             <span id="applicant-count-${event.id}">${event.applicants || 0}</span> Registered
                         </div>

@@ -57,36 +57,54 @@ function renderEventList(events) {
         return;
     }
 
-    list.innerHTML = events.map(event => `
-        <div class="event-card" style="display: block; padding: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                <div class="event-info">
-                    <h3 style="margin: 0; font-size: 20px; color: #1e293b; font-family: 'Outfit', sans-serif;">${event.title}</h3>
-                    <div style="display: flex; gap: 8px; margin-top: 5px;">
-                        <span style="background: #eef2ff; color: #4338ca; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">${event.eventType}</span>
-                        <span style="background: #fff7ed; color: #c2410c; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">${event.location}</span>
+    list.innerHTML = events.map(event => {
+        const detailsHtml = [];
+        detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Schedule</b> ${formatDate(event.date || event.startDate)}</div>`);
+        if (event.price !== undefined && event.price !== null) detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Budget/Price</b> ${event.price === 0 ? 'Free' : '₹' + event.price}</div>`);
+        if (event.capacity !== undefined && event.capacity !== null && event.capacity > 0) detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Capacity</b> ${event.capacity}</div>`);
+        if (event.description && event.description.trim()) detailsHtml.push(`<div style="grid-column: 1 / -1;"><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">About this Opportunity</b> ${event.description}</div>`);
+
+        const gridHtml = detailsHtml.length > 0 ? `
+        <div class="event-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; background: #f8fafc; padding: 20px; border-radius: 16px; font-size: 13px; border: 1px solid #f1f5f9;">
+            ${detailsHtml.join('')}
+        </div>` : '';
+
+        return `
+        <div class="event-card" style="display: flex; flex-direction: column; height: auto; padding: 0; overflow: hidden; border-radius: 24px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 25px;">
+            <div class="event-banner" style="width: 100%; height: 350px; position: relative; overflow: hidden; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
+                     style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px;">
+                    <span style="background: rgba(67, 56, 202, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);">${event.eventType}</span>
+                    ${event.isManaged ? `<span style="background: rgba(255, 140, 0, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</span>` : ''}
+                </div>
+            </div>
+
+            <div style="padding: 25px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div class="event-info">
+                        <h3 style="margin: 0; font-size: 22px; color: #1e293b; font-family: 'Outfit', sans-serif;">${event.title}</h3>
+                        <div style="display: flex; gap: 12px; margin-top: 8px; color: #64748b; font-size: 13px; font-weight: 600;">
+                            <span><i class="fas fa-map-marker-alt" style="color: var(--primary-orange);"></i> ${event.location}</span>
+                            <span><i class="fas fa-users" style="color: var(--primary-orange);"></i> ${event.applicants || 0} Registered</span>
+                        </div>
+                    </div>
+                    <div class="event-actions" style="display: flex; gap: 8px; flex-shrink: 0;">
+                        <button class="manage-btn" style="margin:0; padding: 10px 20px; border-radius: 12px; background: #0f172a; color: white;" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
+                        <button class="manage-btn" style="margin:0; width: 44px; height: 44px; padding: 0; background: #f1f5f9; color: #64748b; border-radius: 12px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')" title="Share Link">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                        <button class="delete-btn" style="margin:0; width: 44px; height: 44px; padding: 0; background: #fee2e2; color: #ef4444; border-radius: 12px;" onclick="deleteEvent(${event.id})" title="Delete Event">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="event-actions" style="display: flex; gap: 8px;">
-                    <button class="manage-btn" style="margin:0; padding: 8px 16px;" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
-                    <button class="manage-btn" style="margin:0; width: 40px; padding: 0; background: #f1f5f9; color: #64748b;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')" title="Share Link">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="delete-btn" style="margin:0; width: 40px; padding: 0; background: #fee2e2; color: #ef4444;" onclick="deleteEvent(${event.id})" title="Delete Event">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="event-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: #f8fafc; padding: 16px; border-radius: 16px; font-size: 13px;">
-                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Date</b> ${formatDate(event.date || event.startDate)}${event.endDate ? ` to ${formatDate(event.endDate)}` : ''}</div>
-                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Price</b> ${event.price === 0 ? 'Free' : `₹${event.price || 0}`}</div>
-                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Seats</b> ${event.capacity || 'Unlimited'}</div>
-                <div><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Registrations</b> <i class="fas fa-users" style="color: var(--primary-orange);"></i> ${event.applicants || 0}</div>
-                <div style="grid-column: 1 / -1;"><b style="color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px;">Description</b> ${event.description || 'No description provided.'}</div>
+                
+                ${gridHtml}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 async function fetchEventDetails() {
@@ -345,7 +363,24 @@ function openEditModal() {
     if (orgPhoneEl) orgPhoneEl.value = currentEvent.orgPhone || '';
     
     const imgUrlEl = document.getElementById('editImageUrl');
+    const previewImg = document.getElementById('editPreviewImg');
+    const placeholder = document.getElementById('editPreviewPlaceholder');
+    const clearBtn = document.getElementById('clearEditImageBtn');
+    
     if (imgUrlEl) imgUrlEl.value = currentEvent.imageUrl || '';
+    
+    if (currentEvent.imageUrl) {
+        if (previewImg) {
+            previewImg.src = currentEvent.imageUrl;
+            previewImg.style.display = 'block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'block';
+    } else {
+        if (previewImg) previewImg.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = 'none';
+    }
     
     const reqEl = document.getElementById('editRequirements');
     if (reqEl) reqEl.value = currentEvent.requirements || '';
@@ -893,4 +928,59 @@ async function manualCheckIn(applicationId) {
         console.error(e);
         showMessage('Connection error during check-in', 'error');
     }
+}
+
+// CC-MAY-2026: Image Upload Handlers for Dashboard [Nelpatla Venkatesh]
+async function handleEditImageUpload(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        try {
+            const previewImg = document.getElementById('editPreviewImg');
+            const placeholder = document.getElementById('editPreviewPlaceholder');
+            const clearBtn = document.getElementById('clearEditImageBtn');
+            const urlInput = document.getElementById('editImageUrl');
+            
+            if (placeholder) placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Processing...</p>';
+            
+            const base64 = await uploadImage(file);
+            
+            if (base64) {
+                if (previewImg) {
+                    previewImg.src = base64;
+                    previewImg.style.display = 'block';
+                }
+                if (placeholder) placeholder.style.display = 'none';
+                if (clearBtn) clearBtn.style.display = 'block';
+                if (urlInput) urlInput.value = base64;
+            }
+        } catch (err) {
+            console.error('Image upload failed:', err);
+            showMessage('Failed to process image. Please try another.', 'error');
+        } finally {
+            const placeholder = document.getElementById('editPreviewPlaceholder');
+            if (placeholder && placeholder.style.display !== 'none') {
+                placeholder.innerHTML = '<i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i><p style="font-size: 11px; font-weight: 600;">Click to change banner</p>';
+            }
+        }
+    }
+}
+
+function clearEditImage() {
+    const previewImg = document.getElementById('editPreviewImg');
+    const placeholder = document.getElementById('editPreviewPlaceholder');
+    const clearBtn = document.getElementById('clearEditImageBtn');
+    const urlInput = document.getElementById('editImageUrl');
+    const fileInput = document.getElementById('editImageInput');
+    
+    if (previewImg) {
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+    }
+    if (placeholder) {
+        placeholder.style.display = 'block';
+        placeholder.innerHTML = '<i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i><p style="font-size: 11px; font-weight: 600;">Click to change banner</p>';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (urlInput) urlInput.value = '';
+    if (fileInput) fileInput.value = '';
 }

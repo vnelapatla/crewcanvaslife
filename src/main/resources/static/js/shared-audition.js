@@ -55,7 +55,7 @@ function renderEventHeader() {
     const dateStr = !isNaN(date) ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Flexible Date';
     
     banner.innerHTML = `
-        <img src="${currentEvent.imageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop'}" alt="${currentEvent.title}">
+        <img src="${currentEvent.imageUrl || getEventDefaultImage(currentEvent.eventType)}" alt="${currentEvent.title}">
         <div class="banner-overlay">
             <h1 style="color: white; margin: 0; line-height: 1.2;">${currentEvent.title}</h1>
             <div class="event-meta">
