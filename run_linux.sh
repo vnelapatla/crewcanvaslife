@@ -15,13 +15,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
 # Kill any existing process on port 8081
 echo "Cleaning up port 8081..."
 fuser -k 8081/tcp 2>/dev/null
 
-# Run in background with nohup - Giving more memory to handle large photos (1GB heap)
+# Run in background with nohup - Optimized for 1GB RAM Instance (768MB Heap)
 echo "Starting Spring Boot application in background..."
-nohup java -Xms512m -Xmx1g -jar target/*.jar > app.log 2>&1 &
+nohup java -Xms256m -Xmx768m -jar target/*.jar > app.log 2>&1 &
 
 echo ""
 echo "Server is starting!"
