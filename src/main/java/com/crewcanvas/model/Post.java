@@ -1,5 +1,6 @@
 package com.crewcanvas.model;
 
+import com.crewcanvas.model.Comment;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -48,10 +49,22 @@ public class Post {
     @Column(name = "user_id")
     private java.util.Set<Long> likedByUsers = new java.util.HashSet<>();
 
+    @Column(nullable = false)
+    private Integer repostsCount = 0;
+
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "post_actual_comments", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "comment_text", columnDefinition = "TEXT")
-    private java.util.List<String> actualComments = new java.util.ArrayList<>();
+    @CollectionTable(name = "post_reposts_users", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> repostedByUsers = new java.util.HashSet<>();
+
+    @Column(name = "original_post_id")
+    private Long originalPostId;
+
+    @Transient
+    private Post originalPost;
+
+    @Transient
+    private java.util.List<Comment> commentsList = new java.util.ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
@@ -239,12 +252,12 @@ public class Post {
         this.comments = comments;
     }
 
-    public java.util.List<String> getActualComments() {
-        return actualComments;
+    public java.util.List<Comment> getCommentsList() {
+        return commentsList;
     }
 
-    public void setActualComments(java.util.List<String> actualComments) {
-        this.actualComments = actualComments;
+    public void setCommentsList(java.util.List<Comment> commentsList) {
+        this.commentsList = commentsList;
     }
 
     public String getAspectRatio() {
@@ -269,6 +282,38 @@ public class Post {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Integer getRepostsCount() {
+        return repostsCount;
+    }
+
+    public void setRepostsCount(Integer repostsCount) {
+        this.repostsCount = repostsCount;
+    }
+
+    public java.util.Set<Long> getRepostedByUsers() {
+        return repostedByUsers;
+    }
+
+    public void setRepostedByUsers(java.util.Set<Long> repostedByUsers) {
+        this.repostedByUsers = repostedByUsers;
+    }
+
+    public Long getOriginalPostId() {
+        return originalPostId;
+    }
+
+    public void setOriginalPostId(Long originalPostId) {
+        this.originalPostId = originalPostId;
+    }
+
+    public Post getOriginalPost() {
+        return originalPost;
+    }
+
+    public void setOriginalPost(Post originalPost) {
+        this.originalPost = originalPost;
     }
 
 }

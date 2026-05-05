@@ -835,7 +835,7 @@
 
             <div class="search-container">
                 <div class="search-wrapper">
-                    <input type="text" id="eventSearchInput" class="search-box" placeholder="Search events, auditions or workshops..." oninput="searchEvents()">
+                    <input type="text" id="eventSearchInput" class="search-box" placeholder="Search events, auditions or workshops..." oninput="searchEvents()" onkeydown="if(event.key === 'Enter') searchEvents()">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <button class="search-btn-premium" onclick="searchEvents()">

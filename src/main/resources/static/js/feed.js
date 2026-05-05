@@ -9,6 +9,7 @@ let isPollMode = false;
 let editingPostId = null;
 let editingImages = [];
 let isUploading = false;
+let replyingToCommentId = {}; // postId -> commentId
 
 // --- Search & Filter State ---
 let searchMode = false;        
@@ -130,6 +131,13 @@ function performScroll(postId) {
                 setTimeout(() => {
                     postEl.style.boxShadow = "";
                     postEl.style.border = "";
+                    
+                    // Clear postId from URL to prevent jumping on refresh
+                    const url = new URL(window.location);
+                    if (url.searchParams.has('postId')) {
+                        url.searchParams.delete('postId');
+                        window.history.replaceState({}, '', url);
+                    }
                 }, 4000);
             }, 200);
         }
@@ -387,7 +395,7 @@ function renderPostHTML(post) {
                 </div>
             ` : ''}
         </div>
-        <div class="post-content" style="padding: 10px 0 5px 0; cursor: pointer;" onclick="handleDoubleTap(${post.id}, event)">
+        <div class="post-content" style="padding: 10px 0 5px 0; cursor: pointer;" onclick="handleDoubleTap(${post.id})">
             ${post.content ? `<p style="margin-bottom:10px; line-height:1.5;">${post.content}</p>` : ''}
             
             ${pollHtml}
@@ -401,28 +409,55 @@ function renderPostHTML(post) {
             ` : ''}
 
             ${mediaHtml}
+            
+            ${post.originalPost ? `
+                <div class="reposted-content-flat" style="margin-top: 15px; padding: 12px; border-left: 3px solid var(--primary-orange); background: #fafafa; border-radius: 4px;">
+                    <div style="font-size: 11px; color: #888; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">
+                        <i class="fa-solid fa-arrows-rotate" style="margin-right: 5px;"></i> Original by ${post.originalPost.userDetails?.name || 'Creative'}
+                    </div>
+                    <div style="font-size: 14px; line-height: 1.5; color: #333;">
+                        ${post.originalPost.content ? `<p style="margin: 0;">${post.originalPost.content}</p>` : ''}
+                    </div>
+                    ${post.originalPost.imageUrls && post.originalPost.imageUrls.length > 0 ? `
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden;">
+                            <img src="${post.originalPost.imageUrls[0]}" style="width: 100%; display: block; height: auto; max-height: 500px; object-fit: contain;">
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
         </div>
-        <div class="post-footer" style="padding-top:12px; border-top:1px solid #f1f5f9; display:flex; gap:20px;">
+        <div class="post-footer" style="padding: 4px 12px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; gap: 4px;">
             <button class="post-action-btn ${post.likedByUsers && post.likedByUsers.includes(parseInt(currentUserId)) ? 'liked' : ''}" onclick="likePost(${post.id})">
-                ❤️ <span id="likes-count-${post.id}">${post.likes || 0}</span>
+                <i class="${post.likedByUsers && post.likedByUsers.includes(parseInt(currentUserId)) ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span>Like</span> <span id="likes-count-${post.id}" style="font-size:11px; margin-left:2px;">${Number.isInteger(post.likes) ? post.likes : 0}</span>
             </button>
             <button class="post-action-btn" onclick="toggleCommentBox(${post.id})">
-                💬 <span>${post.comments || 0}</span>
+                <i class="fa-regular fa-comment-dots"></i> <span>Comment</span> <span style="font-size:11px; margin-left:2px;">${Number.isInteger(post.comments) ? post.comments : (Array.isArray(post.comments) ? post.comments.length : 0)}</span>
+            </button>
+            <button class="post-action-btn ${post.repostedByUsers && post.repostedByUsers.includes(parseInt(currentUserId)) ? 'reposted' : ''}" onclick="repostPost(${post.id})">
+                <i class="fa-solid fa-arrows-rotate"></i> <span>Repost</span> <span id="reposts-count-${post.id}" style="font-size:11px; margin-left:2px;">${Number.isInteger(post.repostsCount) ? post.repostsCount : 0}</span>
             </button>
             <button class="post-action-btn" onclick="shareContent('post', ${post.id})" title="Share Post">
-                🔗 Share
+                <i class="fa-regular fa-paper-plane"></i> <span>Send</span>
             </button>
         </div>
         
-        <div id="comment-box-${post.id}" style="display:none; padding:15px; border-top:1px solid #f1f5f9; background:#fafafa; border-radius:0 0 16px 16px;">
-            <div id="comment-list-${post.id}" style="margin-bottom:10px; max-height: 150px; overflow-y: auto;">
-                ${post.actualComments && post.actualComments.length > 0 
-                    ? post.actualComments.map(c => `<div style="font-size:13px; margin-bottom:5px; padding:8px; background:white; border-radius:8px; border:1px solid #eee;">💬 ${c}</div>`).join('') 
-                    : '<div class="no-comments-msg" style="font-size:12px; color:#aaa; margin-bottom:10px;">No comments yet. Be the first!</div>'}
+        <div id="comment-box-${post.id}" class="comments-section" style="display:none;">
+            <div id="reply-banner-${post.id}" class="replying-to-banner" style="display:none;">
+                <span>Replying to <span id="reply-author-${post.id}" style="font-weight:700;"></span></span>
+                <button class="cancel-reply-btn" onclick="cancelReply(${post.id})"><i class="fa-solid fa-times"></i></button>
             </div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="comment-input-${post.id}" placeholder="Type a comment..." style="flex:1; padding:8px; border:1px solid #ddd; border-radius:8px; font-size:13px; outline:none;">
-                <button class="auth-btn" style="width:auto; padding:8px 15px; font-size:13px;" onclick="commentPost(${post.id})">Post</button>
+            
+            <div id="comment-list-${post.id}" class="comment-list-container">
+                <!-- Comments will be loaded here -->
+                <div class="loader-tiny" style="margin: 20px auto; display: block;"></div>
+            </div>
+
+            <div class="comment-input-wrapper linkedin-style">
+                ${renderAvatar(currentUserProfile || { name: 'User' }, 'comment-input-avatar', '32px')}
+                <div class="comment-input-container">
+                    <input type="text" id="comment-input-${post.id}" class="comment-input-field" placeholder="Add a comment..." oninput="updateCommentBtn(${post.id})" onkeydown="if(event.key === 'Enter') commentPost(${post.id})">
+                    <button id="comment-post-btn-${post.id}" class="comment-post-btn" onclick="commentPost(${post.id})" disabled>Post</button>
+                </div>
             </div>
         </div>
     </div>
@@ -639,6 +674,18 @@ async function likePost(postId) {
     btn.classList.toggle('liked');
     likesCount.textContent = isLiked ? currentLikes - 1 : currentLikes + 1;
 
+    // Toggle icon symbol
+    const icon = btn.querySelector('i');
+    if (icon) {
+        if (btn.classList.contains('liked')) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+        } else {
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+        }
+    }
+
     // Play like sound if liking
     if (!isLiked && typeof playSound === 'function') playSound('like');
 
@@ -670,39 +717,190 @@ async function likePost(postId) {
     }
 }
 
-function toggleCommentBox(postId) {
-    const box = document.getElementById(`comment-box-${postId}`);
-    if (box) {
-        box.style.display = box.style.display === 'none' ? 'block' : 'none';
-        
-        // Auto focus the input if opened
-        if(box.style.display === 'block') {
-            document.getElementById(`comment-input-${postId}`).focus();
+async function repostPost(postId) {
+    if (!checkAuth()) return;
+    
+    // In a real LinkedIn app, we might show a modal to add a quote
+    // For now, let's do a confirmation
+    if (!confirm('Would you like to repost this to your feed?')) return;
+
+    const btn = event.currentTarget;
+    const repostsCount = document.getElementById(`reposts-count-${postId}`);
+    const currentCount = parseInt(repostsCount.textContent);
+    
+    try {
+        btn.style.opacity = '0.5';
+        btn.disabled = true;
+
+        const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/repost`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUserId, content: '' })
+        });
+
+        if (response.ok) {
+            const updatedRepost = await response.json();
+            showMessage('Reposted successfully!', 'success');
+            
+            // Increment UI count immediately
+            repostsCount.textContent = currentCount + 1;
+            btn.classList.add('reposted');
+            
+            // Reload feed to show the new repost
+            loadFeed(0, true);
+        } else {
+            const errorText = await response.text();
+            showMessage(errorText || 'Failed to repost.', 'error');
         }
+    } catch (err) {
+        console.error('Repost error:', err);
+        showMessage('Unable to repost at this time.', 'error');
+    } finally {
+        btn.style.opacity = '1';
+        btn.disabled = false;
+    }
+}
+
+async function toggleCommentBox(postId) {
+    const box = document.getElementById(`comment-box-${postId}`);
+    if (!box) return;
+
+    if (box.style.display === 'none') {
+        box.style.display = 'block';
+        const list = document.getElementById(`comment-list-${postId}`);
+        if (list) {
+            list.innerHTML = '<div class="loader-tiny" style="margin: 20px auto; display: block;"></div>';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/posts/${postId}/comments`);
+                if (res.ok) {
+                    const comments = await res.json();
+                    renderComments(postId, comments);
+                } else {
+                    list.innerHTML = '<p style="text-align:center; font-size:12px; color:#999;">Couldn\'t load comments.</p>';
+                }
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<p style="text-align:center; font-size:12px; color:#999;">Error loading comments.</p>';
+            }
+        }
+        document.getElementById(`comment-input-${postId}`).focus();
+    } else {
+        box.style.display = 'none';
+        cancelReply(postId);
+    }
+}
+
+function renderComments(postId, comments) {
+    const list = document.getElementById(`comment-list-${postId}`);
+    if (!list) return;
+
+    if (!comments || comments.length === 0) {
+        list.innerHTML = `
+            <div class="no-comments-premium">
+                <i class="fa-regular fa-comment-dots"></i>
+                <p>No comments yet. Start the conversation!</p>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = comments.map(c => renderSingleComment(postId, c)).join('');
+}
+
+function renderSingleComment(postId, comment, isReply = false) {
+    const isLiked = comment.likedByUsers && comment.likedByUsers.includes(parseInt(currentUserId));
+    const user = comment.userDetails || { name: 'User' };
+    const repliesHtml = (!isReply && comment.replies && comment.replies.length > 0) 
+        ? `<div class="replies-container">${comment.replies.map(r => renderSingleComment(postId, r, true)).join('')}</div>`
+        : '';
+
+    let content = comment.content || '';
+    if (content.includes('**: ')) {
+        const parts = content.split('**: ');
+        if (parts.length > 1) content = parts.slice(1).join('**: ');
+    } else if (content.startsWith('💬 ')) {
+        content = content.replace('💬 ', '');
+    }
+
+    return `
+        <div class="comment-item linkedin-style ${isReply ? 'is-reply' : ''}" id="comment-${comment.id}">
+            <div class="comment-avatar-wrapper">
+                ${renderAvatar(user, 'comment-avatar', isReply ? '32px' : '40px')}
+            </div>
+            <div class="comment-content-wrapper">
+                <div class="comment-bubble">
+                    <div class="comment-header">
+                        <div class="comment-author-info">
+                            <a href="profile.html?userId=${comment.userId}" class="comment-author-name">${user.name}</a>
+                            <span class="comment-meta-dot">•</span>
+                            <span class="comment-time">${formatDate(comment.createdAt)}</span>
+                        </div>
+                        <p class="comment-author-headline">${user.role || 'CrewCanvas Member'}</p>
+                    </div>
+                    <div class="comment-body">
+                        ${content}
+                    </div>
+                </div>
+                <div class="comment-actions-bar">
+                    <button class="comment-action-btn ${isLiked ? 'liked' : ''}" onclick="likeComment(${postId}, ${comment.id}, this)">
+                        <span class="like-text">${isLiked ? 'Liked' : 'Like'}</span>
+                        <span id="comment-likes-${comment.id}" class="comment-likes-count">${comment.likesCount > 0 ? `(${comment.likesCount})` : ''}</span>
+                    </button>
+                    <button class="comment-action-btn" onclick="replyToComment(${postId}, ${comment.id}, '${user.name}')">Reply</button>
+                    ${comment.userId == currentUserId ? `
+                        <button class="comment-action-btn delete" onclick="deleteComment(${postId}, ${comment.id})">Delete</button>
+                    ` : ''}
+                </div>
+                ${repliesHtml}
+            </div>
+        </div>
+    `;
+}
+
+function updateCommentBtn(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const btn = document.getElementById(`comment-post-btn-${postId}`);
+    if (input && btn) {
+        const hasText = input.value.trim().length > 0;
+        btn.disabled = !hasText;
+        btn.classList.toggle('active', hasText);
+    }
+}
+
+function replyToComment(postId, commentId, authorName) {
+    replyingToCommentId[postId] = commentId;
+    const banner = document.getElementById(`reply-banner-${postId}`);
+    const authorSpan = document.getElementById(`reply-author-${postId}`);
+    const input = document.getElementById(`comment-input-${postId}`);
+    
+    if (banner && authorSpan && input) {
+        authorSpan.textContent = authorName;
+        banner.style.display = 'flex';
+        input.placeholder = `Reply to ${authorName}...`;
+        input.focus();
+    }
+}
+
+function cancelReply(postId) {
+    delete replyingToCommentId[postId];
+    const banner = document.getElementById(`reply-banner-${postId}`);
+    const input = document.getElementById(`comment-input-${postId}`);
+    if (banner && input) {
+        banner.style.display = 'none';
+        input.placeholder = "Add a comment...";
     }
 }
 
 async function commentPost(postId) {
     const input = document.getElementById(`comment-input-${postId}`);
     const text = input ? input.value.trim() : "";
+    const parentId = replyingToCommentId[postId] || null;
     
-    if (!text) {
-        showMessage('Please type a comment first!', 'error');
-        return;
-    }
+    if (!text) return;
 
     try {
-        // Get current user's name for display
-        let userName = "A User";
-        try {
-            const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
-            if(userRes.ok) {
-                const profile = await userRes.json();
-                userName = profile.name || userName;
-            }
-        } catch(err) {}
-
-        const finalComment = `**${userName}**: ${text}`;
+        const btn = document.getElementById(`comment-post-btn-${postId}`);
+        if (btn) btn.disabled = true;
 
         const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/comment`, {
             method: 'POST',
@@ -710,39 +908,113 @@ async function commentPost(postId) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                text: finalComment,
-                userId: currentUserId
+                text: text,
+                userId: currentUserId,
+                parentId: parentId
             })
         });
+
         if (response.ok) {
-            const updatedPost = await response.json();
-            showMessage('Your comment has been posted!', 'success');
-            
-            // Update UI surgically
+            const newComment = await response.json();
             input.value = '';
+            updateCommentBtn(postId);
+            cancelReply(postId);
             
-            // Update comment count
-            const commentBtn = document.querySelector(`.post-card[data-post-id="${postId}"] .post-action-btn[onclick*="toggleCommentBox"] span`);
-            if (commentBtn) {
-                commentBtn.textContent = updatedPost.comments;
-            }
-            
-            // Add comment to list
-            const commentList = document.getElementById(`comment-list-${postId}`);
-            if (commentList) {
-                // Remove "No comments yet" if it exists
-                const noComments = commentList.querySelector('.no-comments-msg');
-                if (noComments) noComments.remove();
+            // Reload comments to show the new one in place
+            const res = await fetch(`${API_BASE_URL}/api/posts/${postId}/comments`);
+            if (res.ok) {
+                const comments = await res.json();
+                renderComments(postId, comments);
                 
-                const newCommentHtml = `<div style="font-size:13px; margin-bottom:5px; padding:8px; background:white; border-radius:8px; border:1px solid #eee; animation: fadeIn 0.3s ease;">💬 ${finalComment}</div>`;
-                commentList.insertAdjacentHTML('beforeend', newCommentHtml);
-                commentList.scrollTop = commentList.scrollHeight;
+                // Update comment count on post
+                const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+                const countSpan = postCard.querySelector('.post-action-btn[onclick*="toggleCommentBox"] span');
+                if (countSpan) {
+                    countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                }
             }
-        } else {
-            showMessage('We couldn’t post your comment. Please try again.', 'error');
         }
     } catch (e) {
         console.error('Error:', e);
+        showMessage('Failed to post comment', 'error');
+    }
+}
+
+async function likeComment(postId, commentId, btnEl) {
+    // Optimistic UI
+    const isLiked = btnEl.classList.contains('liked');
+    const likeText = btnEl.querySelector('.like-text');
+    const countEl = document.getElementById(`comment-likes-${commentId}`);
+    
+    // Get current count from text (e.g., "(5)")
+    let currentCount = 0;
+    if (countEl.textContent.trim()) {
+        const match = countEl.textContent.match(/\d+/);
+        if (match) currentCount = parseInt(match[0]);
+    }
+    
+    // Toggle UI
+    btnEl.classList.toggle('liked');
+    const newCount = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+    if (likeText) likeText.textContent = isLiked ? 'Like' : 'Liked';
+    countEl.textContent = newCount > 0 ? `(${newCount})` : '';
+    
+    if (!isLiked && typeof playSound === 'function') playSound('like');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/comments/${commentId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: currentUserId })
+        });
+        
+        if (response.ok) {
+            const updatedComment = await response.json();
+            const serverLiked = updatedComment.likedByUsers.includes(parseInt(currentUserId));
+            countEl.textContent = updatedComment.likesCount > 0 ? `(${updatedComment.likesCount})` : '';
+            if (likeText) likeText.textContent = serverLiked ? 'Liked' : 'Like';
+            btnEl.classList.toggle('liked', serverLiked);
+        } else {
+            // Revert
+            btnEl.classList.toggle('liked', isLiked);
+            if (likeText) likeText.textContent = isLiked ? 'Liked' : 'Like';
+            countEl.textContent = currentCount > 0 ? `(${currentCount})` : '';
+        }
+    } catch (e) {
+        console.error(e);
+        btnEl.classList.toggle('liked', isLiked);
+        if (likeText) likeText.textContent = isLiked ? 'Liked' : 'Like';
+        countEl.textContent = currentCount > 0 ? `(${currentCount})` : '';
+    }
+}
+
+async function deleteComment(postId, commentId) {
+    if (!confirm('Delete this comment?')) return;
+    // Assuming a delete endpoint exists or we need to add it. 
+    // For now let's just implement the UI part if the backend supports it.
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/posts/comments/${commentId}?userId=${currentUserId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            const commentEl = document.getElementById(`comment-${commentId}`);
+            if (commentEl) {
+                commentEl.style.opacity = '0';
+                setTimeout(() => {
+                    commentEl.remove();
+                    // Update comment count on post
+                    const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+                    const countSpan = postCard.querySelector('.post-action-btn[onclick*="toggleCommentBox"] span');
+                    if (countSpan) {
+                        countSpan.textContent = Math.max(0, parseInt(countSpan.textContent) - 1);
+                    }
+                }, 300);
+            }
+        }
+    } catch (e) {
+        console.error(e);
     }
 }
 

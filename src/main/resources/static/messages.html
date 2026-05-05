@@ -56,7 +56,7 @@
                     <div class="search-section">
                         <div class="search-bar">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="searchConversations" placeholder="Search conversations..." oninput="searchConversations()">
+                            <input type="text" id="searchConversations" placeholder="Search conversations..." oninput="searchConversations()" onkeydown="if(event.key === 'Enter') searchConversations()">
                         </div>
                     </div>
 

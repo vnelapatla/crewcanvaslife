@@ -1,5 +1,6 @@
 package com.crewcanvas.controller;
 
+import com.crewcanvas.model.Comment;
 import com.crewcanvas.model.Post;
 import com.crewcanvas.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,13 +147,52 @@ public class PostController {
         try {
             String text = payload != null ? (String) payload.get("text") : "";
             Long userId = payload != null && payload.get("userId") != null ? Long.valueOf(payload.get("userId").toString()) : null;
-            Post post = postService.addComment(id, userId, text);
-            return ResponseEntity.ok(post);
+            Long parentId = payload != null && payload.get("parentId") != null ? Long.valueOf(payload.get("parentId").toString()) : null;
+            Comment comment = postService.addComment(id, userId, text, parentId);
+            return ResponseEntity.ok(comment);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Unable to post your comment.");
+        }
+    }
+
+    @PostMapping("/comments/{commentId}/like")
+    public ResponseEntity<?> likeComment(@PathVariable Long commentId, @RequestBody java.util.Map<String, Long> payload) {
+        try {
+            Long userId = payload != null && payload.get("userId") != null ? payload.get("userId") : -1L;
+            Comment comment = postService.likeComment(commentId, userId);
+            return ResponseEntity.ok(comment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to like the comment.");
+        }
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<?> getPostComments(@PathVariable Long id) {
+        try {
+            List<Comment> comments = postService.getCommentsForPost(id);
+            return ResponseEntity.ok(comments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Couldn't load comments.");
+        }
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable Long commentId, @RequestParam Long userId) {
+        try {
+            postService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("Comment deleted");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete comment.");
         }
     }
 
@@ -165,6 +205,19 @@ public class PostController {
             return ResponseEntity.ok(post);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to cast your vote.");
+        }
+    }
+
+    @PostMapping("/{id}/repost")
+    public ResponseEntity<?> repostPost(@PathVariable Long id, @RequestBody(required = false) java.util.Map<String, Object> payload) {
+        try {
+            Long userId = payload != null && payload.get("userId") != null ? Long.valueOf(payload.get("userId").toString()) : null;
+            String content = payload != null ? (String) payload.get("content") : "";
+            Post repost = postService.repostPost(id, userId, content);
+            return ResponseEntity.ok(repost);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to repost: " + e.getMessage());
         }
     }
 }

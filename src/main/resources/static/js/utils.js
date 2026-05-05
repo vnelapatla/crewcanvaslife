@@ -858,11 +858,12 @@ function renderAvatar(user, className = '', size = '40px') {
 // Render initials fallback
 function renderAvatarFallback(name, className = '', size = '40px') {
     const initials = getAvatarFallback(name);
-    const background = 'var(--primary-orange, #ff8c00)';
+    const background = '#e1e9ee';
+    const color = '#7a8b98';
     const fontSize = parseInt(size) * 0.4;
     
     return `
-        <div class="avatar-fallback ${className}" style="background: ${background}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; width: ${size}; height: ${size}; min-width: ${size}; min-height: ${size}; border-radius: 50% !important; text-transform: uppercase; font-size: ${fontSize}px; margin: 0 auto;">
+        <div class="avatar-fallback ${className}" style="background: ${background}; color: ${color}; display: flex; align-items: center; justify-content: center; font-weight: 800; width: ${size}; height: ${size}; min-width: ${size}; min-height: ${size}; border-radius: 50% !important; text-transform: uppercase; font-size: ${fontSize}px; margin: 0 auto;">
             ${initials}
         </div>
     `;

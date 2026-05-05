@@ -57,7 +57,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM post_actual_comments WHERE post_id IN (SELECT p.id FROM posts p WHERE p.user_id = ?1)", nativeQuery = true)
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM comments WHERE post_id IN (SELECT p.id FROM posts p WHERE p.user_id = ?1)", nativeQuery = true)
     void deleteCommentsOnUserPosts(Long userId);
 
     @org.springframework.data.jpa.repository.Modifying
