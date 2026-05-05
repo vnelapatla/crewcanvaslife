@@ -59,48 +59,62 @@
 
         .event-banner {
             width: 100%;
-            height: 600px;
-            border-radius: 32px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 100px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.1);
+            margin-bottom: 80px;
+            text-align: center;
         }
 
-        .event-banner img {
+        .poster-wrapper {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+            background: #f8fafc;
         }
 
-        .banner-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 80px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
-            color: white;
+        .poster-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
         }
 
-        .banner-overlay h1 {
-            font-size: 64px;
-            margin: 0 0 20px;
+        .event-details-below {
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .poster-title {
+            font-size: 56px;
             font-weight: 900;
+            color: var(--text-main);
+            margin: 0 0 25px;
+            line-height: 1.1;
+            letter-spacing: -2px;
         }
 
-        .event-meta {
+        .event-meta-modern {
             display: flex;
-            gap: 30px;
-            font-size: 18px;
-            font-weight: 600;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        .event-meta span {
-            background: rgba(255,255,255,0.2);
-            padding: 12px 28px;
+        .event-meta-modern span {
+            background: var(--bg-subtle);
+            color: var(--text-muted);
+            padding: 10px 24px;
             border-radius: 100px;
-            backdrop-filter: blur(10px);
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event-meta-modern i {
+            color: var(--primary-orange);
         }
 
         /* Talent Grid */
@@ -298,6 +312,12 @@
             font-weight: 900;
         }
 
+        .narrative-large {
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+        }
+
         .narrative-large h3 {
             font-size: 18px;
             text-transform: uppercase;
@@ -413,14 +433,14 @@
 
             .deck-grid { grid-template-columns: 1fr; gap: 30px; }
             .deck-container { padding: 0 20px 60px; }
-            .event-banner { height: 250px; margin-bottom: 40px; border-radius: 20px; }
-            .banner-overlay { padding: 20px; }
-            .banner-overlay h1 { font-size: 28px; }
-            .grid-header h2 { font-size: 28px; }
+            .event-banner { margin-bottom: 40px; }
+            .poster-wrapper { border-radius: 16px; margin-bottom: 30px; }
+            .poster-title { font-size: 32px; letter-spacing: -1px; }
+            .event-meta-modern span { font-size: 13px; padding: 8px 16px; }
         }
 
         @media (max-width: 600px) {
-            .event-meta { gap: 10px; flex-wrap: wrap; }
+            .event-meta-modern { gap: 10px; }
             .event-meta span { font-size: 12px; padding: 8px 16px; }
         }
 
@@ -505,27 +525,31 @@
             </div>
 
             <!-- Details Section -->
-            <div class="details-section-large">
+            <div id="modalDetailsSection" class="details-section-large">
                 <div class="stats-grid-large">
-                    <div class="stat-item-large">
+                    <div class="stat-item-large" id="modalAgeGroup">
                         <span>Age Range</span>
                         <b id="modalAge">-</b>
                     </div>
-                    <div class="stat-item-large">
+                    <div class="stat-item-large" id="modalHeightGroup">
                         <span>Height (ft)</span>
                         <b id="modalHeight">-</b>
                     </div>
-                    <div class="stat-item-large">
+                    <div class="stat-item-large" id="modalLocationGroup">
                         <span>Location</span>
                         <b id="modalLocation">-</b>
                     </div>
                 </div>
                 <div class="narrative-large">
-                    <h3>Candidate Narrative</h3>
-                    <p id="modalBio">No narrative provided.</p>
+                    <div id="modalBioSection">
+                        <h3>Candidate Narrative</h3>
+                        <p id="modalBio">No narrative provided.</p>
+                    </div>
                     
-                    <h3 style="margin-top: 60px;">Professional Background</h3>
-                    <p id="modalExp" style="font-size: 18px;">Detailed experience not listed.</p>
+                    <div id="modalExpSection">
+                        <h3>Professional Background</h3>
+                        <p id="modalExp" style="font-size: 18px;">Detailed experience not listed.</p>
+                    </div>
                 </div>
             </div>
         </div>

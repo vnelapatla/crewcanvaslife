@@ -55,13 +55,15 @@ function renderEventHeader() {
     const dateStr = !isNaN(date) ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Flexible Date';
     
     banner.innerHTML = `
-        <img src="${currentEvent.imageUrl || getEventDefaultImage(currentEvent.eventType)}" alt="${currentEvent.title}">
-        <div class="banner-overlay">
-            <h1 style="color: white; margin: 0; line-height: 1.2;">${currentEvent.title}</h1>
-            <div class="event-meta">
-                <span><i class="fas fa-map-marker-alt" style="color: var(--primary-orange);"></i> ${currentEvent.location}</span>
-                <span><i class="fas fa-calendar-alt" style="color: var(--primary-orange);"></i> ${dateStr}</span>
-                <span><i class="fas fa-users" style="color: var(--primary-orange);"></i> ${allApplicants.length} Candidates</span>
+        <div class="poster-wrapper">
+            <img src="${currentEvent.imageUrl || getEventDefaultImage(currentEvent.eventType)}" alt="${currentEvent.title}">
+        </div>
+        <div class="event-details-below">
+            <h1 class="poster-title">${currentEvent.title}</h1>
+            <div class="event-meta-modern">
+                <span><i class="fas fa-map-marker-alt"></i> ${currentEvent.location}</span>
+                <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
+                <span><i class="fas fa-users"></i> ${allApplicants.length} Candidates</span>
             </div>
         </div>
     `;
@@ -109,11 +111,59 @@ function openModal(index) {
     document.getElementById('modalName').innerText = app.applicantName || 'Anonymous Talent';
     document.getElementById('modalRole').innerText = app.role || 'Professional';
     document.getElementById('modalPhone').innerText = app.mobileNumber || 'Not available';
-    document.getElementById('modalAge').innerText = app.age || 'Not specified';
-    document.getElementById('modalHeight').innerText = app.height || 'Not specified';
-    document.getElementById('modalLocation').innerText = app.location || 'Not specified';
-    document.getElementById('modalExp').innerText = (app.experience && app.experience.length > 5) ? app.experience : 'Detailed professional history not provided.';
-    document.getElementById('modalBio').innerText = (app.additionalNote && app.additionalNote.length > 5) ? app.additionalNote : 'No narrative provided for this candidate.';
+    
+    // Age
+    if (app.age && app.age.trim() !== '' && app.age !== 'Not specified') {
+        document.getElementById('modalAge').innerText = app.age;
+        document.getElementById('modalAgeGroup').style.display = 'block';
+    } else {
+        document.getElementById('modalAgeGroup').style.display = 'none';
+    }
+
+    // Height
+    if (app.height && app.height.trim() !== '' && app.height !== 'Not specified') {
+        document.getElementById('modalHeight').innerText = app.height;
+        document.getElementById('modalHeightGroup').style.display = 'block';
+    } else {
+        document.getElementById('modalHeightGroup').style.display = 'none';
+    }
+
+    // Location
+    if (app.location && app.location.trim() !== '' && app.location !== 'Not specified') {
+        document.getElementById('modalLocation').innerText = app.location;
+        document.getElementById('modalLocationGroup').style.display = 'block';
+    } else {
+        document.getElementById('modalLocationGroup').style.display = 'none';
+    }
+
+    // Professional Background (Experience)
+    if (app.experience && app.experience.length > 5) {
+        document.getElementById('modalExp').innerText = app.experience;
+        document.getElementById('modalExpSection').style.display = 'block';
+    } else {
+        document.getElementById('modalExpSection').style.display = 'none';
+    }
+
+    // Candidate Narrative (Additional Note)
+    if (app.additionalNote && app.additionalNote.length > 5) {
+        document.getElementById('modalBio').innerText = app.additionalNote;
+        document.getElementById('modalBioSection').style.display = 'block';
+    } else {
+        document.getElementById('modalBioSection').style.display = 'none';
+    }
+
+    // Hide entire details section if everything is empty
+    const hasStats = (app.age && app.age !== 'Not specified') || 
+                    (app.height && app.height !== 'Not specified') || 
+                    (app.location && app.location !== 'Not specified');
+    const hasNarrative = (app.experience && app.experience.length > 5) || 
+                        (app.additionalNote && app.additionalNote.length > 5);
+    
+    if (!hasStats && !hasNarrative) {
+        document.getElementById('modalDetailsSection').style.display = 'none';
+    } else {
+        document.getElementById('modalDetailsSection').style.display = 'grid';
+    }
     
     // Main Hero Image
     const mainImg = document.getElementById('modalMainImg');

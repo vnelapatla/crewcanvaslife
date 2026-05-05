@@ -829,9 +829,27 @@ async function applyToEvent(eventId) {
 }
 
 async function openAppModal(eventId) {
+    if (!eventId) return;
     pendingEventId = eventId;
-    const event = allEvents.find(e => e.id == eventId);
-    if (!event) return;
+    
+    let event = allEvents.find(e => e.id == eventId);
+    
+    // If not in global list (common for shared links), fetch it specifically
+    if (!event) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/events/${eventId}`);
+            if (res.ok) {
+                event = await res.json();
+            }
+        } catch (e) {
+            console.error("Failed to fetch event for modal:", e);
+        }
+    }
+    
+    if (!event) {
+        showMessage("Opportunity details could not be loaded. Please refresh.", "error");
+        return;
+    }
 
     // Reset and isolate application state to prevent field collisions
     window._appState = {
@@ -1128,7 +1146,15 @@ async function submitEventApplication() {
             searchEvents(); 
         } else {
             const err = await response.text();
-            showMessage(err === 'AUDITION_CLOSED' ? 'Registration closed.' : 'Failed to register.', 'error');
+            console.error('Registration failed:', response.status, err);
+            
+            if (err.includes('AUDITION_CLOSED')) {
+                showMessage('Registration closed.', 'error');
+            } else if (response.status === 413 || err.toLowerCase().includes('large') || err.toLowerCase().includes('size')) {
+                showMessage('Files are too large. Please use smaller photos or a smaller resume.', 'error');
+            } else {
+                showMessage('Registration failed: ' + (err.length < 100 ? err : 'Server Error'), 'error');
+            }
         }
     } catch (error) {
         console.error(error);
@@ -1224,9 +1250,19 @@ function removeAppPhoto(index, event) {
 async function handleAppResumeUpload(input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
+        
+        // 10MB limit for Resume
+        if (file.size > 10 * 1024 * 1024) {
+            showMessage("Resume file must be less than 10MB", "warning");
+            input.value = '';
+            return;
+        }
+
         try {
             const resumeStatus = document.getElementById('resumeStatus');
             if (resumeStatus) resumeStatus.innerText = 'Reading file...';
+            
+            // For PDFs, uploadImage returns raw base64
             const base64 = await uploadImage(file);
             window._appState.resumeData = base64;
             window._appState.resumeName = file.name;
