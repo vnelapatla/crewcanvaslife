@@ -44,6 +44,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Auto-scroll to event if eventId is in URL
     scrollToEventFromUrl();
+
+    // Listen for Managed Checkbox changes
+    const isManagedCheckbox = document.getElementById('isManaged');
+    if (isManagedCheckbox) {
+        isManagedCheckbox.addEventListener('change', toggleManagedFields);
+    }
 });
 
 function scrollToEventFromUrl() {
@@ -133,10 +139,10 @@ async function loadEventForEdit(id) {
             if (document.getElementById('eventGender')) document.getElementById('eventGender').value = event.genderPreference || 'Any';
             if (document.getElementById('eventPrizePool')) document.getElementById('eventPrizePool').value = event.prizePool || '';
             
-            // Populate isManaged
             const isManagedCheckbox = document.getElementById('isManaged');
             if (isManagedCheckbox) {
                 isManagedCheckbox.checked = event.isManaged === true;
+                toggleManagedFields(); // Apply visibility
             }
             
             // Handle Image Preview in Edit Mode
@@ -330,17 +336,19 @@ function displayEvents(events, prepend = false) {
             ${detailsItems.join('')}
         </div>` : '';
 
+        const isManaged = event.isManaged === true;
+        const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
+        // Duplicate declaration removed: const animationDelay = (index % 10) * 0.1;
+        // Determine if we use the simplified "Feed" layout
+        // User wants managed auditions to look like posters in a feed
+        const useFeedLayout = isManaged && !isOwnerOrAdmin;
+
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: pointer; display: flex; flex-direction: column; height: 100%; background: #fff;" onclick="applyToEvent(${event.id})">
-                <div class="card-image-box" style="width: 100%; height: 350px; position: relative; overflow: hidden; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: pointer; display: flex; flex-direction: column; background: #fff !important; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; width: 100% !important;" onclick="${useFeedLayout ? `applyToEvent(${event.id})` : ''}">
+                <div style="position: relative; width: 100%; background: none !important;">
                     <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
                          alt="${event.title}" 
-                         style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                    
-                    <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 10;">
-                        <div class="type-tag ${typeClass}" style="position: static; margin: 0; backdrop-filter: blur(8px);">${event.eventType || 'Audition'}</div>
-                        ${event.isManaged ? `<div class="type-tag" style="position: static; margin: 0; background: rgba(255, 140, 0, 0.9); color: white; border: none; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</div>` : ''}
-                    </div>
+                         style="width: 100% !important; min-width: 100% !important; height: auto !important; display: block !important; z-index: 1; background: none !important;">
                     
                     ${event.status === 'CLOSED' ? `
                         <div style="position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 100px; font-size: 10px; font-weight: 800; z-index: 10; backdrop-filter: blur(8px);">
@@ -349,82 +357,76 @@ function displayEvents(events, prepend = false) {
                     ` : ''}
                 </div>
 
-                <div class="card-content" style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
-                    <h3 style="font-size: 20px; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">${event.title}</h3>
-                    
-                    <div class="meta-group">
-                        <div class="meta-item">
-                            <i class="far fa-calendar-alt"></i>
-                            <span>${formatEventDate(event.date || event.startDate)}${(event.endDate && event.endDate !== event.date) ? ` to ${formatEventDate(event.endDate)}` : ''}</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${event.location}</span>
-                        </div>
-                        ${(event.timeDuration || event.time) ? `
-                            <div class="meta-item">
-                                <i class="far fa-clock"></i>
-                                <span>${event.timeDuration || event.time}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    ${detailsHtml}
-                    
-                    <p class="card-desc" style="font-size: 13px; margin-bottom: 15px;">
-                        ${event.description || 'No description provided.'}
-                    </p>
-                    
-                    <div class="card-footer" style="margin-top: auto;">
-                        <div class="applicants-text">
-                            <span id="applicant-count-${event.id}">${event.applicants || 0}</span> Registered
-                        </div>
-                        <div id="apply-container-${event.id}">
-                            ${(event.userId == currentUserId || (currentUser && currentUser.isAdmin)) ? `
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="apply-btn" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
-                                    ${(currentUser && currentUser.isAdmin) ? `
-                                        <button class="apply-btn" style="background: #ef4444;" onclick="adminDeleteEvent(${event.id}, event)">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    ` : ''}
+                <div class="card-content" style="padding: ${useFeedLayout ? '0' : '12px 15px'}; display: flex; flex-direction: column;">
+                    ${useFeedLayout ? '' : `
+                        <h3 style="font-size: 17px; margin-bottom: 6px; font-family: 'Outfit', sans-serif; color: #1e293b;">${event.title}</h3>
+                        
+                        <div class="meta-group" style="margin-bottom: 8px; gap: 8px;">
+                            ${(event.date || event.startDate) ? `
+                                <div class="meta-item">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <span>${formatEventDate(event.date || event.startDate)}${(event.endDate && event.endDate !== event.date) ? ` to ${formatEventDate(event.endDate)}` : ''}</span>
                                 </div>
-                            ` : (() => {
-                                const userApp = userApplications.find(app => app.eventId === event.id);
-                                if (!userApp) {
-                                    if (event.status === 'CLOSED') {
-                                        return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; opacity: 1;">Closed</button>`;
-                                    }
-                                    return `<button class="apply-btn" onclick="applyToEvent(${event.id})">Register</button>`;
-                                }
-                                
-                                const isFilmEvent = event.eventType && event.eventType.trim().toLowerCase() === 'film event';
-                                
-                                if (isFilmEvent && userApp.passToken) {
-                                    return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
-                                }
-                                
-                                if (userApp.status === 'SHORTLISTED' && userApp.passToken) {
-                                    return `<button class="apply-btn" style="background: var(--primary-orange, #ff8c00); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);" onclick="window.location.href='pass.html?token=${userApp.passToken}'"><i class="fas fa-ticket-alt"></i> View Pass</button>`;
-                                }
-                                
-                                let statusColor = '#27ae60';
-                                let statusLabel = 'Registered';
-                                
-                                if (userApp.status === 'SHORTLISTED') {
-                                    statusColor = '#ff8c00';
-                                    statusLabel = 'Shortlisted';
-                                } else if (userApp.status === 'REJECTED') {
-                                    statusColor = '#ef4444';
-                                    statusLabel = 'Rejected';
-                                }
-                                
-                                return `<button class="apply-btn" disabled style="background: ${statusColor}; cursor: default; opacity: 1;">${statusLabel}</button>`;
-                            })()}
+                            ` : ''}
+                            ${event.location ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${event.location}</span>
+                                </div>
+                            ` : ''}
                         </div>
-                        <button class="apply-btn" style="background: transparent; border: 1px solid #e2e8f0; color: #64748b; width: 40px; min-width: 40px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')" title="Share Event">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
+                        
+                        ${event.description ? `
+                            <p class="card-desc" style="font-size: 12px; margin-bottom: 10px; line-height: 1.4; color: #4b5563;">
+                                ${event.description}
+                            </p>
+                        ` : ''}
+                    `}
+                    
+                    <div class="card-footer" style="padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-top: 1px solid #f8fafc;">
+                        <div class="applicants-text" style="font-size: 13px; font-weight: 700; color: #64748b;">
+                            <i class="fas fa-users" style="color: var(--primary-orange); margin-right: 4px;"></i>
+                            <span id="applicant-count-${event.id}">${event.applicants || 0}</span>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div id="apply-container-${event.id}">
+                                ${isOwnerOrAdmin ? `
+                                    <div style="display: flex; gap: 6px;">
+                                        <button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
+                                        ${(currentUser && currentUser.isAdmin) ? `
+                                            <button class="apply-btn" style="background: #ef4444; padding: 7px 10px; font-size: 11px;" onclick="adminDeleteEvent(${event.id}, event)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                ` : (() => {
+                                    const userApps = userApplications.filter(app => app.eventId === event.id);
+                                    const hasApplied = userApps.length > 0;
+                                    
+                                    if (event.status === 'CLOSED') {
+                                        return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; padding: 7px 14px; font-size: 11px;">Closed</button>`;
+                                    }
+
+                                    let buttonsHtml = hasApplied ? 
+                                        `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>` : 
+                                        `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="applyToEvent(${event.id})">Register</button>`;
+                                    
+                                    const passApp = userApps.find(app => app.passToken);
+                                    if (passApp) {
+                                        buttonsHtml = `<div style="display: flex; gap: 6px;">
+                                            ${buttonsHtml}
+                                            <button class="apply-btn" style="background: var(--primary-orange, #ff8c00); padding: 7px 10px; font-size: 11px;" onclick="window.location.href='pass.html?token=${passApp.passToken}'"><i class="fas fa-ticket-alt"></i></button>
+                                        </div>`;
+                                    }
+                                    
+                                    return buttonsHtml;
+                                })()}
+                            </div>
+                            <button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-share-alt" style="font-size: 12px;"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -480,7 +482,10 @@ function openCreateForm(type, isEdit = false) {
 
     if (!isEdit) {
         clearEventImage(); // Reset image for new form
-        if (document.getElementById('isManaged')) document.getElementById('isManaged').checked = false;
+        if (document.getElementById('isManaged')) {
+            document.getElementById('isManaged').checked = false;
+            toggleManagedFields(); // Reset visibility
+        }
     }
 
     // Admin-only: Managed Audition toggle
@@ -585,6 +590,52 @@ function updateFormFields(type) {
 }
 
 
+function toggleManagedFields() {
+    const isManaged = document.getElementById('isManaged') ? document.getElementById('isManaged').checked : false;
+    
+    // List of groups/fields to hide
+    const groupsToToggle = [
+        'eventDate', 
+        'endDateGroup', 
+        'eventTimeDuration', 
+        'eventLocation',
+        'eventOrgName', 
+        'eventOrgEmail', 
+        'eventOrgPhone', 
+        'countryCode',
+        'capacityGroup', 
+        'priceGroup', 
+        'auditionFields', 
+        'contestFields',
+        'skillsGroup', 
+        'eventDescription'
+    ];
+
+    groupsToToggle.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        
+        // Find the parent form-group or the element itself if it's a group
+        let target = el;
+        if (el.classList.contains('form-control-premium') || el.id === 'eventDescription') {
+            target = el.closest('.form-group');
+        }
+        
+        if (target) {
+            target.style.display = isManaged ? 'none' : 'block';
+        }
+    });
+
+    // Special case for Organizer Phone group which has no single ID
+    const phoneGroup = document.getElementById('eventOrgPhone') ? document.getElementById('eventOrgPhone').closest('.form-group') : null;
+    if (phoneGroup) phoneGroup.style.display = isManaged ? 'none' : 'block';
+
+    // If NOT managed, re-apply type specific logic (like hiding audition fields for contests)
+    if (!isManaged) {
+        updateFormFields(currentType);
+    }
+}
+
 function closeFormModal() {
     const formModal = document.getElementById('formModal');
     if (formModal) formModal.style.display = 'none';
@@ -669,8 +720,15 @@ async function submitEvent() {
     const location = locEle.value.trim();
     const eventType = typeEle ? typeEle.value : (currentType || 'Audition');
 
-    if (!title || !date || !location) {
-        showMessage('Please fill in Title, Date, and Location', 'error');
+    if (!title) {
+        showMessage('Please enter an Event Title', 'error');
+        return;
+    }
+
+    const isManaged = document.getElementById('isManaged') ? document.getElementById('isManaged').checked : false;
+
+    if (!isManaged && (!date || !location)) {
+        showMessage('Please fill in Date and Location', 'error');
         return;
     }
 

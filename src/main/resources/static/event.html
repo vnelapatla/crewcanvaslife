@@ -239,9 +239,21 @@
         /* Cinematic Events Grid */
         .events-display-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             padding: 20px 0 100px;
+        }
+
+        @media (max-width: 1200px) {
+            .events-display-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .events-display-grid {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         .cinematic-card {
@@ -305,8 +317,8 @@
         }
 
         .card-image-box {
-            height: 180px;
-            background: #111;
+            height: auto;
+            background: none;
             position: relative;
             overflow: hidden;
         }
@@ -315,13 +327,13 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.7;
+            opacity: 1;
             transition: all 0.5s;
         }
 
         .cinematic-card:hover .card-image-box img {
-            transform: scale(1.1);
-            opacity: 0.9;
+            transform: none;
+            opacity: 1;
         }
 
         .type-tag {
@@ -687,14 +699,21 @@
             }
             .events-display-grid {
                 grid-template-columns: 1fr !important;
-                gap: 15px !important;
+                gap: 0 !important;
                 padding-bottom: 80px !important;
             }
+            .content-body {
+                padding: 15px !important;
+            }
             .cinematic-card {
-                border-radius: 12px !important;
+                border-radius: 16px !important;
+                border: 1px solid #f1f5f9 !important;
+                margin-bottom: 20px !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+                background: #fff !important;
             }
             .card-image-box {
-                height: 120px !important;
+                height: auto;
             }
             .card-content {
                 padding: 12px !important;
@@ -1129,7 +1148,7 @@
                         <div id="resumePreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appResumeInput').click()">
                             <span id="resumeStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload or select from profile</span>
                         </div>
-                        <input type="file" id="appResumeInput" hidden onchange="handleAppResumeUpload(this)">
+                        <input type="file" id="appResumeInput" hidden accept=".pdf,.doc,.docx" onchange="handleAppResumeUpload(this)">
                     </div>
                     <div class="form-group">
                         <label class="form-label-premium">Audition Video (Max 50MB)</label>
@@ -1169,7 +1188,7 @@
 
     <script src="js/utils.js?v=4.0"></script>
     <script src="js/profile-handler.js?v=4.0"></script>
-    <script src="js/events.js?v=4.0"></script>
+    <script src="js/events.js?v=4.3"></script>
     <script>
         // Drag to scroll for horizontal-cards
         const slider = document.querySelector('.horizontal-cards');

@@ -8,10 +8,22 @@
 
 .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 30px;
     padding: 20px 0 100px;
     align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .events-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1080px) {
+    .events-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 /* Search Section */
@@ -98,8 +110,8 @@
 }
 
 .card-image-box {
-    height: 180px;
-    background: #111;
+    height: auto;
+    background: none;
     position: relative;
     overflow: hidden;
 }

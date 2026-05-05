@@ -621,7 +621,7 @@ function displayMessages(messages) {
                 const isVideo = isVideoFile(url);
                 
                 if (isImage) {
-                    attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="viewFile('${url}')">`;
+                    attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; cursor: pointer; display: block;" onclick="viewImageFull('${url}')">`;
                 } else if (isVideo) {
                     attachmentContent += `
                         <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
@@ -717,7 +717,7 @@ function appendSingleMessage(msg) {
             const isVideo = url.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)/i) || url.startsWith('data:video/');
             
             if (isImage) {
-                attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="viewFile('${url}')">`;
+                attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; cursor: pointer; display: block;" onclick="viewImageFull('${url}')">`;
             } else if (isVideo) {
                 attachmentContent += `
                     <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
@@ -1168,7 +1168,11 @@ function downloadFile(url, filename) {
 
 function viewFile(url) {
     if (!url) return;
-    if (url.startsWith('data:')) {
+    const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || url.startsWith('data:image/');
+    
+    if (isImage && typeof viewImageFull === 'function') {
+        viewImageFull(url);
+    } else if (url.startsWith('data:')) {
         viewFileFromBase64(url);
     } else {
         window.open(url, '_blank');

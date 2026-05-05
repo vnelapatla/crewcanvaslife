@@ -417,15 +417,26 @@ body.scroll-lock {
     object-fit: contain;
 }
 
-/* Sticker detection (if image only) */
+/* WhatsApp-style Image Bubble */
 .message-text:has(img):not(:has(p)) {
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    border: none !important;
+    padding: 4px !important;
+    background: #fff !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    border-radius: 12px !important;
+    border: 1px solid #eee !important;
 }
+
+.sent .message-text:has(img):not(:has(p)) {
+    border-right: 3px solid var(--primary-orange) !important;
+}
+
+.received .message-text:has(img):not(:has(p)) {
+    border-left: 3px solid #64748b !important;
+}
+
 .message-text:has(img):not(:has(p)) img {
-    max-width: 150px;
+    max-width: 100% !important;
+    margin: 0 !important;
 }
 
 .message img:hover {

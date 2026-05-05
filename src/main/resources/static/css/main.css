@@ -665,11 +665,13 @@ img, video, iframe {
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     z-index: 20000;
     backdrop-filter: blur(8px);
     padding: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-content {
@@ -680,7 +682,7 @@ img, video, iframe {
     padding: 30px !important;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
     animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    margin: 0 !important;
+    margin: auto !important;
 }
 
 @keyframes modalSlideUp {

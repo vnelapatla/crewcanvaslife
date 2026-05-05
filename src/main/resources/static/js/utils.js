@@ -704,18 +704,28 @@ function viewImageFull(src) {
         modal.id = 'imageFullModal';
         modal.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 10000000;
+            background: rgba(0,0,0,0.85); z-index: 10000000;
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
+            opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             cursor: zoom-out;
         `;
         modal.innerHTML = `
-            <img id="fullImageContent" src="" style="max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-            <button onclick="document.getElementById('imageFullModal').style.opacity='0'; setTimeout(()=>document.getElementById('imageFullModal').style.display='none', 300)" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px;">&times;</button>
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                <img id="fullImageContent" src="" style="max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: 12px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div style="position: absolute; top: 25px; right: 25px; display: flex; gap: 12px;">
+                    <a id="fullImageDownload" href="#" download="image.jpg" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);"><i class="fa-solid fa-download"></i></a>
+                    <button onclick="document.getElementById('imageFullModal').click()" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <style>
+                #imageFullModal a:hover, #imageFullModal button:hover { background: rgba(255,255,255,0.2) !important; transform: scale(1.05); }
+            </style>
         `;
         document.body.appendChild(modal);
         modal.onclick = (e) => {
-            if (e.target.id !== 'fullImageContent') {
+            if (e.target.id !== 'fullImageContent' && !e.target.closest('a')) {
                 modal.style.opacity = '0';
                 modal.querySelector('img').style.transform = 'scale(0.9)';
                 setTimeout(() => modal.style.display = 'none', 300);
@@ -724,7 +734,13 @@ function viewImageFull(src) {
     }
     
     const img = document.getElementById('fullImageContent');
+    const downloadBtn = document.getElementById('fullImageDownload');
     img.src = src;
+    if (downloadBtn) {
+        downloadBtn.href = src;
+        const fileName = (typeof src === 'string' && src.startsWith('http')) ? src.split('/').pop().split('?')[0] : 'image.jpg';
+        downloadBtn.download = fileName || 'image.jpg';
+    }
     modal.style.display = 'flex';
     setTimeout(() => {
         modal.style.opacity = '1';
