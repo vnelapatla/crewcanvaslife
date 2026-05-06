@@ -227,12 +227,11 @@ async function handleExternalRedirect(eventId, url) {
         return;
     }
 
-    // 0. Profile Strength Validation (Minimum 80% required)
+    // 0. Profile Strength Validation (Soft Check: 50%)
     const score = calculateProfileScore(currentUser);
-    if (score < 80) {
-        showMessage(`⚠️ Profile Incomplete (${score}%). Please complete at least 80% to apply to recruiters. (Ensure Name, Email, Phone, Bio, Resume, Video, and 5+ Recent Images are added).`, 'warning');
-        setTimeout(() => window.location.href = 'edit-profile.html', 3000);
-        return;
+    if (score < 50) {
+        showMessage(`📝 Tip: Your profile is only ${score}% complete. We recommend adding a Resume, Video, and more Images for better recruiter visibility!`, 'warning');
+        // We let them proceed as requested ("less than 70% is fine")
     }
     
     // 1. Find event title for context

@@ -376,9 +376,9 @@
             </div>
 
             <div class="deck-tabs">
-                <button class="tab-btn active" id="btnReel" onclick="switchTab('reel')">SHOWREEL</button>
-                <button class="tab-btn" id="btnGallery" onclick="switchTab('gallery')">PORTFOLIO</button>
-                <button class="tab-btn" id="btnSkills" onclick="switchTab('skills')">EXPERTISE</button>
+                <button class="tab-btn active" id="btnReel" onclick="switchTab('reel')"><i class="fas fa-play-circle"></i> SHOWREEL</button>
+                <button class="tab-btn" id="btnGallery" onclick="switchTab('gallery')"><i class="fas fa-image"></i> PORTFOLIO</button>
+                <button class="tab-btn" id="btnSkills" onclick="switchTab('skills')"><i class="fas fa-bolt"></i> EXPERTISE</button>
             </div>
 
             <div id="reelTab" class="tab-content">
@@ -479,16 +479,26 @@
                     try {
                         const pics = JSON.parse(user.recentPictures);
                         if (Array.isArray(pics) && pics.length > 0) {
-                            document.getElementById('imageGallery').innerHTML = pics.map(p => `
-                                <div class="gallery-item"><img src="${p}" alt="Portfolio"></div>
-                            `).join('');
+                            document.getElementById('imageGallery').innerHTML = pics.map(p => {
+                                const isVid = typeof isVideoFile === 'function' && isVideoFile(p);
+                                return `
+                                    <div class="gallery-item" style="position:relative;">
+                                        ${isVid ? `<video src="${p}" style="width:100%; height:100%; object-fit:cover;"></video><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); color:white; font-size:32px;"><i class="fas fa-play-circle"></i></div>` : `<img src="${p}" alt="Portfolio">`}
+                                    </div>
+                                `;
+                            }).join('');
                         }
                     } catch(e) {
                         const pics = user.recentPictures.split(',').filter(p => p.trim());
                         if (pics.length > 0) {
-                            document.getElementById('imageGallery').innerHTML = pics.map(p => `
-                                <div class="gallery-item"><img src="${p}" alt="Portfolio"></div>
-                            `).join('');
+                            document.getElementById('imageGallery').innerHTML = pics.map(p => {
+                                const isVid = typeof isVideoFile === 'function' && isVideoFile(p);
+                                return `
+                                    <div class="gallery-item" style="position:relative;">
+                                        ${isVid ? `<video src="${p}" style="width:100%; height:100%; object-fit:cover;"></video><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); color:white; font-size:32px;"><i class="fas fa-play-circle"></i></div>` : `<img src="${p}" alt="Portfolio">`}
+                                    </div>
+                                `;
+                            }).join('');
                         }
                     }
                 }
