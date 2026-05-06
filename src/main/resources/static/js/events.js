@@ -77,13 +77,11 @@ function displayEvents(events, prepend = false) {
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <div style="position: relative; overflow: hidden;">
-                    <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
-                </div>
+                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
                 <div class="card-content" style="padding: ${useFeedLayout ? '0' : '15px'};">
                     ${useFeedLayout ? '' : `<h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>`}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                        <div style="font-size: 11px; font-weight: 600; color: #64748b; min-width: 70px;">
+                        <div style="font-size: 11px; font-weight: 600; color: #64748b;">
                             <i class="fas fa-users"></i> ${event.applicants || 0} applied
                         </div>
                         ${(() => {
@@ -95,7 +93,7 @@ function displayEvents(events, prepend = false) {
                             let btnText = isManaged ? (hasApplied ? 'Registered' : 'WhatsApp Me') : (hasApplied ? 'Applied' : 'Apply Now');
                             return `<button class="apply-btn" style="flex: 1; max-width: 180px; padding: 10px 15px; font-size: 13px; border-radius: 10px; border: none; font-weight: 700; background: ${btnColor}; color: white;" onclick="${regAct}">${btnText}</button>`;
                         })()}
-                        <div onclick="event.stopPropagation(); shareEvent(${event.id}, '${sTitle}')" style="cursor: pointer; color: #6366f1; font-size: 11px; font-weight: 600; min-width: 60px; text-align: right;">
+                        <div onclick="event.stopPropagation(); shareEvent(${event.id}, '${sTitle}')" style="cursor: pointer; color: #6366f1; font-size: 11px; font-weight: 600; text-align: right;">
                             <i class="fas fa-share-alt"></i> Share
                         </div>
                     </div>
@@ -111,6 +109,7 @@ function openCreateForm(type, isEdit = false) {
     if (!isEdit) {
         editModeId = null;
         document.getElementById('formTitle').innerText = '✨ Launch Opportunity';
+        clearEventImage();
     }
     document.getElementById('formModal').style.display = 'flex';
     updateFormFields(type);
@@ -138,12 +137,7 @@ function updateFormFields(type) {
 
 function toggleManagedFields() {
     const isManaged = document.getElementById('isManaged').checked;
-    const fieldsToToggle = [
-        'eventDate', 'eventEndDate', 'eventTimeDuration', 'eventLocation', 
-        'eventOrgName', 'eventOrgEmail', 'eventOrgPhone', 'countryCode',
-        'eventCapacity', 'eventPrice', 'eventSkills', 'eventDescription',
-        'auditionFields', 'contestFields', 'skillsGroup', 'capacityGroup', 'priceGroup'
-    ];
+    const fieldsToToggle = ['eventDate', 'eventEndDate', 'eventLocation', 'eventOrgName', 'eventOrgEmail', 'eventDescription', 'auditionFields', 'contestFields', 'skillsGroup', 'capacityGroup', 'priceGroup'];
     fieldsToToggle.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -168,6 +162,36 @@ function closeFormModal() { document.getElementById('formModal').style.display =
 function closeAppModal() { document.getElementById('applicationModal').style.display = 'none'; }
 function closeCreateEvent() { document.getElementById('createEventModal').style.display = 'none'; }
 
+async function handleEventImageUpload(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById('previewImg');
+            const placeholder = document.getElementById('previewPlaceholder');
+            const clearBtn = document.getElementById('clearImageBtn');
+            const urlInput = document.getElementById('eventImageUrl');
+            if (previewImg) { previewImg.src = e.target.result; previewImg.style.display = 'block'; }
+            if (placeholder) placeholder.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'block';
+            if (urlInput) urlInput.value = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function clearEventImage() {
+    const previewImg = document.getElementById('previewImg');
+    const placeholder = document.getElementById('previewPlaceholder');
+    const clearBtn = document.getElementById('clearImageBtn');
+    const urlInput = document.getElementById('eventImageUrl');
+    const fileInput = document.getElementById('eventImage');
+    if (previewImg) { previewImg.src = ''; previewImg.style.display = 'none'; }
+    if (placeholder) placeholder.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (urlInput) urlInput.value = '';
+    if (fileInput) fileInput.value = '';
+}
+
 async function submitEvent() {
     const isManaged = document.getElementById('isManaged').checked;
     const eventData = {
@@ -182,8 +206,7 @@ async function submitEvent() {
         externalLink: (isManaged && document.getElementById('registrationMethod').value === 'external') ? document.getElementById('externalLink').value : null,
         imageUrl: document.getElementById('eventImageUrl') ? document.getElementById('eventImageUrl').value : ''
     };
-    const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
-    const res = await fetch(url, { 
+    const res = await fetch(editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`, { 
         method: editModeId ? 'PUT' : 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify(eventData) 
