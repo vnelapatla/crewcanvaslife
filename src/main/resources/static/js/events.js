@@ -77,7 +77,9 @@ function displayEvents(events, prepend = false) {
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
+                <div style="position: relative; overflow: hidden;">
+                    <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
+                </div>
                 <div class="card-content" style="padding: ${useFeedLayout ? '0' : '15px'};">
                     ${useFeedLayout ? '' : `<h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>`}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
@@ -87,7 +89,9 @@ function displayEvents(events, prepend = false) {
                         ${(() => {
                             const sLink = (event.externalLink || '').replace(/'/g, "\\'");
                             const regAct = (isManaged && event.externalLink) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;
-                            const btnColor = hasApplied ? '#10b981' : '#FF8C00';
+                            const brandOrange = '#FF8C00';
+                            const successGreen = '#10b981';
+                            const btnColor = hasApplied ? successGreen : brandOrange;
                             let btnText = isManaged ? (hasApplied ? 'Registered' : 'WhatsApp Me') : (hasApplied ? 'Applied' : 'Apply Now');
                             return `<button class="apply-btn" style="flex: 1; max-width: 180px; padding: 10px 15px; font-size: 13px; border-radius: 10px; border: none; font-weight: 700; background: ${btnColor}; color: white;" onclick="${regAct}">${btnText}</button>`;
                         })()}
@@ -110,8 +114,6 @@ function openCreateForm(type, isEdit = false) {
     }
     document.getElementById('formModal').style.display = 'flex';
     updateFormFields(type);
-    
-    // ADMIN CHECK
     const managedGroup = document.getElementById('managedGroup');
     if (managedGroup) {
         const isAdmin = (currentUser && currentUser.isAdmin) || localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com';
@@ -136,12 +138,17 @@ function updateFormFields(type) {
 
 function toggleManagedFields() {
     const isManaged = document.getElementById('isManaged').checked;
-    const fields = ['eventDate', 'eventLocation', 'eventOrgName', 'eventOrgEmail', 'eventDescription'];
-    fields.forEach(id => {
+    const fieldsToToggle = [
+        'eventDate', 'eventEndDate', 'eventTimeDuration', 'eventLocation', 
+        'eventOrgName', 'eventOrgEmail', 'eventOrgPhone', 'countryCode',
+        'eventCapacity', 'eventPrice', 'eventSkills', 'eventDescription',
+        'auditionFields', 'contestFields', 'skillsGroup', 'capacityGroup', 'priceGroup'
+    ];
+    fieldsToToggle.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            const group = el.closest('.form-group');
-            if (group) group.style.display = isManaged ? 'none' : 'block';
+            const group = el.closest('.form-group') || el;
+            group.style.display = isManaged ? 'none' : 'block';
         }
     });
     const regMethodGroup = document.getElementById('registrationMethodGroup');
@@ -152,10 +159,14 @@ function toggleManagedFields() {
 }
 
 function toggleRegistrationLink() {
-    const method = document.getElementById('registrationMethod').value;
+    const methodSelect = document.getElementById('registrationMethod');
     const linkGroup = document.getElementById('externalLinkGroup');
-    if (linkGroup) linkGroup.style.display = (method === 'external') ? 'block' : 'none';
+    if (methodSelect && linkGroup) linkGroup.style.display = (methodSelect.value === 'external') ? 'block' : 'none';
 }
+
+function closeFormModal() { document.getElementById('formModal').style.display = 'none'; }
+function closeAppModal() { document.getElementById('applicationModal').style.display = 'none'; }
+function closeCreateEvent() { document.getElementById('createEventModal').style.display = 'none'; }
 
 async function submitEvent() {
     const isManaged = document.getElementById('isManaged').checked;
@@ -163,18 +174,21 @@ async function submitEvent() {
         userId: parseInt(currentUserId),
         title: document.getElementById('eventTitle').value,
         eventType: currentType || 'Audition',
-        description: document.getElementById('eventDescription').value,
-        date: document.getElementById('eventDate').value,
-        location: document.getElementById('eventLocation').value,
+        description: isManaged ? '' : document.getElementById('eventDescription').value,
+        date: isManaged ? null : document.getElementById('eventDate').value,
+        location: isManaged ? '' : document.getElementById('eventLocation').value,
         isManaged: isManaged,
         adminNote: document.getElementById('eventAdminNote') ? document.getElementById('eventAdminNote').value : '',
         externalLink: (isManaged && document.getElementById('registrationMethod').value === 'external') ? document.getElementById('externalLink').value : null,
         imageUrl: document.getElementById('eventImageUrl') ? document.getElementById('eventImageUrl').value : ''
     };
     const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
-    const method = editModeId ? 'PUT' : 'POST';
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData) });
-    if (res.ok) { showMessage('Event Saved!', 'success'); document.getElementById('formModal').style.display = 'none'; loadEvents(); }
+    const res = await fetch(url, { 
+        method: editModeId ? 'PUT' : 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(eventData) 
+    });
+    if (res.ok) { showMessage('Event Saved!', 'success'); closeFormModal(); loadEvents(); }
 }
 
 async function handleExternalRedirect(eventId, url) {
@@ -188,18 +202,12 @@ async function handleExternalRedirect(eventId, url) {
 }
 
 async function applyToEvent(eventId) { if (!currentUserId) return; openAppModal(eventId); }
-
-async function openAppModal(eventId) {
-    pendingEventId = eventId;
-    document.getElementById('applicationModal').style.display = 'flex';
-}
-
-function closeAppModal() { document.getElementById('applicationModal').style.display = 'none'; }
+async function openAppModal(eventId) { pendingEventId = eventId; document.getElementById('applicationModal').style.display = 'flex'; }
 
 async function shareEvent(id, title) {
     const shareUrl = `${window.location.origin}/share/event/${id}`;
-    if (navigator.share) await navigator.share({ title: title, url: shareUrl });
-    else { await navigator.clipboard.writeText(shareUrl); alert('Copied Link! 📋'); }
+    if (navigator.share) await navigator.share({ title, url: shareUrl });
+    else { await navigator.clipboard.writeText(shareUrl); alert('Link Copied! 📋'); }
 }
 
 function getEventDefaultImage(type) {
@@ -212,7 +220,15 @@ function formatEventDate(dateStr) {
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-function filterEvents(type) {
-    currentFilter = type;
+function switchEventTab(type, element) {
+    document.querySelectorAll('.event-feature-card').forEach(c => c.classList.remove('active'));
+    element.classList.add('active');
+    let filterType = 'all';
+    if (type === 'auditions') filterType = 'Audition';
+    else if (type === 'workshops') filterType = 'Workshop';
+    else if (type === 'courses') filterType = 'Course';
+    else if (type === 'contests') filterType = 'Contest';
+    else if (type === 'filmevents') filterType = 'Film Event';
+    currentFilter = filterType;
     searchEvents();
 }
