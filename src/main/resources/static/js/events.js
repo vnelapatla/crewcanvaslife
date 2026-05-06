@@ -432,46 +432,52 @@ function displayEvents(events, prepend = false) {
                                         return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; padding: 7px 14px; font-size: 11px;">Closed</button>`;
                                     }
 
-                                    const safeLink = event.externalLink ? event.externalLink.replace(/'/g, "\\'") : '';
-                                    const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+                                    return `
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <div id="action-container-${event.id}">
+                                            ${(() => {
+                                                const safeLink = event.externalLink ? event.externalLink.replace(/'/g, "\\'") : '';
+                                                const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+                                                
+                                                const isExternal = event.isManaged && event.externalLink;
+                                                const registerAction = isExternal ? 
+                                                    `event.stopPropagation(); handleExternalRedirect(${event.id}, '${safeLink}')` : 
+                                                    `applyToEvent(${event.id})`;
 
-                                    const registerAction = (event.isManaged && event.externalLink) ? 
-                                        `event.stopPropagation(); handleExternalRedirect(${event.id}, '${safeLink}')` : 
-                                        `applyToEvent(${event.id})`;
-
-                                    let buttonsHtml = "";
-                                    const isExternal = event.isManaged && event.externalLink;
-                                    
-                                    if (hasApplied) {
-                                        if (isExternal) {
-                                            // For external managed events, allow re-opening the link
-                                            const isMail = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
-                                            const btnText = isMail ? 'Open Mail' : 'Open WhatsApp';
-                                            const icon = isMail ? 'fa-envelope' : 'fa-whatsapp';
-                                            buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px; background: #10b981; color: white;" onclick="${buttonAction}${registerAction}"><i class="fab ${icon}"></i> ${btnText}</button>`;
-                                        } else {
-                                            // Standard event - keep as Registered and disabled
-                                            buttonsHtml = `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>`;
-                                        }
-                                    } else {
-                                        // Not applied yet - show standard Register button
-                                        buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${registerAction}">Register</button>`;
-                                    }
-                                    
-                                    const passApp = userApps.find(app => app.passToken);
-                                    if (passApp) {
-                                        buttonsHtml = `<div style="display: flex; gap: 6px;">
-                                            ${buttonsHtml}
-                                            <button class="apply-btn" style="background: var(--primary-orange, #ff8c00); padding: 7px 10px; font-size: 11px;" onclick="window.location.href='pass.html?token=${passApp.passToken}'"><i class="fas fa-ticket-alt"></i></button>
-                                        </div>`;
-                                    }
-                                    
-                                    return buttonsHtml;
+                                                let buttonsHtml = "";
+                                                if (hasApplied) {
+                                                    if (isExternal) {
+                                                        const isMail = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
+                                                        const btnText = isMail ? 'Open Mail' : 'Open WhatsApp';
+                                                        const icon = isMail ? 'fa-envelope' : 'fa-whatsapp';
+                                                        buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px; background: #10b981; color: white;" onclick="${buttonAction}${registerAction}"><i class="fab ${icon}"></i> ${btnText}</button>`;
+                                                    } else {
+                                                        buttonsHtml = `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>`;
+                                                    }
+                                                } else {
+                                                    buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${registerAction}">Register</button>`;
+                                                }
+                                                
+                                                const passApp = userApps.find(app => app.passToken);
+                                                if (passApp) {
+                                                    buttonsHtml = `<div style="display: flex; gap: 6px;">
+                                                        ${buttonsHtml}
+                                                        <button class="apply-btn" style="background: var(--primary-orange, #ff8c00); padding: 7px 10px; font-size: 11px;" onclick="window.location.href='pass.html?token=${passApp.passToken}'"><i class="fas fa-ticket-alt"></i></button>
+                                                    </div>`;
+                                                }
+                                                
+                                                return buttonsHtml;
+                                            })()}
+                                        </div>
+                                        ${(() => {
+                                            const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+                                            return `<button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${safeTitle}')">
+                                                <i class="fas fa-share-alt" style="font-size: 12px;"></i>
+                                            </button>`;
+                                        })()}
+                                    </div>`;
                                 })()}
                             </div>
-                            <button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${safeTitle}')">
-                                <i class="fas fa-share-alt" style="font-size: 12px;"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
