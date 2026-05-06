@@ -8,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/events.css">
-    <link rel="stylesheet" href="/css/multi-upload.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/multi-upload.css">
     <style>
         :root {
             --primary-orange: #ff8c00;
@@ -275,7 +275,6 @@
             border-color: rgba(255, 140, 0, 0.25);
             outline: 1px solid rgba(255, 140, 0, 0.1);
             outline-offset: -1px;
-            z-index: 5;
         }
 
         .remove-photo-btn {
@@ -316,6 +315,17 @@
             }
         }
 
+        .cinematic-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+            z-index: 5;
+        }
+
+        .cinematic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+
         .card-image-box {
             height: auto;
             background: none;
@@ -329,6 +339,11 @@
             object-fit: cover;
             opacity: 1;
             transition: all 0.5s;
+        }
+
+        .cinematic-card:hover .card-image-box img {
+            transform: none;
+            opacity: 1;
         }
 
         .type-tag {
@@ -485,6 +500,10 @@
             margin-bottom: 2px;
         }
         
+        .form-group.full-width {
+            grid-column: auto;
+        }
+
         .form-group.full-width {
             grid-column: span 2;
         }
@@ -660,7 +679,7 @@
                 letter-spacing: 0.3px !important;
             }
             .event-feature-card .info p {
-                display: none; 
+                display: none; /* Hide subtitle on mobile to save space */
             }
             .event-feature-card .badge {
                 font-size: 11px !important;
@@ -751,6 +770,11 @@
                 border-radius: 8px !important;
                 grid-template-columns: 1fr !important;
             }
+            .details-section div {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
             .form-group.full-width {
                 grid-column: span 1;
             }
@@ -779,6 +803,8 @@
 </head>
 
 <body>
+    <!-- Sidebar is dynamically injected by utils.js -->
+
     <!-- Main Content -->
     <main class="main-content">
         <header class="top-header"></header>
@@ -850,6 +876,8 @@
             </div>
         </div>
     </main>
+
+    <!-- Universal Bottom Navigation is injected by utils.js -->
 
     <button class="fab" onclick="showChoiceModal()"><i class="fas fa-plus"></i></button>
 
@@ -1010,6 +1038,11 @@
                                 <input type="file" id="eventImageInput" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
                                 <input type="hidden" id="eventImageUrl">
                             </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button type="button" id="clearImageBtn" class="btn-cancel-premium" style="padding: 8px 12px; display: none;" onclick="clearEventImage()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group full-width" id="skillsGroup">
@@ -1069,6 +1102,108 @@
                     <input type="text" id="appRole" class="form-control-premium" placeholder="e.g. Lead Actor, Dancer">
                 </div>
 
+                <!-- Contest Specific Form Fields -->
+                <div id="contestAppSpecificFields" style="display: none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <div class="form-group">
+                        <label class="form-label-premium">Short Film Title *</label>
+                        <input type="text" id="appShortFilmTitle" class="form-control-premium" placeholder="Enter title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Team Name *</label>
+                        <input type="text" id="appTeamName" class="form-control-premium" placeholder="Enter team name">
+                    </div>
+                    <div class="form-group" id="appSubmissionGroup">
+                        <label class="form-label-premium" id="labelAppSubmission">Short Film Link *</label>
+                        <input type="url" id="appSubmissionLink" class="form-control-premium" placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Short Film Poster (Optional)</label>
+                        <div id="posterPreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appPosterInput').click()">
+                            <span id="posterStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload poster image</span>
+                        </div>
+                        <input type="file" id="appPosterInput" hidden accept="image/*" onchange="handleAppPosterUpload(this)">
+                    </div>
+                </div>
+
+                <!-- Audition Specific Form Fields -->
+                <div id="auditionAppSpecificFields" style="display: none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label class="form-label-premium">Age *</label>
+                            <input type="number" id="appAge" class="form-control-premium" placeholder="Age">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-premium">Height *</label>
+                            <input type="text" id="appHeight" class="form-control-premium" placeholder="Height">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Location *</label>
+                        <input type="text" id="appLocation" class="form-control-premium" placeholder="City / State">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Photos * (Min 1, Max 3)</label>
+                        <div class="multi-upload-area" onclick="document.getElementById('multiPhotoInput').click()" id="multiPhotoBox">
+                            <i class="fas fa-images"></i>
+                            <div class="upload-text">
+                                <span class="main-text">Upload Gallery Photos</span>
+                                <span class="sub-text">Select up to 3 best pictures</span>
+                            </div>
+                            <input type="file" id="multiPhotoInput" hidden multiple accept="image/*" onchange="handleMultiPhotoUpload(this)">
+                        </div>
+                        <div id="multiPhotoPreviewGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px;">
+                            <div class="photo-preview-slot" id="slot1">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(1, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev1" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div class="photo-preview-slot" id="slot2">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(2, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev2" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div class="photo-preview-slot" id="slot3">
+                                <button type="button" class="remove-photo-btn" onclick="removeAppPhoto(3, event)"><i class="fas fa-times"></i></button>
+                                <img id="photoPrev3" style="display: none;">
+                                <div class="slot-placeholder"><i class="fas fa-camera"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Resume / Portfolio PDF *</label>
+                        <div id="resumePreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appResumeInput').click()">
+                            <span id="resumeStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload or select from profile</span>
+                        </div>
+                        <input type="file" id="appResumeInput" hidden accept=".pdf,.doc,.docx" onchange="handleAppResumeUpload(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">Audition Video (Max 50MB)</label>
+                        <div id="videoPreview" style="background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px dashed #cbd5e1; cursor: pointer; text-align: center;" onclick="document.getElementById('appVideoInput').click()">
+                            <span id="videoStatus" style="font-size: 11px; color: #64748b; font-weight: 600;">Click to upload video</span>
+                        </div>
+                        <input type="file" id="appVideoInput" hidden accept="video/*" onchange="handleAppVideoUpload(this)">
+                    </div>
+                </div>
+
+                <div class="form-group" id="appNoteGroup">
+                    <label class="form-label-premium" id="labelAppNote">Additional Note / Category</label>
+                    <input type="text" id="appNote" class="form-control-premium" placeholder="Anything else you want to mention?">
+                </div>
+                
+                <div style="margin-top: 20px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="appUserAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; overflow: hidden;">
+                            <img id="appUserImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                            <div id="appUserInitials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #64748b;">?</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 12px; font-weight: 600; color: #1e293b; margin: 0;">Your Profile</p>
+                            <p id="appUserProfileName" style="font-size: 11px; color: #64748b; margin: 0;">@username</p>
+                        </div>
+                        <div style="font-size: 10px; padding: 4px 8px; background: #dcfce7; color: #166534; border-radius: 20px; font-weight: 600;">Linked</div>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 12px; margin-top: 25px;">
                     <button class="btn-next-premium" style="flex: 2; padding: 14px;" onclick="submitEventApplication()">Submit Application</button>
                     <button class="btn-cancel-premium" style="flex: 1; padding: 14px;" onclick="closeAppModal()">Cancel</button>
@@ -1077,10 +1212,11 @@
         </div>
     </div>
 
-    <script src="/js/utils.js?v=4.5"></script>
-    <script src="/js/profile-handler.js?v=4.5"></script>
-    <script src="/js/events.js?v=5.0"></script>
+    <script src="js/utils.js?v=4.5"></script>
+    <script src="js/profile-handler.js?v=4.5"></script>
+    <script src="js/events.js?v=5.0"></script>
     <script>
+        // Drag to scroll for horizontal-cards
         const slider = document.querySelector('.horizontal-cards');
         let isDown = false;
         let startX;
@@ -1105,7 +1241,7 @@
                 if(!isDown) return;
                 e.preventDefault();
                 const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 2; 
+                const walk = (x - startX) * 2; // scroll-fast
                 slider.scrollLeft = scrollLeft - walk;
             });
         }
@@ -1121,5 +1257,76 @@
             }
         }
     </script>
+    <style>
+        .photo-upload-box {
+            aspect-ratio: 3/4;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .photo-upload-box:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .photo-upload-box i {
+            font-size: 24px;
+            color: rgba(255,255,255,0.3);
+        }
+        .photo-upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .photo-upload-box.has-image {
+            border-style: solid;
+            border-color: #10b981;
+        }
+    </style>
+    <style>
+        .photo-upload-box {
+            aspect-ratio: 3/4;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .photo-upload-box:hover {
+            border-color: var(--primary-orange);
+            background: #fff8f1;
+        }
+        .photo-upload-box i {
+            font-size: 20px;
+            color: #94a3b8;
+        }
+        .photo-upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .photo-upload-box.has-image {
+            border-style: solid;
+            border-color: var(--primary-orange);
+        }
+    </style>
 </body>
+
 </html>
