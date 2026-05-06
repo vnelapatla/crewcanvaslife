@@ -432,8 +432,11 @@ function displayEvents(events, prepend = false) {
                                         return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; padding: 7px 14px; font-size: 11px;">Closed</button>`;
                                     }
 
+                                    const safeLink = event.externalLink ? event.externalLink.replace(/'/g, "\\'") : '';
+                                    const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+
                                     const registerAction = (event.isManaged && event.externalLink) ? 
-                                        `event.stopPropagation(); handleExternalRedirect(${event.id}, '${event.externalLink.replace(/'/g, "\\'")}')` : 
+                                        `event.stopPropagation(); handleExternalRedirect(${event.id}, '${safeLink}')` : 
                                         `applyToEvent(${event.id})`;
 
                                     let buttonsHtml = "";
@@ -466,7 +469,7 @@ function displayEvents(events, prepend = false) {
                                     return buttonsHtml;
                                 })()}
                             </div>
-                            <button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${event.title.replace(/'/g, "\\'")}')">
+                            <button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${safeTitle}')">
                                 <i class="fas fa-share-alt" style="font-size: 12px;"></i>
                             </button>
                         </div>
