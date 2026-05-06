@@ -370,8 +370,8 @@ function displayEvents(events, prepend = false) {
         const displayImage = isHeavyImage ? getEventDefaultImage(eventType) : (event.imageUrl || getEventDefaultImage(eventType));
 
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: ${useFeedLayout ? 'pointer' : 'default'}; display: flex; flex-direction: column; background: #fff !important; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; width: 100% !important;" onclick="${cardOnClick}">
-                <div style="position: relative; width: 100%; background: none !important;">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; cursor: ${useFeedLayout ? 'pointer' : 'default'}; width: 100% !important;" onclick="${cardOnClick}">
+                <div style="position: relative; width: 100%; overflow: hidden;">
                     <img src="${displayImage}" 
                          alt="${event.title}" 
                          style="width: 100% !important; min-width: 100% !important; height: auto !important; display: block !important; z-index: 1; background: none !important;">
@@ -406,6 +406,17 @@ function displayEvents(events, prepend = false) {
                             <p class="card-desc" style="font-size: 12px; margin-bottom: 10px; line-height: 1.4; color: #4b5563;">
                                 ${(event.description.length > 200) ? event.description.substring(0, 200) + '...' : event.description}
                             </p>
+                        ` : ''}
+
+                        ${event.adminNote ? `
+                            <div style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                    <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 12px; margin-top: 2px;"></i>
+                                    <p style="font-size: 11px; font-weight: 500; color: #1e40af; line-height: 1.4; margin: 0;">
+                                        ${event.adminNote}
+                                    </p>
+                                </div>
+                            </div>
                         ` : ''}
                     `}
                     
@@ -448,15 +459,15 @@ function displayEvents(events, prepend = false) {
                                                 if (hasApplied) {
                                                     if (isExt) {
                                                         const isM = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
-                                                        return `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px; background: #10b981; color: white;" onclick="${buttonAction}${regAct}"><i class="fab ${isM ? 'fa-envelope' : 'fa-whatsapp'}"></i> ${isM ? 'Open Mail' : 'Open WhatsApp'}</button>`;
+                                                        return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; background: #10b981; color: white; border-radius: 12px; border: none; font-weight: 700;" onclick="${buttonAction}${regAct}"><i class="fab ${isM ? 'fa-envelope' : 'fa-whatsapp'}"></i> ${isM ? 'Open Mail' : 'Open WhatsApp'}</button>`;
                                                     } else {
-                                                        return `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>`;
+                                                        return `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 8px 18px; font-size: 11px; opacity: 1; border-radius: 12px; border: none; font-weight: 700;"><i class="fas fa-check-circle"></i> Registered</button>`;
                                                     }
                                                 }
-                                                return `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${regAct}">Register</button>`;
+                                                return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; border-radius: 12px; border: none; font-weight: 700; background: linear-gradient(135deg, var(--primary-orange), #ff6b00); color: white; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);" onclick="${buttonAction}${regAct}">Register</button>`;
                                             })()}
                                         </div>
-                                        <button class="apply-btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onclick="shareContent('event', ${event.id}, '${(event.title || 'Event').replace(/'/g, "\\")}')">
+                                        <button class="share-btn-sm" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; transition: 0.3s;" onclick="shareContent('event', ${event.id}, '${(event.title || 'Event').replace(/'/g, "\\")}')">
                                             <i class="fas fa-share-alt" style="font-size: 12px;"></i>
                                         </button>
                                     </div>`;
@@ -669,11 +680,13 @@ function toggleManagedFields() {
 
     // Show registration method options for managed auditions
     const regMethodGroup = document.getElementById('registrationMethodGroup');
+    const adminNoteGroup = document.getElementById('adminNoteGroup');
     if (regMethodGroup) {
         regMethodGroup.style.display = isManaged ? 'block' : 'none';
-        if (isManaged) {
-            toggleRegistrationLink();
-        }
+        if (isManaged) toggleRegistrationLink();
+    }
+    if (adminNoteGroup) {
+        adminNoteGroup.style.display = isManaged ? 'block' : 'none';
     }
 
     // Special case for Organizer Phone group which has no single ID
@@ -812,6 +825,7 @@ async function submitEvent() {
         orgEmail: document.getElementById('eventOrgEmail') ? document.getElementById('eventOrgEmail').value.trim() : '',
         orgPhone: document.getElementById('eventOrgPhone') ? document.getElementById('eventOrgPhone').value.trim() : '',
         imageUrl: document.getElementById('eventImageUrl') ? document.getElementById('eventImageUrl').value : '',
+        adminNote: document.getElementById('eventAdminNote') ? document.getElementById('eventAdminNote').value.trim() : '',
         roleType: document.getElementById('eventRoleType') ? document.getElementById('eventRoleType').value : '',
         ageRange: document.getElementById('eventAgeRange') ? document.getElementById('eventAgeRange').value.trim() : '',
         genderPreference: document.getElementById('eventGender') ? document.getElementById('eventGender').value : '',

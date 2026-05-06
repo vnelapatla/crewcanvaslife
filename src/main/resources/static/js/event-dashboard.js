@@ -387,6 +387,9 @@ function openEditModal() {
     
     document.getElementById('editDescription').value = currentEvent.description || '';
     
+    const adminNoteEl = document.getElementById('editAdminNote');
+    if (adminNoteEl) adminNoteEl.value = currentEvent.adminNote || '';
+    
     const statusEl = document.getElementById('editStatus');
     if (statusEl) statusEl.value = currentEvent.status || 'OPEN';
 
@@ -495,6 +498,11 @@ function updateEditFormFields(type) {
     if (skillsGroup) skillsGroup.style.display = 'block'; 
     if (capacityGroup) capacityGroup.style.display = 'block';
     if (priceGroup) priceGroup.style.display = 'block';
+    
+    const adminNoteGroup = document.getElementById('editAdminNoteGroup');
+    if (adminNoteGroup) {
+        adminNoteGroup.style.display = currentEvent.isManaged ? 'block' : 'none';
+    }
 
     // Specific hiding logic
     if (type === 'Film Event') {
@@ -635,6 +643,7 @@ async function saveEventEdits() {
         imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value.trim() : (currentEvent.imageUrl || ''),
         requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value.trim() : (currentEvent.requirements || ''),
         description: document.getElementById('editDescription').value.trim(),
+        adminNote: document.getElementById('editAdminNote') ? document.getElementById('editAdminNote').value.trim() : (currentEvent.adminNote || ''),
         status: document.getElementById('editStatus') ? document.getElementById('editStatus').value : (currentEvent.status || 'OPEN'),
         externalLink: (currentEvent.isManaged && document.getElementById('editRegistrationMethod').value === 'external') ? document.getElementById('editExternalLink').value.trim() : null
     };

@@ -172,6 +172,9 @@ public class EventService {
                             + "-" + (System.currentTimeMillis() % 10000));
                 }
             }
+            if (updatedEvent.getAdminNote() != null) {
+                event.setAdminNote(updatedEvent.getAdminNote());
+            }
             if (updatedEvent.getExternalLink() != null) {
                 event.setExternalLink(updatedEvent.getExternalLink());
             }

@@ -95,6 +95,9 @@ public class Event {
     @Column(name = "share_key", unique = true)
     private String shareKey;
 
+    @Column(name = "admin_note", length = 1000)
+    private String adminNote;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
@@ -358,5 +361,13 @@ public class Event {
 
     public void setShareKey(String shareKey) {
         this.shareKey = shareKey;
+    }
+
+    public String getAdminNote() {
+        return adminNote;
+    }
+
+    public void setAdminNote(String adminNote) {
+        this.adminNote = adminNote;
     }
 }

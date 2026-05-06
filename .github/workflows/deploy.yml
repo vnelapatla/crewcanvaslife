@@ -28,7 +28,7 @@ jobs:
         # Verify the file exists
         ls -lh target/*.jar
 
-    - name: Deploy and Restart
+    - name: Prepare Server
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -37,87 +37,52 @@ jobs:
         script: |
           mkdir -p ~/app
           cd ~/app
-          # Nuclear Kill: Stop ALL Java processes
-          echo "Terminating all Java processes..."
-          sudo killall -9 java || true
-          sudo fuser -k 8080/tcp || true
-          rm -rf * || true
-          # Upload happens in a separate step, but we will wait for it here
-          echo "Waiting for new JAR to arrive..."
-          sleep 5
+          # Ensure current_port.txt exists if it's the first time
+          if [ ! -f current_port.txt ]; then echo "8081" > current_port.txt; fi
 
-    - name: Deploy JAR
+    - name: Upload Artifacts
       uses: appleboy/scp-action@v0.1.4
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "target/*.jar,UPDATE_SCHEMA.sql"
+        source: "target/*.jar,UPDATE_SCHEMA.sql,deploy.sh"
         target: "~/app"
-        strip_components: 1
+        strip_components: 0 # Keep target/ folder if needed, but we usually want it flat
         overwrite: true
 
-    - name: Final Startup and Nginx Fix
+    - name: Execute Blue-Green Deploy
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # 1. Start the Java App
-          echo "Applying database migrations..."
-          sudo mysql crewcanvas_db < ~/app/UPDATE_SCHEMA.sql || echo "Migration notice: sudo mysql failed, trying with password..."
-          mysql -u root -proot crewcanvas_db < ~/app/UPDATE_SCHEMA.sql || echo "All migration attempts failed. Please check MySQL credentials on the server."
-
-          echo "Process cleanup..."
-          sudo fuser -k 8080/tcp || echo "Port already free."
-
-          echo "Starting the application..."
           cd ~/app
-
-          nohup java \
-          -Xms64m -Xmx160m \
-          -XX:+UseSerialGC \
-          -XX:MaxMetaspaceSize=128m \
-          -Dserver.port=8081 \
-          -jar *.jar \
-          > app.log 2>&1 &
-
-          sleep 25
-
-          echo "Checking application..."
-          if curl -s http://localhost:8081 > /dev/null; then
-            echo "Application started successfully."
-          else
-            echo "ERROR: App failed"
-            tail -50 app.log
-            exit 1
-          fi
-
-          # 2. Fix Nginx Upload Limit (50MB)
-          # Debug Nginx Config
-          sudo cat /etc/nginx/sites-enabled/* || true
-          echo "Updating Nginx configuration..."
-          NGINX_CONF="/etc/nginx/nginx.conf"
+          # Move files to root of app dir for easier handling
+          mv target/*.jar . 2>/dev/null || true
+          chmod +x deploy.sh
           
+          # Apply database migrations first
+          echo "Applying database migrations..."
+          mysql -u root -proot crewcanvas_db < UPDATE_SCHEMA.sql || echo "Migration notice: Migration might have failed or already applied."
+          
+          # Run the blue-green deployment script
+          ./deploy.sh
+
+    - name: Nginx Optimization
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "Ensuring Nginx client_max_body_size is set..."
+          NGINX_CONF="/etc/nginx/nginx.conf"
           if [ -f "$NGINX_CONF" ]; then
-            if sudo grep -q "client_max_body_size" "$NGINX_CONF"; then
-              echo "Updating existing client_max_body_size..."
-              sudo sed -i 's/client_max_body_size.*/client_max_body_size 50M;/' "$NGINX_CONF"
-            else
-              echo "Adding client_max_body_size to http block..."
+            if ! sudo grep -q "client_max_body_size" "$NGINX_CONF"; then
               sudo sed -i '/http {/a \    client_max_body_size 50M;' "$NGINX_CONF"
+              sudo nginx -t && sudo systemctl reload nginx
             fi
-            
-            # Test and Reload Nginx
-            echo "Testing Nginx configuration..."
-            if sudo nginx -t; then
-              sudo systemctl reload nginx
-              echo "Nginx reloaded with 50MB limit."
-            else
-              echo "ERROR: Nginx configuration test failed. Reverting changes or check manually."
-              exit 1
-            fi
-          else
-            echo "WARNING: /etc/nginx/nginx.conf not found. Skipping Nginx fix."
           fi
+

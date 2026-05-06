@@ -260,11 +260,21 @@
             background: #fff;
             border-radius: 24px;
             overflow: hidden;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
             border: 1px solid #f1f5f9;
             transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             position: relative;
             animation: cardAppear 0.5s ease backwards;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .cinematic-card:hover {
+            transform: translateY(-8px) scale(1.005);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 140, 0, 0.05);
+            border-color: rgba(255, 140, 0, 0.25);
+            outline: 1px solid rgba(255, 140, 0, 0.1);
+            outline-offset: -1px;
         }
 
         .remove-photo-btn {
@@ -1038,6 +1048,10 @@
                     <div class="form-group full-width" id="skillsGroup">
                         <label class="form-label-premium" id="labelSkills">Key Skills Required</label>
                         <input type="text" id="eventSkills" class="form-control-premium" placeholder="e.g. Acting, Dancing, Video Editing">
+                    </div>
+                    <div class="form-group full-width" id="adminNoteGroup" style="display: none;">
+                        <label class="form-label-premium" style="color: #6366f1; font-size: 10px;">Note for Audience (Optional)</label>
+                        <textarea id="eventAdminNote" class="form-control-premium" style="height: 60px;" placeholder="Extra instructions, dress code, etc."></textarea>
                     </div>
                     <div class="form-group full-width">
                         <label class="form-label-premium" id="labelDesc">Description & Requirements</label>
