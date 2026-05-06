@@ -15,6 +15,21 @@ public class EmailService {
     @org.springframework.beans.factory.annotation.Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
+    private void safeSend(SimpleMailMessage message) {
+        try {
+            mailSender.send(message);
+        } catch (org.springframework.mail.MailSendException e) {
+            String msg = e.getMessage();
+            if (msg != null && msg.contains("550-5.4.5")) {
+                System.err.println("[EMAIL LIMIT] Gmail daily limit exceeded. Skipping email to: " + message.getTo()[0]);
+            } else {
+                System.err.println("[EMAIL ERROR] Failed to send email to " + message.getTo()[0] + ": " + msg);
+            }
+        } catch (Exception e) {
+            System.err.println("[EMAIL ERROR] Critical failure sending email: " + e.getMessage());
+        }
+    }
+
     @Async
     public void sendResetPasswordEmail(String to, String resetLink) {
         if (!emailEnabled) {
@@ -27,7 +42,7 @@ public class EmailService {
         message.setText("Click the link below to reset your password:\n\n" + resetLink + 
                         "\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.");
         
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -51,7 +66,7 @@ public class EmailService {
                 "The CrewCanvas Team";
         
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -63,9 +78,7 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
-        String context = getEventContext(eventType);
         String phase = getEventPhase(eventType);
-        
         message.setSubject("Congratulations! You're Shortlisted for " + eventTitle + " 🎉");
 
         String body = "Hi " + name + ",\n\n" +
@@ -78,7 +91,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -104,7 +117,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -132,7 +145,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -156,7 +169,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -178,7 +191,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -199,13 +212,13 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
     public void sendLikeNotificationEmail(String to, String likerName, Long postId) {
         if (!emailEnabled) {
-            System.out.println("[EMAIL SKIPPED] Like Notification to: " + to);
+            System.err.println("[EMAIL SKIPPED] Like Notification to: " + to);
             return;
         }
         SimpleMailMessage message = new SimpleMailMessage();
@@ -220,7 +233,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -241,7 +254,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -265,7 +278,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -288,7 +301,7 @@ public class EmailService {
                 "The CrewCanvas Team";
         
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     public String getBroadcastSubject(String eventType) {
@@ -368,7 +381,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -389,7 +402,7 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 
     @Async
@@ -413,6 +426,6 @@ public class EmailService {
                 "The CrewCanvas Team";
 
         message.setText(body);
-        mailSender.send(message);
+        safeSend(message);
     }
 }

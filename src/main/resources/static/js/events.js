@@ -211,17 +211,93 @@ async function submitEvent() {
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify(eventData) 
     });
-    if (res.ok) { showMessage('Event Saved!', 'success'); closeFormModal(); loadEvents(); }
+
+    if (res.ok) {
+        showMessage('Opportunity launched successfully!', 'success');
+        closeFormModal();
+        loadEvents();
+    } else {
+        showMessage('Failed to save event.', 'error');
+    }
 }
 
 async function handleExternalRedirect(eventId, url) {
-    if (!currentUserId) return;
+    if (!currentUserId || !currentUser) {
+        showMessage('Please login to apply.', 'error');
+        return;
+    }
+
+    // 0. Profile Strength Validation (Minimum 80% required)
+    const score = calculateProfileScore(currentUser);
+    if (score < 80) {
+        showMessage(`⚠️ Profile Incomplete (${score}%). Please complete at least 80% to apply to recruiters. (Ensure Name, Email, Phone, Bio, Resume, Video, and 5+ Recent Images are added).`, 'warning');
+        setTimeout(() => window.location.href = 'edit-profile.html', 3000);
+        return;
+    }
+    
+    // 1. Find event title for context
+    const event = allEvents.find(e => e.id == eventId);
+    const eventTitle = event ? event.title : 'Opportunity';
+
+    const iconRocket = '\uD83D\uDE80';
+    const iconProfile = '\uD83D\uDC64';
+    const iconCheck = '\u2705';
+    const iconLink = '\uD83D\uDD17';
+    const iconSparkle = '\u2728';
+    const iconDeck = '\uD83D\uDCD1';
+    const bullet = '\u25AB\uFE0F';
+
+    // 2. Build the Premium "Casting Deck" Message
+    let message = `${iconRocket} *APPLICATION: ${eventTitle.toUpperCase()}*\n`;
+    message += `━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    message += `${iconCheck} *CORE ELIGIBILITY*\n`;
+    message += `${bullet} *Age:* ${currentUser.ageRange || 'Not Specified'}\n`;
+    message += `${bullet} *Languages:* ${currentUser.languages || 'Not Specified'}\n`;
+    message += `${bullet} *Location:* ${currentUser.location || 'Not Specified'}\n`;
+    message += `${bullet} *Experience:* ${currentUser.experience || 'Fresher'}\n\n`;
+
+    message += `${iconProfile} *CANDIDATE INFO*\n`;
+    message += `${bullet} *Name:* ${currentUser.name}\n`;
+    message += `${bullet} *Height:* ${currentUser.height || 'N/A'}\n`;
+    if (currentUser.phone) message += `${bullet} *Phone:* ${currentUser.phone}\n\n`;
+
+    message += `${iconDeck} *FULL CASTING DECK (Profile & Resume)*\n`;
+    const profileUrl = `${window.location.origin}/share/deck/${currentUser.id}`;
+    message += `${iconLink} ${profileUrl}\n\n`;
+    
+    message += `━━━━━━━━━━━━━━━━━━\n`;
+    message += `${iconSparkle} _Sent via CrewCanvas Talent Network_`;
+
+    const encodedMessage = encodeURIComponent(message);
+    
+    // 3. Prepare the final Redirect URL
+    let finalUrl = url;
+    
+    // If it's a phone number, convert to wa.me
+    if (/^\d+$/.test(url.replace(/[^\d+]/g, ''))) {
+        const cleanPhone = url.replace(/[^\d]/g, '');
+        finalUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+    } 
+    // If it's already a wa.me link but has no text, append it
+    else if (url.includes('wa.me') && !url.includes('text=')) {
+        finalUrl += (url.includes('?') ? '&' : '?') + 'text=' + encodedMessage;
+    }
+
+    // Record the redirect in backend
     await fetch(`${API_BASE_URL}/api/events/${eventId}/apply?userId=${currentUserId}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ applicantName: currentUser.name, additionalNote: 'WhatsApp Redirect' })
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+            applicantName: currentUser.name, 
+            additionalNote: 'WhatsApp Redirect: Full Portfolio Data Sent' 
+        })
     });
+    
     userApplications.push({ eventId: parseInt(eventId) });
-    searchEvents();
-    window.open(url, '_blank');
+    searchEvents(); // Refresh UI to show 'Registered'
+    
+    window.open(finalUrl, '_blank');
 }
 
 async function applyToEvent(eventId) { if (!currentUserId) return; openAppModal(eventId); }

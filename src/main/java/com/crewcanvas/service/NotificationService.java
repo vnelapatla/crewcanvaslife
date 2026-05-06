@@ -132,8 +132,8 @@ public class NotificationService {
                     event.getId().toString()
                 );
 
-                // 2. Send Email Notification
-                if (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications())) {
+                // 2. Send Email Notification - ONLY for Managed/Admin events to avoid hitting Gmail limits
+                if (Boolean.TRUE.equals(event.getIsManaged()) && (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications()))) {
                     emailService.sendNewEventBroadcastEmail(
                         targetUser.getEmail(), 
                         targetUser.getName(), 

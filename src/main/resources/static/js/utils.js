@@ -504,7 +504,7 @@ function shareContent(type, id, title = '') {
     } else if (type === 'event') {
         shareUrl = `${window.location.origin}/share/event/${id}`;
     } else if (type === 'profile') {
-        shareUrl = `${window.location.origin}/profile.html?userId=${id}`;
+        shareUrl = `${window.location.origin}/share/deck/${id}`;
     } else {
         shareUrl = window.location.href;
     }
@@ -1121,26 +1121,20 @@ function calculateProfileScore(user) {
     if (!user) return 0;
     let score = 0;
     
-    // Identity (Max 25)
+    // Core Identity (Max 40)
     if (user.name) score += 10;
-    if (user.phone) score += 5;
-    if (user.location) score += 5;
-    if (user.bio) score += 5;
+    if (user.email) score += 10;
+    if (user.phone) score += 10;
+    if (user.bio) score += 10;
     
-    // Visuals (Max 20)
-    if (user.profilePicture) score += 10;
-    if (user.coverImage) score += 10;
-    
-    // Professional (Max 30)
-    if (user.role) score += 10;
+    // Professional Assets (Max 40)
+    if (user.resume) score += 15;
+    if (user.showreel || user.portfolioVideos) score += 15;
     if (user.skills) score += 10;
-    if (user.experience) score += 10;
     
-    // Portfolio & Social (Max 25)
-    if (user.showreel || user.portfolioVideos) score += 10;
-    if (user.recentPictures && user.recentPictures.length > 5) score += 5;
-    if (user.resume) score += 5;
-    if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 5;
+    // Media & Craft (Max 20)
+    if (user.recentPictures && user.recentPictures.length > 5) score += 10;
+    if (user.role && user.experience) score += 10;
     
     return Math.min(score, 100);
 }
@@ -1561,6 +1555,42 @@ function openBase64InNewTab(data, contentType = '', fileName = '') {
         }
     } catch (e) {
         console.error("Critical error opening file:", e);
-        window.open(data, '_blank');
     }
+}
+
+/**
+ * Calculates profile completion percentage based on core requirements
+ * Required: Name, Email, Phone, Bio, Resume, Video, and 5+ Recent Images
+ */
+function calculateProfileScore(user) {
+    if (!user) return 0;
+    let score = 0;
+    
+    // Core Info (40%)
+    if (user.name) score += 10;
+    if (user.email) score += 10;
+    if (user.phone && !user.phone.includes('X')) score += 10;
+    if (user.bio && user.bio.length > 10) score += 10;
+    
+    // Media (30%)
+    if (user.resume) score += 15;
+    if (user.showreel || user.portfolioVideos) score += 15;
+    
+    // Recent Pictures (30%)
+    if (user.recentPictures) {
+        try {
+            const pics = JSON.parse(user.recentPictures);
+            if (Array.isArray(pics)) {
+                if (pics.length >= 5) score += 30;
+                else if (pics.length > 0) score += (pics.length * 6); // 6% per photo up to 30%
+            }
+        } catch (e) {
+            // Handle legacy comma-separated string
+            const pics = user.recentPictures.split(',').filter(p => p.trim());
+            if (pics.length >= 5) score += 30;
+            else if (pics.length > 0) score += (pics.length * 6);
+        }
+    }
+    
+    return Math.min(100, score);
 }

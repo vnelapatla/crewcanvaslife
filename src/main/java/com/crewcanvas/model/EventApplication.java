@@ -57,7 +57,8 @@ public class EventApplication {
     @Column(name = "is_scanned")
     private Boolean scanned = false;
 
-    @Column(name = "portfolio_link")
+    @Lob
+    @Column(name = "portfolio_link", columnDefinition = "LONGTEXT")
     private String portfolioLink;
 
     @Column(name = "additional_note", length = 1000)

@@ -92,7 +92,13 @@ ALTER TABLE users
 MODIFY COLUMN bio TEXT,
 MODIFY COLUMN skills TEXT,
 MODIFY COLUMN experience TEXT,
-MODIFY COLUMN location TEXT;
+MODIFY COLUMN location TEXT,
+MODIFY COLUMN showreel LONGTEXT,
+MODIFY COLUMN portfolio_videos LONGTEXT,
+MODIFY COLUMN sample_tracks LONGTEXT;
 
 -- Success indicator
 SELECT 'Database schema sync complete!' AS status;
+
+-- Fix for Event Applications Data Truncation
+ALTER TABLE event_applications MODIFY COLUMN portfolio_link LONGTEXT;

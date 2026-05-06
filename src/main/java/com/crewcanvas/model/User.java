@@ -86,13 +86,15 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String editingSoftware;
     
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String portfolioVideos;
     
     @Column(columnDefinition = "TEXT")
     private String cameraExpertise;
     
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String sampleTracks;
 
     // --- New Role-Specific Fields (Stored as TEXT to avoid row size limits) ---
@@ -113,7 +115,8 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String teamSize;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String showreel;
 
     @Column(columnDefinition = "TEXT")

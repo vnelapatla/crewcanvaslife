@@ -333,6 +333,38 @@ function setupImageHandlers() {
     }
 }
 
+async function handleVideoUpload(input, targetId) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Check size (Max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+        showMessage('Video file is too large. Max limit is 50MB.', 'error');
+        return;
+    }
+
+    const statusEl = document.getElementById(targetId + 'Status');
+    const targetEl = document.getElementById(targetId);
+
+    try {
+        if (statusEl) statusEl.textContent = '🔄 Uploading video...';
+        const base64 = await uploadImage(file); // Reusing uploadImage which handles base64 conversion
+        if (targetEl) targetEl.value = base64;
+        if (statusEl) {
+            statusEl.textContent = '✅ ' + file.name + ' uploaded successfully.';
+            statusEl.style.color = '#16a34a';
+        }
+        showMessage('Video uploaded successfully.', 'success');
+    } catch (err) {
+        console.error('Video upload failed:', err);
+        if (statusEl) {
+            statusEl.textContent = '❌ Upload failed.';
+            statusEl.style.color = '#ef4444';
+        }
+        showMessage('Video upload failed.', 'error');
+    }
+}
+
 function renderRecentPictures() {
     const container = document.getElementById('recentPicturesContainer');
     if (!container) return;

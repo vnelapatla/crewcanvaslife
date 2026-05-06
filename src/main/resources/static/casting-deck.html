@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casting Deck | CrewCanvas Professional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --brand-orange: #ff8c00;
+            --brand-black: #000;
+            --brand-gray: #64748b;
+            --brand-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fff; /* White Edges */
+            margin: 0;
+            padding: 40px 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Prevent global sidebar injection */
+        .sidebar, .top-header, .bottom-nav, #mobile-nav, .nav-bar {
+            display: none !important;
+        }
+
+        /* Centered Portfolio Book */
+        .deck-container {
+            display: flex;
+            width: 1100px;
+            max-width: 95vw;
+            background: #020617;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.1);
+            min-height: 800px;
+        }
+
+        /* Left Side: White Identity Panel */
+        .info-panel {
+            width: 380px;
+            background: #fff;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #eee;
+        }
+
+        .avatar-wrapper {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .main-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .info-panel h1 {
+            font-family: 'Outfit';
+            font-size: 32px;
+            margin: 0;
+            font-weight: 900;
+            color: #000;
+            text-align: center;
+        }
+
+        .info-panel .role-tag {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--brand-orange);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+        }
+
+        .specs-grid {
+            width: 100%;
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .spec-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #f1f5f9;
+        }
+
+        .spec-item span {
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .spec-item b {
+            font-size: 15px;
+            color: #000;
+        }
+
+        /* Right Side: Dark Cinematic Panel */
+        .media-panel {
+            flex: 1;
+            padding: 60px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .media-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 400px;
+            background: radial-gradient(circle at 100% 0%, rgba(255, 140, 0, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .section-card {
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(20px);
+            padding: 35px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-family: 'Outfit';
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
+        }
+
+        .narrative p {
+            font-size: 17px;
+            color: #94a3b8;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* Tabs */
+        .deck-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 20px;
+            border-radius: 12px;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Media */
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 4/5;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Action Buttons */
+        .actions-bar {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 40px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-btn.primary {
+            background: #000;
+            color: #fff;
+            border: 1px solid #000;
+        }
+
+        .action-btn.wa {
+            background: var(--brand-orange);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
+            border: none;
+        }
+
+        .action-btn.resume-btn {
+            background: #fff;
+            color: #000;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 1000px) {
+            body { padding: 0; }
+            .deck-container { width: 100%; height: auto; border-radius: 0; flex-direction: column; }
+            .info-panel { width: 100%; padding: 40px 20px; border-right: none; border-bottom: 1px solid #eee; }
+            .media-panel { padding: 40px 20px; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease;
+        }
+
+        @media (max-width: 900px) {
+            .deck-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 56px; }
+            .deck-wrapper { padding: 40px 20px 120px; }
+            .image-gallery { grid-template-columns: 1fr; }
+            .deck-actions { width: 90%; flex-direction: column; bottom: 20px; }
+            .action-btn { width: 100%; justify-content: center; }
+        }
+
+        @media print {
+            .deck-actions { display: none; }
+            body { background: white; }
+            .deck-wrapper { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <div style="text-align:center;">
+            <div style="font-family:'Outfit'; font-weight:900; font-size:32px; letter-spacing:5px; color:var(--brand-orange); text-transform:uppercase;">CREWCANVAS</div>
+            <div style="font-size:11px; letter-spacing:3px; margin-top:10px; color:#fff; opacity:0.6; font-weight:700;">AGENCY PORTFOLIO ACCESS</div>
+        </div>
+    </div>
+
+    <div class="deck-container">
+        <!-- Left Side: Professional Info (White) -->
+        <aside class="info-panel">
+            <div class="avatar-wrapper" id="mainPhotoBox">
+                <div class="main-avatar" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-spinner fa-spin" style="color:var(--brand-orange)"></i>
+                </div>
+            </div>
+            <h1 id="userName">---</h1>
+            <div class="role-tag" id="userRole">---</div>
+            
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <span>Age</span>
+                    <b id="specAge">--</b>
+                </div>
+                <div class="spec-item">
+                    <span>Height</span>
+                    <b id="specHeight">--</b>
+                </div>
+                <div class="spec-item">
+                    <span>Location</span>
+                    <b id="specLocation">--</b>
+                </div>
+                <div class="spec-item">
+                    <span>Exp</span>
+                    <b id="specExp">--</b>
+                </div>
+            </div>
+
+            <div style="margin-top:40px; width:100%; border-top:1px solid #eee; padding-top:40px;">
+                <div style="font-size:12px; color:#64748b; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-envelope" style="color:var(--brand-orange)"></i> <span id="userEmail">---</span>
+                </div>
+                <div id="phoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:30px; display:flex; align-items:center; gap:10px;">
+                    <!-- Phone injected here -->
+                </div>
+            </div>
+
+            <div class="actions-bar">
+                <a href="#" id="whatsappBtn" class="action-btn wa">
+                    <i class="fab fa-whatsapp"></i> Project Inquiry
+                </a>
+                <a href="#" id="resumeBtn" class="action-btn resume-btn">
+                    <i class="far fa-file-alt"></i> View CV / Resume
+                </a>
+                <button onclick="window.print()" class="action-btn primary">
+                    <i class="fas fa-print"></i> Download PDF Deck
+                </button>
+            </div>
+        </aside>
+
+        <!-- Right Side: Cinematic Media (Dark) -->
+        <main class="media-panel">
+            <div class="section-card">
+                <h2>The Narrative</h2>
+                <div id="userBio" class="narrative">Loading professional narrative...</div>
+            </div>
+
+            <div class="deck-tabs">
+                <button class="tab-btn active" id="btnReel" onclick="switchTab('reel')">SHOWREEL</button>
+                <button class="tab-btn" id="btnGallery" onclick="switchTab('gallery')">PORTFOLIO</button>
+                <button class="tab-btn" id="btnSkills" onclick="switchTab('skills')">EXPERTISE</button>
+            </div>
+
+            <div id="reelTab" class="tab-content">
+                <div class="section-card">
+                    <div id="videoContainer" class="video-wrapper">
+                        <!-- Video injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="galleryTab" class="tab-content" style="display:none;">
+                <div class="section-card">
+                    <div id="imageGallery" class="gallery-grid">
+                        <!-- Images injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="skillsTab" class="tab-content" style="display:none;">
+                <div class="section-card">
+                    <div id="skillsGrid" class="skill-grid">
+                        <!-- Skills injected here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js?v=5.2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Safety Timeout to hide loader if JS hangs
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (loader.style.display !== 'none') {
+                    console.warn("Safety Timeout: Hiding loader due to delay.");
+                    hideLoader();
+                }
+            }, 5000);
+
+            const userId = getQueryParam('userId');
+            if (!userId) {
+                console.error("No UserId found in URL");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+                if (!response.ok) throw new Error('Profile Fetch Failed');
+                const user = await response.json();
+                
+                // Content Injection
+                document.title = `${user.name} | Professional Casting Deck`;
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userRole').textContent = user.role || 'Talent';
+                document.getElementById('userEmail').textContent = user.email || 'Email Protected';
+                
+                document.getElementById('specAge').textContent = user.ageRange || user.age || 'N/A';
+                document.getElementById('specHeight').textContent = user.height || 'N/A';
+                document.getElementById('specLocation').textContent = user.location || 'N/A';
+                document.getElementById('specExp').textContent = user.experience || 'N/A';
+                
+                if (user.bio) document.getElementById('userBio').textContent = user.bio;
+                
+                // Avatar
+                const photoBox = document.getElementById('mainPhotoBox');
+                if (user.profilePicture && user.profilePicture.startsWith('data:image')) {
+                    photoBox.innerHTML = `<img src="${user.profilePicture}" class="main-avatar" alt="${user.name}">`;
+                } else {
+                    photoBox.innerHTML = `<div class="main-avatar" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:48px; font-weight:900;">${user.name ? user.name.charAt(0) : 'U'}</div>`;
+                }
+
+                // Skills
+                if (user.skills) {
+                    const skills = user.skills.split(',').map(s => s.trim()).filter(s => s);
+                    document.getElementById('skillsGrid').innerHTML = skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
+                }
+
+                // Media: Showreel
+                const reel = user.showreel || user.portfolioVideos || user.sampleTracks;
+                const videoBox = document.getElementById('videoContainer');
+                if (reel) {
+                    if (reel.includes('youtube.com') || reel.includes('youtu.be')) {
+                        const vidId = reel.includes('v=') ? reel.split('v=')[1].split('&')[0] : reel.split('/').pop();
+                        videoBox.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+                    } else if (reel.startsWith('data:video')) {
+                        videoBox.innerHTML = `<video src="${reel}" controls style="width:100%; height:100%; object-fit:cover;"></video>`;
+                    } else {
+                        videoBox.innerHTML = `<div style="padding:40px; text-align:center; color:#94a3b8;">Link: <a href="${reel}" target="_blank" style="color:var(--brand-orange);">${reel}</a></div>`;
+                    }
+                } else {
+                    document.getElementById('btnReel').style.display = 'none';
+                    switchTab('gallery');
+                }
+
+                // Media: Portfolio
+                if (user.recentPictures) {
+                    try {
+                        const pics = JSON.parse(user.recentPictures);
+                        if (Array.isArray(pics) && pics.length > 0) {
+                            document.getElementById('imageGallery').innerHTML = pics.map(p => `
+                                <div class="gallery-item"><img src="${p}" alt="Portfolio"></div>
+                            `).join('');
+                        }
+                    } catch(e) {
+                        const pics = user.recentPictures.split(',').filter(p => p.trim());
+                        if (pics.length > 0) {
+                            document.getElementById('imageGallery').innerHTML = pics.map(p => `
+                                <div class="gallery-item"><img src="${p}" alt="Portfolio"></div>
+                            `).join('');
+                        }
+                    }
+                }
+
+                // Unmask Phone
+                let displayPhone = user.phone;
+                if (displayPhone && displayPhone.includes('X')) {
+                    try {
+                        const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
+                        if (phoneRes.ok) {
+                            const phoneData = await phoneRes.json();
+                            if (phoneData.phone) displayPhone = phoneData.phone;
+                        }
+                    } catch (e) { console.error("Could not unmask phone", e); }
+                }
+
+                // WhatsApp Inquiry
+                const waBtn = document.getElementById('whatsappBtn');
+                const msg = encodeURIComponent(`Hi ${user.name}, I'm interested in discussing a project/role with you.\nView Deck: ${window.location.href}`);
+                waBtn.href = `https://wa.me/${displayPhone ? displayPhone.replace(/[^\d]/g, '') : ''}?text=${msg}`;
+                
+                if (displayPhone && displayPhone !== 'Data Not Available') {
+                    document.getElementById('phoneDisplay').innerHTML = `<i class="fas fa-phone" style="color:var(--brand-orange)"></i> ${displayPhone}`;
+                }
+
+                // Resume
+                if (user.resume) {
+                    const resumeBtn = document.getElementById('resumeBtn');
+                    resumeBtn.onclick = (e) => {
+                        e.preventDefault();
+                        if (typeof viewFileFromBase64 === 'function') {
+                            viewFileFromBase64(user.resume);
+                        } else {
+                            openBase64InNewTab(user.resume, 'application/pdf', `${user.name}_Resume.pdf`);
+                        }
+                    };
+                } else {
+                    document.getElementById('resumeBtn').style.display = 'none';
+                }
+
+                // Hide Loader
+                hideLoader();
+
+            } catch (error) {
+                console.error("Profile Load Error:", error);
+                hideLoader();
+            }
+        });
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                loader.style.pointerEvents = 'none';
+                setTimeout(() => loader.style.display = 'none', 600);
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById(tab + 'Tab');
+            if (target) target.style.display = 'block';
+            
+            const btn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
+            if (btn) btn.classList.add('active');
+        }
+
+        function openBase64InNewTab(base64Data, contentType, fileName) {
+            try {
+                const parts = base64Data.split(';base64,');
+                const actualBase64 = parts.length > 1 ? parts[1] : parts[0];
+                const sliceSize = 512;
+                const byteCharacters = atob(actualBase64);
+                const byteArrays = [];
+
+                for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                    const slice = byteCharacters.slice(offset, offset + sliceSize);
+                    const byteNumbers = new Array(slice.length);
+                    for (let i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                    }
+                    byteArrays.push(new Uint8Array(byteNumbers));
+                }
+
+                const blob = new Blob(byteArrays, {type: contentType});
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+            } catch (e) {
+                console.error("Error opening file:", e);
+                window.open(base64Data, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

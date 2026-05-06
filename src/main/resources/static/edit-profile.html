@@ -554,7 +554,15 @@
                         <div class="form-group"><label>Projects Directed</label><input type="text" id="dirProjects"></div>
                         <div class="form-group"><label>Budget Handled</label><input type="text" id="dirBudget"></div>
                         <div class="form-group"><label>Team Size Handled</label><input type="text" id="dirTeamSize"></div>
-                        <div class="form-group"><label>Showreel Link</label><input type="text" id="dirShowreel"></div>
+                        <div class="form-group">
+                            <label>Showreel Link / Upload</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="dirShowreel" placeholder="YouTube/Vimeo Link" style="flex: 1;">
+                                <button type="button" onclick="document.getElementById('dirVideoInput').click()" style="background: white; border: 1px solid var(--primary-orange); color: var(--primary-orange); padding: 12px; border-radius: 12px; cursor: pointer;"><i class="fa-solid fa-video"></i></button>
+                                <input type="file" id="dirVideoInput" style="display: none" accept="video/*" onchange="handleVideoUpload(this, 'dirShowreel')">
+                            </div>
+                            <small id="dirShowreelStatus" style="font-size: 10px; color: var(--text-muted);"></small>
+                        </div>
                     </div>
                     <div class="form-group"><label>Vision Statement</label><textarea id="dirVision" rows="3"></textarea></div>
                 </div>
@@ -576,14 +584,30 @@
                         <div class="form-group"><label>Gender</label><input type="text" id="actGender"></div>
                         <div class="form-group"><label>Body Type</label><input type="text" id="actBodyType"></div>
                         <div class="form-group"><label>Languages Spoken</label><input type="text" id="actLanguages"></div>
-                        <div class="form-group"><label>Showreel Link</label><input type="text" id="actShowreel"></div>
+                        <div class="form-group">
+                            <label>Showreel Link / Upload</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="actShowreel" placeholder="YouTube/Vimeo Link" style="flex: 1;">
+                                <button type="button" onclick="document.getElementById('actVideoInput').click()" style="background: white; border: 1px solid var(--primary-orange); color: var(--primary-orange); padding: 12px; border-radius: 12px; cursor: pointer;"><i class="fa-solid fa-video"></i></button>
+                                <input type="file" id="actVideoInput" style="display: none" accept="video/*" onchange="handleVideoUpload(this, 'actShowreel')">
+                            </div>
+                            <small id="actShowreelStatus" style="font-size: 10px; color: var(--text-muted);"></small>
+                        </div>
                     </div>
                 </div>
 
                 <div id="moduleDOP" class="craft-module">
                     <div class="form-grid">
                         <div class="form-group"><label>Camera Expertise</label><input type="text" id="dopCamera" placeholder="e.g. ARRI, RED, Sony"></div>
-                        <div class="form-group"><label>Showreel Link</label><input type="text" id="dopShowreel"></div>
+                        <div class="form-group">
+                            <label>Showreel Link / Upload</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="dopShowreel" placeholder="YouTube/Vimeo Link" style="flex: 1;">
+                                <button type="button" onclick="document.getElementById('dopVideoInput').click()" style="background: white; border: 1px solid var(--primary-orange); color: var(--primary-orange); padding: 12px; border-radius: 12px; cursor: pointer;"><i class="fa-solid fa-video"></i></button>
+                                <input type="file" id="dopVideoInput" style="display: none" accept="video/*" onchange="handleVideoUpload(this, 'dopShowreel')">
+                            </div>
+                            <small id="dopShowreelStatus" style="font-size: 10px; color: var(--text-muted);"></small>
+                        </div>
                     </div>
                 </div>
 

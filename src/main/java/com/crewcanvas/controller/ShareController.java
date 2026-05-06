@@ -24,6 +24,9 @@ public class ShareController {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private com.crewcanvas.service.UserService userService;
+
     @GetMapping("/post/{id}")
     public ResponseEntity<String> sharePost(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
         Optional<Post> postOpt = postService.getPostById(id);
@@ -77,6 +80,36 @@ public class ShareController {
                 .body(html);
     }
 
+    @GetMapping("/deck/{id}")
+    public ResponseEntity<String> shareProfile(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
+        Optional<com.crewcanvas.model.User> userOpt = userService.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        com.crewcanvas.model.User user = userOpt.get();
+        String title = user.getName() + (user.getRole() != null ? " | " + user.getRole() : " | CrewCanvas Professional");
+        
+        StringBuilder desc = new StringBuilder();
+        if (user.getRole() != null) desc.append("Role: ").append(user.getRole()).append(" | ");
+        if (user.getLocation() != null) desc.append("📍 ").append(user.getLocation()).append(" | ");
+        if (user.getSkills() != null) desc.append("Skills: ").append(user.getSkills());
+        
+        String finalDesc = desc.toString().isEmpty() ? "Check out my profile on CrewCanvas" : desc.toString();
+
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
+
+        String imageUrl = baseUrl + "/share/image/deck/" + id;
+
+        String html = generateShareHtml(title, finalDesc, imageUrl, baseUrl + "/casting-deck.html?userId=" + id, baseUrl);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(html);
+    }
+
     @GetMapping("/image/post/{id}")
     public ResponseEntity<byte[]> getPostImage(@PathVariable Long id) {
         Optional<Post> postOpt = postService.getPostById(id);
@@ -91,6 +124,15 @@ public class ShareController {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isPresent() && eventOpt.get().getImageUrl() != null) {
             return serveBase64Image(eventOpt.get().getImageUrl());
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/image/deck/{id}")
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable Long id) {
+        Optional<com.crewcanvas.model.User> userOpt = userService.findById(id);
+        if (userOpt.isPresent() && userOpt.get().getProfilePicture() != null) {
+            return serveBase64Image(userOpt.get().getProfilePicture());
         }
         return ResponseEntity.notFound().build();
     }
@@ -159,30 +201,24 @@ public class ShareController {
                 "    <meta name=\"twitter:title\" content=\"" + title + "\" />\n" +
                 "    <meta name=\"twitter:description\" content=\"" + description.replace("\"", "&quot;") + "\" />\n" +
                 "    <meta name=\"twitter:image\" content=\"" + imageUrl + "\" />\n" +
-                "    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\">\n" +
+                "    <link href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Inter:wght@400;600&display=swap\" rel=\"stylesheet\">\n" +
                 "    <style>\n" +
-                "        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }\n" +
-                "        .teaser-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }\n" +
-                "        .teaser-img { width: 100%; height: 250px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05); }\n" +
-                "        h1 { font-size: 24px; margin-bottom: 16px; color: #f8fafc; }\n" +
-                "        p { font-size: 16px; line-height: 1.6; color: #94a3b8; margin-bottom: 32px; white-space: pre-wrap; }\n" +
-                "        .btn { background: linear-gradient(135deg, #ff8c00, #ff5f00); color: white; text-decoration: none; padding: 16px 32px; border-radius: 14px; font-weight: 700; display: inline-block; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 10px 15px -3px rgba(255, 140, 0, 0.3); }\n" +
-                "        .btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(255, 140, 0, 0.4); }\n" +
-                "        .logo { font-weight: 800; color: #ff8c00; margin-bottom: 40px; font-size: 28px; display: block; text-decoration: none; }\n" +
+                "        body { font-family: 'Inter', sans-serif; background: #020617; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }\n" +
+                "        .teaser-card { text-align: center; max-width: 500px; width: 100%; }\n" +
+                "        .logo { font-family: 'Outfit'; font-weight: 900; color: #ff8c00; font-size: 32px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px; display: block; }\n" +
+                "        .loader { width: 40px; height: 40px; border: 3px solid rgba(255,140,0,0.1); border-top-color: #ff8c00; border-radius: 50%; margin: 30px auto; animation: spin 1s linear infinite; }\n" +
+                "        @keyframes spin { to { transform: rotate(360deg); } }\n" +
+                "        h1 { font-family: 'Outfit'; font-size: 20px; color: #94a3b8; letter-spacing: 1px; font-weight: 600; }\n" +
                 "    </style>\n" +
                 "    <script>\n" +
-                "        // Immediate redirect for humans. Bots (WhatsApp/Social Media) will ignore this \n" +
-                "        // and read the meta tags above for the 55% preview.\n" +
                 "        window.location.href = '" + redirectUrl + "';\n" +
                 "    </script>\n" +
                 "</head>\n" +
-                "<body style=\"background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;\">\n" +
-                "    <div style=\"text-align: center; font-family: 'Inter', sans-serif;\">\n" +
-                "        <h1 style=\"color: #ff8c00; margin-bottom: 20px;\">CrewCanvas</h1>\n" +
-                "        <p style=\"color: #94a3b8;\">Redirecting you to the full content...</p>\n" +
-                "        <noscript>\n" +
-                "            <a href=\"" + redirectUrl + "\" style=\"color: #ff8c00; text-decoration: underline;\">Click here to continue</a>\n" +
-                "        </noscript>\n" +
+                "<body>\n" +
+                "    <div class=\"teaser-card\">\n" +
+                "        <div class=\"logo\">CrewCanvas</div>\n" +
+                "        <div class=\"loader\"></div>\n" +
+                "        <h1>Accessing Professional Casting Deck...</h1>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";

@@ -306,11 +306,20 @@ function displayProfile(user) {
                 <a href="edit-profile.html" class="action-btn btn-primary">
                     <i class="fa-solid fa-user-edit"></i> Edit Profile
                 </a>
+                <a href="casting-deck.html?userId=${profileUserId}" class="action-btn btn-secondary" style="background:#0f172a; color:#fff;">
+                    <i class="fa-solid fa-id-card"></i> Casting Deck
+                </a>
             `;
         } else {
             // Re-check following state in case ProfileHandler finished late
             const isFollowing = typeof ProfileHandler !== 'undefined' ? ProfileHandler.isFollowing(profileUserId) : false;
             
+            const deckBtnHtml = `
+                <a href="casting-deck.html?userId=${profileUserId}" class="action-btn btn-secondary" style="background:#0f172a; color:#fff;">
+                    <i class="fa-solid fa-id-card"></i> Casting Deck
+                </a>
+            `;
+
             const followBtnHtml = `
                 <button onclick="ProfileHandler.toggleFollow('${profileUserId}', this)" 
                         data-user-id="${profileUserId}"
@@ -327,7 +336,7 @@ function displayProfile(user) {
                 </button>
             `;
 
-            actionsContainer.innerHTML = followBtnHtml + messageBtnHtml;
+            actionsContainer.innerHTML = deckBtnHtml + followBtnHtml + messageBtnHtml;
 
             // Check messaging permission from backend
             fetch(`${API_BASE_URL}/api/messages/check-permission?senderId=${currentUserId}&receiverId=${profileUserId}`)
@@ -405,7 +414,8 @@ function displayCraftSpecs(user) {
             { label: 'Age Range', key: 'ageRange' },
             { label: 'Gender', key: 'gender' },
             { label: 'Body Type', key: 'bodyType' },
-            { label: 'Languages', key: 'languages' }
+            { label: 'Languages', key: 'languages' },
+            { label: 'Showreel', key: 'showreel', isLink: true }
         ],
         'Editor': [
             { label: 'Software', key: 'editingSoftware' },
@@ -423,6 +433,11 @@ function displayCraftSpecs(user) {
         'DOP': [
             { label: 'Camera Expertise', key: 'cameraExpertise' },
             { label: 'Showreel', key: 'showreel', isLink: true }
+        ],
+        'Script Writer': [
+            { label: 'Genres', key: 'genres' },
+            { label: 'Experience', key: 'experienceDetails' },
+            { label: 'Sample Work', key: 'portfolioVideos', isLink: true }
         ],
         'Aspirant': [
             { label: 'Interests', key: 'interests' },
@@ -463,14 +478,28 @@ function displayCraftSpecs(user) {
     // De-duplicate fields by key
     fields = Array.from(new Map(fields.map(item => [item['key'], item])).values());
 
-    const activeFields = fields.filter(f => user[f.key] && user[f.key].toString().trim() !== '');
+    // --- Handle Showreel Separately (requested to be below personal info) ---
+    const showreelSection = document.getElementById('profileShowreelSection');
+    const showreelPlayer = document.getElementById('profileShowreelPlayer');
+    const reelData = user.showreel || user.portfolioVideos || user.sampleTracks;
 
-    if (activeFields.length > 0) {
+    if (reelData && showreelSection && showreelPlayer) {
+        showreelSection.style.display = 'block';
+        showreelPlayer.innerHTML = renderMediaLink(reelData, "Professional Reel");
+    }
+
+    // Filter out media fields from the standard list to avoid double-rendering
+    const activeFields = fields.filter(f => user[f.key] && user[f.key].toString().trim() !== '');
+    const displayFields = activeFields.filter(f => !['showreel', 'portfolioVideos', 'sampleTracks'].includes(f.key));
+
+    if (displayFields.length > 0) {
         card.style.display = 'block';
-        container.innerHTML = activeFields.map(f => `
-            <div class="data-row">
+        container.innerHTML = displayFields.map(f => `
+            <div class="data-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                 <span class="label">${f.label}</span>
-                <span class="value">${f.isLink ? `<a href="${user[f.key]}" target="_blank" style="color:var(--primary-orange); text-decoration:none;">View <i class="fa-solid fa-external-link" style="font-size:10px;"></i></a>` : user[f.key]}</span>
+                <div class="value" style="width: 100%;">
+                    ${f.isLink ? renderMediaLink(user[f.key], f.label) : user[f.key]}
+                </div>
             </div>
         `).join('');
     } else {
@@ -757,6 +786,46 @@ function renderEditImagePreviews() {
 function removeEditingImage(index) {
     editingImages.splice(index, 1);
     renderEditImagePreviews();
+}
+
+function renderMediaLink(url, label) {
+    if (!url) return '';
+    
+    // Check if it's a video file (Base64 or direct URL)
+    const isVideoFile = url.startsWith('data:video/') || url.match(/\.(mp4|webm|ogg|mov|avi)$/i);
+    
+    if (isVideoFile) {
+        return `
+            <div class="video-container" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px;">
+                <video src="${url}" controls style="width: 100%; max-height: 400px; display: block;"></video>
+            </div>
+        `;
+    }
+    
+    // Check if it's a YouTube link
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        const videoId = extractYouTubeId(url);
+        if (videoId) {
+            return `
+                <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin-top: 10px;">
+                    <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                </div>
+            `;
+        }
+    }
+    
+    // Default: Professional Link Button
+    return `
+        <a href="${url}" target="_blank" class="action-btn btn-secondary" style="font-size: 11px; padding: 8px 15px; margin-top: 5px; display: inline-flex; width: fit-content;">
+            View ${label} <i class="fa-solid fa-external-link" style="margin-left: 5px; font-size: 10px;"></i>
+        </a>
+    `;
+}
+
+function extractYouTubeId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
 }
 
 function setupEditImageUpload() {
