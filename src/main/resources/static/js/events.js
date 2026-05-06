@@ -346,7 +346,6 @@ function displayEvents(events, prepend = false) {
         </div>` : '';
 
         const isManaged = event.isManaged === true;
-        console.log(`DEBUG Event ${event.id}: isManaged=${isManaged}, externalLink=${event.externalLink}`);
         const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
         // Duplicate declaration removed: const animationDelay = (index % 10) * 0.1;
         // Determine if we use the simplified "Feed" layout
@@ -367,10 +366,13 @@ function displayEvents(events, prepend = false) {
         // If using feed layout, we don't want the inner button to trigger a second redirect
         const buttonAction = useFeedLayout ? 'event.stopPropagation();' : '';
 
+        const isHeavyImage = event.imageUrl && event.imageUrl.length > 500000;
+        const displayImage = isHeavyImage ? getEventDefaultImage(eventType) : (event.imageUrl || getEventDefaultImage(eventType));
+
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: ${useFeedLayout ? 'pointer' : 'default'}; display: flex; flex-direction: column; background: #fff !important; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; width: 100% !important;" onclick="${cardOnClick}">
                 <div style="position: relative; width: 100%; background: none !important;">
-                    <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
+                    <img src="${displayImage}" 
                          alt="${event.title}" 
                          style="width: 100% !important; min-width: 100% !important; height: auto !important; display: block !important; z-index: 1; background: none !important;">
                     
@@ -402,7 +404,7 @@ function displayEvents(events, prepend = false) {
                         
                         ${event.description ? `
                             <p class="card-desc" style="font-size: 12px; margin-bottom: 10px; line-height: 1.4; color: #4b5563;">
-                                ${event.description}
+                                ${(event.description.length > 200) ? event.description.substring(0, 200) + '...' : event.description}
                             </p>
                         ` : ''}
                     `}
@@ -469,6 +471,8 @@ function displayEvents(events, prepend = false) {
 
     if (prepend) {
         container.insertAdjacentHTML('afterbegin', eventsHtml);
+    } else {
+        container.innerHTML = eventsHtml;
     }
     
     // Check for auto-scroll if we have an ID in URL
@@ -1563,5 +1567,26 @@ function checkAutoScroll() {
                 hasScrolledToEvent = true;
             }
         }, 800); // Wait for animations to finish
+    }
+}
+
+function getEventDefaultImage(type) {
+    const images = {
+        'Audition': 'images/defaults/audition.png',
+        'Workshop': 'images/defaults/workshop.png',
+        'Course': 'images/defaults/course.png',
+        'Contest': 'images/defaults/contest.png',
+        'Film Event': 'images/cinema.png'
+    };
+    return images[type] || 'images/defaults/audition.png';
+}
+
+function formatEventDate(dateStr) {
+    if (!dateStr) return 'TBA';
+    try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) {
+        return dateStr;
     }
 }
