@@ -1026,6 +1026,7 @@ function initUniversalHeader() {
                         <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                         <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
                         <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Crew Canvas</a>
+                        <a href="mailto:crewcanvas2@gmail.com" class="dropdown-item contact-link"><i class="fas fa-envelope" style="color: #ff8c00;"></i> Contact & Collaborations</a>
                         ${isAdmin ? `<a href="admin-insights.html" class="dropdown-item"><i class="fas fa-chart-line" style="color: #3b82f6;"></i> Performance Insights</a>` : ''}
                         <a href="notifications.html" class="dropdown-item notifications-link">
                             <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
