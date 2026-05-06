@@ -1179,11 +1179,12 @@ const NotificationHandler = {
             sockScript.src = "https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js";
             document.head.appendChild(sockScript);
 
-            const stompScript = document.createElement('script');
-            stompScript.src = "https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js";
-            document.head.appendChild(stompScript);
-
-            stompScript.onload = () => this.establishConnection(userId);
+            sockScript.onload = () => {
+                const stompScript = document.createElement('script');
+                stompScript.src = "https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js";
+                document.head.appendChild(stompScript);
+                stompScript.onload = () => this.establishConnection(userId);
+            };
         } else {
             this.establishConnection(userId);
         }
@@ -1345,6 +1346,9 @@ const NotificationHandler = {
                 break;
             case 'VERIFY':
                 window.location.href = `profile.html`;
+                break;
+            case 'NEW_EVENT':
+                window.location.href = `event.html`;
                 break;
             default:
                 this.updateBadge(); // Just refresh badge

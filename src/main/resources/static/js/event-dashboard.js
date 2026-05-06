@@ -390,9 +390,33 @@ function openEditModal() {
     const statusEl = document.getElementById('editStatus');
     if (statusEl) statusEl.value = currentEvent.status || 'OPEN';
 
+    // Managed Options
+    const managedOptions = document.getElementById('editManagedOptions');
+    if (managedOptions) {
+        managedOptions.style.display = currentEvent.isManaged ? 'block' : 'none';
+        if (currentEvent.isManaged) {
+            const methodSelect = document.getElementById('editRegistrationMethod');
+            if (methodSelect) {
+                methodSelect.value = currentEvent.externalLink ? 'external' : 'internal';
+                const linkInput = document.getElementById('editExternalLink');
+                if (linkInput) linkInput.value = currentEvent.externalLink || '';
+                toggleEditRegistrationLink();
+            }
+        }
+    }
+
     updateEditFormFields(currentEvent.eventType || 'Audition');
 
     document.getElementById('editModal').style.display = 'flex';
+}
+
+function toggleEditRegistrationLink() {
+    const methodSelect = document.getElementById('editRegistrationMethod');
+    const method = methodSelect ? methodSelect.value : 'internal';
+    const linkGroup = document.getElementById('editExternalLinkGroup');
+    if (linkGroup) {
+        linkGroup.style.display = (method === 'external') ? 'block' : 'none';
+    }
 }
 
 function updateEditFormFields(type) {
@@ -611,10 +635,13 @@ async function saveEventEdits() {
         imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value.trim() : (currentEvent.imageUrl || ''),
         requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value.trim() : (currentEvent.requirements || ''),
         description: document.getElementById('editDescription').value.trim(),
-        status: document.getElementById('editStatus') ? document.getElementById('editStatus').value : (currentEvent.status || 'OPEN')
+        status: document.getElementById('editStatus') ? document.getElementById('editStatus').value : (currentEvent.status || 'OPEN'),
+        externalLink: (currentEvent.isManaged && document.getElementById('editRegistrationMethod').value === 'external') ? document.getElementById('editExternalLink').value.trim() : null
     };
 
-    console.log('Updated Event Payload:', updatedData);
+    console.log('DEBUG: updatedData isManaged:', currentEvent.isManaged);
+    console.log('DEBUG: updatedData externalLink:', updatedData.externalLink);
+    console.log('DEBUG: Full updatedData Payload:', updatedData);
 
     if (btn) {
         btn.disabled = true;

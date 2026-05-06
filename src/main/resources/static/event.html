@@ -919,10 +919,23 @@
                 <div class="form-grid-2">
                     <div class="form-group full-width" id="managedGroup" style="display: none; background: #fff8f1; padding: 12px; border-radius: 12px; border: 1px solid #ffe4d3; margin-bottom: 5px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" id="isManaged" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-orange);">
+                            <input type="checkbox" id="isManaged" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-orange);" onchange="toggleManagedFields()">
                             <label for="isManaged" style="font-size: 12px; font-weight: 700; color: #1e293b; cursor: pointer;">
                                 Managed by CrewCanvas <span style="font-size: 10px; color: #ff8c00; font-weight: 500;">(Secret Link enabled)</span>
                             </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width" id="registrationMethodGroup" style="display: none; background: #fff8f1; padding: 12px; border-radius: 12px; border: 1px solid #ffe4d3; margin-bottom: 5px; margin-top: -5px;">
+                        <label class="form-label-premium" style="color: var(--primary-orange); font-size: 10px;">Registration Method</label>
+                        <select id="registrationMethod" class="form-control-premium" onchange="toggleRegistrationLink()">
+                            <option value="internal">Store data in CrewCanvas Database</option>
+                            <option value="external">Redirect to other website</option>
+                        </select>
+                        
+                        <div id="externalLinkGroup" style="display: none; margin-top: 10px;">
+                            <label class="form-label-premium" style="font-size: 10px;">External Registration URL</label>
+                            <input type="url" id="externalLink" class="form-control-premium" placeholder="https://example.com/register">
                         </div>
                     </div>
                     <div class="form-group full-width">
@@ -1185,9 +1198,9 @@
         </div>
     </div>
 
-    <script src="js/utils.js?v=4.0"></script>
-    <script src="js/profile-handler.js?v=4.0"></script>
-    <script src="js/events.js?v=4.3"></script>
+    <script src="js/utils.js?v=4.5"></script>
+    <script src="js/profile-handler.js?v=4.5"></script>
+    <script src="js/events.js?v=4.5"></script>
     <script>
         // Drag to scroll for horizontal-cards
         const slider = document.querySelector('.horizontal-cards');

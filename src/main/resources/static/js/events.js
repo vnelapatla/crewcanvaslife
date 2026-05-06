@@ -142,6 +142,14 @@ async function loadEventForEdit(id) {
             const isManagedCheckbox = document.getElementById('isManaged');
             if (isManagedCheckbox) {
                 isManagedCheckbox.checked = event.isManaged === true;
+                if (event.isManaged) {
+                    const methodSelect = document.getElementById('registrationMethod');
+                    if (methodSelect) {
+                        methodSelect.value = event.externalLink ? 'external' : 'internal';
+                        const linkInput = document.getElementById('externalLink');
+                        if (linkInput) linkInput.value = event.externalLink || '';
+                    }
+                }
                 toggleManagedFields(); // Apply visibility
             }
             
@@ -337,14 +345,29 @@ function displayEvents(events, prepend = false) {
         </div>` : '';
 
         const isManaged = event.isManaged === true;
+        console.log(`DEBUG Event ${event.id}: isManaged=${isManaged}, externalLink=${event.externalLink}`);
         const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
         // Duplicate declaration removed: const animationDelay = (index % 10) * 0.1;
         // Determine if we use the simplified "Feed" layout
         // User wants managed auditions to look like posters in a feed
         const useFeedLayout = isManaged && !isOwnerOrAdmin;
+        
+        const getSafeUrl = (url) => {
+            if (!url) return '';
+            const u = url.trim();
+            if (u.startsWith('mailto:')) return u;
+            return (u.startsWith('http://') || u.startsWith('https://')) ? u : 'https://' + u;
+        };
+
+        const cardOnClick = useFeedLayout ? 
+            ((event.isManaged && event.externalLink) ? `handleExternalRedirect(${event.id}, '${event.externalLink.replace(/'/g, "\\'")}')` : `applyToEvent(${event.id})`) : 
+            '';
+            
+        // If using feed layout, we don't want the inner button to trigger a second redirect
+        const buttonAction = useFeedLayout ? 'event.stopPropagation();' : '';
 
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: pointer; display: flex; flex-direction: column; background: #fff !important; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; width: 100% !important;" onclick="${useFeedLayout ? `applyToEvent(${event.id})` : ''}">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; padding: 0; cursor: ${useFeedLayout ? 'pointer' : 'default'}; display: flex; flex-direction: column; background: #fff !important; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; width: 100% !important;" onclick="${cardOnClick}">
                 <div style="position: relative; width: 100%; background: none !important;">
                     <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
                          alt="${event.title}" 
@@ -408,9 +431,13 @@ function displayEvents(events, prepend = false) {
                                         return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; padding: 7px 14px; font-size: 11px;">Closed</button>`;
                                     }
 
+                                    const registerAction = (event.isManaged && event.externalLink) ? 
+                                        `event.stopPropagation(); handleExternalRedirect(${event.id}, '${event.externalLink.replace(/'/g, "\\'")}')` : 
+                                        `applyToEvent(${event.id})`;
+
                                     let buttonsHtml = hasApplied ? 
                                         `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>` : 
-                                        `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="applyToEvent(${event.id})">Register</button>`;
+                                        `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${registerAction}">Register</button>`;
                                     
                                     const passApp = userApps.find(app => app.passToken);
                                     if (passApp) {
@@ -626,6 +653,15 @@ function toggleManagedFields() {
         }
     });
 
+    // Show registration method options for managed auditions
+    const regMethodGroup = document.getElementById('registrationMethodGroup');
+    if (regMethodGroup) {
+        regMethodGroup.style.display = isManaged ? 'block' : 'none';
+        if (isManaged) {
+            toggleRegistrationLink();
+        }
+    }
+
     // Special case for Organizer Phone group which has no single ID
     const phoneGroup = document.getElementById('eventOrgPhone') ? document.getElementById('eventOrgPhone').closest('.form-group') : null;
     if (phoneGroup) phoneGroup.style.display = isManaged ? 'none' : 'block';
@@ -633,6 +669,15 @@ function toggleManagedFields() {
     // If NOT managed, re-apply type specific logic (like hiding audition fields for contests)
     if (!isManaged) {
         updateFormFields(currentType);
+    }
+}
+
+function toggleRegistrationLink() {
+    const methodSelect = document.getElementById('registrationMethod');
+    const method = methodSelect ? methodSelect.value : 'internal';
+    const linkGroup = document.getElementById('externalLinkGroup');
+    if (linkGroup) {
+        linkGroup.style.display = (method === 'external') ? 'block' : 'none';
     }
 }
 
@@ -757,13 +802,18 @@ async function submitEvent() {
         ageRange: document.getElementById('eventAgeRange') ? document.getElementById('eventAgeRange').value.trim() : '',
         genderPreference: document.getElementById('eventGender') ? document.getElementById('eventGender').value : '',
         prizePool: document.getElementById('eventPrizePool') ? document.getElementById('eventPrizePool').value.trim() : '',
-        isManaged: document.getElementById('isManaged') ? document.getElementById('isManaged').checked : false
+        isManaged: isManaged,
+        externalLink: (isManaged && document.getElementById('registrationMethod') && document.getElementById('registrationMethod').value === 'external') 
+            ? (document.getElementById('externalLink') ? document.getElementById('externalLink').value.trim() : null) 
+            : null
     };
 
     const url = editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`;
     const method = editModeId ? 'PUT' : 'POST';
 
-    console.log(`Sending ${method} request to ${url} with payload:`, eventData);
+    console.log(`DEBUG: Sending ${method} to ${url}`);
+    console.log(`DEBUG: Payload isManaged: ${eventData.isManaged}, externalLink: ${eventData.externalLink}`);
+    console.log(`DEBUG: Full Payload:`, eventData);
 
     const btn = document.querySelector('.btn-submit-event') || document.querySelector('button[onclick="submitEvent()"]');
     const originalText = btn ? (btn.innerText || btn.textContent) : 'Submit';
@@ -805,6 +855,92 @@ async function submitEvent() {
         if (btn) {
             btn.disabled = false;
             btn.innerText = originalText;
+        }
+    }
+}
+
+// Handle external redirects (WhatsApp/Email) with lead tracking
+async function handleExternalRedirect(eventId, url) {
+    if (!currentUserId) {
+        showMessage('Please log in to contact the organizer', 'warning');
+        // Optional: show login modal if available
+        return;
+    }
+
+    const getSafeUrl = (u) => {
+        if (!u) return '';
+        let trimmed = u.trim();
+        if (trimmed.startsWith('mailto:')) return trimmed;
+        
+        // Auto-detect email addresses and add mailto:
+        if (trimmed.includes('@') && !trimmed.includes('/') && !trimmed.startsWith('http')) {
+            return 'mailto:' + trimmed;
+        }
+        
+        return (trimmed.startsWith('http://') || trimmed.startsWith('https://')) ? trimmed : 'https://' + trimmed;
+    };
+
+    const safeUrl = getSafeUrl(url);
+    console.log("Redirecting to:", safeUrl);
+
+    // Track the lead ONLY if they haven't already applied
+    try {
+        const hasAlreadyApplied = userApplications.some(app => app.eventId == eventId);
+        
+        if (!hasAlreadyApplied) {
+            const appData = {
+                applicantName: currentUser?.fullName || currentUser?.name || 'Interested User',
+                applicantEmail: currentUser?.email || '',
+                mobileNumber: currentUser?.phone || '',
+                location: currentUser?.location || '',
+                additionalNote: `Redirected to external link: ${safeUrl}`
+            };
+
+            // Fire and forget
+            fetch(`${API_BASE_URL}/api/events/${eventId}/apply?userId=${currentUserId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(appData)
+            }).then(async (res) => {
+                if (res.ok) {
+                    const updatedEvent = await res.json();
+                    // Add to local list so the button changes to "Registered"
+                    userApplications.push({ eventId: parseInt(eventId) });
+                    
+                    const countEl = document.getElementById(`applicant-count-${eventId}`);
+                    if (countEl) {
+                        countEl.textContent = updatedEvent.applicants;
+                    }
+                    // This will update the button to "Registered"
+                    searchEvents();
+                }
+            }).catch(err => console.error("Lead tracking failed:", err));
+        }
+    } catch (e) {
+        console.error("Error preparing lead track:", e);
+    }
+
+    // Perform the redirect instantly using a more reliable hidden-link method
+    console.log("Final safeUrl for redirect:", safeUrl);
+    
+    // DEBUG ALERT - You can remove this after testing
+    // alert("Opening link: " + safeUrl);
+
+    try {
+        const link = document.createElement('a');
+        link.href = safeUrl;
+        if (!safeUrl.startsWith('mailto:')) {
+            link.target = '_blank';
+        }
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => document.body.removeChild(link), 100);
+    } catch (err) {
+        console.error("Link click simulation failed, falling back...", err);
+        if (safeUrl.startsWith('mailto:')) {
+            window.location.href = safeUrl;
+        } else {
+            window.open(safeUrl, '_blank');
         }
     }
 }

@@ -114,4 +114,38 @@ public class NotificationService {
             System.err.println("Error broadcasting admin post notification: " + e.getMessage());
         }
     }
+    @Async
+    public void broadcastNewEventNotification(com.crewcanvas.model.Event event, User host) {
+        try {
+            List<User> allUsers = userRepository.findAll();
+            String hostName = host != null ? host.getName() : "Someone";
+            
+            for (User targetUser : allUsers) {
+                if (host != null && targetUser.getId().equals(host.getId())) continue;
+
+                // 1. Create In-App Notification
+                createNotification(
+                    targetUser.getId(),
+                    host != null ? host.getId() : null,
+                    "NEW_EVENT",
+                    "posted a new " + (event.getEventType() != null ? event.getEventType().toLowerCase() : "event") + ": " + event.getTitle(),
+                    event.getId().toString()
+                );
+
+                // 2. Send Email Notification
+                if (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications())) {
+                    emailService.sendNewEventBroadcastEmail(
+                        targetUser.getEmail(), 
+                        targetUser.getName(), 
+                        hostName, 
+                        event.getTitle(), 
+                        event.getEventType(), 
+                        event.getId()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error broadcasting new event notification: " + e.getMessage());
+        }
+    }
 }

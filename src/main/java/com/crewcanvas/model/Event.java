@@ -7,7 +7,7 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "events")
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Event {
 
     @Id
@@ -30,13 +30,13 @@ public class Event {
 
     @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate date;
-    
+
     @Column(name = "end_date")
     @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
     private LocalTime time;
-    
+
     @Column(name = "time_duration")
     private String timeDuration;
 
@@ -67,7 +67,7 @@ public class Event {
 
     @Column(length = 2000)
     private String skills;
-    
+
     @Column(name = "role_type")
     private String roleType;
 
@@ -88,6 +88,9 @@ public class Event {
 
     @Column(name = "is_managed")
     private Boolean isManaged = false;
+
+    @Column(name = "external_link", length = 1000)
+    private String externalLink;
 
     @Column(name = "share_key", unique = true)
     private String shareKey;
@@ -172,7 +175,7 @@ public class Event {
     public void setDate(LocalDate date) {
         this.date = date;
     }
-    
+
     public LocalDate getEndDate() {
         return endDate;
     }
@@ -301,21 +304,59 @@ public class Event {
         this.status = status;
     }
 
-    public String getRoleType() { return roleType; }
-    public void setRoleType(String roleType) { this.roleType = roleType; }
+    public String getRoleType() {
+        return roleType;
+    }
 
-    public String getAgeRange() { return ageRange; }
-    public void setAgeRange(String ageRange) { this.ageRange = ageRange; }
+    public void setRoleType(String roleType) {
+        this.roleType = roleType;
+    }
 
-    public String getGenderPreference() { return genderPreference; }
-    public void setGenderPreference(String genderPreference) { this.genderPreference = genderPreference; }
+    public String getAgeRange() {
+        return ageRange;
+    }
 
-    public String getPrizePool() { return prizePool; }
-    public void setPrizePool(String prizePool) { this.prizePool = prizePool; }
+    public void setAgeRange(String ageRange) {
+        this.ageRange = ageRange;
+    }
 
-    public Boolean getIsManaged() { return isManaged; }
-    public void setIsManaged(Boolean isManaged) { this.isManaged = isManaged; }
+    public String getGenderPreference() {
+        return genderPreference;
+    }
 
-    public String getShareKey() { return shareKey; }
-    public void setShareKey(String shareKey) { this.shareKey = shareKey; }
+    public void setGenderPreference(String genderPreference) {
+        this.genderPreference = genderPreference;
+    }
+
+    public String getPrizePool() {
+        return prizePool;
+    }
+
+    public void setPrizePool(String prizePool) {
+        this.prizePool = prizePool;
+    }
+
+    public Boolean getIsManaged() {
+        return isManaged;
+    }
+
+    public void setIsManaged(Boolean isManaged) {
+        this.isManaged = isManaged;
+    }
+
+    public String getExternalLink() {
+        return externalLink;
+    }
+
+    public void setExternalLink(String externalLink) {
+        this.externalLink = externalLink;
+    }
+
+    public String getShareKey() {
+        return shareKey;
+    }
+
+    public void setShareKey(String shareKey) {
+        this.shareKey = shareKey;
+    }
 }

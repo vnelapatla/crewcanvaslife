@@ -12,8 +12,15 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @org.springframework.beans.factory.annotation.Value("${app.email.enabled:false}")
+    private boolean emailEnabled;
+
     @Async
     public void sendResetPasswordEmail(String to, String resetLink) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Reset Password to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Reset Your Password - CrewCanvas");
@@ -25,6 +32,10 @@ public class EmailService {
 
     @Async
     public void sendWelcomeEmail(String to, String name, String profileLink) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Welcome Email to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Welcome to CrewCanvas! 🎬");
@@ -45,6 +56,10 @@ public class EmailService {
 
     @Async
     public void sendShortlistEmail(String to, String name, String eventTitle, String eventType) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Shortlist Notification to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
@@ -68,6 +83,10 @@ public class EmailService {
 
     @Async
     public void sendEventDetailsEmail(String to, String name, String eventTitle, String eventType, String location, String time, String date) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Event Details to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
@@ -90,6 +109,10 @@ public class EmailService {
 
     @Async
     public void sendFinalSelectionEmail(String to, String name, String eventTitle, String eventType) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Final Selection to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
@@ -114,6 +137,10 @@ public class EmailService {
 
     @Async
     public void sendFinalRejectionEmail(String to, String name, String eventTitle, String eventType) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Final Rejection to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         
@@ -134,6 +161,10 @@ public class EmailService {
 
     @Async
     public void sendFollowNotificationEmail(String to, String followerName, String profileLink) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Follow Notification to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(followerName + " is now following you on CrewCanvas! 🚀");
@@ -152,6 +183,10 @@ public class EmailService {
 
     @Async
     public void sendMessageNotificationEmail(String to, String senderName, String messagePreview) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Message Notification to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("New message from " + senderName + " on CrewCanvas ✉️");
@@ -169,6 +204,10 @@ public class EmailService {
 
     @Async
     public void sendLikeNotificationEmail(String to, String likerName, Long postId) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Like Notification to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(likerName + " liked your post! ❤️");
@@ -186,6 +225,10 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(String to, String name) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Verification Email to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Congratulations! You are now a Verified Professional on CrewCanvas! ✅");
@@ -203,6 +246,10 @@ public class EmailService {
 
     @Async
     public void sendAdminPostNotificationEmail(String to, String name, String postContent, Long postId) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Admin Post Broadcast to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("New Requirement Posted by CrewCanvas Official 🎬");
@@ -223,6 +270,10 @@ public class EmailService {
 
     @Async
     public void sendProfileReminderEmail(String to, String name, String profileLink) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Profile Reminder to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Complete Your Profile for Better Opportunities! 🚀");
@@ -301,6 +352,10 @@ public class EmailService {
     }
     @Async
     public void sendEventUpdateEmail(String to, String name, String eventTitle, String eventType, Long eventId) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Event Update to: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Important Update: " + eventTitle + " 🎬");
@@ -309,6 +364,30 @@ public class EmailService {
                 "The organizers of '" + eventTitle + "' (" + eventType + ") have updated the event details.\n\n" +
                 "Please review the changes to the location, date, or timing to ensure you have the most current information.\n\n" +
                 "View the updated event here: https://crewcanvas.in/event.html?eventId=" + eventId + "\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    @Async
+    public void sendNewEventBroadcastEmail(String to, String name, String hostName, String eventTitle, String eventType, Long eventId) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] New Event Broadcast to: " + to);
+            return;
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("New Opportunity: " + eventTitle + " by " + hostName + " 🎬");
+
+        String eventLink = "https://crewcanvas.in/event.html?id=" + eventId;
+
+        String body = "Hi " + name + ",\n\n" +
+                "A new opportunity has been posted on CrewCanvas by " + hostName + ":\n\n" +
+                "✨ " + eventTitle + " (" + eventType + ")\n\n" +
+                "Check out the details and apply here:\n" + eventLink + "\n\n" +
+                "Don't miss out on this opportunity!\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
 
