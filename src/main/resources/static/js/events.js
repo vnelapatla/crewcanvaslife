@@ -370,7 +370,7 @@ function displayEvents(events, prepend = false) {
         const displayImage = isHeavyImage ? getEventDefaultImage(eventType) : (event.imageUrl || getEventDefaultImage(eventType));
 
         return `
-            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; cursor: ${useFeedLayout ? 'pointer' : 'default'}; width: 100% !important;" onclick="${cardOnClick}">
+            <div class="cinematic-card" id="event-card-${event.id}" style="animation-delay: ${animationDelay}s; cursor: default; width: 100% !important;">
                 <div style="position: relative; width: 100%; overflow: hidden;">
                     <img src="${displayImage}" 
                          alt="${event.title}" 
@@ -421,33 +421,8 @@ function displayEvents(events, prepend = false) {
                     `}
                     
                     <div class="card-footer" style="padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-top: 1px solid #f8fafc;">
-                        <div class="applicants-text" style="font-size: 13px; font-weight: 700; color: #64748b;">
-                            <i class="fas fa-users" style="color: var(--primary-orange); margin-right: 4px;"></i>
-                            <span id="applicant-count-${event.id}">${event.applicants || 0}</span>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div id="apply-container-${event.id}">
-                                ${isOwnerOrAdmin ? `
-                                    <div style="display: flex; gap: 6px;">
-                                        <button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="window.location.href='event-dashboard.html?id=${event.id}'">Manage</button>
-                                        ${(currentUser && currentUser.isAdmin) ? `
-                                            <button class="apply-btn" style="background: #ef4444; padding: 7px 10px; font-size: 11px;" onclick="adminDeleteEvent(${event.id}, event)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                ` : (() => {
-                                    const userApps = userApplications.filter(app => app.eventId === event.id);
-                                    const hasApplied = userApps.length > 0;
-                                    
-                                    if (event.status === 'CLOSED') {
-                                        return `<button class="apply-btn" disabled style="background: #94a3b8; cursor: not-allowed; padding: 7px 14px; font-size: 11px;">Closed</button>`;
-                                    }
-
-                                    return `
-                                    <div style="display: flex; gap: 8px; align-items: center;">
-                                        <div id="action-container-${event.id}">
+                                    <div style="display: flex; gap: 8px; align-items: center; justify-content: center; width: 100%;">
+                                        <div id="action-container-${event.id}" style="width: 100%;">
                                             ${(() => {
                                                 const sTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
                                                 const sLink = (event.externalLink || '').replace(/'/g, "\\'");
@@ -459,19 +434,15 @@ function displayEvents(events, prepend = false) {
                                                 if (hasApplied) {
                                                     if (isExt) {
                                                         const isM = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
-                                                        return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; background: #10b981; color: white; border-radius: 12px; border: none; font-weight: 700;" onclick="${buttonAction}${regAct}"><i class="fab ${isM ? 'fa-envelope' : 'fa-whatsapp'}"></i> ${isM ? 'Open Mail' : 'WhatsApp Me'}</button>`;
+                                                        return `<button class="apply-btn" style="width: 100%; padding: 12px; font-size: 13px; background: #10b981; color: white; border-radius: 12px; border: none; font-weight: 700;" onclick="${buttonAction}${regAct}">${isM ? 'Open Mail' : 'WhatsApp Me'}</button>`;
                                                     } else {
-                                                        return `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 8px 18px; font-size: 11px; opacity: 1; border-radius: 12px; border: none; font-weight: 700;"><i class="fas fa-check-circle"></i> Registered</button>`;
+                                                        return `<button class="apply-btn" disabled style="width: 100%; background: #10b981; color: white; cursor: default; padding: 12px; font-size: 13px; opacity: 1; border-radius: 12px; border: none; font-weight: 700;">Registered</button>`;
                                                     }
                                                 }
-                                                return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; border-radius: 12px; border: none; font-weight: 700; background: linear-gradient(135deg, var(--primary-orange), #ff6b00); color: white; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);" onclick="${buttonAction}${regAct}">WhatsApp Me</button>`;
+                                                return `<button class="apply-btn" style="width: 100%; padding: 12px; font-size: 13px; border-radius: 12px; border: none; font-weight: 700; background: #10b981; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);" onclick="${buttonAction}${regAct}">WhatsApp Me</button>`;
                                             })()}
                                         </div>
-                                        <button class="share-btn-sm" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; transition: 0.3s;" onclick="shareContent('event', ${event.id}, '${(event.title || 'Event').replace(/'/g, "\\")}')">
-                                            <i class="fas fa-share-alt" style="font-size: 12px;"></i>
-                                        </button>
                                     </div>`;
-    })()}
                             </div>
                         </div>
                     </div>
