@@ -374,7 +374,7 @@ function displayEvents(events, prepend = false) {
                 <div style="position: relative; width: 100%; overflow: hidden;">
                     <img src="${displayImage}" 
                          alt="${event.title}" 
-                         style="width: 100% !important; min-width: 100% !important; height: auto !important; display: block !important; z-index: 1; background: none !important;">
+                         style="width: 100% !important; min-width: 100% !important; height: 500px !important; object-fit: cover !important; display: block !important; z-index: 1; background: none !important;">
                     
                     ${event.status === 'CLOSED' ? `
                         <div style="position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 100px; font-size: 10px; font-weight: 800; z-index: 10; backdrop-filter: blur(8px);">
@@ -459,12 +459,12 @@ function displayEvents(events, prepend = false) {
                                                 if (hasApplied) {
                                                     if (isExt) {
                                                         const isM = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
-                                                        return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; background: #10b981; color: white; border-radius: 12px; border: none; font-weight: 700;" onclick="${buttonAction}${regAct}"><i class="fab ${isM ? 'fa-envelope' : 'fa-whatsapp'}"></i> ${isM ? 'Open Mail' : 'Open WhatsApp'}</button>`;
+                                                        return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; background: #10b981; color: white; border-radius: 12px; border: none; font-weight: 700;" onclick="${buttonAction}${regAct}"><i class="fab ${isM ? 'fa-envelope' : 'fa-whatsapp'}"></i> ${isM ? 'Open Mail' : 'WhatsApp Me'}</button>`;
                                                     } else {
                                                         return `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 8px 18px; font-size: 11px; opacity: 1; border-radius: 12px; border: none; font-weight: 700;"><i class="fas fa-check-circle"></i> Registered</button>`;
                                                     }
                                                 }
-                                                return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; border-radius: 12px; border: none; font-weight: 700; background: linear-gradient(135deg, var(--primary-orange), #ff6b00); color: white; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);" onclick="${buttonAction}${regAct}">Register</button>`;
+                                                return `<button class="apply-btn" style="padding: 8px 18px; font-size: 11px; border-radius: 12px; border: none; font-weight: 700; background: linear-gradient(135deg, var(--primary-orange), #ff6b00); color: white; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);" onclick="${buttonAction}${regAct}">WhatsApp Me</button>`;
                                             })()}
                                         </div>
                                         <button class="share-btn-sm" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; transition: 0.3s;" onclick="shareContent('event', ${event.id}, '${(event.title || 'Event').replace(/'/g, "\\")}')">
