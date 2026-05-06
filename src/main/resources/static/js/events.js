@@ -4,6 +4,7 @@ let currentUser = null;
 let pendingEventId = null;
 let allEvents = [];
 let userApplications = [];
+let hasScrolledToEvent = false;
 let currentFilter = 'all';
 let currentType = ''; // Track currently selected type for creation
 
@@ -435,9 +436,24 @@ function displayEvents(events, prepend = false) {
                                         `event.stopPropagation(); handleExternalRedirect(${event.id}, '${event.externalLink.replace(/'/g, "\\'")}')` : 
                                         `applyToEvent(${event.id})`;
 
-                                    let buttonsHtml = hasApplied ? 
-                                        `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>` : 
-                                        `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${registerAction}">Register</button>`;
+                                    let buttonsHtml = "";
+                                    const isExternal = event.isManaged && event.externalLink;
+                                    
+                                    if (hasApplied) {
+                                        if (isExternal) {
+                                            // For external managed events, allow re-opening the link
+                                            const isMail = event.externalLink.includes('@') || event.externalLink.startsWith('mailto:');
+                                            const btnText = isMail ? 'Open Mail' : 'Open WhatsApp';
+                                            const icon = isMail ? 'fa-envelope' : 'fa-whatsapp';
+                                            buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px; background: #10b981; color: white;" onclick="${buttonAction}${registerAction}"><i class="fab ${icon}"></i> ${btnText}</button>`;
+                                        } else {
+                                            // Standard event - keep as Registered and disabled
+                                            buttonsHtml = `<button class="apply-btn" disabled style="background: #10b981; color: white; cursor: default; padding: 7px 14px; font-size: 11px; opacity: 1;"><i class="fas fa-check-circle"></i> Registered</button>`;
+                                        }
+                                    } else {
+                                        // Not applied yet - show standard Register button
+                                        buttonsHtml = `<button class="apply-btn" style="padding: 7px 14px; font-size: 11px;" onclick="${buttonAction}${registerAction}">Register</button>`;
+                                    }
                                     
                                     const passApp = userApps.find(app => app.passToken);
                                     if (passApp) {
@@ -462,8 +478,11 @@ function displayEvents(events, prepend = false) {
 
     if (prepend) {
         container.insertAdjacentHTML('afterbegin', eventsHtml);
-    } else {
-        container.innerHTML = eventsHtml;
+    }
+    
+    // Check for auto-scroll if we have an ID in URL
+    if (!prepend) {
+        checkAutoScroll();
     }
 }
 
@@ -1530,4 +1549,28 @@ function formatEventDate(dateString) {
         month: 'short',
         year: 'numeric'
     });
+}
+
+// Check for direct event link and scroll
+function checkAutoScroll() {
+    if (hasScrolledToEvent) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+    if (eventId) {
+        setTimeout(() => {
+            const target = document.getElementById(`event-card-${eventId}`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Add a temporary highlight effect
+                target.style.transition = 'all 1s ease';
+                target.style.border = '2px solid #3b82f6';
+                target.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.3)';
+                setTimeout(() => {
+                    target.style.border = '1px solid #f1f5f9';
+                    target.style.boxShadow = '0 10px 40px rgba(0,0,0,0.06)';
+                }, 3000);
+                hasScrolledToEvent = true;
+            }
+        }, 800); // Wait for animations to finish
+    }
 }
