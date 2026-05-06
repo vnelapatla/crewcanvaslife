@@ -372,6 +372,27 @@ public class EmailService {
     }
 
     @Async
+    public void sendDonationThankYouEmail(String to, String name, String amount) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] Donation Thank You to: " + to);
+            return;
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("A Heartfelt Thank You from CrewCanvas! ❤️");
+
+        String body = "Hi " + name + ",\n\n" +
+                "We have successfully verified your support of ₹" + amount + ". Thank you so much for your contribution! ❤️\n\n" +
+                "Your support helps us keep CrewCanvas running and allows us to continue building features that help the creative community thrive.\n\n" +
+                "We are truly grateful to have you as part of our journey.\n\n" +
+                "Best regards,\n" +
+                "The CrewCanvas Team";
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+    @Async
     public void sendNewEventBroadcastEmail(String to, String name, String hostName, String eventTitle, String eventType, Long eventId) {
         if (!emailEnabled) {
             System.out.println("[EMAIL SKIPPED] New Event Broadcast to: " + to);

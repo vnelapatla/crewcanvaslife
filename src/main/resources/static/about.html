@@ -15,6 +15,9 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <!-- Core CSS -->
     <link rel="stylesheet" href="css/main.css">
     
@@ -252,6 +255,199 @@
             opacity: 1;
             transform: translateY(0);
         }
+        /* Support Us Section Styles */
+        .support-card {
+            background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 45, 85, 0.1));
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            text-align: center;
+        }
+
+        .upi-btn {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white !important;
+            padding: 16px 35px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            box-shadow: 0 10px 20px rgba(110, 142, 251, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .upi-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(110, 142, 251, 0.4);
+        }
+
+        .confirmation-box {
+            margin-top: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .confirmation-box.active {
+            display: block;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .support-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .support-form input, .support-form label {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .support-form .full-width {
+            grid-column: span 2;
+        }
+
+        .support-form button {
+            grid-column: span 2;
+            background: var(--gradient-main);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 600px) {
+            .support-form { grid-template-columns: 1fr; }
+            .support-form .full-width { grid-column: span 1; }
+            .support-form button { grid-column: span 1; }
+        }
+        /* Supporters Wall Styles */
+        .supporters-wall {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .supporters-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .supporter-badge {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Premium Supporters List Styles */
+        .supporters-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            max-width: 700px;
+            margin: 40px auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .supporters-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .supporters-table td {
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .supporters-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+            padding-left: 30px;
+        }
+
+        .supporter-name {
+            color: #f8fafc;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .supporter-name.is-top {
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .tier-label {
+            text-align: right;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Tier Colors */
+        .tier-text.top { color: #facc15; }
+        .tier-text.producer { color: #f87171; }
+        .tier-text.executive { color: #818cf8; }
+        .tier-text.legendary { color: #c084fc; }
+        .tier-text.diamond { color: #22d3ee; }
+        .tier-text.gold { color: #fbbf24; }
+        .tier-text.silver { color: #cbd5e1; }
+        .tier-text.bronze { color: #fb923c; }
+        .tier-text.fan { color: #64748b; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 
@@ -360,6 +556,65 @@
                 </div>
             </div>
 
+            <!-- Support Us Section -->
+            <div class="glass-card support-card" data-aos="fade-up">
+                <h2 class="section-title"><i class="fas fa-heart"></i> Support Crew Canvas</h2>
+                <p class="content-text">
+                    Crew Canvas is a passion project built for the community. If you find this platform useful, consider supporting us to keep the servers running and features growing!
+                </p>
+                
+                <div id="payment-step">
+                    <!-- Desktop QR Container -->
+                    <div id="qrcode-container" style="display: none; background: white; padding: 20px; border-radius: 15px; margin: 0 auto 20px; width: fit-content; border: 5px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <div id="qrcode"></div>
+                        <p style="color: #0f172a; font-weight: 700; margin-top: 10px; font-size: 14px;">Scan to Pay</p>
+                    </div>
+
+                    <a href="upi://pay?pa=8096984688-3@ybl&pn=Crew%20Canvas&tn=Support%20Crew%20Canvas&cu=INR" 
+                       class="upi-btn" id="upi-intent-link" onclick="handleSupportClick(event)">
+                        <i class="fas fa-mobile-screen-button"></i> Support with UPI
+                    </a>
+                    <p id="upi-instruction" style="font-size: 14px; color: #64748b;">(Opens GPay, PhonePe, or Paytm automatically on mobile)</p>
+                </div>
+
+                <div id="confirmation-box" class="confirmation-box">
+                    <h3 style="color: #ffffff; margin-bottom: 10px;">Step 2: Confirm your Support</h3>
+                    <p style="color: #94a3b8; font-size: 14px;">Please enter your details and upload the screenshot. We will verify it and send you a Thank You email!</p>
+                    
+                    <form id="support-confirm-form" class="support-form">
+                        <input type="text" id="donorName" placeholder="Your Name" required>
+                        <input type="email" id="donorEmail" placeholder="Your Email (For Thank You Mail)" required>
+                        <input type="text" id="utrNumber" placeholder="12-digit UTR / Transaction ID" required>
+                        <input type="number" id="amount" placeholder="Amount Paid (₹)" required>
+                        
+                        <div class="full-width">
+                            <label for="screenshot" class="file-input-label">
+                                <i class="fas fa-image"></i> Upload Payment Screenshot
+                                <input type="file" id="screenshot" accept="image/*" required style="display: none;" onchange="updateFileName(this)">
+                                <span id="file-name" style="margin-left: 10px; color: var(--primary-orange);"></span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" id="submitSupportBtn">Submit for Verification</button>
+                    </form>
+                    <div id="form-success-msg" style="display: none; margin-top: 20px; color: #10b981; font-weight: 700;">
+                        <i class="fas fa-check-circle"></i> Thank you! We have received your request. We will verify and email you shortly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supporters Hall of Fame -->
+            <div id="hall-of-fame" style="display: none; margin-bottom: 60px;">
+                <h2 class="section-title" style="justify-content: center;"><i class="fas fa-crown" style="color: #ffd700;"></i> Supporters Hall of Fame</h2>
+                <div class="supporters-container">
+                    <table class="supporters-table">
+                        <tbody id="supporters-list">
+                            <!-- Supporters will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Usefulness -->
             <div class="glass-card" data-aos="fade-up">
                 <h2 class="section-title"><i class="fas fa-briefcase"></i> Professional Utility</h2>
@@ -438,6 +693,179 @@
                 }
             }
         });
+
+        // Support Us Logic
+        const UPI_ID = "8096984688-3@ybl";
+        const UPI_NAME = "Crew Canvas";
+        const UPI_URL = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&tn=Support%20Crew%20Canvas&cu=INR`;
+
+        function handleSupportClick(e) {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (!isMobile) {
+                e.preventDefault();
+                // Show QR Code on Desktop
+                document.getElementById('qrcode-container').style.display = 'block';
+                generateQRCode(UPI_URL);
+            } else {
+                // On mobile, just let the link handle opening the app
+            }
+            
+            // Show the Step 2 form for everyone
+            document.getElementById('confirmation-box').classList.add('active');
+            document.getElementById('payment-step').style.opacity = "1";
+        }
+
+        function generateQRCode(url) {
+            const qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = ""; // Clear previous
+            new QRCode(qrContainer, {
+                text: url,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // Clean load - hide everything until clicked
+        document.addEventListener('DOMContentLoaded', () => {
+            // We keep the button visible for both mobile and desktop
+            document.getElementById('upi-intent-link').style.display = 'inline-flex';
+            document.getElementById('qrcode-container').style.display = 'none';
+            document.getElementById('confirmation-box').classList.remove('active');
+        });
+
+        function updateFileName(input) {
+            const fileName = input.files[0] ? input.files[0].name : "";
+            document.getElementById('file-name').innerText = fileName;
+        }
+
+        document.getElementById('support-confirm-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitSupportBtn');
+            btn.innerText = "Submitting...";
+            btn.disabled = true;
+
+            const file = document.getElementById('screenshot').files[0];
+            const base64 = await convertBase64(file);
+
+            const data = {
+                donorName: document.getElementById('donorName').value,
+                email: document.getElementById('donorEmail').value,
+                utrNumber: document.getElementById('utrNumber').value,
+                amount: document.getElementById('amount').value,
+                screenshotBase64: base64
+            };
+
+            try {
+                const response = await fetch('/api/support/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById('support-confirm-form').style.display = 'none';
+                    document.getElementById('form-success-msg').style.display = 'block';
+                } else {
+                    alert("Submission failed. Please try again.");
+                    btn.innerText = "Submit for Verification";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error connecting to server.");
+                btn.innerText = "Submit for Verification";
+                btn.disabled = false;
+            }
+        };
+
+        function convertBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Fetch and Render Supporters Wall
+        async function loadSupporters() {
+            const list = document.getElementById('supporters-list');
+            const container = document.getElementById('hall-of-fame');
+            
+            if (!list || !container) return;
+
+            try {
+                container.style.display = 'block';
+                list.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size: 14px;">📡 Connecting to server...</p>';
+                
+                const endpoint = (typeof API_BASE_URL !== 'undefined') ? `${API_BASE_URL}/api/support/public/supporters` : '/api/support/public/supporters';
+                
+                const res = await fetch(endpoint);
+                if (!res.ok) {
+                    list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">⚠️ Server Error (${res.status}). Try restarting the app!</p>`;
+                    return;
+                }
+                
+                const supporters = await res.json();
+                
+                // Add a hardcoded test badge just to confirm the UI works
+                let html = '<div class="supporter-badge gold"><i class="fas fa-check-circle"></i> Test Badge</div>';
+                
+                if (supporters && supporters.length > 0) {
+                    // Update title with count
+                    const titleEl = document.querySelector('#hall-of-fame h2');
+                    if (titleEl) titleEl.innerHTML = `<i class="fas fa-crown" style="color: #ffd700;"></i> Supporters Hall of Fame (${supporters.length})`;
+                    
+                    list.innerHTML = supporters.map(s => {
+                        let icon = "fa-heart";
+                        let badgeLabel = s.badge ? s.badge.charAt(0).toUpperCase() + s.badge.slice(1).toLowerCase() : "Fan";
+                        let badgeClass = s.badge ? s.badge.toLowerCase() : "fan";
+                        
+                        switch(s.badge) {
+                            case 'PRODUCER': icon = "fa-video"; badgeLabel = "Producer"; break;
+                            case 'EXECUTIVE': icon = "fa-award"; badgeLabel = "Executive"; break;
+                            case 'LEGENDARY': icon = "fa-star"; badgeLabel = "Legendary"; break;
+                            case 'DIAMOND': icon = "fa-gem"; badgeLabel = "Diamond"; break;
+                            case 'GOLD': icon = "fa-crown"; badgeLabel = "Gold"; break;
+                            case 'SILVER': icon = "fa-heart"; badgeLabel = "Silver"; break;
+                            case 'BRONZE': icon = "fa-medal"; badgeLabel = "Bronze"; break;
+                            case 'FAN': icon = "fa-heart"; badgeLabel = "Fan"; break;
+                        }
+                        
+                        if (s.isTop === 'true') {
+                            badgeClass = "top";
+                            badgeLabel = "Top Supporter";
+                            icon = "fa-trophy";
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="supporter-name ${s.isTop === 'true' ? 'is-top' : ''}">
+                                        ${s.name || 'Anonymous'}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tier-label tier-text ${badgeClass}">
+                                        <i class="fas ${icon}"></i> ${badgeLabel}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    list.innerHTML = `<tr><td style="text-align:center; padding: 30px; color: rgba(255,255,255,0.4);">Be the first to support Crew Canvas! ❤️</td></tr>`;
+                }
+            } catch (err) {
+                list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">❌ Connection Failed. Is the server running?</p>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSupporters);
     </script>
 </body>
 
