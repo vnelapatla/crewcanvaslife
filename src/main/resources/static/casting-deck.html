@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #fff; /* White Edges */
+            background: #f1f5f9; /* Soft light background for the 'edges' */
             margin: 0;
             padding: 40px 0;
             display: flex;
@@ -29,16 +29,17 @@
             display: none !important;
         }
 
-        /* Centered Portfolio Book */
+        /* Centered Portfolio Book - ALL WHITE */
         .deck-container {
             display: flex;
             width: 1100px;
             max-width: 95vw;
-            background: #020617;
-            border-radius: 40px;
+            background: #fff;
+            border-radius: 32px;
             overflow: hidden;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.1);
-            min-height: 800px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.1);
+            min-height: 850px;
+            border: 1px solid #e2e8f0;
         }
 
         /* Left Side: White Identity Panel */
@@ -49,7 +50,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            border-right: 1px solid #eee;
+            border-right: 1px solid #f1f5f9;
         }
 
         .avatar-wrapper {
@@ -65,7 +66,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
         .info-panel h1 {
@@ -116,28 +117,20 @@
             color: #000;
         }
 
-        /* Right Side: Dark Cinematic Panel */
+        /* Right Side: White Media Panel */
         .media-panel {
             flex: 1;
             padding: 60px;
             overflow-y: auto;
+            background: #fff;
             position: relative;
         }
 
-        .media-panel::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 400px;
-            background: radial-gradient(circle at 100% 0%, rgba(255, 140, 0, 0.08) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
         .section-card {
-            background: rgba(255,255,255,0.02);
-            backdrop-filter: blur(20px);
+            background: #f8fafc;
             padding: 35px;
             border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid #f1f5f9;
             margin-bottom: 30px;
         }
 
@@ -146,7 +139,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 4px;
-            color: #fff;
+            color: #64748b;
             margin-bottom: 25px;
             display: flex;
             align-items: center;
@@ -157,12 +150,12 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
+            background: linear-gradient(to right, #e2e8f0, transparent);
         }
 
         .narrative p {
-            font-size: 17px;
-            color: #94a3b8;
+            font-size: 16px;
+            color: #334155;
             line-height: 1.7;
             margin: 0;
         }
@@ -170,26 +163,32 @@
         /* Tabs */
         .deck-tabs {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 25px;
         }
 
         .tab-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 10px 20px;
-            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 10px 18px;
+            border-radius: 10px;
             color: #64748b;
             font-weight: 700;
             font-size: 11px;
             letter-spacing: 1px;
             cursor: pointer;
             transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        .tab-btn i { font-size: 13px; }
+
         .tab-btn.active {
-            background: #fff;
-            color: #000;
+            background: #000;
+            border-color: #000;
+            color: #fff;
         }
 
         /* Media */
@@ -199,7 +198,7 @@
             border-radius: 16px;
             overflow: hidden;
             background: #000;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         }
 
         .gallery-grid {
@@ -212,13 +211,23 @@
             aspect-ratio: 4/5;
             border-radius: 16px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
         }
 
         .gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* Expertise Grid */
+        #skillsTab .specs-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        #skillsTab .spec-item {
+            background: #fff;
+            border: 1px solid #f1f5f9;
         }
 
         /* Action Buttons */
@@ -257,7 +266,7 @@
         .action-btn.wa {
             background: var(--brand-orange);
             color: #fff;
-            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
+            box-shadow: 0 8px 16px rgba(255, 140, 0, 0.15);
             border: none;
         }
 
@@ -265,18 +274,17 @@
             background: #fff;
             color: #000;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .action-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
         }
 
         @media (max-width: 1000px) {
             body { padding: 0; }
-            .deck-container { width: 100%; height: auto; border-radius: 0; flex-direction: column; }
-            .info-panel { width: 100%; padding: 40px 20px; border-right: none; border-bottom: 1px solid #eee; }
+            .deck-container { width: 100%; border-radius: 0; flex-direction: column; border: none; }
+            .info-panel { width: 100%; padding: 40px 20px; border-right: none; border-bottom: 1px solid #f1f5f9; }
             .media-panel { padding: 40px 20px; }
             .gallery-grid { grid-template-columns: 1fr; }
         }
@@ -503,26 +511,33 @@
                     }
                 }
 
-                // Unmask Phone
+                // Phone Unmasking
                 let displayPhone = user.phone;
-                if (displayPhone && displayPhone.includes('X')) {
+                // Always try to unmask if it's missing or contains 'X'
+                if (!displayPhone || displayPhone.includes('X') || displayPhone === 'Data Not Available') {
                     try {
                         const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
                         if (phoneRes.ok) {
                             const phoneData = await phoneRes.json();
-                            if (phoneData.phone) displayPhone = phoneData.phone;
+                            if (phoneData.phone && phoneData.phone !== 'Data Not Available') {
+                                displayPhone = phoneData.phone;
+                            }
                         }
                     } catch (e) { console.error("Could not unmask phone", e); }
                 }
 
+                // Inject Phone
+                const phoneDiv = document.getElementById('phoneDisplay');
+                if (displayPhone && displayPhone !== 'Data Not Available') {
+                    phoneDiv.innerHTML = `<i class="fas fa-phone" style="color:var(--brand-orange)"></i> <b style="color:#000; font-size:13px;">${displayPhone}</b>`;
+                } else {
+                    phoneDiv.innerHTML = `<i class="fas fa-phone" style="color:#cbd5e1"></i> <span style="font-size:11px; font-style:italic;">Contact Available via WhatsApp</span>`;
+                }
+
                 // WhatsApp Inquiry
                 const waBtn = document.getElementById('whatsappBtn');
-                const msg = encodeURIComponent(`Hi ${user.name}, I'm interested in discussing a project/role with you.\nView Deck: ${window.location.href}`);
+                const msg = encodeURIComponent(`Hi ${user.name}, I saw your professional casting deck on CrewCanvas and would like to discuss a potential project/role with you.\n\nView Deck: ${window.location.href}`);
                 waBtn.href = `https://wa.me/${displayPhone ? displayPhone.replace(/[^\d]/g, '') : ''}?text=${msg}`;
-                
-                if (displayPhone && displayPhone !== 'Data Not Available') {
-                    document.getElementById('phoneDisplay').innerHTML = `<i class="fas fa-phone" style="color:var(--brand-orange)"></i> ${displayPhone}`;
-                }
 
                 // Resume
                 if (user.resume) {

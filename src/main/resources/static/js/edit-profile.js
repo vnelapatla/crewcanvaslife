@@ -80,6 +80,28 @@ async function loadProfileData() {
             setVal('editRole', user.role || 'Director');
             setVal('editExperience', user.experience || 'Fresher');
             setVal('editBio', user.bio);
+            setVal('editShowreel', user.showreel);
+            
+            // Handle Video File Selection
+            const videoInput = document.getElementById('editVideoInput');
+            if (videoInput) {
+                videoInput.onchange = function() {
+                    const file = this.files[0];
+                    if (file) {
+                        if (file.size > 50 * 1024 * 1024) {
+                            alert("Video file is too large (Max 50MB)");
+                            this.value = '';
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('editShowreel').value = e.target.result;
+                            document.getElementById('videoStatus').innerHTML = `<i class="fa-solid fa-check-circle" style="color:#16a34a"></i> Video Ready (${(file.size/1024/1024).toFixed(1)}MB)`;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
             
             // User Category & Verification
             setVal('editUserType', user.userType || 'Explorer');
@@ -596,7 +618,7 @@ async function saveProfile() {
             goals: getVal('genGoals'),
             learningResources: getVal('genLearning'),
             
-            showreel: isDirector ? getVal('dirShowreel') : (isDop ? getVal('dopShowreel') : (isActor ? getVal('actShowreel') : (originalUserData.showreel || ''))),
+            showreel: getVal('editShowreel'),
             
             instagram: getVal('editInstagram'),
             youtube: getVal('editYoutube'),
