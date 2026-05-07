@@ -200,8 +200,9 @@ async function initMessaging() {
 // Load conversations
 async function loadConversations() {
     try {
-        const url = `${API_BASE_URL}/api/conversations/${currentUserId}`;
-        console.log("Fetching conversations from:", url);
+        // Optimized: Use the summary endpoint which performs 1 query instead of N+1
+        const url = `${API_BASE_URL}/api/conversations/summary/${currentUserId}`;
+        console.log("Fetching optimized conversations from:", url);
         
         const response = await fetch(url);
         if (!response.ok) {
@@ -210,10 +211,22 @@ async function loadConversations() {
         }
         
         conversations = await response.json();
-        console.log("Conversations loaded:", conversations);
+        console.log("Conversations loaded (optimized):", conversations);
         displayConversations();
     } catch (error) {
         console.error('Error loading conversations:', error);
+        
+        // Fallback to old endpoint if summary fails (e.g. while server is updating)
+        try {
+            const fallbackUrl = `${API_BASE_URL}/api/conversations/${currentUserId}`;
+            const fbResponse = await fetch(fallbackUrl);
+            if (fbResponse.ok) {
+                conversations = await fbResponse.json();
+                displayConversations();
+                return;
+            }
+        } catch(e) {}
+
         const container = document.getElementById('conversationsList');
         if (container) container.innerHTML = `<div style="padding: 20px; text-align: center; color: #f44336; font-size: 13px;">
             Connection Error<br>
@@ -295,27 +308,15 @@ async function displayConversations(listToDisplay = null) {
         return;
     }
 
-    // Get unread counts
-    let unreadMap = new Map();
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/unread?userId=${currentUserId}`);
-        if (response.ok) {
-            const unreadMessages = await response.json();
-            if (Array.isArray(unreadMessages)) {
-                unreadMessages.forEach(m => {
-                    unreadMap.set(m.senderId, (unreadMap.get(m.senderId) || 0) + 1);
-                });
-            }
-        }
-    } catch (e) {
-        console.warn("Could not fetch unread counts:", e);
-    }
-
     // Display all conversations that exist in the database
     container.innerHTML = items.map(conv => {
         try {
-            const otherUser = conv.otherUser || conv.user2 || conv.partner; 
-            const otherUserId = conv.otherUserId || conv.user2Id || (otherUser ? otherUser.id : null); 
+            // Handle both optimized ConversationSummary and legacy Conversation DTO
+            const otherUserId = conv.otherUserId || conv.user2Id || (conv.otherUser ? conv.otherUser.id : null); 
+            const name = conv.otherUserName || conv.otherUser?.name || 'User';
+            const profilePicture = conv.otherUserProfilePicture || conv.otherUser?.profilePicture;
+            const role = conv.otherUserRole || conv.otherUser?.role;
+            const updatedAt = conv.lastMessageAt || conv.updatedAt;
             
             if (!otherUserId) {
                 console.warn("Skipping conversation with no partner ID:", conv);
@@ -323,9 +324,6 @@ async function displayConversations(listToDisplay = null) {
             }
 
             const isActive = String(selectedConversationUserId) === String(otherUserId);
-            const name = otherUser?.name || 'User';
-            const initials = name.charAt(0).toUpperCase();
-            const color = getRandomColor(name);
             
             // Format preview text
             let previewText = conv.lastMessage || 'Start a conversation...';
@@ -337,13 +335,16 @@ async function displayConversations(listToDisplay = null) {
                 previewText = 'Sticker';
             }
 
+            // Create a temporary user object for renderAvatar
+            const tempUser = { id: otherUserId, name: name, profilePicture: profilePicture, role: role };
+
             return `
                 <div class="user-row ${isActive ? 'active' : ''}" onclick="openConversation(${otherUserId})">
-                    ${renderAvatar(otherUser, 'initials-avatar', '45px')}
+                    ${renderAvatar(tempUser, 'initials-avatar', '45px')}
                     <div class="user-main">
                         <div class="user-name-row">
                             <h4>${name}</h4>
-                            <span class="user-time">${formatDateShort(conv.updatedAt)}</span>
+                            <span class="user-time">${formatDateShort(updatedAt)}</span>
                         </div>
                         <div class="user-status-row">
                             <span class="user-status">${truncateText(previewText, 40)}</span>

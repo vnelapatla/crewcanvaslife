@@ -169,4 +169,8 @@ public class MessageService {
         }
         throw new RuntimeException("Message not found");
     }
+
+    public List<com.crewcanvas.dto.ConversationSummary> getConversationsSummary(Long userId) {
+        return messageRepository.findConversationsSummary(userId);
+    }
 }

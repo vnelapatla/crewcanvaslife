@@ -42,4 +42,23 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     void markConversationAsRead(Long senderId, Long receiverId);
 
     boolean existsBySenderIdAndReceiverId(Long senderId, Long receiverId);
+    
+    @Query(value = "SELECT " +
+            "CASE WHEN m.sender_id = :userId THEN m.receiver_id ELSE m.sender_id END as otherUserId, " +
+            "u.name as otherUserName, " +
+            "u.profile_picture as otherUserProfilePicture, " +
+            "u.role as otherUserRole, " +
+            "m.content as lastMessage, " +
+            "m.created_at as lastMessageAt, " +
+            "m.is_read as isRead " +
+            "FROM messages m " +
+            "JOIN users u ON u.id = (CASE WHEN m.sender_id = :userId THEN m.receiver_id ELSE m.sender_id END) " +
+            "WHERE m.id IN ( " +
+            "    SELECT MAX(id) " +
+            "    FROM messages " +
+            "    WHERE sender_id = :userId OR receiver_id = :userId " +
+            "    GROUP BY CASE WHEN sender_id = :userId THEN receiver_id ELSE sender_id END " +
+            ") " +
+            "ORDER BY m.created_at DESC", nativeQuery = true)
+    List<com.crewcanvas.dto.ConversationSummary> findConversationsSummary(@org.springframework.data.repository.query.Param("userId") Long userId);
 }

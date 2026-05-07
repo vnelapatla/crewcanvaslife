@@ -93,6 +93,16 @@ public class ConversationController {
         }
     }
 
+    @GetMapping("/summary/{userId}")
+    public ResponseEntity<?> getConversationsSummary(@PathVariable Long userId) {
+        try {
+            return ResponseEntity.ok(messageService.getConversationsSummary(userId));
+        } catch (Exception e) {
+            System.err.println("Error in getConversationsSummary for user " + userId + ": " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error loading conversation summaries: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/start")
     public ResponseEntity<?> startConversation(@RequestBody Map<String, Long> request) {
         // Just a placeholder to satisfy the frontend if it calls /start
