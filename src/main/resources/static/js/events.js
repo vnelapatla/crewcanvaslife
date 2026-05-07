@@ -35,6 +35,15 @@ async function loadCurrentUser() {
 }
 
 async function loadEvents() {
+    const container = document.getElementById('eventsGrid');
+    if (container) {
+        container.innerHTML = `
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+        `;
+    }
+
     try {
         const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
         if (appsResponse.ok) userApplications = await appsResponse.json();
@@ -48,7 +57,10 @@ async function loadEvents() {
             updateCounts(); 
             searchEvents(); 
         }
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+        console.error(error); 
+        if (container) container.innerHTML = '<p style="text-align:center; padding:50px;">Failed to load events. Please refresh.</p>';
+    }
 }
 
 function updateCounts() {
