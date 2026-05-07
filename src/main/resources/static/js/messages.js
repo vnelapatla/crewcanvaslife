@@ -651,26 +651,28 @@ function displayMessages(messages) {
         return `
             <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg.id}">
                 ${avatarHtml}
-                <div class="message-text">
-                    <div class="message-sender-name" style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
-                    <div class="message-body">
-                        ${(msg.displayContent || msg.content) ? `<p style="margin:0; white-space: pre-wrap;">${msg.displayContent || msg.content}</p>` : ''}
-                    </div>
-                    ${attachmentContent}
-                    <div class="message-status">
-                        <span class="time">${formatTime(msg.createdAt)}</span>
-                        ${isSent ? `<span class="checkmarks" style="margin-left:5px; ${msg.isRead ? 'color:#4fc3f7' : 'color:#888'}">${msg.isRead ? '✓✓' : '✓'}</span>` : ''}
-                        ${msg.isEdited ? '<span class="edited-tag" style="font-size:9px; opacity:0.6; margin-left:5px;">(edited)</span>' : ''}
-                    </div>
-                    ${isSent ? `
-                    <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                    </button>
-                    ` : ''}
-                    <div id="options-${msg.id}" class="message-dropdown">
-                        <div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>
-                        <div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>
-                        <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
+                <div class="message-content-wrapper">
+                    <div class="message-text">
+                        <div class="message-sender-name" style="color: ${isSent ? 'var(--primary-orange)' : '#64748b'};">${senderName}</div>
+                        <div class="message-body">
+                            ${(msg.displayContent || msg.content) ? `<div class="text-content">${msg.displayContent || msg.content}</div>` : ''}
+                        </div>
+                        ${attachmentContent}
+                        <div class="message-status">
+                            <span class="time">${formatTime(msg.createdAt)}</span>
+                            ${isSent ? `<span class="checkmarks" style="${msg.isRead ? 'color:var(--primary-orange)' : 'color:#cbd5e1'}">${msg.isRead ? '✓✓' : '✓'}</span>` : ''}
+                            ${msg.isEdited ? '<span class="edited-tag">(edited)</span>' : ''}
+                        </div>
+                        ${isSent ? `
+                        <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                        </button>
+                        ` : ''}
+                        <div id="options-${msg.id}" class="message-dropdown">
+                            <div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>
+                            <div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>
+                            <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -747,15 +749,17 @@ function appendSingleMessage(msg) {
     const html = `
         <div class="message ${isSent ? 'sent' : 'received'} optimistic" id="msg-${msg.id}" style="opacity: 0.7;">
             ${avatarHtml}
-            <div class="message-text">
-                <div class="message-sender-name" style="font-size: 11px; font-weight: 800; color: ${isSent ? '#1b5e20' : '#d84315'}; margin-bottom: 4px; opacity: 0.8;">${senderName}</div>
-                <div class="message-body">
-                    <p style="margin:0; white-space: pre-wrap;">${msg.displayContent || msg.content}</p>
-                </div>
-                ${attachmentContent}
-                <div class="message-status">
-                    <span class="time">${formatTime(msg.createdAt)}</span>
-                    ${isSent ? `<span class="checkmarks" style="margin-left:5px; color:#888">✓</span>` : ''}
+            <div class="message-content-wrapper">
+                <div class="message-text">
+                    <div class="message-sender-name" style="color: ${isSent ? 'var(--primary-orange)' : '#64748b'};">${senderName}</div>
+                    <div class="message-body">
+                        <div class="text-content">${msg.displayContent || msg.content}</div>
+                    </div>
+                    ${attachmentContent}
+                    <div class="message-status">
+                        <span class="time">${formatTime(msg.createdAt)}</span>
+                        ${isSent ? `<span class="checkmarks" style="color:#cbd5e1">✓</span>` : ''}
+                    </div>
                 </div>
             </div>
         </div>

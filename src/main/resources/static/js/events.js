@@ -258,35 +258,14 @@ async function handleExternalRedirect(eventId, url) {
     const event = allEvents.find(e => e.id == eventId);
     const eventTitle = event ? event.title : 'Opportunity';
 
-    const iconRocket = '\uD83D\uDE80';
-    const iconProfile = '\uD83D\uDC64';
-    const iconCheck = '\u2705';
-    const iconLink = '\uD83D\uDD17';
-    const iconSparkle = '\u2728';
-    const iconDeck = '\uD83D\uDCD1';
-    const bullet = '\u25AB\uFE0F';
-
-    // 2. Build the Premium "Casting Deck" Message
-    let message = `${iconRocket} *APPLICATION: ${eventTitle.toUpperCase()}*\n`;
-    message += `━━━━━━━━━━━━━━━━━━\n\n`;
+    // 2. Build the Plain & Simple "Casting Deck" Message
+    let message = `APPLICATION: ${eventTitle.toUpperCase()}\n\n`;
+    message += `NAME: ${currentUser.name}\n`;
+    message += `AGE: ${currentUser.ageRange || 'Not Specified'}\n`;
+    message += `LOCATION: ${currentUser.location || 'Not Specified'}\n\n`;
     
-    message += `${iconCheck} *CORE ELIGIBILITY*\n`;
-    message += `${bullet} *Age:* ${currentUser.ageRange || 'Not Specified'}\n`;
-    message += `${bullet} *Languages:* ${currentUser.languages || 'Not Specified'}\n`;
-    message += `${bullet} *Location:* ${currentUser.location || 'Not Specified'}\n`;
-    message += `${bullet} *Experience:* ${currentUser.experience || 'Fresher'}\n\n`;
-
-    message += `${iconProfile} *CANDIDATE INFO*\n`;
-    message += `${bullet} *Name:* ${currentUser.name}\n`;
-    message += `${bullet} *Height:* ${currentUser.height || 'N/A'}\n`;
-    if (currentUser.phone) message += `${bullet} *Phone:* ${currentUser.phone}\n\n`;
-
-    message += `${iconDeck} *FULL CASTING DECK (Profile & Resume)*\n`;
     const profileUrl = `${window.location.origin}/share/deck/${currentUser.id}`;
-    message += `${iconLink} ${profileUrl}\n\n`;
-    
-    message += `━━━━━━━━━━━━━━━━━━\n`;
-    message += `${iconSparkle} _Sent via CrewCanvas Talent Network_`;
+    message += `FULL CASTING DECK: ${profileUrl}`;
 
     const encodedMessage = encodeURIComponent(message);
     

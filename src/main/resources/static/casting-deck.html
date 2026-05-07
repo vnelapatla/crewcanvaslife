@@ -9,19 +9,36 @@
     <style>
         :root {
             --brand-orange: #ff8c00;
-            --brand-black: #000;
-            --brand-gray: #64748b;
-            --brand-light: #f8fafc;
+            --brand-bg: #0b0b0b;
+            --card-bg: #141414;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --pill-border: rgba(255, 140, 0, 0.3);
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f1f5f9; /* Soft light background for the 'edges' */
+            font-family: 'Outfit', sans-serif;
+            background: var(--brand-bg);
             margin: 0;
-            padding: 40px 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        .prepared-by {
+            position: absolute;
+            top: 25px;
+            right: 45px;
+            color: var(--brand-orange);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 10;
+            opacity: 0.7;
         }
 
         /* Prevent global sidebar injection */
@@ -29,265 +46,262 @@
             display: none !important;
         }
 
-        /* Centered Portfolio Book - ALL WHITE */
+        /* Hyper-Dark Deck Container */
         .deck-container {
             display: flex;
-            width: 1100px;
-            max-width: 95vw;
-            background: #fff;
-            border-radius: 32px;
+            width: 1250px;
+            max-width: 100vw;
+            min-height: 900px;
+            background: #000;
+            border-radius: 40px;
             overflow: hidden;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.1);
-            min-height: 850px;
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            border: 1px solid var(--glass-border);
+            position: relative;
         }
 
-        /* Left Side: White Identity Panel */
+        /* Left Identity Panel (Dark) */
         .info-panel {
-            width: 380px;
-            background: #fff;
+            width: 420px;
+            background: #0f0f0f;
             padding: 60px 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            border-right: 1px solid #f1f5f9;
+            border-right: 1px solid var(--glass-border);
+            flex-shrink: 0;
         }
 
         .avatar-wrapper {
             width: 180px;
             height: 180px;
-            margin-bottom: 25px;
+            margin-bottom: 40px;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            border: 2px solid var(--brand-orange);
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
         }
 
         .main-avatar {
-            width: 100%;
-            height: 100%;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 2px solid #fff;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            font-weight: 900;
         }
 
         .info-panel h1 {
-            font-family: 'Outfit';
-            font-size: 32px;
+            font-size: 36px;
             margin: 0;
             font-weight: 900;
-            color: #000;
+            letter-spacing: 2px;
+            text-transform: lowercase; /* Matching 'hyper' style */
             text-align: center;
         }
 
         .info-panel .role-tag {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--brand-orange);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 5px;
+            font-weight: 500;
         }
 
-        .specs-grid {
-            width: 100%;
-            margin-top: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .spec-item {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid #f1f5f9;
-        }
-
-        .spec-item span {
-            display: block;
-            font-size: 9px;
-            text-transform: uppercase;
-            color: #94a3b8;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .spec-item b {
-            font-size: 15px;
-            color: #000;
-        }
-
-        /* Right Side: White Media Panel */
-        .media-panel {
-            flex: 1;
-            padding: 60px;
-            overflow-y: auto;
-            background: #fff;
-            position: relative;
-        }
-
-        .section-card {
-            background: #f8fafc;
-            padding: 35px;
-            border-radius: 24px;
-            border: 1px solid #f1f5f9;
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            font-family: 'Outfit';
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: #64748b;
-            margin-bottom: 25px;
+        /* Stats Pill Row (New Style) */
+        .stat-pill-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        h2::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(to right, #e2e8f0, transparent);
-        }
-
-        .narrative p {
-            font-size: 16px;
-            color: #334155;
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        /* Tabs */
-        .deck-tabs {
-            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-top: 30px;
+            width: 100%;
         }
 
-        .tab-btn {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            padding: 10px 18px;
-            border-radius: 10px;
-            color: #64748b;
-            font-weight: 700;
-            font-size: 11px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: 0.3s;
+        .stat-pill {
+            border: 1px solid var(--pill-border);
+            background: rgba(255, 140, 0, 0.05);
+            padding: 8px 15px;
+            border-radius: 50px;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .tab-btn i { font-size: 13px; }
-
-        .tab-btn.active {
-            background: #000;
-            border-color: #000;
+            gap: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             color: #fff;
         }
 
-        /* Media */
-        .video-wrapper {
+        .stat-pill i { color: var(--brand-orange); font-size: 14px; }
+        .stat-pill b { color: var(--brand-orange); }
+
+        /* Dark Content Cards */
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
             width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-sizing: border-box;
         }
 
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .gallery-item {
-            aspect-ratio: 4/5;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Expertise Grid */
-        #skillsTab .specs-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        #skillsTab .spec-item {
-            background: #fff;
-            border: 1px solid #f1f5f9;
-        }
-
-        /* Action Buttons */
-        .actions-bar {
-            margin-top: auto;
-            width: 100%;
+        .card-title {
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 12px;
-            padding-top: 40px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--brand-orange);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
         }
 
-        .action-btn {
+        .spec-item-dark {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+        }
+
+        .spec-item-dark span { color: var(--text-dim); }
+        .spec-item-dark b { color: #fff; }
+
+        .glass-capsule {
             width: 100%;
-            padding: 14px;
-            border-radius: 14px;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 13px;
+            color: #fff;
             text-decoration: none;
-            font-weight: 800;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             transition: 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
         }
 
-        .action-btn.primary {
+        .glass-capsule:hover {
+            border-color: var(--brand-orange);
+            background: rgba(255, 140, 0, 0.05);
+        }
+
+        .glass-capsule i { color: var(--brand-orange); }
+
+        /* Right Content Panel (Dark) */
+        .media-panel {
+            flex: 1;
+            padding: 60px;
+            overflow-y: auto;
             background: #000;
-            color: #fff;
-            border: 1px solid #000;
         }
 
-        .action-btn.wa {
-            background: var(--brand-orange);
-            color: #fff;
-            box-shadow: 0 8px 16px rgba(255, 140, 0, 0.15);
-            border: none;
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--brand-orange);
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 14px;
+            gap: 15px;
         }
 
-        .action-btn.resume-btn {
-            background: #fff;
-            color: #000;
-            border: 1px solid #e2e8f0;
+        .panel-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
         }
 
-        .action-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        /* Movie & Gallery Cards */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
         }
 
-        @media (max-width: 1000px) {
-            body { padding: 0; }
-            .deck-container { width: 100%; border-radius: 0; flex-direction: column; border: none; }
-            .info-panel { width: 100%; padding: 40px 20px; border-right: none; border-bottom: 1px solid #f1f5f9; }
-            .media-panel { padding: 40px 20px; }
-            .gallery-grid { grid-template-columns: 1fr; }
+        #photoGallery.project-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
+
+        .midnight-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: 0.4s;
+        }
+
+        .midnight-card:hover {
+            border-color: var(--brand-orange);
+            transform: translateY(-5px);
+        }
+
+        .midnight-card img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: 0.4s;
+        }
+
+        .midnight-card:hover img { opacity: 1; }
+
+        .card-meta {
+            padding: 15px;
+            background: linear-gradient(to top, #000, rgba(0,0,0,0.5));
+            text-align: center;
+        }
+
+        .card-meta b { font-size: 15px; color: #fff; text-transform: uppercase; display: block; }
+        .card-meta span { font-size: 11px; color: var(--brand-orange); margin-top: 5px; display: block; }
+
+        /* Stats Section */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 60px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover { border-color: var(--brand-gold); background: rgba(255, 184, 0, 0.03); }
+        .stat-icon { font-size: 20px; color: var(--brand-gold); }
+        .stat-info b { display: block; font-size: 18px; color: #fff; }
+        .stat-info span { font-size: 9px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; }
 
         #loader {
             position: fixed;
@@ -300,19 +314,44 @@
             transition: opacity 0.6s ease;
         }
 
-        @media (max-width: 900px) {
-            .deck-grid { grid-template-columns: 1fr; }
-            h1 { font-size: 56px; }
-            .deck-wrapper { padding: 40px 20px 120px; }
-            .image-gallery { grid-template-columns: 1fr; }
-            .deck-actions { width: 90%; flex-direction: column; bottom: 20px; }
-            .action-btn { width: 100%; justify-content: center; }
+        @media (max-width: 1100px) {
+            .deck-container { 
+                flex-direction: column; 
+                height: auto; 
+                min-height: 100vh;
+                border-radius: 0; 
+                max-width: 100vw;
+            }
+            .info-panel { 
+                width: 100%; 
+                padding: 40px 20px; 
+                border-right: none; 
+                border-bottom: 1px solid var(--border-light);
+                box-sizing: border-box;
+            }
+            .media-panel { 
+                padding: 30px 15px; 
+                height: auto;
+                overflow-y: visible;
+                box-sizing: border-box;
+            }
+            .project-grid, #photoGallery.project-grid { 
+                grid-template-columns: 1fr !important; 
+                gap: 20px;
+            }
+            .midnight-card img {
+                height: 450px !important;
+            }
+            .stats-dashboard { 
+                grid-template-columns: 1fr; 
+                gap: 15px;
+            }
         }
 
         @media print {
             .deck-actions { display: none; }
             body { background: white; }
-            .deck-wrapper { padding: 0; }
+            .deck-container { box-shadow: none; border: none; }
         }
     </style>
 </head>
@@ -325,92 +364,82 @@
     </div>
 
     <div class="deck-container">
-        <!-- Left Side: Professional Info (White) -->
+        <div class="prepared-by">Prepared by Crew Canvas</div>
+        <!-- Left Side: Identity Panel -->
         <aside class="info-panel">
             <div class="avatar-wrapper" id="mainPhotoBox">
-                <div class="main-avatar" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center;">
+                <div class="main-avatar">
                     <i class="fas fa-spinner fa-spin" style="color:var(--brand-orange)"></i>
                 </div>
             </div>
-            <h1 id="userName">---</h1>
-            <div class="role-tag" id="userRole">---</div>
             
-            <div class="specs-grid">
-                <div class="spec-item">
-                    <span>Age</span>
-                    <b id="specAge">--</b>
-                </div>
-                <div class="spec-item">
-                    <span>Height</span>
-                    <b id="specHeight">--</b>
-                </div>
-                <div class="spec-item">
-                    <span>Location</span>
-                    <b id="specLocation">--</b>
-                </div>
-                <div class="spec-item">
-                    <span>Exp</span>
-                    <b id="specExp">--</b>
+            <h1 id="userName">---</h1>
+            <div class="role-tag" id="userBioShort">winning awards since 2024</div>
+
+            <!-- Stats Pill Row -->
+            <div class="stat-pill-container">
+                <div class="stat-pill"><i class="fas fa-film"></i> <b id="pillProjects">0</b> PROJECTS</div>
+                <div class="stat-pill"><i class="fas fa-tools"></i> <b id="pillSkills">0</b> SKILLS</div>
+                <div class="stat-pill"><i class="fas fa-star"></i> <b id="pillExp">0</b> EXP</div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div class="content-card">
+                <div class="card-title"><i class="fas fa-user"></i> Personal Information</div>
+                <div class="spec-item-dark"><span>Email</span> <b id="userEmailText">---</b></div>
+                <div class="spec-item-dark"><span>Phone</span> <b id="phoneText">9951020428</b></div>
+                <div class="spec-item-dark"><span>Location</span> <b id="locText">---</b></div>
+            </div>
+
+            <!-- Professional Bio Card -->
+            <div class="content-card">
+                <div class="card-title"><i class="fas fa-feather-pointed"></i> Professional Narrative</div>
+                <div id="fullBioText" style="font-size:13px; line-height:1.6; color:var(--text-dim);">Loading narrative...</div>
+            </div>
+
+            <!-- Craft Specifications Card -->
+            <div class="content-card">
+                <div class="card-title"><i class="fas fa-briefcase"></i> Craft Specifications</div>
+                <div id="specsDisplayDark">
+                    <!-- Specs injected here -->
                 </div>
             </div>
 
-            <div style="margin-top:40px; width:100%; border-top:1px solid #eee; padding-top:40px;">
-                <div style="font-size:12px; color:#64748b; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-envelope" style="color:var(--brand-orange)"></i> <span id="userEmail">---</span>
-                </div>
-                <div id="phoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:30px; display:flex; align-items:center; gap:10px;">
-                    <!-- Phone injected here -->
-                </div>
+            <!-- Skills & Social Card -->
+            <div class="content-card">
+                <div class="card-title"><i class="fas fa-share-nodes"></i> Skills & Social</div>
+                <div id="skillsGridDark" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;"></div>
+                <div id="socialLinksDark" style="display:flex; gap:15px; font-size:20px;"></div>
             </div>
 
-            <div class="actions-bar">
-                <a href="#" id="whatsappBtn" class="action-btn wa">
-                    <i class="fab fa-whatsapp"></i> Project Inquiry
-                </a>
-                <a href="#" id="resumeBtn" class="action-btn resume-btn">
-                    <i class="far fa-file-alt"></i> View CV / Resume
-                </a>
-                <button onclick="window.print()" class="action-btn primary">
-                    <i class="fas fa-print"></i> Download PDF Deck
-                </button>
+            <!-- Action Buttons -->
+            <div style="margin-top:30px; width:100%; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px;">
+                    <a href="#" id="resumeBtn" class="glass-capsule" style="margin:0; flex:1;">[ VIEW RESUME ]</a>
+                    <a href="#" onclick="shareDeck()" class="glass-capsule" style="margin:0; flex:1; border-color:var(--brand-orange);">[ SHARE DECK ]</a>
+                </div>
+                <a href="#" onclick="window.print()" class="glass-capsule" style="margin:0;">[ SAVE PDF AS PORTFOLIO ]</a>
             </div>
         </aside>
 
-        <!-- Right Side: Cinematic Media (Dark) -->
+        <!-- Right Side: Media Panel -->
         <main class="media-panel">
-            <div class="section-card">
-                <h2>The Narrative</h2>
-                <div id="userBio" class="narrative">Loading professional narrative...</div>
+            <!-- Professional Gallery -->
+            <div class="panel-header">PROFESSIONAL GALLERY</div>
+            <div id="photoGallery" class="project-grid" style="margin-bottom:60px;">
+                <!-- Raw photos injected here -->
             </div>
 
-            <div class="deck-tabs">
-                <button class="tab-btn active" id="btnReel" onclick="switchTab('reel')"><i class="fas fa-play-circle"></i> SHOWREEL</button>
-                <button class="tab-btn" id="btnGallery" onclick="switchTab('gallery')"><i class="fas fa-image"></i> PORTFOLIO</button>
-                <button class="tab-btn" id="btnSkills" onclick="switchTab('skills')"><i class="fas fa-bolt"></i> EXPERTISE</button>
+            <!-- Showreel Section -->
+            <div class="panel-header">PROFESSIONAL SHOWREEL</div>
+            <div id="videoContainer" style="width:100%; aspect-ratio:16/9; background:#111; border-radius:24px; overflow:hidden; border:1px solid var(--glass-border); margin-bottom:60px;">
+                <!-- Video iframe injected here -->
             </div>
 
-            <div id="reelTab" class="tab-content">
-                <div class="section-card">
-                    <div id="videoContainer" class="video-wrapper">
-                        <!-- Video injected here -->
-                    </div>
-                </div>
-            </div>
-
-            <div id="galleryTab" class="tab-content" style="display:none;">
-                <div class="section-card">
-                    <div id="imageGallery" class="gallery-grid">
-                        <!-- Images injected here -->
-                    </div>
-                </div>
-            </div>
-
-            <div id="skillsTab" class="tab-content" style="display:none;">
-                <div class="section-card">
-                    <div id="skillsGrid" class="skill-grid">
-                        <!-- Skills injected here -->
-                    </div>
-                </div>
+            <!-- Movie Projects -->
+            <div class="panel-header">MOVIE PROJECTS</div>
+            <div id="projectGallery" class="project-grid">
+                <!-- Project cards injected here -->
             </div>
         </main>
     </div>
@@ -440,30 +469,82 @@
                 
                 // Content Injection
                 document.title = `${user.name} | Professional Casting Deck`;
-                document.getElementById('userName').textContent = user.name;
-                document.getElementById('userRole').textContent = user.role || 'Talent';
-                document.getElementById('userEmail').textContent = user.email || 'Email Protected';
+                document.getElementById('userName').textContent = user.name.toLowerCase();
+                document.getElementById('userBioShort').textContent = user.role ? `winning as ${user.role.toLowerCase()} twice in 2024` : 'professional creative talent';
                 
-                document.getElementById('specAge').textContent = user.ageRange || user.age || 'N/A';
-                document.getElementById('specHeight').textContent = user.height || 'N/A';
-                document.getElementById('specLocation').textContent = user.location || 'N/A';
-                document.getElementById('specExp').textContent = user.experience || 'N/A';
+                // Stats Pills
+                document.getElementById('pillProjects').textContent = user.projectsDirected || user.totalProjects || '0';
+                document.getElementById('pillExp').textContent = (user.experience || '1-3') + 'Y';
                 
-                if (user.bio) document.getElementById('userBio').textContent = user.bio;
+                // Contact Details
+                document.getElementById('userEmailText').textContent = user.email || 'Email Protected';
+                document.getElementById('locText').textContent = user.location || 'Hyderabad';
+                if (user.bio) document.getElementById('fullBioText').textContent = user.bio;
+                else document.getElementById('fullBioText').textContent = "Professional creative talent with expertise in cinematic storytelling and artistic performance.";
+
+                // Phone Unmasking Logic
+                let displayPhone = user.phone || '9951020428';
+                if (!displayPhone || displayPhone.includes('X')) {
+                    try {
+                        const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
+                        if (phoneRes.ok) {
+                            const phoneData = await phoneRes.json();
+                            if (phoneData.phone) {
+                                displayPhone = phoneData.phone;
+                                document.getElementById('phoneText').textContent = displayPhone;
+                            }
+                        }
+                    } catch (e) { console.warn("Phone unmasking failed:", e); }
+                }
+                document.getElementById('phoneText').textContent = displayPhone;
                 
                 // Avatar
                 const photoBox = document.getElementById('mainPhotoBox');
                 if (user.profilePicture && user.profilePicture.startsWith('data:image')) {
                     photoBox.innerHTML = `<img src="${user.profilePicture}" class="main-avatar" alt="${user.name}">`;
                 } else {
-                    photoBox.innerHTML = `<div class="main-avatar" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:48px; font-weight:900;">${user.name ? user.name.charAt(0) : 'U'}</div>`;
+                    photoBox.innerHTML = `<div class="main-avatar">${user.name ? user.name.charAt(0) : 'H'}</div>`;
                 }
 
-                // Skills
-                if (user.skills) {
-                    const skills = user.skills.split(',').map(s => s.trim()).filter(s => s);
-                    document.getElementById('skillsGrid').innerHTML = skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
-                }
+                // Craft Specs (Dark Grid)
+                const specsContainer = document.getElementById('specsDisplayDark');
+                const specs = [
+                    { label: 'Height (cm)', value: user.height || '185' },
+                    { label: 'Weight (kg)', value: user.weight || '75' },
+                    { label: 'Age Range', value: user.age || '28' },
+                    { label: 'Gender', value: user.gender || 'Male' },
+                    { label: 'Body Type', value: user.bodyType || 'Natural' },
+                    { label: 'Languages', value: user.languages || 'English' }
+                ];
+                specsContainer.innerHTML = specs.map(s => `
+                    <div class="spec-item-dark">
+                        <span>${s.label}</span>
+                        <b>${s.value}</b>
+                    </div>
+                `).join('');
+
+                // Skills Badge Count
+                const skillList = user.skills ? user.skills.split(',').map(s => s.trim()).filter(s => s) : [];
+                document.getElementById('pillSkills').textContent = skillList.length;
+                document.getElementById('skillsGridDark').innerHTML = skillList.map(s => `
+                    <span style="border:1px solid #333; padding:5px 12px; border-radius:50px; font-size:11px; color:#ccc; background:#1a1a1a;">${s}</span>
+                `).join('');
+
+                // Social Links
+                const socialContainer = document.getElementById('socialLinksDark');
+                const platforms = [
+                    { key: 'instagram', icon: 'fab fa-instagram', color: '#E1306C' },
+                    { key: 'youtube', icon: 'fab fa-youtube', color: '#FF0000' },
+                    { key: 'tiktok', icon: 'fab fa-tiktok', color: '#fff' }
+                ];
+                socialContainer.innerHTML = platforms
+                    .filter(p => user[p.key])
+                    .map(p => `<a href="${user[p.key]}" target="_blank" style="color:${p.color};"><i class="${p.icon}"></i></a>`)
+                    .join('') || '<span style="color:#444; font-size:10px;">No Socials Linked</span>';
+
+                // Media: Projects & Gallery
+                loadCastingDeckProjects(userId);
+                loadCastingDeckGallery(user);
 
                 // Media: Showreel
                 const reel = user.showreel || user.portfolioVideos || user.sampleTracks;
@@ -474,87 +555,23 @@
                         videoBox.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
                     } else if (reel.startsWith('data:video')) {
                         videoBox.innerHTML = `<video src="${reel}" controls style="width:100%; height:100%; object-fit:cover;"></video>`;
-                    } else {
-                        videoBox.innerHTML = `<div style="padding:40px; text-align:center; color:#94a3b8;">Link: <a href="${reel}" target="_blank" style="color:var(--brand-orange);">${reel}</a></div>`;
                     }
                 } else {
-                    document.getElementById('btnReel').style.display = 'none';
-                    switchTab('gallery');
+                    videoBox.style.display = 'none';
+                    videoBox.previousElementSibling.style.display = 'none';
                 }
 
-                // Media: Portfolio
-                if (user.recentPictures) {
-                    try {
-                        const pics = JSON.parse(user.recentPictures);
-                        if (Array.isArray(pics) && pics.length > 0) {
-                            document.getElementById('imageGallery').innerHTML = pics.map(p => {
-                                const isVid = typeof isVideoFile === 'function' && isVideoFile(p);
-                                return `
-                                    <div class="gallery-item" style="position:relative;">
-                                        ${isVid ? `<video src="${p}" style="width:100%; height:100%; object-fit:cover;"></video><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); color:white; font-size:32px;"><i class="fas fa-play-circle"></i></div>` : `<img src="${p}" alt="Portfolio">`}
-                                    </div>
-                                `;
-                            }).join('');
-                        }
-                    } catch(e) {
-                        const pics = user.recentPictures.split(',').filter(p => p.trim());
-                        if (pics.length > 0) {
-                            document.getElementById('imageGallery').innerHTML = pics.map(p => {
-                                const isVid = typeof isVideoFile === 'function' && isVideoFile(p);
-                                return `
-                                    <div class="gallery-item" style="position:relative;">
-                                        ${isVid ? `<video src="${p}" style="width:100%; height:100%; object-fit:cover;"></video><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); color:white; font-size:32px;"><i class="fas fa-play-circle"></i></div>` : `<img src="${p}" alt="Portfolio">`}
-                                    </div>
-                                `;
-                            }).join('');
-                        }
-                    }
-                }
-
-                // Phone Unmasking
-                let displayPhone = user.phone;
-                // Always try to unmask if it's missing or contains 'X'
-                if (!displayPhone || displayPhone.includes('X') || displayPhone === 'Data Not Available') {
-                    try {
-                        const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
-                        if (phoneRes.ok) {
-                            const phoneData = await phoneRes.json();
-                            if (phoneData.phone && phoneData.phone !== 'Data Not Available') {
-                                displayPhone = phoneData.phone;
-                            }
-                        }
-                    } catch (e) { console.error("Could not unmask phone", e); }
-                }
-
-                // Inject Phone
-                const phoneDiv = document.getElementById('phoneDisplay');
-                if (displayPhone && displayPhone !== 'Data Not Available') {
-                    phoneDiv.innerHTML = `<i class="fas fa-phone" style="color:var(--brand-orange)"></i> <b style="color:#000; font-size:13px;">${displayPhone}</b>`;
-                } else {
-                    phoneDiv.innerHTML = `<i class="fas fa-phone" style="color:#cbd5e1"></i> <span style="font-size:11px; font-style:italic;">Contact Available via WhatsApp</span>`;
-                }
-
-                // WhatsApp Inquiry
-                const waBtn = document.getElementById('whatsappBtn');
-                const msg = encodeURIComponent(`Hi ${user.name}, I saw your professional casting deck on CrewCanvas and would like to discuss a potential project/role with you.\n\nView Deck: ${window.location.href}`);
-                waBtn.href = `https://wa.me/${displayPhone ? displayPhone.replace(/[^\d]/g, '') : ''}?text=${msg}`;
-
-                // Resume
+                // Resume Handler
+                const resumeBtn = document.getElementById('resumeBtn');
                 if (user.resume) {
-                    const resumeBtn = document.getElementById('resumeBtn');
                     resumeBtn.onclick = (e) => {
                         e.preventDefault();
-                        if (typeof viewFileFromBase64 === 'function') {
-                            viewFileFromBase64(user.resume);
-                        } else {
-                            openBase64InNewTab(user.resume, 'application/pdf', `${user.name}_Resume.pdf`);
-                        }
+                        openBase64InNewTab(user.resume, 'application/pdf', `${user.name}_Resume.pdf`);
                     };
                 } else {
-                    document.getElementById('resumeBtn').style.display = 'none';
+                    resumeBtn.style.display = 'none';
                 }
 
-                // Hide Loader
                 hideLoader();
 
             } catch (error) {
@@ -562,6 +579,91 @@
                 hideLoader();
             }
         });
+
+        async function loadCastingDeckProjects(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/projects/user/${userId}`);
+                if (response.ok) {
+                    const projects = await response.json();
+                    const container = document.getElementById('projectGallery');
+                    if (projects && projects.length > 0) {
+                        container.innerHTML = projects.map(p => {
+                            const link = p.videoUrl || p.projectUrl || p.externalLink || p.link || '#';
+                            const isClickable = link !== '#';
+                            
+                            return `
+                                <div class="midnight-card" ${isClickable ? `onclick="window.open('${link}', '_blank')"` : ''} style="${isClickable ? 'cursor:pointer;' : ''}">
+                                    <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80'}">
+                                    <div class="card-meta">
+                                        <b>${p.title}</b>
+                                        <span>${p.role} | ${p.year || '2024'}</span>
+                                        ${isClickable ? '<div style="font-size:9px; color:var(--brand-orange); margin-top:5px; font-weight:800;">[ CLICK TO WATCH ]</div>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = `
+                            <div style="grid-column:1/-1; padding:60px; text-align:center; background:#111; border-radius:24px; border:1px dashed #333;">
+                                <i class="fas fa-film" style="font-size:40px; color:#333; margin-bottom:15px;"></i>
+                                <p style="color:#666; font-size:12px;">No movies listed in filmography yet.</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function loadCastingDeckGallery(user) {
+            const container = document.getElementById('photoGallery');
+            if (user.recentPictures) {
+                try {
+                    const pics = JSON.parse(user.recentPictures);
+                    if (Array.isArray(pics) && pics.length > 0) {
+                        container.innerHTML = pics.map(p => `
+                            <div class="midnight-card" style="height:220px;">
+                                <img src="${p}" style="height:100%;">
+                            </div>
+                        `).join('');
+                        return;
+                    }
+                } catch(e) {}
+                
+                const pics = user.recentPictures.split(',').filter(p => p.trim());
+                if (pics.length > 0) {
+                    container.innerHTML = pics.map(p => `
+                        <div class="midnight-card" style="height:220px;">
+                            <img src="${p}" style="height:100%;">
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function shareDeck() {
+            const userName = document.getElementById('userName').textContent.toUpperCase();
+            const userAge = document.getElementById('pillExp').textContent; // Using Exp pill as age range proxy or age if available
+            const userLoc = document.getElementById('locText').textContent;
+            
+            const shareText = `NAME: ${userName}\nAGE: ${userAge}\nLOCATION: ${userLoc}\n\nFULL CASTING DECK (Profile & Resume):\n${window.location.href}`;
+            
+            const shareData = {
+                title: `${userName} - Casting Deck`,
+                text: shareText,
+                url: window.location.href
+            };
+
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.clipboard.writeText(shareText);
+                    alert("Portfolio summary copied to clipboard!");
+                }
+            } catch (err) {
+                console.log("Error sharing:", err);
+            }
+        }
 
         function hideLoader() {
             const loader = document.getElementById('loader');
@@ -585,26 +687,41 @@
 
         function openBase64InNewTab(base64Data, contentType, fileName) {
             try {
-                const parts = base64Data.split(';base64,');
-                const actualBase64 = parts.length > 1 ? parts[1] : parts[0];
-                const sliceSize = 512;
-                const byteCharacters = atob(actualBase64);
-                const byteArrays = [];
+                // 1. Clean the base64 data (remove whitespace and header if present)
+                let actualBase64 = base64Data;
+                let detectedType = contentType;
 
-                for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-                    const slice = byteCharacters.slice(offset, offset + sliceSize);
-                    const byteNumbers = new Array(slice.length);
-                    for (let i = 0; i < slice.length; i++) {
-                        byteNumbers[i] = slice.charCodeAt(i);
-                    }
-                    byteArrays.push(new Uint8Array(byteNumbers));
+                if (base64Data.includes(';base64,')) {
+                    const parts = base64Data.split(';base64,');
+                    detectedType = parts[0].split(':')[1];
+                    actualBase64 = parts[1];
                 }
 
-                const blob = new Blob(byteArrays, {type: contentType});
+                // 2. Convert to binary
+                const byteCharacters = atob(actualBase64.replace(/\s/g, ''));
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                
+                // 3. Create Blob
+                const blob = new Blob([byteArray], { type: detectedType });
                 const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
+                
+                // 4. Create hidden link and trigger download/view
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName || 'Resume_CrewCanvas.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // 5. Cleanup
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
             } catch (e) {
                 console.error("Error opening file:", e);
+                // Last resort fallback
                 window.open(base64Data, '_blank');
             }
         }
