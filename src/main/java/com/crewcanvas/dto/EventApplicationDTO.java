@@ -1,9 +1,7 @@
 package com.crewcanvas.dto;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data
 public class EventApplicationDTO {
     private Long id;
     private Long eventId;
@@ -34,7 +32,7 @@ public class EventApplicationDTO {
         this.mobileNumber = summary.getMobileNumber();
         this.eventTitle = summary.getEventTitle();
         this.eventType = summary.getEventType();
-        this.matchScore = 0;
+        this.matchScore = summary.getMatchScore() != null ? summary.getMatchScore() : 0;
     }
 
     public EventApplicationDTO(com.crewcanvas.model.EventApplication app) {
@@ -50,6 +48,34 @@ public class EventApplicationDTO {
         this.mobileNumber = app.getMobileNumber();
         this.eventTitle = app.getEventTitle();
         this.eventType = app.getEventType();
-        this.matchScore = app.getMatchScore();
+        this.matchScore = app.getMatchScore() != null ? app.getMatchScore() : 0;
     }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getAppliedAt() { return appliedAt; }
+    public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
+    public String getApplicantName() { return applicantName; }
+    public void setApplicantName(String applicantName) { this.applicantName = applicantName; }
+    public String getApplicantEmail() { return applicantEmail; }
+    public void setApplicantEmail(String applicantEmail) { this.applicantEmail = applicantEmail; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public String getMobileNumber() { return mobileNumber; }
+    public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+    public String getEventTitle() { return eventTitle; }
+    public void setEventTitle(String eventTitle) { this.eventTitle = eventTitle; }
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
+    public Integer getMatchScore() { return matchScore; }
+    public void setMatchScore(Integer matchScore) { this.matchScore = matchScore; }
 }

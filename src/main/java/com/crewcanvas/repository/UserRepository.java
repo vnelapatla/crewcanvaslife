@@ -19,17 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:query IS NULL OR :query = '' OR LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(u.skills) LIKE LOWER(CONCAT('%', :query, '%'))) AND " +
             "(:role IS NULL OR :role = '' OR LOWER(u.role) = LOWER(:role)) AND " +
             "(:location IS NULL OR :location = '' OR LOWER(u.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
-            "(:viewerRole IS NULL OR 1=1) AND (:viewerAgeRange IS NULL OR 1=1)",
-        nativeQuery = false,
-        sort = org.springframework.data.domain.Sort.unsorted() // We'll handle sorting in JPQL for complex logic
-    )
-    @org.springframework.data.jpa.repository.Query(
-        value = "SELECT u FROM User u WHERE " +
-            "(:currentUserId IS NULL OR u.id != :currentUserId) AND " +
-            "(:excludeFollowed = false OR u.id NOT IN (SELECT c.followingId FROM Connection c WHERE c.followerId = :currentUserId)) AND " +
-            "(:query IS NULL OR :query = '' OR LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(u.skills) LIKE LOWER(CONCAT('%', :query, '%'))) AND " +
-            "(:role IS NULL OR :role = '' OR LOWER(u.role) = LOWER(:role)) AND " +
-            "(:location IS NULL OR :location = '' OR LOWER(u.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
             "(:viewerRole IS NULL OR 1=1) AND (:viewerAgeRange IS NULL OR 1=1) " +
             "ORDER BY u.isVerifiedProfessional DESC, " +
             "u.profileScore DESC, " +
@@ -54,6 +43,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @org.springframework.data.repository.query.Param("viewerAgeRange") String viewerAgeRange,
         @org.springframework.data.repository.query.Param("excludeFollowed") boolean excludeFollowed,
         org.springframework.data.domain.Pageable pageable);
+
+    boolean existsByEmail(String email);
 
     long countByCreatedAtAfter(java.time.LocalDateTime dateTime);
     long countByProfileScoreBetween(int min, int max);

@@ -15,7 +15,5 @@ public interface EventApplicationSummary {
     String getMobileNumber();
     String getEventTitle();
     String getEventType();
-    
-    // We don't include the large LOB/LONGTEXT fields here:
-    // photo1, photo2, photo3, resumeUrl, videoUrl, posterUrl
+    Integer getMatchScore();
 }
