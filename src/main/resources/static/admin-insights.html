@@ -288,15 +288,20 @@
                     <h3 style="margin-bottom: 5px;"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Revenue & Traffic Insight</h3>
                     <p style="opacity: 0.7; font-size: 13px;">Automatic estimation based on page views (Market Standard ₹35/1000 views).</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 30px;">
+                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                     <div style="text-align: right;">
-                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Daily Page Views</label>
-                        <div id="statDailyHits" style="font-size: 32px; font-weight: 800; color: white;">0</div>
+                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Daily Views</label>
+                        <div id="statDailyHits" style="font-size: 24px; font-weight: 800; color: white;">0</div>
                     </div>
-                    <div style="width: 2px; height: 50px; background: rgba(255,255,255,0.1);"></div>
+                    <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
                     <div style="text-align: right;">
-                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Monthly Revenue</label>
-                        <div id="statMonthlyIncome" style="font-size: 32px; font-weight: 800; color: #10b981;">₹0.00</div>
+                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Today</label>
+                        <div id="statDailyIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">₹0.00</div>
+                    </div>
+                    <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
+                    <div style="text-align: right;">
+                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Monthly</label>
+                        <div id="statMonthlyIncome" style="font-size: 24px; font-weight: 800; color: #10b981;">₹0.00</div>
                     </div>
                 </div>
             </div>
@@ -428,18 +433,20 @@
             const adminId = localStorage.getItem('userId');
             if (!adminId) return;
             
+            const refreshBtn = document.querySelector('button[onclick="fetchInsights()"]');
+            if (refreshBtn) refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Updating...';
+
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/insights/stats?adminId=${adminId}`);
                 if (res.ok) {
                     const data = await res.json();
                     renderStats(data);
-                    if (typeof showMessage === 'function') showMessage('Insights updated!', 'success');
-                } else {
-                    if (typeof showMessage === 'function') showMessage('Failed to refresh data', 'error');
                 }
             } catch (err) {
                 console.error("Failed to fetch insights:", err);
-                if (typeof showMessage === 'function') showMessage('Connection error', 'error');
+                if (typeof showMessage === 'function') showMessage('Server is busy. Please wait a moment.', 'error');
+            } finally {
+                if (refreshBtn) refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
             }
         }
 
@@ -456,7 +463,10 @@
             document.getElementById('statNewApps').innerText = data.newApplications24h;
 
             // Traffic & Income
-            document.getElementById('statDailyHits').innerText = (data.dailyHits || 0).toLocaleString();
+            const hits = data.dailyHits || 0;
+            const dailyIncome = (hits * 35.0) / 1000.0;
+            document.getElementById('statDailyHits').innerText = hits.toLocaleString();
+            document.getElementById('statDailyIncome').innerText = '₹' + dailyIncome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Calculate Avg Completion
