@@ -27,8 +27,8 @@ public class ProfileController {
     @PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
-    private void maskSensitiveData(User user, Long viewerId) {
-        if (user == null) return;
+    private void maskSensitiveData(User user, Long viewerId, boolean forceUnmask) {
+        if (user == null || forceUnmask) return;
         
         // CC-MAY-2026: Enhanced Authorization Check [Nelpatla Venkatesh]
         // Rules: Admin, Verified Professional, or Profile Owner can see full data.
@@ -62,7 +62,9 @@ public class ProfileController {
     }
 
     @GetMapping("/onboarding-data/{id}")
-    public ResponseEntity<?> getOnboardingData(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
+    public ResponseEntity<?> getOnboardingData(@PathVariable Long id, 
+                                             @RequestParam(required = false) Long viewerId,
+                                             @RequestParam(defaultValue = "false") boolean unmask) {
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -90,7 +92,7 @@ public class ProfileController {
                 }
 
                 Map<String, Object> data = new java.util.HashMap<>();
-                maskSensitiveData(user, viewerId);
+                maskSensitiveData(user, viewerId, unmask);
                 data.put("user", user);
                 data.put("following", connectionService.getFollowing(id));
                 data.put("followers", connectionService.getFollowers(id));
@@ -104,7 +106,9 @@ public class ProfileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProfile(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
+    public ResponseEntity<?> getProfile(@PathVariable Long id, 
+                                      @RequestParam(required = false) Long viewerId,
+                                      @RequestParam(defaultValue = "false") boolean unmask) {
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -113,14 +117,14 @@ public class ProfileController {
                 
                 // If visibility is Everyone, anyone can view
                 if (visibility == null || visibility.equals("Everyone")) {
-                    maskSensitiveData(user, viewerId);
+                    maskSensitiveData(user, viewerId, unmask);
                     return ResponseEntity.ok(user);
                 }
                 
                 // If visibility is Private, only the user themselves or an admin can view
                 if (visibility.equals("Private")) {
                     if (viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false))) {
-                        maskSensitiveData(user, viewerId);
+                        maskSensitiveData(user, viewerId, unmask);
                         return ResponseEntity.ok(user);
                     }
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is private.");
@@ -130,21 +134,23 @@ public class ProfileController {
                 if (visibility.equals("Connections Only")) {
                     if (viewerId != null) {
                         if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
-                            maskSensitiveData(user, viewerId);
+                            maskSensitiveData(user, viewerId, unmask);
                             return ResponseEntity.ok(user);
                         }
                         // Check connection
                         boolean isConnected = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
                                             connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
                         if (isConnected) {
-                            maskSensitiveData(user, viewerId);
+                            maskSensitiveData(user, viewerId, unmask);
                             return ResponseEntity.ok(user);
                         }
                     }
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is only visible to connections.");
                 }
                 
+                maskSensitiveData(user, viewerId, unmask);
                 return ResponseEntity.ok(user); // Fallback
+
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("User not found");
@@ -207,7 +213,7 @@ public class ProfileController {
             }
             
             // Mask sensitive data for search results
-            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId));
+            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId, false));
             
             return ResponseEntity.ok(userPage);
         } catch (Exception e) {
@@ -220,7 +226,7 @@ public class ProfileController {
     public ResponseEntity<?> getTopUsers(@RequestParam(required = false) Long viewerId) {
         try {
             List<User> users = userService.getTopUsers();
-            users.forEach(u -> maskSensitiveData(u, viewerId));
+            users.forEach(u -> maskSensitiveData(u, viewerId, false));
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

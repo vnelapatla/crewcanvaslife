@@ -307,7 +307,7 @@ function displayProfile(user) {
                     <i class="fa-solid fa-user-edit"></i> Edit Profile
                 </a>
                 <a href="casting-deck.html?userId=${profileUserId}" class="action-btn btn-secondary" style="background:#0f172a; color:#fff;">
-                    <i class="fa-solid fa-id-card"></i> Casting Deck
+                    <i class="fa-solid fa-clapperboard"></i> Casting Deck
                 </a>
             `;
         } else {
@@ -316,7 +316,7 @@ function displayProfile(user) {
             
             const deckBtnHtml = `
                 <a href="casting-deck.html?userId=${profileUserId}" class="action-btn btn-secondary" style="background:#0f172a; color:#fff;">
-                    <i class="fa-solid fa-id-card"></i> Casting Deck
+                    <i class="fa-solid fa-clapperboard"></i> Casting Deck
                 </a>
             `;
 

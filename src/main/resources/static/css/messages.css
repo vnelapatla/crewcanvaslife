@@ -267,14 +267,13 @@ body.scroll-lock {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background: rgba(0, 0, 0, 0.5); /* Semi-solid background for better contrast */
     display: flex;
     justify-content: center;
-    align-items: center;
-    z-index: 2000;
+    align-items: center; /* Center on screen */
+    z-index: 30000 !important; /* Force above the 10000 z-index header */
     animation: overlayFadeIn 0.3s ease;
+    padding: 20px;
 }
 
 @keyframes overlayFadeIn {
@@ -285,16 +284,17 @@ body.scroll-lock {
 .chat-window {
     width: 650px;
     max-width: 95%;
-    height: 700px;
-    max-height: 90vh;
-    background: rgba(255, 255, 255, 0.95);
+    height: 750px; /* Slightly taller for better readability */
+    max-height: 85vh;
+    background: #ffffff; /* SOLID WHITE */
     border-radius: 24px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.3); /* Premium depth */
+    border: 1px solid #ddd;
     animation: windowSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-top: 20px; /* Shift down to avoid header proximity */
 }
 
 @keyframes windowSlideUp {
@@ -303,15 +303,14 @@ body.scroll-lock {
 }
 
 .chat-header {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 18px 25px;
+    background: #ffffff; /* SOLID WHITE */
+    padding: 20px 25px;
     min-height: 80px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 2px solid #f1f5f9; /* Stronger border */
     flex-shrink: 0;
-    backdrop-filter: blur(5px);
 }
 
 .chat-user { 
@@ -343,16 +342,16 @@ body.scroll-lock {
 #chatUserName {
     margin: 0 !important;
     padding: 0 !important;
-    font-size: 17px !important;
-    font-weight: 700 !important;
-    color: #1a1a1a !important;
+    font-size: 19px !important; /* Slightly larger */
+    font-weight: 800 !important; /* Bolder */
+    color: #000 !important; /* PURE BLACK for maximum visibility */
     line-height: 1.2 !important;
 }
 
 #chatUserStatus {
     font-size: 12px !important;
-    color: #10b981 !important; /* Success green for "active now" */
-    font-weight: 500 !important;
+    color: #059669 !important; /* Darker emerald for visibility */
+    font-weight: 600 !important;
     display: flex !important;
     align-items: center !important;
     gap: 5px !important;
@@ -475,6 +474,7 @@ body.scroll-lock {
     margin-bottom: 6px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    color: var(--primary-orange); /* BRAND ORANGE for names */
 }
 
 .text-content {
@@ -570,12 +570,11 @@ body.scroll-lock {
 
 .chat-input-area {
     padding: 20px 30px;
-    background: rgba(255, 255, 255, 0.9);
+    background: #ffffff; /* SOLID WHITE */
     display: flex;
     align-items: center;
     gap: 20px;
-    border-top: 1px solid rgba(0,0,0,0.05);
-    backdrop-filter: blur(5px);
+    border-top: 2px solid #f1f5f9;
 }
 
 .input-actions {
@@ -810,17 +809,44 @@ body.scroll-lock {
     }
 
     .chat-input-area {
-        padding: 12px 15px;
+        padding: 10px 15px; /* Restored some side padding */
         background: #fff;
         border-top: 1px solid #f0f0f0;
-        margin-bottom: 0 !important; /* Remove margin when inside chat modal */
+        margin-bottom: 0 !important;
         position: relative;
         z-index: 9999999;
+        gap: 8px; /* Further reduced gap */
+        display: flex;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .input-actions {
+        gap: 6px; /* Further reduced gap */
+        flex-shrink: 0;
+    }
+
+    .input-actions i {
+        font-size: 18px;
     }
 
     .chat-input-area input {
         font-size: 14px;
-        padding: 12px 15px;
+        padding: 10px 15px;
+        flex: 1;
+        min-width: 0; /* Allow it to shrink */
+    }
+
+    .send-btn {
+        width: 40px; /* More mobile friendly size */
+        height: 40px;
+        flex-shrink: 0;
+        margin-left: 2px;
+    }
+
+    .send-btn i {
+        font-size: 15px;
     }
 }
 
