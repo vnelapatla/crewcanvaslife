@@ -1019,7 +1019,7 @@ function initUniversalHeader() {
                 </a>
                 <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
                     <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
-                    <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                    <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; document.getElementById('userInitialsSmall').style.display='flex';">
                     
                     <div class="profile-dropdown-menu" id="profileDropdown">
                         <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
@@ -1559,86 +1559,88 @@ function openBase64InNewTab(data, contentType = '', fileName = '') {
 }
 
 /**
- * Calculates profile completion percentage based on core requirements
- * Required: Name, Email, Phone, Bio, Resume, Video, and 5+ Recent Images
+ * Calculates profile completion percentage (Synced with User.java)
+ * Max 100: Identity(25), Visuals(20), Professional(30), Portfolio/Social(25)
  */
 function calculateProfileScore(user) {
     if (!user) return 0;
     let score = 0;
     
-    // Core Info (40%)
+    // Identity (Max 25)
     if (user.name) score += 10;
-    if (user.email) score += 10;
-    if (user.phone && !user.phone.includes('X')) score += 10;
-    if (user.bio && user.bio.length > 10) score += 10;
+    if (user.phone && !user.phone.includes('X')) score += 5;
+    if (user.location) score += 5;
+    if (user.bio) score += 5;
     
-    // Media (30%)
-    if (user.resume) score += 15;
-    if (user.showreel || user.portfolioVideos) score += 15;
+    // Visuals (Max 20)
+    if (user.profilePicture) score += 10;
+    if (user.coverImage) score += 10;
     
-    // Recent Pictures (30%)
+    // Professional (Max 30)
+    if (user.role) score += 10;
+    if (user.skills) score += 10;
+    if (user.experience) score += 10;
+    
+    // Portfolio & Social (Max 25)
+    const hasVideo = (user.showreel && user.showreel.trim() !== '') || (user.portfolioVideos && user.portfolioVideos.trim() !== '');
+    if (hasVideo) score += 10;
+    
+    let photoCount = 0;
     if (user.recentPictures) {
         try {
-            const pics = JSON.parse(user.recentPictures);
-            if (Array.isArray(pics)) {
-                if (pics.length >= 5) score += 30;
-                else if (pics.length > 0) score += (pics.length * 6); // 6% per photo up to 30%
-            }
+            const pics = typeof user.recentPictures === 'string' ? JSON.parse(user.recentPictures) : user.recentPictures;
+            photoCount = Array.isArray(pics) ? pics.length : 0;
         } catch (e) {
-            // Handle legacy comma-separated string
-            const pics = user.recentPictures.split(',').filter(p => p.trim());
-            if (pics.length >= 5) score += 30;
-            else if (pics.length > 0) score += (pics.length * 6);
+            photoCount = user.recentPictures.split(',').filter(p => p.trim()).length;
         }
     }
+    if (photoCount > 0) score += 5;
+    
+    if (user.instagram || user.youtube || user.twitter || user.tiktok) score += 10;
     
     return Math.min(100, score);
 }
 
-// CC-MAY-009: Automatic Traffic Tracking [Antigravity]
-async function recordPageHit() {
-    try {
-        await fetch(`${API_BASE_URL}/api/public/metrics/hit`, { method: 'POST' });
-    } catch (e) { }
-}
-
 /**
- * Global Professional Readiness Check
- * Reminds users to meet the 70% profile criteria, 3 photos, and 1 video.
+ * Global Professional Readiness Check (Optimized)
  */
 async function checkGlobalProfessionalReadiness() {
     const userId = getCurrentUserId();
     if (!userId || sessionStorage.getItem('dismissReadinessBanner') === 'true') return;
 
-    // Don't show if we are on pages where they are already fixing it
+    // Don't show on specific pages
     const path = window.location.pathname.toLowerCase();
-    if (path.includes('edit-profile.html') || path.includes('casting-deck.html') || path.includes('profile.html')) return;
+    if (path.includes('index.html') || path === '/' || path.includes('edit-profile.html') || path.includes('casting-deck.html')) return;
 
-    try {
-        const user = await getUserProfile(userId);
-        if (!user) return;
+    // First check localStorage for a quick decision
+    let score = parseInt(localStorage.getItem('profileScore') || '0');
+    
+    // If score is low, fetch the full profile to be sure (since score might be stale)
+    if (score < 70) {
+        try {
+            const user = await getUserProfile(userId);
+            if (!user) return;
+            score = calculateProfileScore(user);
+            
+            // Update cache
+            localStorage.setItem('profileScore', score);
 
-        const score = calculateProfileScore(user);
-        
-        // Calculate photo count robustly
-        let photoCount = 0;
-        if (user.recentPictures) {
-            try {
-                const pics = typeof user.recentPictures === 'string' ? JSON.parse(user.recentPictures) : user.recentPictures;
-                photoCount = Array.isArray(pics) ? pics.length : 0;
-            } catch (e) {
-                photoCount = user.recentPictures.split(',').filter(p => p.trim()).length;
+            if (score < 70) {
+                // Calculate missing items for the banner
+                const hasVideo = (user.showreel && user.showreel.trim() !== '') || (user.portfolioVideos && user.portfolioVideos.trim() !== '');
+                let photoCount = 0;
+                if (user.recentPictures) {
+                    try {
+                        const pics = typeof user.recentPictures === 'string' ? JSON.parse(user.recentPictures) : user.recentPictures;
+                        photoCount = Array.isArray(pics) ? pics.length : 0;
+                    } catch (e) { photoCount = 0; }
+                }
+                
+                injectReadinessBanner(score, photoCount, hasVideo);
             }
+        } catch (e) {
+            console.error("Readiness check failed:", e);
         }
-        
-        const hasVideo = (user.showreel && user.showreel.trim() !== '') || (user.portfolioVideos && user.portfolioVideos.trim() !== '');
-
-        // If score < 70 OR missing key items
-        if (score < 70 || photoCount < 3 || !hasVideo) {
-            injectReadinessBanner(score, photoCount, hasVideo);
-        }
-    } catch (e) {
-        console.error("Readiness check failed:", e);
     }
 }
 
@@ -1703,10 +1705,8 @@ function injectReadinessBanner(score, photos, hasVideo) {
 // Global initialization
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        recordPageHit();
         checkGlobalProfessionalReadiness();
     });
 } else {
-    recordPageHit();
     checkGlobalProfessionalReadiness();
 }

@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('userId', user.id);
                 localStorage.setItem('userEmail', user.email);
                 localStorage.setItem('userName', user.name);
+                localStorage.setItem('profileScore', user.profileScore || 0);
                 
                 // Force Admin flag for the official account
                 const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
@@ -191,6 +192,7 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('userEmail', user.email);
             localStorage.setItem('userName', user.name);
             localStorage.setItem('isAdmin', user.isAdmin);
+            localStorage.setItem('profileScore', user.profileScore || 0);
 
             showMessage('Google Login successful! Redirecting...', 'success');
             setTimeout(() => {

@@ -1,9 +1,7 @@
 package com.crewcanvas.dto;
 
-import lombok.Data;
 import java.time.LocalDate;
 
-@Data
 public class EventSummaryDTO {
     private Long id;
     private Long userId;
@@ -42,4 +40,37 @@ public class EventSummaryDTO {
         this.externalLink = event.getExternalLink();
         this.adminNote = event.getAdminNote();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public String getTimeDuration() { return timeDuration; }
+    public void setTimeDuration(String timeDuration) { this.timeDuration = timeDuration; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Integer getApplicants() { return applicants; }
+    public void setApplicants(Integer applicants) { this.applicants = applicants; }
+    public Integer getCapacity() { return capacity; }
+    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public Boolean getIsManaged() { return isManaged; }
+    public void setIsManaged(Boolean isManaged) { this.isManaged = isManaged; }
+    public String getExternalLink() { return externalLink; }
+    public void setExternalLink(String externalLink) { this.externalLink = externalLink; }
+    public String getAdminNote() { return adminNote; }
+    public void setAdminNote(String adminNote) { this.adminNote = adminNote; }
 }

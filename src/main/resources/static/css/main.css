@@ -404,7 +404,8 @@ img, video, iframe {
     /* Fixed header should also be offset on desktop to not cover sidebar */
     body.with-sidebar .top-header {
         left: 280px !important;
-        width: calc(100% - 280px) !important;
+        right: 0 !important;
+        width: auto !important;
     }
     .mobile-settings-btn { display: none; }
     .sidebar-toggle { display: none !important; }
@@ -444,7 +445,8 @@ img, video, iframe {
         background: white;
         height: 70px;
         left: 0 !important;
-        width: 100% !important;
+        right: 0 !important;
+        width: auto !important;
     }
 
     .main-content {
