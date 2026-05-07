@@ -492,8 +492,12 @@
                 return;
             }
 
+            const isShared = getQueryParam('shared') === 'true';
+            const currentUserId = typeof getCurrentUserId === 'function' ? getCurrentUserId() : '';
+            const unmaskParam = isShared ? '&unmask=true' : '';
+            
             try {
-                const response = await fetch(`${API_BASE_URL}/api/profile/${userId}?unmask=true`);
+                const response = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${currentUserId}${unmaskParam}`);
                 if (!response.ok) throw new Error('Profile Fetch Failed');
                 const user = await response.json();
                 
@@ -515,8 +519,9 @@
                 // Phone Display (Primary from unmasked API)
                 let displayPhone = user.phone;
                 
-                // Robust Fallback: If still masked (X) or empty, try the dedicated unmasking endpoint
-                if (!displayPhone || displayPhone.includes('X')) {
+                // Robust Fallback: If still masked (X) or empty, try the dedicated unmasking endpoint (Only if authorized)
+                const isOwner = currentUserId && currentUserId.toString() === userId.toString();
+                if ((!displayPhone || displayPhone.includes('X')) && (isShared || isOwner)) {
                     try {
                         const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
                         if (phoneRes.ok) {

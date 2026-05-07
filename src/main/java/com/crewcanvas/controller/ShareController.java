@@ -104,7 +104,7 @@ public class ShareController {
 
         String imageUrl = baseUrl + "/share/image/deck/" + id;
 
-        String html = generateShareHtml(title, finalDesc, imageUrl, baseUrl + "/casting-deck.html?userId=" + id, baseUrl);
+        String html = generateShareHtml(title, finalDesc, imageUrl, baseUrl + "/casting-deck.html?userId=" + id + "&shared=true", baseUrl);
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
