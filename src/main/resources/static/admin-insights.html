@@ -294,16 +294,20 @@
                         <div id="statDailyHits" style="font-size: 24px; font-weight: 800; color: white;">0</div>
                     </div>
 
+                    <div style="text-align: right; background: rgba(59, 130, 246, 0.1); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <label style="font-size: 10px; font-weight: 800; color: #3b82f6; text-transform: uppercase;">Earned Today</label>
+                        <div id="statDailyEarned" style="font-size: 24px; font-weight: 800; color: #3b82f6;">₹0.00</div>
+                        <span style="font-size: 9px; opacity: 0.6; color: #fff;">(Actual Views × ₹35/1k)</span>
+                    </div>
+
                     <div style="text-align: right; background: rgba(16, 185, 129, 0.1); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                        <label style="font-size: 10px; font-weight: 800; color: #10b981; text-transform: uppercase;">Est. View Revenue</label>
+                        <label style="font-size: 10px; font-weight: 800; color: #10b981; text-transform: uppercase;">Est. Monthly (Views)</label>
                         <div id="statMonthlyIncome" style="font-size: 24px; font-weight: 800; color: #10b981;">₹0.00</div>
-                        <span style="font-size: 9px; opacity: 0.6; color: #fff;">(CPM Standard)</span>
                     </div>
 
                     <div style="text-align: right; background: rgba(251, 146, 60, 0.1); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(251, 146, 60, 0.2);">
-                        <label style="font-size: 10px; font-weight: 800; color: #fb923c; text-transform: uppercase;">Est. Ad-Click Revenue</label>
+                        <label style="font-size: 10px; font-weight: 800; color: #fb923c; text-transform: uppercase;">Est. Monthly (Clicks)</label>
                         <div id="statClickIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">₹0.00</div>
-                        <span style="font-size: 9px; opacity: 0.6; color: #fff;">(CTR 1% @ ₹12/click)</span>
                     </div>
                 </div>
             </div>
@@ -466,7 +470,10 @@
 
             // Traffic & Income
             const hits = data.dailyHits || 0;
+            const dailyEarned = (hits * 35.0) / 1000.0;
+            
             document.getElementById('statDailyHits').innerText = hits.toLocaleString();
+            document.getElementById('statDailyEarned').innerText = '₹' + dailyEarned.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statClickIncome').innerText = '₹' + (data.estClickMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
