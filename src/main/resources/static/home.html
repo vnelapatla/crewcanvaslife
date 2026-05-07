@@ -239,8 +239,11 @@
 
                 // Handle Hosted Events
                 if(eRes.status === 'fulfilled' && eRes.value.ok) {
-                    const hostedEvents = await eRes.value.json(); 
-                    document.getElementById('totalEvents').innerText = hostedEvents.length;
+                    const data = await eRes.value.json(); 
+                    const hostedEvents = Array.isArray(data) ? data : (data.content || []);
+                    const totalHosted = data.totalElements !== undefined ? data.totalElements : hostedEvents.length;
+                    
+                    document.getElementById('totalEvents').innerText = totalHosted;
                     const hostedCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     hostedEvents.forEach(e => { if(hostedCounts[e.eventType] !== undefined) hostedCounts[e.eventType]++; });
                     
@@ -281,8 +284,11 @@
 
                 // Handle Applications
                 if(aRes.status === 'fulfilled' && aRes.value.ok) {
-                    const apps = await aRes.value.json();
-                    document.getElementById('totalApps').innerText = apps.length;
+                    const data = await aRes.value.json();
+                    const apps = Array.isArray(data) ? data : (data.content || []);
+                    const totalAppsCount = data.totalElements !== undefined ? data.totalElements : apps.length;
+                    
+                    document.getElementById('totalApps').innerText = totalAppsCount;
                     const appCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     let shortlisted = 0;
                     

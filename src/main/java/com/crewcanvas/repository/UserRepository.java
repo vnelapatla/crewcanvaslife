@@ -56,4 +56,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE u.createdAt >= :dateTime ORDER BY u.createdAt DESC")
     java.util.List<User> findRecentSignups(@org.springframework.data.repository.query.Param("dateTime") java.time.LocalDateTime dateTime);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM users WHERE created_at >= :dateTime ORDER BY created_at DESC LIMIT 10", nativeQuery = true)
+    java.util.List<User> findTop10RecentSignups(@org.springframework.data.repository.query.Param("dateTime") java.time.LocalDateTime dateTime);
 }

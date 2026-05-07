@@ -435,24 +435,36 @@
             await fetchInsights();
         });
 
+        let isFetching = false;
         async function fetchInsights() {
+            if (isFetching) return;
             const adminId = localStorage.getItem('userId');
             if (!adminId) return;
             
+            isFetching = true;
             const refreshBtn = document.querySelector('button[onclick="fetchInsights()"]');
-            if (refreshBtn) refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Updating...';
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Updating...';
+                refreshBtn.disabled = true;
+            }
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/insights/stats?adminId=${adminId}`);
                 if (res.ok) {
                     const data = await res.json();
                     renderStats(data);
+                } else {
+                    throw new Error("Server responded with error");
                 }
             } catch (err) {
                 console.error("Failed to fetch insights:", err);
                 if (typeof showMessage === 'function') showMessage('Server is busy. Please wait a moment.', 'error');
             } finally {
-                if (refreshBtn) refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                isFetching = false;
+                if (refreshBtn) {
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                    refreshBtn.disabled = false;
+                }
             }
         }
 
@@ -480,6 +492,8 @@
             // Calculate Avg Completion
 
             // Render Distribution Bars
+            const dist = data.profileDistribution || {};
+            const total = data.totalUsers || 1;
             const bars = document.getElementById('distributionBars');
             bars.innerHTML = '';
             const labels = {
@@ -497,7 +511,7 @@
 
             Object.keys(dist).forEach(key => {
                 const count = dist[key];
-                const pct = Math.round((count / total) * 100);
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 bars.innerHTML += `
                     <div class="bar-item">
                         <div class="bar-label-row">
@@ -616,9 +630,11 @@
 
         async function fetchManagedAuditions() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/events?type=Audition`);
+                const res = await fetch(`${API_BASE_URL}/api/events`);
                 if (res.ok) {
-                    const allEvents = await res.json();
+                    const data = await res.json();
+                    // Handle both Array and Page object formats
+                    const allEvents = Array.isArray(data) ? data : (data.content || []);
                     const managed = allEvents.filter(e => e.isManaged);
                     renderManagedAuditions(managed);
                 }

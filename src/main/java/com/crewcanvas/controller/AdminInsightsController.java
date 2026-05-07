@@ -75,7 +75,9 @@ public class AdminInsightsController {
         response.put("newRegistrations24h", newRegistrations);
         response.put("totalUsers", totalUsers);
         response.put("profileDistribution", distribution);
-        response.put("recentSignups", userRepository.findRecentSignups(last24h));
+        
+        // LIMIT signups to top 10 to save memory on busy servers
+        response.put("recentSignups", userRepository.findTop10RecentSignups(last24h));
         
         response.put("newPosts24h", newPosts);
         response.put("newLikes24h", newLikes);
