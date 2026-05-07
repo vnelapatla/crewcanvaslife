@@ -289,19 +289,21 @@
                     <p style="opacity: 0.7; font-size: 13px;">Automatic estimation based on page views (Market Standard ₹35/1000 views).</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                    <div style="text-align: right;">
-                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Daily Views</label>
+                    <div style="text-align: right; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase; color: #fff;">Daily Views</label>
                         <div id="statDailyHits" style="font-size: 24px; font-weight: 800; color: white;">0</div>
                     </div>
-                    <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
-                    <div style="text-align: right;">
-                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Today</label>
-                        <div id="statDailyIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">₹0.00</div>
-                    </div>
-                    <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
-                    <div style="text-align: right;">
-                        <label style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Monthly</label>
+
+                    <div style="text-align: right; background: rgba(16, 185, 129, 0.1); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <label style="font-size: 10px; font-weight: 800; color: #10b981; text-transform: uppercase;">Est. View Revenue</label>
                         <div id="statMonthlyIncome" style="font-size: 24px; font-weight: 800; color: #10b981;">₹0.00</div>
+                        <span style="font-size: 9px; opacity: 0.6; color: #fff;">(CPM Standard)</span>
+                    </div>
+
+                    <div style="text-align: right; background: rgba(251, 146, 60, 0.1); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(251, 146, 60, 0.2);">
+                        <label style="font-size: 10px; font-weight: 800; color: #fb923c; text-transform: uppercase;">Est. Ad-Click Revenue</label>
+                        <div id="statClickIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">₹0.00</div>
+                        <span style="font-size: 9px; opacity: 0.6; color: #fff;">(CTR 1% @ ₹12/click)</span>
                     </div>
                 </div>
             </div>
@@ -464,10 +466,9 @@
 
             // Traffic & Income
             const hits = data.dailyHits || 0;
-            const dailyIncome = (hits * 35.0) / 1000.0;
             document.getElementById('statDailyHits').innerText = hits.toLocaleString();
-            document.getElementById('statDailyIncome').innerText = '₹' + dailyIncome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('statClickIncome').innerText = '₹' + (data.estClickMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Calculate Avg Completion
 

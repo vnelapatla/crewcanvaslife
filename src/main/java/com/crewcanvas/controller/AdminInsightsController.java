@@ -83,13 +83,19 @@ public class AdminInsightsController {
         response.put("newEvents24h", newEvents);
         response.put("newApplications24h", newApplications);
 
-        // Traffic & Income (Based on ₹35 per 1000 views)
+        // Traffic & Income
         long dailyHits = metricRepository.findById(LocalDate.now())
                 .map(SiteMetric::getPageViews).orElse(0L);
+        
+        // Method 1: View-Based (CPM - ₹35/1000 views)
         double estMonthlyIncome = (dailyHits * 30.0 * 35.0) / 1000.0;
+        
+        // Method 2: Click-Based (CTR 1%, CPC ₹12)
+        double estClickMonthlyIncome = (dailyHits * 30.0 * 0.01 * 12.0);
 
         response.put("dailyHits", dailyHits);
         response.put("estMonthlyIncome", estMonthlyIncome);
+        response.put("estClickMonthlyIncome", estClickMonthlyIncome);
 
         return ResponseEntity.ok(response);
     }
