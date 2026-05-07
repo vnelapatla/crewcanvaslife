@@ -6,13 +6,17 @@ import com.crewcanvas.repository.UserRepository;
 import com.crewcanvas.repository.PostRepository;
 import com.crewcanvas.repository.EventRepository;
 import com.crewcanvas.repository.EventApplicationRepository;
+import com.crewcanvas.repository.SiteMetricRepository;
+import com.crewcanvas.model.SiteMetric;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin/insights")
@@ -33,6 +37,9 @@ public class AdminInsightsController {
 
     @Autowired
     private EventApplicationRepository eventApplicationRepository;
+
+    @Autowired
+    private SiteMetricRepository metricRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<?> getInsights(@RequestParam Long adminId) {
@@ -75,6 +82,14 @@ public class AdminInsightsController {
         response.put("newComments24h", newComments);
         response.put("newEvents24h", newEvents);
         response.put("newApplications24h", newApplications);
+
+        // Traffic & Income (Based on ₹35 per 1000 views)
+        long dailyHits = metricRepository.findById(LocalDate.now())
+                .map(SiteMetric::getPageViews).orElse(0L);
+        double estMonthlyIncome = (dailyHits * 30.0 * 35.0) / 1000.0;
+
+        response.put("dailyHits", dailyHits);
+        response.put("estMonthlyIncome", estMonthlyIncome);
 
         return ResponseEntity.ok(response);
     }

@@ -38,8 +38,16 @@ async function loadEvents() {
     try {
         const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
         if (appsResponse.ok) userApplications = await appsResponse.json();
-        const response = await fetch(`${API_BASE_URL}/api/events`);
-        if (response.ok) { allEvents = await response.json(); updateCounts(); searchEvents(); }
+        
+        // Paginated fetch: Loading first 50 events for now (much faster than loading everything)
+        const response = await fetch(`${API_BASE_URL}/api/events?page=0&size=50`);
+        if (response.ok) { 
+            const data = await response.json();
+            // Handle both Array (old) and Page Object (new)
+            allEvents = data.content ? data.content : data; 
+            updateCounts(); 
+            searchEvents(); 
+        }
     } catch (error) { console.error(error); }
 }
 

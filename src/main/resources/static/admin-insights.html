@@ -283,20 +283,20 @@
                 </div>
             </div>
 
-            <div class="conversion-box">
+            <div class="conversion-box" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div style="flex: 1;">
-                    <h3 style="margin-bottom: 5px;">Conversion Tracker</h3>
-                    <p style="opacity: 0.7; font-size: 13px;">Enter total website hits to calculate conversion rate.</p>
+                    <h3 style="margin-bottom: 5px;"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Revenue & Traffic Insight</h3>
+                    <p style="opacity: 0.7; font-size: 13px;">Automatic estimation based on page views (Market Standard ₹35/1000 views).</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="display: flex; align-items: center; gap: 30px;">
                     <div style="text-align: right;">
-                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Total Hits (24h)</label>
-                        <input type="number" id="hitInput" value="100" class="conversion-input" oninput="calculateConversion()">
+                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Daily Page Views</label>
+                        <div id="statDailyHits" style="font-size: 32px; font-weight: 800; color: white;">0</div>
                     </div>
                     <div style="width: 2px; height: 50px; background: rgba(255,255,255,0.1);"></div>
-                    <div style="text-align: center;">
-                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Conversion %</label>
-                        <div id="conversionRate" style="font-size: 32px; font-weight: 800; color: var(--primary);">0%</div>
+                    <div style="text-align: right;">
+                        <label style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Est. Monthly Revenue</label>
+                        <div id="statMonthlyIncome" style="font-size: 32px; font-weight: 800; color: #10b981;">₹0.00</div>
                     </div>
                 </div>
             </div>
@@ -455,18 +455,11 @@
             document.getElementById('statNewEvents').innerText = data.newEvents24h;
             document.getElementById('statNewApps').innerText = data.newApplications24h;
 
-            // Calculate Avg Completion (Simple weighted average from distribution)
-            const dist = data.profileDistribution;
-            const total = data.totalUsers || 1;
-            const avg = Math.round((
-                (dist['0-25'] * 12.5) + 
-                (dist['26-50'] * 37.5) + 
-                (dist['51-75'] * 62.5) + 
-                (dist['76-100'] * 87.5)
-            ) / total);
-            document.getElementById('statAvgCompletion').innerText = avg + '%';
+            // Traffic & Income
+            document.getElementById('statDailyHits').innerText = (data.dailyHits || 0).toLocaleString();
+            document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            calculateConversion();
+            // Calculate Avg Completion
 
             // Render Distribution Bars
             const bars = document.getElementById('distributionBars');

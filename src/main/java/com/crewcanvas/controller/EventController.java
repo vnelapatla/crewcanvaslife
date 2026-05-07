@@ -70,15 +70,16 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllEvents(@RequestParam(required = false) String type) {
+    public ResponseEntity<?> getAllEvents(
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Event> events;
             if (type != null && !type.isEmpty()) {
-                events = eventService.getEventsByType(type);
+                return ResponseEntity.ok(eventService.getEventsByType(type, page, size));
             } else {
-                events = eventService.getAllEvents();
+                return ResponseEntity.ok(eventService.getAllEvents(page, size));
             }
-            return ResponseEntity.ok(events);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -101,10 +102,12 @@ public class EventController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserEvents(@PathVariable Long userId) {
+    public ResponseEntity<?> getUserEvents(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Event> events = eventService.getUserEvents(userId);
-            return ResponseEntity.ok(events);
+            return ResponseEntity.ok(eventService.getUserEvents(userId, page, size));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

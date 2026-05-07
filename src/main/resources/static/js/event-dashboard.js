@@ -39,7 +39,9 @@ async function showListView() {
             
         const res = await fetch(url);
         if (res.ok) {
-            const events = await res.json();
+            const data = await res.json();
+            // Handle both Array and Page Object
+            const events = data.content ? data.content : data;
             eventsCache = events;
             renderEventList(events);
         }

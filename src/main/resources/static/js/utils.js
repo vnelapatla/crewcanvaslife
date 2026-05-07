@@ -1594,3 +1594,17 @@ function calculateProfileScore(user) {
     
     return Math.min(100, score);
 }
+
+// CC-MAY-009: Automatic Traffic Tracking [Antigravity]
+async function recordPageHit() {
+    try {
+        await fetch(`${API_BASE_URL}/api/public/metrics/hit`, { method: 'POST' });
+    } catch (e) {
+        // Silently fail if metric recording is unavailable
+    }
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', recordPageHit);
+} else {
+    recordPageHit();
+}

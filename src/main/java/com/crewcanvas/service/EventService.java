@@ -101,12 +101,24 @@ public class EventService {
         return eventRepository.findAllByOrderByDateDesc();
     }
 
+    public org.springframework.data.domain.Page<Event> getAllEvents(int page, int size) {
+        return eventRepository.findAll(org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending()));
+    }
+
     public List<Event> getUserEvents(Long userId) {
         return eventRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+    public org.springframework.data.domain.Page<Event> getUserEvents(Long userId, int page, int size) {
+        return eventRepository.findByUserId(userId, org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending()));
+    }
+
     public List<Event> getEventsByType(String eventType) {
         return eventRepository.findByEventTypeOrderByDateDesc(eventType);
+    }
+
+    public org.springframework.data.domain.Page<Event> getEventsByType(String eventType, int page, int size) {
+        return eventRepository.findByEventType(eventType, org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending()));
     }
 
     public Optional<Event> getEventById(Long id) {
@@ -385,25 +397,33 @@ public class EventService {
 
     public List<EventApplication> getApplicantsForEvent(Long eventId) {
         List<EventApplication> applications = applicationRepository.findByEventId(eventId);
-        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (applications.isEmpty()) return applications;
 
-        if (eventOpt.isEmpty())
-            return applications;
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isEmpty()) return applications;
         Event event = eventOpt.get();
+
+        // Optimize: Fetch all users in one query to avoid N+1 performance bottleneck
+        List<Long> userIds = applications.stream()
+                .map(EventApplication::getUserId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
 
         // Populate and calculate match scores
         for (EventApplication app : applications) {
-            userRepository.findById(app.getUserId()).ifPresent(user -> {
-                // CC-MAY-2026: Self-Healing Logic [Nelpatla Venkatesh]
-                // If the mobile number was accidentally masked in the DB, restore it from the
-                // user's profile
+            User user = userMap.get(app.getUserId());
+            if (user != null) {
+                boolean needsSave = false;
+                
+                // Self-Healing Logic: Restore accidentally masked data
                 String currentMobile = app.getMobileNumber();
-                if (currentMobile != null && currentMobile.contains("X") && user.getPhone() != null
-                        && !user.getPhone().contains("X")) {
-                    System.out.println(
-                            "Restoring masked phone for AppID " + app.getId() + " from UserID " + user.getId());
+                if (currentMobile != null && currentMobile.contains("X") && user.getPhone() != null && !user.getPhone().contains("X")) {
                     app.setMobileNumber(user.getPhone());
-                    applicationRepository.save(app);
+                    needsSave = true;
                 }
 
                 // Ensure basic details are synced
@@ -413,21 +433,22 @@ public class EventService {
                     app.setRole(user.getRole());
                     app.setLocation(user.getLocation());
                     app.setExperience(user.getBio());
+                    needsSave = true;
+                }
+
+                if (needsSave) {
                     applicationRepository.save(app);
                 }
 
                 app.setMatchScore(calculateMatchScore(event, user));
-            });
+            }
         }
 
         // Sort based on priority logic
         Collections.sort(applications, (a, b) -> {
-            // Priority 1-3 are captured in matchScore
             int scoreCompare = b.getMatchScore().compareTo(a.getMatchScore());
-            if (scoreCompare != 0)
-                return scoreCompare;
+            if (scoreCompare != 0) return scoreCompare;
 
-            // Priority 4: Apply time (Earlier first if scores are equal)
             if (a.getAppliedAt() != null && b.getAppliedAt() != null) {
                 return a.getAppliedAt().compareTo(b.getAppliedAt());
             }
