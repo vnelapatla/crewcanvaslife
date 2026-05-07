@@ -27,11 +27,19 @@ public class ProfileController {
     @PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
-    private void maskSensitiveData(User user, Long viewerId, boolean forceUnmask) {
-        if (user == null || forceUnmask) return;
+    private void maskSensitiveData(User user, Long viewerId, Boolean forceUnmask) {
+        if (user == null) return;
+        if (Boolean.TRUE.equals(forceUnmask)) {
+            // Force detach to ensure we are working with a clean copy for the response
+            try {
+                if (entityManager != null && entityManager.contains(user)) {
+                    entityManager.detach(user);
+                }
+            } catch (Exception e) {}
+            return;
+        }
         
         // CC-MAY-2026: Enhanced Authorization Check [Nelpatla Venkatesh]
-        // Rules: Admin, Verified Professional, or Profile Owner can see full data.
         boolean isOwner = viewerId != null && user.getId() != null && viewerId.longValue() == user.getId().longValue();
         
         User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
@@ -42,16 +50,33 @@ public class ProfileController {
         );
         
         if (!isOwner && !isAuthorizedProfessional) {
-            // Detach to prevent persistence of masked data
             try {
                 if (entityManager != null && entityManager.contains(user)) {
                     entityManager.detach(user);
                 }
-            } catch (Exception e) {
-                System.err.println("Warning: Could not detach user for masking: " + e.getMessage());
-            }
+            } catch (Exception e) {}
             
-            // Mask Phone: Only last 2 digits
+            String phone = user.getPhone();
+            if (phone != null && phone.length() > 2) {
+                user.setPhone("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
+            } else if (phone != null) {
+                user.setPhone("XX");
+            }
+        }
+    }
+
+    private void maskSensitiveData(com.crewcanvas.dto.UserDTO user, Long viewerId) {
+        if (user == null) return;
+        
+        boolean isOwner = viewerId != null && user.getId() != null && viewerId.longValue() == user.getId().longValue();
+        User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
+        boolean isAuthorizedProfessional = viewer != null && (
+            Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+            Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+            "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+        );
+        
+        if (!isOwner && !isAuthorizedProfessional) {
             String phone = user.getPhone();
             if (phone != null && phone.length() > 2) {
                 user.setPhone("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
@@ -64,7 +89,7 @@ public class ProfileController {
     @GetMapping("/onboarding-data/{id}")
     public ResponseEntity<?> getOnboardingData(@PathVariable Long id, 
                                              @RequestParam(required = false) Long viewerId,
-                                             @RequestParam(defaultValue = "false") boolean unmask) {
+                                             @RequestParam(required = false) Boolean unmask) {
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -105,10 +130,24 @@ public class ProfileController {
         }
     }
 
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<?> getProfileSummary(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
+        try {
+            return userService.findByIdDTO(id)
+                .map(dto -> {
+                    maskSensitiveData(dto, viewerId);
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProfile(@PathVariable Long id, 
                                       @RequestParam(required = false) Long viewerId,
-                                      @RequestParam(defaultValue = "false") boolean unmask) {
+                                      @RequestParam(required = false) Boolean unmask) {
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -214,6 +253,31 @@ public class ProfileController {
             
             // Mask sensitive data for search results
             userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId, false));
+            
+            return ResponseEntity.ok(userPage);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Search service is temporarily unavailable.");
+        }
+    }
+
+    @GetMapping("/search/summary")
+    public ResponseEntity<?> searchUsersSummary(@RequestParam(required = false) String query,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Long currentUserId,
+            @RequestParam(defaultValue = "false") boolean excludeFollowed,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        try {
+            org.springframework.data.domain.Page<com.crewcanvas.dto.UserDTO> userPage = userService.searchUsersSummary(query, role, location, currentUserId, excludeFollowed, page, size);
+            
+            boolean isAdmin = currentUserId != null && userService.findById(currentUserId).map(User::getIsAdmin).orElse(false);
+            if (!isAdmin) {
+                userPage.getContent().forEach(u -> u.setProfileScore(null));
+            }
+            
+            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId));
             
             return ResponseEntity.ok(userPage);
         } catch (Exception e) {

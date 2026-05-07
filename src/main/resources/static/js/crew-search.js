@@ -101,7 +101,7 @@ async function loadUsersPage(page = 0, refresh = false) {
     try {
         const excludeFollowed = (currentSearchTab === 'find');
         const userIdParam = currentUserId ? `&currentUserId=${currentUserId}` : '';
-        const url = `${API_BASE_URL}/api/profile/search?query=${encodeURIComponent(query)}${userIdParam}&excludeFollowed=${excludeFollowed}&page=${page}&size=${PAGE_SIZE}&t=${Date.now()}`;
+        const url = `${API_BASE_URL}/api/profile/search/summary?query=${encodeURIComponent(query)}${userIdParam}&excludeFollowed=${excludeFollowed}&page=${page}&size=${PAGE_SIZE}&t=${Date.now()}`;
         console.log("Crew Search: Fetching users from:", url);
         
         const response = await fetch(url);

@@ -252,6 +252,14 @@ public class UserService {
         return userRepository.findById(id);
     }
 
+    public Optional<com.crewcanvas.dto.UserDTO> findByIdDTO(Long id) {
+        return userRepository.findSummaryById(id).map(summary -> {
+            com.crewcanvas.dto.UserDTO dto = new com.crewcanvas.dto.UserDTO(summary);
+            userRepository.findById(id).ifPresent(u -> dto.setProfilePicture(u.getProfilePicture()));
+            return dto;
+        });
+    }
+
     @Transactional
     public User updateProfile(User updatedUser) {
         if (updatedUser.getId() == null) throw new RuntimeException("User ID is required");
@@ -365,6 +373,30 @@ public class UserService {
         }
         
         return userRepository.searchUsers(query, role, location, currentUserId, viewerRole, viewerAgeRange, excludeFollowed, org.springframework.data.domain.PageRequest.of(page, size));
+    }
+
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.UserDTO> searchUsersSummary(String query, String role, String location, Long currentUserId, boolean excludeFollowed, int page, int size) {
+        String viewerRole = null;
+        String viewerAgeRange = null;
+        
+        if (currentUserId != null) {
+            Optional<User> viewer = userRepository.findById(currentUserId);
+            if (viewer.isPresent()) {
+                viewerRole = viewer.get().getRole();
+                viewerAgeRange = viewer.get().getAgeRange();
+            }
+        }
+
+        org.springframework.data.domain.Page<com.crewcanvas.dto.UserSummary> summaryPage = userRepository.searchUsersSummary(
+            query, role, location, currentUserId, viewerRole, viewerAgeRange, excludeFollowed, 
+            org.springframework.data.domain.PageRequest.of(page, size));
+        
+        return summaryPage.map(summary -> {
+            com.crewcanvas.dto.UserDTO dto = new com.crewcanvas.dto.UserDTO(summary);
+            // Fetch profile picture separately to keep search results light but visual
+            userRepository.findById(summary.getId()).ifPresent(u -> dto.setProfilePicture(u.getProfilePicture()));
+            return dto;
+        });
     }
 
     public List<User> getAllUsers() {

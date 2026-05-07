@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "events")
+@Table(name = "events", indexes = {
+    @Index(name = "idx_event_date", columnList = "date"),
+    @Index(name = "idx_event_type", columnList = "event_type"),
+    @Index(name = "idx_event_user", columnList = "user_id")
+})
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Event {
 
@@ -98,6 +102,7 @@ public class Event {
     @Column(name = "admin_note", length = 1000)
     private String adminNote;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;

@@ -1599,12 +1599,114 @@ function calculateProfileScore(user) {
 async function recordPageHit() {
     try {
         await fetch(`${API_BASE_URL}/api/public/metrics/hit`, { method: 'POST' });
+    } catch (e) { }
+}
+
+/**
+ * Global Professional Readiness Check
+ * Reminds users to meet the 70% profile criteria, 3 photos, and 1 video.
+ */
+async function checkGlobalProfessionalReadiness() {
+    const userId = getCurrentUserId();
+    if (!userId || sessionStorage.getItem('dismissReadinessBanner') === 'true') return;
+
+    // Don't show if we are on pages where they are already fixing it
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes('edit-profile.html') || path.includes('casting-deck.html') || path.includes('profile.html')) return;
+
+    try {
+        const user = await getUserProfile(userId);
+        if (!user) return;
+
+        const score = calculateProfileScore(user);
+        
+        // Calculate photo count robustly
+        let photoCount = 0;
+        if (user.recentPictures) {
+            try {
+                const pics = typeof user.recentPictures === 'string' ? JSON.parse(user.recentPictures) : user.recentPictures;
+                photoCount = Array.isArray(pics) ? pics.length : 0;
+            } catch (e) {
+                photoCount = user.recentPictures.split(',').filter(p => p.trim()).length;
+            }
+        }
+        
+        const hasVideo = (user.showreel && user.showreel.trim() !== '') || (user.portfolioVideos && user.portfolioVideos.trim() !== '');
+
+        // If score < 70 OR missing key items
+        if (score < 70 || photoCount < 3 || !hasVideo) {
+            injectReadinessBanner(score, photoCount, hasVideo);
+        }
     } catch (e) {
-        // Silently fail if metric recording is unavailable
+        console.error("Readiness check failed:", e);
     }
 }
+
+function injectReadinessBanner(score, photos, hasVideo) {
+    if (document.getElementById('readiness-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'readiness-banner';
+    
+    // Aesthetic match for the provided image - Dark background, sticky top
+    banner.style.cssText = `
+        background: #121826;
+        color: white; 
+        padding: 14px 20px; 
+        text-align: center;
+        font-family: 'Outfit', 'Inter', sans-serif; 
+        font-size: 14px; 
+        font-weight: 500;
+        position: sticky; 
+        top: 0; 
+        z-index: 10000;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
+        animation: readinessSlideDown 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    `;
+
+    let missing = [];
+    if (score < 70) missing.push(`Profile ${score}%`);
+    if (photos < 3) missing.push(`${3 - photos} Photos`);
+    if (!hasVideo) missing.push(`Intro Video`);
+
+    banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap: wrap; justify-content: center;">
+            <i class="fa-solid fa-rocket" style="color:#ff8c00; font-size: 18px; filter: drop-shadow(0 0 5px rgba(255,140,0,0.3));"></i>
+            <span style="letter-spacing: 0.3px; font-weight: 500;">
+                Professional Readiness: <strong style="color:#ff8c00; font-weight: 700; margin-left: 4px;">${missing.join(', ')}</strong> missing!
+            </span>
+        </div>
+        <a href="edit-profile.html" style="background: #ff8c00; color: white; padding: 10px 24px; border-radius: 14px; text-decoration: none; font-size: 13px; font-weight: 800; text-transform: uppercase; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3); border: none; outline: none; white-space: nowrap; letter-spacing: 0.5px;">FIX NOW</a>
+        <button onclick="sessionStorage.setItem('dismissReadinessBanner', 'true'); this.parentElement.style.transform='translateY(-100%)'; this.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.remove(), 400)" style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:20px; padding:5px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; margin-left: 10px;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <style>
+            @keyframes readinessSlideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            #readiness-banner a:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(255, 140, 0, 0.5); background: #ffa500; }
+            #readiness-banner button:hover { color: white; transform: rotate(90deg); }
+            @media (max-width: 768px) {
+                #readiness-banner { padding: 12px 15px; gap: 12px; font-size: 12px; }
+                #readiness-banner a { padding: 8px 16px; font-size: 11px; }
+                #readiness-banner .fa-rocket { font-size: 15px; }
+            }
+        </style>
+    `;
+
+    document.body.prepend(banner);
+}
+
+// Global initialization
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', recordPageHit);
+    document.addEventListener('DOMContentLoaded', () => {
+        recordPageHit();
+        checkGlobalProfessionalReadiness();
+    });
 } else {
     recordPageHit();
+    checkGlobalProfessionalReadiness();
 }

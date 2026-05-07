@@ -101,8 +101,9 @@ public class EventService {
         return eventRepository.findAllByOrderByDateDesc();
     }
 
-    public org.springframework.data.domain.Page<Event> getAllEvents(int page, int size) {
-        return eventRepository.findAll(org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending()));
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSummaryDTO> getAllEvents(int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending());
+        return eventRepository.findAll(pr).map(com.crewcanvas.dto.EventSummaryDTO::new);
     }
 
     public List<Event> getUserEvents(Long userId) {
@@ -117,8 +118,9 @@ public class EventService {
         return eventRepository.findByEventTypeOrderByDateDesc(eventType);
     }
 
-    public org.springframework.data.domain.Page<Event> getEventsByType(String eventType, int page, int size) {
-        return eventRepository.findByEventType(eventType, org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending()));
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSummaryDTO> getEventsByType(String eventType, int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending());
+        return eventRepository.findByEventType(eventType, pr).map(com.crewcanvas.dto.EventSummaryDTO::new);
     }
 
     public Optional<Event> getEventById(Long id) {
@@ -129,6 +131,7 @@ public class EventService {
         return eventRepository.findByShareKey(shareKey);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Event updateEvent(Long id, Event updatedEvent) {
         Optional<Event> eventOpt = eventRepository.findById(id);
         if (eventOpt.isPresent()) {
@@ -188,7 +191,8 @@ public class EventService {
                 event.setAdminNote(updatedEvent.getAdminNote());
             }
             if (updatedEvent.getExternalLink() != null) {
-                event.setExternalLink(updatedEvent.getExternalLink());
+                // If it's an empty string, we should allow clearing it
+                event.setExternalLink(updatedEvent.getExternalLink().trim().isEmpty() ? null : updatedEvent.getExternalLink().trim());
             }
             Event savedEvent = eventRepository.save(event);
 
@@ -360,24 +364,37 @@ public class EventService {
         throw new RuntimeException("Event not found");
     }
 
-    public List<EventApplication> getUserApplications(Long userId) {
+    public List<com.crewcanvas.dto.EventApplicationDTO> getUserApplications(Long userId) {
         List<EventApplication> apps = applicationRepository.findByUserId(userId);
-        // Fallback for old apps missing title/type or pass tokens
+        if (apps.isEmpty()) return new java.util.ArrayList<>();
+
+        // Optimization: Pre-fetch events to avoid N+1 queries during sync
+        Set<Long> missingEventIds = apps.stream()
+            .filter(app -> app.getEventTitle() == null || app.getEventType() == null)
+            .map(EventApplication::getEventId)
+            .collect(Collectors.toSet());
+            
+        Map<Long, Event> eventMap = new HashMap<>();
+        if (!missingEventIds.isEmpty()) {
+            eventRepository.findAllById(missingEventIds).forEach(e -> eventMap.put(e.getId(), e));
+        }
+
+        List<com.crewcanvas.dto.EventApplicationDTO> dtos = new java.util.ArrayList<>();
+
         for (EventApplication app : apps) {
             boolean needsUpdate = false;
 
-            // Sync missing event details
+            // Sync missing event details from pre-fetched map
             if (app.getEventTitle() == null || app.getEventType() == null) {
-                Optional<Event> eOpt = eventRepository.findById(app.getEventId());
-                if (eOpt.isPresent()) {
-                    app.setEventTitle(eOpt.get().getTitle());
-                    app.setEventType(eOpt.get().getEventType());
+                Event event = eventMap.get(app.getEventId());
+                if (event != null) {
+                    app.setEventTitle(event.getTitle());
+                    app.setEventType(event.getEventType());
                     needsUpdate = true;
                 }
             }
 
-            // RETROACTIVE FIX: Auto-shortlist and generate token for ANY Film Event
-            // registration
+            // RETROACTIVE FIX: Auto-shortlist and generate token for ANY Film Event registration
             if ("Film Event".equalsIgnoreCase(app.getEventType())
                     && (app.getPassToken() == null || !"SHORTLISTED".equalsIgnoreCase(app.getStatus()))) {
                 app.setStatus("SHORTLISTED");
@@ -391,8 +408,11 @@ public class EventService {
             if (needsUpdate) {
                 applicationRepository.save(app);
             }
+            
+            dtos.add(new com.crewcanvas.dto.EventApplicationDTO(app));
         }
-        return apps;
+        
+        return dtos;
     }
 
     public List<EventApplication> getApplicantsForEvent(Long eventId) {
@@ -456,6 +476,47 @@ public class EventService {
         });
 
         return applications;
+    }
+
+    public List<com.crewcanvas.dto.EventApplicationDTO> getApplicantsSummaryForEvent(Long eventId) {
+        List<com.crewcanvas.dto.EventApplicationSummary> summaries = applicationRepository.findSummaryByEventId(eventId);
+        if (summaries.isEmpty()) return new java.util.ArrayList<>();
+
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isEmpty()) return new java.util.ArrayList<>();
+        Event event = eventOpt.get();
+
+        List<Long> userIds = summaries.stream()
+                .map(com.crewcanvas.dto.EventApplicationSummary::getUserId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        List<com.crewcanvas.dto.EventApplicationDTO> dtos = new java.util.ArrayList<>();
+        for (com.crewcanvas.dto.EventApplicationSummary summary : summaries) {
+            com.crewcanvas.dto.EventApplicationDTO dto = new com.crewcanvas.dto.EventApplicationDTO(summary);
+            User user = userMap.get(summary.getUserId());
+            if (user != null) {
+                dto.setMatchScore(calculateMatchScore(event, user));
+            }
+            dtos.add(dto);
+        }
+
+        // Sort based on priority logic
+        dtos.sort((a, b) -> {
+            int scoreCompare = b.getMatchScore().compareTo(a.getMatchScore());
+            if (scoreCompare != 0) return scoreCompare;
+
+            if (a.getAppliedAt() != null && b.getAppliedAt() != null) {
+                return a.getAppliedAt().compareTo(b.getAppliedAt());
+            }
+            return 0;
+        });
+
+        return dtos;
     }
 
     private int calculateMatchScore(Event event, User user) {
@@ -720,6 +781,10 @@ public class EventService {
 
     public Optional<EventApplication> getApplicationByToken(String token) {
         return applicationRepository.findByPassToken(token);
+    }
+
+    public Optional<EventApplication> getApplicationById(Long id) {
+        return applicationRepository.findById(id);
     }
 
     public List<EventApplication> getAllApplicantsForUser(Long userId) {

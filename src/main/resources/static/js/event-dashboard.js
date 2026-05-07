@@ -133,6 +133,12 @@ async function fetchEventDetails() {
                 <i class="fas fa-qrcode"></i> Scan Tickets
             </button>
         ` : ''}
+        ${currentEvent.adminNote ? `
+            <div style="margin-top: 20px; padding: 12px; background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 8px;">
+                <p style="font-size: 11px; color: #0369a1; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Organizer Note (Audience View)</p>
+                <p style="font-size: 13px; color: #0c4a6e; margin: 0;">${currentEvent.adminNote}</p>
+            </div>
+        ` : ''}
     `;
     
     let detailsContainer = document.getElementById('mgmtEventDetails');
@@ -205,9 +211,9 @@ async function showManagementView() {
     try {
         await fetchEventDetails();
         
-        // Load Applicants
+        // Load Applicants (Optimized: Using summary endpoint to avoid heavy base64 payloads)
         const viewerId = getCurrentUserId();
-        const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants?viewerId=${viewerId}`);
+        const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants/summary?viewerId=${viewerId}`);
         if (applicantsRes.ok) {
             const rawApplicants = await applicantsRes.json();
             allApplicants = rawApplicants;
@@ -647,7 +653,8 @@ async function saveEventEdits() {
         description: document.getElementById('editDescription').value.trim(),
         adminNote: document.getElementById('editAdminNote') ? document.getElementById('editAdminNote').value.trim() : (currentEvent.adminNote || ''),
         status: document.getElementById('editStatus') ? document.getElementById('editStatus').value : (currentEvent.status || 'OPEN'),
-        externalLink: (currentEvent.isManaged && document.getElementById('editRegistrationMethod').value === 'external') ? document.getElementById('editExternalLink').value.trim() : null
+        isManaged: currentEvent.isManaged, // CC-MAY-2026: Explicitly preserve isManaged state [Nelpatla Venkatesh]
+        externalLink: (currentEvent.isManaged && document.getElementById('editRegistrationMethod').value === 'external') ? document.getElementById('editExternalLink').value.trim() : ""
     };
 
     console.log('DEBUG: updatedData isManaged:', currentEvent.isManaged);
@@ -709,13 +716,29 @@ function filterApplicants(query) {
     renderApplicantsTable();
 }
 
-function openApplicantDetailModal(appId) {
-    const app = allApplicants.find(a => a.id == appId);
-    if (!app) return;
+async function openApplicantDetailModal(appId) {
+    const summaryApp = allApplicants.find(a => a.id == appId);
+    if (!summaryApp) return;
+
+    let app = summaryApp;
+    // If photos/resumes are missing, fetch full details
+    if (!app.photo1 && !app.resumeUrl) {
+        try {
+            const viewerId = getCurrentUserId();
+            const res = await fetch(`${API_BASE_URL}/api/events/applications/${appId}?viewerId=${viewerId}`);
+            if (!res.ok) throw new Error("Failed to fetch details");
+            app = await res.json();
+            
+            // Merge full details into our list
+            const idx = allApplicants.findIndex(a => a.id == appId);
+            if (idx !== -1) allApplicants[idx] = app;
+        } catch (e) {
+            console.error("Error fetching applicant details:", e);
+            showMessage("Could not load full details. Showing summary.", "error");
+        }
+    }
 
     const modal = document.getElementById('applicantDetailModal');
-    const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
-    const isAudition = (currentEvent.eventType || '').toLowerCase() === 'audition';
     
     // Header
     document.getElementById('detName').innerText = app.applicantName || 'Unknown';

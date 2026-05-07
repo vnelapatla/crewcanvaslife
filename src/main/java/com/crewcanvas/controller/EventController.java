@@ -58,6 +58,24 @@ public class EventController {
         }
     }
 
+    private void maskSensitiveData(com.crewcanvas.dto.EventApplicationDTO app, Long viewerId, Long eventOwnerId, boolean isAdmin) {
+        if (app == null) return;
+        
+        boolean isOwner = viewerId != null && app.getUserId() != null && viewerId.longValue() == app.getUserId().longValue();
+        boolean isEventCreator = viewerId != null && eventOwnerId != null && viewerId.longValue() == eventOwnerId.longValue();
+        
+        if (isOwner || isEventCreator || isAdmin) {
+            return; 
+        }
+
+        String phone = app.getMobileNumber();
+        if (phone != null && phone.length() > 2) {
+            app.setMobileNumber("X".repeat(phone.length() - 2) + phone.substring(phone.length() - 2));
+        } else if (phone != null) {
+            app.setMobileNumber("XX");
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody Event event) {
         try {
@@ -186,6 +204,50 @@ public class EventController {
             System.err.println("Error fetching applicants for event " + id + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/applicants/summary")
+    public ResponseEntity<?> getEventApplicantsSummary(@PathVariable("id") Long id, @RequestParam(required = false) Long viewerId) {
+        try {
+            List<com.crewcanvas.dto.EventApplicationDTO> applicants = eventService.getApplicantsSummaryForEvent(id);
+            
+            Long eventOwnerId = eventService.getEventById(id).map(Event::getUserId).orElse(null);
+            User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
+            boolean isAuthorizedProfessional = viewer != null && (
+                Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+                Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+                "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+            );
+            
+            applicants.forEach(app -> maskSensitiveData(app, viewerId, eventOwnerId, isAuthorizedProfessional));
+            return ResponseEntity.ok(applicants);
+        } catch (Exception e) {
+            System.err.println("Error fetching summary for event " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/applications/{applicationId}")
+    public ResponseEntity<?> getApplicationDetails(@PathVariable Long applicationId, @RequestParam(required = false) Long viewerId) {
+        try {
+            Optional<EventApplication> appOpt = eventService.getApplicationById(applicationId);
+            if (appOpt.isPresent()) {
+                EventApplication app = appOpt.get();
+                Long eventOwnerId = eventService.getEventById(app.getEventId()).map(Event::getUserId).orElse(null);
+                User viewer = viewerId != null ? userService.findById(viewerId).orElse(null) : null;
+                boolean isAuthorizedProfessional = viewer != null && (
+                    Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+                    Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+                    "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+                );
+                maskSensitiveData(app, viewerId, eventOwnerId, isAuthorizedProfessional);
+                return ResponseEntity.ok(app);
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Application not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 

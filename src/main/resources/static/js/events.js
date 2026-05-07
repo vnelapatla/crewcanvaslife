@@ -12,8 +12,11 @@ let editModeId = null;
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     currentUserId = getCurrentUserId();
-    await loadCurrentUser();
-    await loadEvents();
+    // Load everything in parallel for maximum speed
+    await Promise.all([
+        loadCurrentUser(),
+        loadEvents()
+    ]);
     checkEditMode();
     scrollToEventFromUrl();
     const isManagedCheckbox = document.getElementById('isManaged');
@@ -23,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadCurrentUser() {
     try {
         if (!currentUserId) return;
-        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/summary`);
         if (response.ok) {
             currentUser = await response.json();
             const nameEle = document.getElementById('currentUserName') || document.getElementById('userNameHeader');
@@ -45,13 +48,16 @@ async function loadEvents() {
     }
 
     try {
-        const appsResponse = await fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`);
-        if (appsResponse.ok) userApplications = await appsResponse.json();
+        // Parallel fetch for applications and events
+        const [appsRes, eventsRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`),
+            fetch(`${API_BASE_URL}/api/events?page=0&size=50`)
+        ]);
+
+        if (appsRes.ok) userApplications = await appsRes.json();
         
-        // Paginated fetch: Loading first 50 events for now (much faster than loading everything)
-        const response = await fetch(`${API_BASE_URL}/api/events?page=0&size=50`);
-        if (response.ok) { 
-            const data = await response.json();
+        if (eventsRes.ok) { 
+            const data = await eventsRes.json();
             // Handle both Array (old) and Page Object (new)
             allEvents = data.content ? data.content : data; 
             updateCounts(); 
@@ -99,7 +105,10 @@ function displayEvents(events, prepend = false) {
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
                 <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
                 <div class="card-content" style="padding: ${useFeedLayout ? '0' : '15px'};">
-                    ${useFeedLayout ? '' : `<h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>`}
+                    ${useFeedLayout ? '' : `
+                        <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
+                        ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
+                    `}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                         <div style="font-size: 11px; font-weight: 600; color: #64748b;">
                             <i class="fas fa-users"></i> ${event.applicants || 0} applied
@@ -247,11 +256,28 @@ async function handleExternalRedirect(eventId, url) {
         return;
     }
 
-    // 0. Profile Strength Validation (Soft Check: 50%)
+    // 0. Professional Readiness Checklist
     const score = calculateProfileScore(currentUser);
-    if (score < 50) {
-        showMessage(`📝 Tip: Your profile is only ${score}% complete. We recommend adding a Resume, Video, and more Images for better recruiter visibility!`, 'warning');
-        // We let them proceed as requested ("less than 70% is fine")
+    
+    let photoCount = 0;
+    if (currentUser.recentPictures) {
+        try {
+            const pics = JSON.parse(currentUser.recentPictures);
+            photoCount = Array.isArray(pics) ? pics.length : 0;
+        } catch (e) {
+            photoCount = currentUser.recentPictures.split(',').filter(p => p.trim()).length;
+        }
+    }
+    
+    const hasVideo = (currentUser.showreel && currentUser.showreel.trim() !== '') || (currentUser.portfolioVideos && currentUser.portfolioVideos.trim() !== '');
+    
+    let checklistMsg = "🚀 Professional Tip: To get noticed by recruiters, ensure you have:\n";
+    checklistMsg += "✅ At least 3 Recent Photos\n";
+    checklistMsg += "✅ 1 Self Intro Video\n";
+    checklistMsg += `✅ Profile at least 70% Complete (Yours: ${score}%)`;
+    
+    if (score < 70 || photoCount < 3 || !hasVideo) {
+        showMessage(checklistMsg, 'warning');
     }
     
     // 1. Find event title for context
@@ -296,6 +322,73 @@ async function handleExternalRedirect(eventId, url) {
     searchEvents(); // Refresh UI to show 'Registered'
     
     window.open(finalUrl, '_blank');
+}
+
+async function submitEventApplication() {
+    if (!pendingEventId || !currentUserId) return;
+
+    const btn = document.querySelector('button[onclick="submitEventApplication()"]');
+    const originalText = btn ? btn.innerText : 'Submit Application';
+
+    // Professional Readiness Check before internal submission
+    const score = calculateProfileScore(currentUser);
+    let photoCount = 0;
+    if (currentUser.recentPictures) {
+        try {
+            const pics = JSON.parse(currentUser.recentPictures);
+            photoCount = Array.isArray(pics) ? pics.length : 0;
+        } catch (e) {
+            photoCount = currentUser.recentPictures.split(',').filter(p => p.trim()).length;
+        }
+    }
+    const hasVideo = (currentUser.showreel && currentUser.showreel.trim() !== '') || (currentUser.portfolioVideos && currentUser.portfolioVideos.trim() !== '');
+
+    if (score < 70 || photoCount < 3 || !hasVideo) {
+        const confirmApp = confirm(`🚀 Professional Tip: Your profile is currently ${score}% complete with ${photoCount} photos.\n\nRecruiters prioritize profiles with 70%+ completion, 3 photos, and an intro video.\n\nDo you want to proceed with application anyway?`);
+        if (!confirmApp) {
+            window.location.href = 'edit-profile.html';
+            return;
+        }
+    }
+
+    const applicationData = {
+        fullName: document.getElementById('appFullName').value,
+        email: document.getElementById('appEmail').value,
+        phone: document.getElementById('appWhatsApp').value,
+        role: document.getElementById('appRole').value,
+        additionalNote: document.getElementById('appNote').value
+    };
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Submitting...';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/events/${pendingEventId}/apply?userId=${currentUserId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(applicationData)
+        });
+
+        if (res.ok) {
+            showMessage('Application submitted successfully!', 'success');
+            userApplications.push({ eventId: parseInt(pendingEventId) });
+            closeAppModal();
+            searchEvents();
+        } else {
+            const err = await res.text();
+            showMessage('Failed to submit application: ' + err, 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        showMessage('Connection error.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
 }
 
 async function applyToEvent(eventId) { if (!currentUserId) return; openAppModal(eventId); }

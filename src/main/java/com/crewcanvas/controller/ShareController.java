@@ -39,14 +39,11 @@ public class ShareController {
         String title = content.length() > 40 ? content.substring(0, 37) + "..." : (content.isEmpty() ? "New Post on CrewCanvas" : content);
         String truncatedDescription = truncateContent(content, 0.70);
         
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
-        int serverPort = request.getServerPort();
-        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
+        String publicBaseUrl = getPublicBaseUrl(request);
+        String imageUrl = publicBaseUrl + "/share/image/post/" + id + "?v=" + System.currentTimeMillis();
+        String redirectUrl = publicBaseUrl + "/feed.html?postId=" + id;
 
-        String imageUrl = baseUrl + "/share/image/post/" + id;
-
-        String html = generateShareHtml(title, truncatedDescription, imageUrl, baseUrl + "/feed.html?postId=" + id, baseUrl);
+        String html = generateShareHtml(title, truncatedDescription, imageUrl, redirectUrl, publicBaseUrl, "Accessing Post Content...");
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
@@ -67,14 +64,11 @@ public class ShareController {
         // Hide contact info in the share preview
         truncatedDescription += "\n\n[Contact details hidden. Click to view on website]";
 
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
-        int serverPort = request.getServerPort();
-        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
+        String publicBaseUrl = getPublicBaseUrl(request);
+        String imageUrl = publicBaseUrl + "/share/image/event/" + id + "?v=" + System.currentTimeMillis();
+        String redirectUrl = publicBaseUrl + "/events.html?eventId=" + id;
 
-        String imageUrl = baseUrl + "/share/image/event/" + id;
-
-        String html = generateShareHtml(title, truncatedDescription, imageUrl, baseUrl + "/event.html?eventId=" + id, baseUrl);
+        String html = generateShareHtml(title, truncatedDescription, imageUrl, redirectUrl, publicBaseUrl, "Accessing Event Details...");
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
@@ -97,14 +91,11 @@ public class ShareController {
         
         String finalDesc = desc.toString().isEmpty() ? "Check out my profile on CrewCanvas" : desc.toString();
 
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
-        int serverPort = request.getServerPort();
-        String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort);
+        String publicBaseUrl = getPublicBaseUrl(request);
+        String imageUrl = publicBaseUrl + "/share/image/deck/" + id + "?v=" + System.currentTimeMillis();
+        String redirectUrl = publicBaseUrl + "/casting-deck.html?userId=" + id + "&shared=true";
 
-        String imageUrl = baseUrl + "/share/image/deck/" + id;
-
-        String html = generateShareHtml(title, finalDesc, imageUrl, baseUrl + "/casting-deck.html?userId=" + id + "&shared=true", baseUrl);
+        String html = generateShareHtml(title, finalDesc, imageUrl, redirectUrl, publicBaseUrl, "Accessing Professional Casting Deck...");
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
                 .body(html);
@@ -114,7 +105,7 @@ public class ShareController {
     public ResponseEntity<byte[]> getPostImage(@PathVariable Long id) {
         Optional<Post> postOpt = postService.getPostById(id);
         if (postOpt.isPresent() && postOpt.get().getImageUrls() != null && !postOpt.get().getImageUrls().isEmpty()) {
-            return serveBase64Image(postOpt.get().getImageUrls().get(0));
+            return serveImageWithCrop(postOpt.get().getImageUrls().get(0));
         }
         return ResponseEntity.notFound().build();
     }
@@ -122,8 +113,13 @@ public class ShareController {
     @GetMapping("/image/event/{id}")
     public ResponseEntity<byte[]> getEventImage(@PathVariable Long id) {
         Optional<Event> eventOpt = eventService.getEventById(id);
-        if (eventOpt.isPresent() && eventOpt.get().getImageUrl() != null) {
-            return serveBase64Image(eventOpt.get().getImageUrl());
+        if (eventOpt.isPresent()) {
+            Event event = eventOpt.get();
+            String imageUrl = event.getImageUrl();
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                imageUrl = "images/defaults/audition.png"; // Fallback to audition default
+            }
+            return serveImageWithCrop(imageUrl);
         }
         return ResponseEntity.notFound().build();
     }
@@ -132,48 +128,89 @@ public class ShareController {
     public ResponseEntity<byte[]> getProfileImage(@PathVariable Long id) {
         Optional<com.crewcanvas.model.User> userOpt = userService.findById(id);
         if (userOpt.isPresent() && userOpt.get().getProfilePicture() != null) {
-            return serveBase64Image(userOpt.get().getProfilePicture());
+            return serveImageWithCrop(userOpt.get().getProfilePicture());
         }
         return ResponseEntity.notFound().build();
     }
 
-    private ResponseEntity<byte[]> serveBase64Image(String base64) {
+    private ResponseEntity<byte[]> serveImageWithCrop(String source) {
         try {
-            if (base64.startsWith("data:image")) {
-                String[] parts = base64.split(",");
-                String contentType = parts[0].split(":")[1].split(";")[0];
-                byte[] imageBytes = java.util.Base64.getDecoder().decode(parts[1]);
+            byte[] imageBytes;
+            String contentType = "image/png";
 
-                // Load image to crop
-                java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
-                java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
-
-                if (originalImage != null) {
-                    int width = originalImage.getWidth();
-                    int height = originalImage.getHeight();
-                    
-                    // Crop top 70% (hides bottom 30% where contact details usually are)
-                    int cropHeight = (int) (height * 0.70);
-                    if (cropHeight > 0) {
-                        java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
-                        
-                        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                        String format = contentType.contains("/") ? contentType.split("/")[1] : "png";
-                        javax.imageio.ImageIO.write(croppedImage, format, baos);
-                        return ResponseEntity.ok()
-                                .contentType(MediaType.parseMediaType(contentType))
-                                .body(baos.toByteArray());
-                    }
+            if (source.startsWith("data:image")) {
+                String[] parts = source.split(",");
+                contentType = parts[0].split(":")[1].split(";")[0];
+                imageBytes = java.util.Base64.getDecoder().decode(parts[1]);
+            } else {
+                // Handle local file path (static assets)
+                String path = source.startsWith("/") ? source : "src/main/resources/static/" + source;
+                java.io.File file = new java.io.File(path);
+                if (!file.exists()) {
+                    // Try another path format
+                    path = "target/classes/static/" + source;
+                    file = new java.io.File(path);
                 }
                 
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .body(imageBytes);
+                if (file.exists()) {
+                    imageBytes = java.nio.file.Files.readAllBytes(file.toPath());
+                    String ext = source.substring(source.lastIndexOf(".") + 1).toLowerCase();
+                    contentType = "image/" + (ext.equals("jpg") ? "jpeg" : ext);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             }
+
+            // Load image to crop
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
+            java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
+
+            if (originalImage != null) {
+                int width = originalImage.getWidth();
+                int height = originalImage.getHeight();
+                
+                // Crop top 70% (Cinematic/Poster aspect ratio concept)
+                int cropHeight = (int) (height * 0.70);
+                if (cropHeight > 0) {
+                    java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
+                    
+                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                    String format = contentType.contains("/") ? contentType.split("/")[1] : "png";
+                    javax.imageio.ImageIO.write(croppedImage, format, baos);
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.parseMediaType(contentType))
+                            .body(baos.toByteArray());
+                }
+            }
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(imageBytes);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    private String getPublicBaseUrl(jakarta.servlet.http.HttpServletRequest request) {
+        String host = request.getHeader("Host");
+        String proto = request.getHeader("X-Forwarded-Proto");
+        
+        // Default to https if we're on a real domain, otherwise use what we have
+        if (proto == null) {
+            proto = (host != null && (host.contains(".life") || host.contains(".in"))) ? "https" : request.getScheme();
+        }
+        
+        if (host == null) {
+            host = request.getServerName() + ":" + request.getServerPort();
+        }
+        
+        // Remove port if it's standard or if we are behind Nginx
+        if (host.contains(":8081") || host.contains(":8080")) {
+            host = host.split(":")[0];
+        }
+        
+        return proto + "://" + host;
     }
 
     private String truncateContent(String content, double percentage) {
@@ -184,7 +221,7 @@ public class ShareController {
         return content.substring(0, length) + "...";
     }
 
-    private String generateShareHtml(String title, String description, String imageUrl, String redirectUrl, String baseUrl) {
+    private String generateShareHtml(String title, String description, String imageUrl, String redirectUrl, String baseUrl, String loadingMessage) {
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
@@ -218,7 +255,7 @@ public class ShareController {
                 "    <div class=\"teaser-card\">\n" +
                 "        <div class=\"logo\">CrewCanvas</div>\n" +
                 "        <div class=\"loader\"></div>\n" +
-                "        <h1>Accessing Professional Casting Deck...</h1>\n" +
+                "        <h1>" + loadingMessage + "</h1>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";

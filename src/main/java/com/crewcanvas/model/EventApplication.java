@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "event_applications")
+@Table(name = "event_applications", indexes = {
+    @Index(name = "idx_app_user", columnList = "user_id"),
+    @Index(name = "idx_app_event", columnList = "event_id")
+})
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class EventApplication {
 

@@ -13,6 +13,13 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
     List<EventApplication> findByUserIdOrderByAppliedAtDesc(Long userId);
     @org.springframework.data.jpa.repository.Query("SELECT ea FROM EventApplication ea WHERE ea.eventId = :eventId")
     List<EventApplication> findByEventId(@org.springframework.data.repository.query.Param("eventId") Long eventId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT ea.id as id, ea.eventId as eventId, ea.userId as userId, ea.status as status, " +
+            "ea.appliedAt as appliedAt, ea.applicantName as applicantName, ea.applicantEmail as applicantEmail, " +
+            "ea.role as role, ea.location as location, ea.mobileNumber as mobileNumber, " +
+            "ea.eventTitle as eventTitle, ea.eventType as eventType " +
+            "FROM EventApplication ea WHERE ea.eventId = :eventId")
+    List<com.crewcanvas.dto.EventApplicationSummary> findSummaryByEventId(@org.springframework.data.repository.query.Param("eventId") Long eventId);
     List<EventApplication> findByEventIdAndStatus(Long eventId, String status);
     Optional<EventApplication> findByEventIdAndUserId(Long eventId, Long userId);
     Optional<EventApplication> findByPassToken(String passToken);

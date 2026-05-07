@@ -70,15 +70,35 @@
         /* Hyper-Dark Deck Container */
         .deck-container {
             display: flex;
-            width: 1250px;
-            max-width: 100vw;
-            min-height: 900px;
+            width: fit-content;
+            min-width: 700px;
+            max-width: 95vw;
+            margin: 40px auto;
             background: #000;
             border-radius: 40px;
             overflow: hidden;
             box-shadow: 0 50px 100px rgba(0,0,0,0.8);
             border: 1px solid var(--glass-border);
             position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Responsive height: no more fixed 900px */
+        .deck-container {
+            min-height: auto;
+        }
+
+        /* Dynamic Layout Mode: If right side is empty */
+        .deck-container.info-only {
+            width: 700px;
+            justify-content: center;
+        }
+        .deck-container.info-only .info-panel {
+            width: 100%;
+            border-right: none;
+        }
+        .deck-container.info-only .media-panel {
+            display: none;
         }
 
         /* Left Identity Panel (Dark) */
@@ -231,9 +251,21 @@
         /* Right Content Panel (Dark) */
         .media-panel {
             flex: 1;
+            width: 800px; /* Default wide width */
             padding: 60px;
-            overflow-y: auto;
             background: #000;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.5s ease;
+        }
+
+        /* Low Media Mode: Shrink the right side if there's very little content */
+        .deck-container.low-media .media-panel {
+            width: 450px;
+            padding: 60px 40px;
+        }
+        .deck-container.low-media .project-grid {
+            grid-template-columns: 1fr !important;
         }
 
         .panel-header {
@@ -261,6 +293,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 25px;
+            justify-content: center;
         }
 
         #photoGallery.project-grid {
@@ -453,21 +486,21 @@
         </aside>
 
         <!-- Right Side: Media Panel -->
-        <main class="media-panel">
+        <main class="media-panel" id="mediaPanel">
             <!-- Professional Gallery -->
-            <div class="panel-header">PROFESSIONAL GALLERY</div>
+            <div class="panel-header" id="headerGallery" style="display:none;">PROFESSIONAL GALLERY</div>
             <div id="photoGallery" class="project-grid" style="margin-bottom:60px;">
                 <!-- Raw photos injected here -->
             </div>
 
             <!-- Showreel Section -->
-            <div class="panel-header">PROFESSIONAL SHOWREEL</div>
-            <div id="videoContainer" style="width:100%; aspect-ratio:16/9; background:#111; border-radius:24px; overflow:hidden; border:1px solid var(--glass-border); margin-bottom:60px;">
+            <div class="panel-header" id="headerReel" style="display:none;">PROFESSIONAL SHOWREEL</div>
+            <div id="videoContainer" style="width:100%; aspect-ratio:16/9; background:#111; border-radius:24px; overflow:hidden; border:1px solid var(--glass-border); margin-bottom:60px; display:none;">
                 <!-- Video iframe injected here -->
             </div>
 
             <!-- Movie Projects -->
-            <div class="panel-header">MOVIE PROJECTS</div>
+            <div class="panel-header" id="headerProjects" style="display:none;">MOVIE PROJECTS</div>
             <div id="projectGallery" class="project-grid">
                 <!-- Project cards injected here -->
             </div>
@@ -494,10 +527,15 @@
 
             const isShared = getQueryParam('shared') === 'true';
             const currentUserId = typeof getCurrentUserId === 'function' ? getCurrentUserId() : '';
-            const unmaskParam = isShared ? '&unmask=true' : '';
+            
+            // Construct clean URL for unmasking
+            let profileUrl = `${API_BASE_URL}/api/profile/${userId}?`;
+            if (currentUserId) profileUrl += `viewerId=${currentUserId}&`;
+            if (isShared) profileUrl += `unmask=true`;
+            else profileUrl += `unmask=false`;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${currentUserId}${unmaskParam}`);
+                const response = await fetch(profileUrl);
                 if (!response.ok) throw new Error('Profile Fetch Failed');
                 const user = await response.json();
                 
@@ -519,9 +557,8 @@
                 // Phone Display (Primary from unmasked API)
                 let displayPhone = user.phone;
                 
-                // Robust Fallback: If still masked (X) or empty, try the dedicated unmasking endpoint (Only if authorized)
-                const isOwner = currentUserId && currentUserId.toString() === userId.toString();
-                if ((!displayPhone || displayPhone.includes('X')) && (isShared || isOwner)) {
+                // Robust Fallback: If still masked (X) or empty, try the dedicated unmasking endpoint
+                if ((!displayPhone || displayPhone.includes('X')) && isShared) {
                     try {
                         const phoneRes = await fetch(`${API_BASE_URL}/api/profile/${userId}/phone?code=FREE`);
                         if (phoneRes.ok) {
@@ -582,22 +619,35 @@
 
                 // Media: Projects & Gallery
                 loadCastingDeckProjects(userId);
-                loadCastingDeckGallery(user);
-
                 // Media: Showreel
                 const reel = user.showreel || user.portfolioVideos || user.sampleTracks;
                 const videoBox = document.getElementById('videoContainer');
+                const headerReel = document.getElementById('headerReel');
                 if (reel) {
+                    let hasReel = false;
                     if (reel.includes('youtube.com') || reel.includes('youtu.be')) {
                         const vidId = reel.includes('v=') ? reel.split('v=')[1].split('&')[0] : reel.split('/').pop();
                         videoBox.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+                        hasReel = true;
                     } else if (reel.startsWith('data:video')) {
                         videoBox.innerHTML = `<video src="${reel}" controls style="width:100%; height:100%; object-fit:cover;"></video>`;
+                        hasReel = true;
                     }
-                } else {
-                    videoBox.style.display = 'none';
-                    videoBox.previousElementSibling.style.display = 'none';
+                    
+                    if (hasReel) {
+                        videoBox.style.display = 'block';
+                        headerReel.style.display = 'flex';
+                    }
                 }
+
+                // Media: Projects & Gallery
+                await Promise.all([
+                    loadCastingDeckProjects(userId),
+                    loadCastingDeckGallery(user)
+                ]);
+
+                // Final Layout Check: If everything on the right is empty, switch to centered info mode
+                checkMediaPresence();
 
                 // Resume Handler
                 const resumeBtn = document.getElementById('resumeBtn');
@@ -624,7 +674,9 @@
                 if (response.ok) {
                     const projects = await response.json();
                     const container = document.getElementById('projectGallery');
+                    const header = document.getElementById('headerProjects');
                     if (projects && projects.length > 0) {
+                        header.style.display = 'flex';
                         container.innerHTML = projects.map(p => {
                             const link = p.videoUrl || p.projectUrl || p.externalLink || p.link || '#';
                             const isClickable = link !== '#';
@@ -641,12 +693,8 @@
                             `;
                         }).join('');
                     } else {
-                        container.innerHTML = `
-                            <div style="grid-column:1/-1; padding:60px; text-align:center; background:#111; border-radius:24px; border:1px dashed #333;">
-                                <i class="fas fa-film" style="font-size:40px; color:#333; margin-bottom:15px;"></i>
-                                <p style="color:#666; font-size:12px;">No movies listed in filmography yet.</p>
-                            </div>
-                        `;
+                        container.style.display = 'none';
+                        header.style.display = 'none';
                     }
                 }
             } catch (e) { console.error(e); }
@@ -654,6 +702,9 @@
 
         function loadCastingDeckGallery(user) {
             const container = document.getElementById('photoGallery');
+            const header = document.getElementById('headerGallery');
+            let hasPhotos = false;
+
             if (user.recentPictures) {
                 try {
                     const pics = JSON.parse(user.recentPictures);
@@ -663,18 +714,51 @@
                                 <img src="${p}">
                             </div>
                         `).join('');
-                        return;
+                        hasPhotos = true;
                     }
-                } catch(e) {}
-                
-                const pics = user.recentPictures.split(',').filter(p => p.trim());
-                if (pics.length > 0) {
-                    container.innerHTML = pics.map(p => `
-                        <div class="midnight-card">
-                            <img src="${p}">
-                        </div>
-                    `).join('');
+                } catch(e) {
+                    const pics = user.recentPictures.split(',').filter(p => p.trim());
+                    if (pics.length > 0) {
+                        container.innerHTML = pics.map(p => `
+                            <div class="midnight-card">
+                                <img src="${p}">
+                            </div>
+                        `).join('');
+                        hasPhotos = true;
+                    }
                 }
+            }
+
+            if (hasPhotos) {
+                container.style.display = 'grid';
+                header.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+                header.style.display = 'none';
+            }
+        }
+
+        function checkMediaPresence() {
+            const container = document.querySelector('.deck-container');
+            const hasGallery = document.getElementById('headerGallery').style.display !== 'none';
+            const hasReel = document.getElementById('headerReel').style.display !== 'none';
+            const hasProjects = document.getElementById('headerProjects').style.display !== 'none';
+            
+            // Count actual projects
+            const projectCount = document.getElementById('projectGallery').children.length;
+
+            if (!hasGallery && !hasReel && !hasProjects) {
+                console.log("No media found, activating Info-Only mode");
+                container.classList.add('info-only');
+                container.classList.remove('low-media');
+            } else if (!hasGallery && !hasReel && projectCount <= 1) {
+                // If there's only 1 project and nothing else, use a more compact side-by-side
+                console.log("Low media detected, activating Low-Media mode");
+                container.classList.add('low-media');
+                container.classList.remove('info-only');
+            } else {
+                container.classList.remove('info-only');
+                container.classList.remove('low-media');
             }
         }
 
