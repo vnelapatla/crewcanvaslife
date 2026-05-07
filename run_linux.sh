@@ -22,7 +22,7 @@ fuser -k 8081/tcp 2>/dev/null
 
 # Run in background with nohup - Optimized for 1GB RAM Instance (768MB Heap)
 echo "Starting Spring Boot application in background..."
-nohup java -Xms256m -Xmx768m -jar target/*.jar > app.log 2>&1 &
+nohup java -Xms256m -Xmx512m -jar target/*.jar > app.log 2>&1 &
 
 echo ""
 echo "Server is starting!"
