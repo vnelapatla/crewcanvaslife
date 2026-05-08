@@ -200,6 +200,19 @@ async function initMessaging() {
 // Load conversations
 async function loadConversations() {
     try {
+        // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+        const cached = localStorage.getItem('cache_conversations');
+        if (cached && conversations.length === 0) {
+            try {
+                const cachedConvs = JSON.parse(cached);
+                if (cachedConvs && cachedConvs.length > 0) {
+                    console.log("✨ Instant Messages: Using pre-fetch cache");
+                    conversations = cachedConvs;
+                    displayConversations();
+                }
+            } catch (e) { localStorage.removeItem('cache_conversations'); }
+        }
+
         // Optimized: Use the summary endpoint which performs 1 query instead of N+1
         const url = `${API_BASE_URL}/api/conversations/summary/${currentUserId}`;
         console.log("Fetching optimized conversations from:", url);

@@ -11,6 +11,18 @@ async function loadNotifications() {
     const list = document.getElementById('notificationsList');
     if (!list) return;
 
+    // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+    const cached = localStorage.getItem('cache_notifications');
+    if (cached) {
+        try {
+            const cachedNotifs = JSON.parse(cached);
+            if (cachedNotifs && cachedNotifs.length > 0) {
+                console.log("✨ Instant Notifications: Using pre-fetch cache");
+                renderNotifications(cachedNotifs);
+            }
+        } catch (e) { localStorage.removeItem('cache_notifications'); }
+    }
+
     if (!userId) {
         list.innerHTML = '<div class="empty-state"><i class="fas fa-user-lock"></i><p>Please log in to view notifications.</p></div>';
         return;

@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Force Admin flag for the official account
                 const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
                 localStorage.setItem('isAdmin', isAdmin);
+                localStorage.setItem('profileScore', user.profileScore || 0);
+
+                // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
+                if (typeof preFetchBackgroundData === 'function') {
+                    preFetchBackgroundData();
+                }
 
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
@@ -193,6 +199,11 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('userName', user.name);
             localStorage.setItem('isAdmin', user.isAdmin);
             localStorage.setItem('profileScore', user.profileScore || 0);
+
+            // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
+            if (typeof preFetchBackgroundData === 'function') {
+                preFetchBackgroundData();
+            }
 
             showMessage('Google Login successful! Redirecting...', 'success');
             setTimeout(() => {

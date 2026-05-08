@@ -39,7 +39,22 @@ async function loadCurrentUser() {
 
 async function loadEvents() {
     const container = document.getElementById('eventsGrid');
-    if (container) {
+    
+    // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+    const cached = localStorage.getItem('cache_events_top10');
+    if (cached && container) {
+        try {
+            const cachedEvents = JSON.parse(cached);
+            if (cachedEvents && cachedEvents.length > 0) {
+                console.log("✨ Instant Events: Using pre-fetch cache");
+                allEvents = cachedEvents;
+                updateCounts();
+                searchEvents();
+            }
+        } catch (e) { localStorage.removeItem('cache_events_top10'); }
+    }
+
+    if (container && (!allEvents || allEvents.length === 0)) {
         container.innerHTML = `
             <div class="skeleton skeleton-card"></div>
             <div class="skeleton skeleton-card"></div>

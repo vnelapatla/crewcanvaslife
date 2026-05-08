@@ -1712,8 +1712,64 @@ document.head.appendChild(globalStyles);
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         // Small delay to let critical page data (Feed/Events) start loading first
-        setTimeout(checkGlobalProfessionalReadiness, 100);
+        setTimeout(() => {
+            checkGlobalProfessionalReadiness();
+            preFetchBackgroundData();
+        }, 500); // Increased delay for pre-fetch to ensure no impact on main page
     });
 } else {
-    setTimeout(checkGlobalProfessionalReadiness, 100);
+    setTimeout(() => {
+        checkGlobalProfessionalReadiness();
+        preFetchBackgroundData();
+    }, 500);
+}
+
+/**
+ * PRE-FETCHING: Loads small amounts of data for other pages in background
+ * for an "Instant" feel when switching tabs.
+ */
+async function preFetchBackgroundData() {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+
+    try {
+        console.log("🚀 Starting background pre-fetch...");
+        
+        // 1. Pre-fetch top 10 Feed Posts (only if not on feed page)
+        if (!window.location.pathname.includes('feed.html')) {
+            fetch(`${API_BASE_URL}/api/posts?page=0&size=10`)
+                .then(res => res.json())
+                .then(data => {
+                    const posts = data.content || data;
+                    localStorage.setItem('cache_feed_top10', JSON.stringify(posts));
+                }).catch(e => {});
+        }
+
+        // 2. Pre-fetch top 10 Events (only if not on events page)
+        if (!window.location.pathname.includes('events.html')) {
+            fetch(`${API_BASE_URL}/api/events?page=0&size=10`)
+                .then(res => res.json())
+                .then(data => {
+                    const events = data.content || data;
+                    localStorage.setItem('cache_events_top10', JSON.stringify(events));
+                }).catch(e => {});
+        }
+
+        // 3. Pre-fetch Notifications
+        fetch(`${API_BASE_URL}/api/notifications/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem('cache_notifications', JSON.stringify(data.slice(0, 10)));
+            }).catch(e => {});
+
+        // 4. Pre-fetch Conversations List (Messages)
+        fetch(`${API_BASE_URL}/api/messages/conversations/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem('cache_conversations', JSON.stringify(data.slice(0, 10)));
+            }).catch(e => {});
+        
+    } catch (err) {
+        console.warn("Pre-fetch failed, skipping.", err);
+    }
 }

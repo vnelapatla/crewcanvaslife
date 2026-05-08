@@ -154,7 +154,23 @@ function performScroll(postId) {
 // Load feed posts
 // CC-S1-105: Feed Performance [Nelpatla Venkatesh] - Implement infinite scroll and server-side caching.
 async function loadFeed(page = 0, refresh = false) {
-    if (isLoading || (!hasMore && !refresh)) return;
+    if (isLoading) return;
+    
+    // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+    if (page === 0 && refresh) {
+        const cached = localStorage.getItem('cache_feed_top10');
+        if (cached) {
+            try {
+                const cachedPosts = JSON.parse(cached);
+                if (cachedPosts && cachedPosts.length > 0) {
+                    console.log("✨ Instant Feed: Using pre-fetch cache");
+                    displayPosts(cachedPosts, true);
+                }
+            } catch (e) { localStorage.removeItem('cache_feed_top10'); }
+        }
+    }
+
+    if (!hasMore && !refresh) return;
     
     isLoading = true;
     const container = document.getElementById('feedContainer');
