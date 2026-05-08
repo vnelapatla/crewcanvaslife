@@ -1608,8 +1608,10 @@ async function checkGlobalProfessionalReadiness() {
     if (!isTargetPage) return;
 
     // First check localStorage for a quick decision
-    // Threshold is 60%
-    if (score < 60) {
+    let score = parseInt(localStorage.getItem('profileScore') || '0');
+    
+    // Always check for a low score (threshold is 60%)
+    if (score < 60 || !localStorage.getItem('profileScore')) {
         try {
             const user = await getUserProfile(userId);
             if (!user) return;
