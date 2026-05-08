@@ -3,13 +3,18 @@
 # Blue-Green Deployment Script for CrewCanvas
 # This script alternates deployment between port 8080 and 8081
 
-APP_DIR="/home/ubuntu/app"
-CURRENT_PORT_FILE="$APP_DIR/current_port.txt"
-JAR_NAME="crewcanvas.jar" # We should make sure the JAR is named consistently or use a wildcard
+# Improved Path Handling: Use current directory if $HOME/app is restricted
+if [ -w "$HOME" ]; then
+    APP_DIR="$HOME/app"
+    mkdir -p "$APP_DIR"
+else
+    echo "Warning: $HOME is not writable. Using current directory for deployment."
+    APP_DIR=$(pwd)
+fi
 
-# Ensure app directory exists
-mkdir -p $APP_DIR
-cd $APP_DIR
+cd "$APP_DIR"
+CURRENT_PORT_FILE="$APP_DIR/current_port.txt"
+JAR_NAME="crewcanvas.jar"
 
 # Get current port, default to 8081 (so first deploy goes to 8080)
 CURRENT_PORT=$(cat $CURRENT_PORT_FILE 2>/dev/null || echo "8081")
@@ -24,6 +29,15 @@ echo "----------------------------------------"
 echo "Current port: $CURRENT_PORT"
 echo "Deploying new version on port: $NEW_PORT"
 echo "----------------------------------------"
+
+# Ensure MySQL is running before starting the app
+echo "Checking database connectivity..."
+# Try to ping MySQL, if it fails, try to start the service
+if ! mysqladmin ping -h 127.0.0.1 -u root -proot --silent; then
+    echo "MySQL seems to be down. Attempting to start service..."
+    sudo systemctl start mariadb || sudo systemctl start mysqld || sudo systemctl start mysql || echo "Warning: Could not start MySQL service automatically."
+    sleep 5
+fi
 
 # Kill any existing process on the NEW_PORT
 echo "Cleaning up port $NEW_PORT..."
@@ -79,16 +93,15 @@ if [ -f "/etc/nginx/sites-available/default" ]; then
     NGINX_CONF="/etc/nginx/sites-available/default"
 elif [ -f "/etc/nginx/conf.d/default.conf" ]; then
     NGINX_CONF="/etc/nginx/conf.d/default.conf"
+elif [ -f "/etc/nginx/nginx.conf" ]; then
+    NGINX_CONF="/etc/nginx/nginx.conf"
 elif [ -f "/etc/nginx/conf.d/default" ]; then
     NGINX_CONF="/etc/nginx/conf.d/default"
+elif [ -f "/etc/nginx/sites-enabled/default" ]; then
+    NGINX_CONF="/etc/nginx/sites-enabled/default"
 else
-    # If none found, check sites-enabled (Ubuntu fallback)
-    if [ -f "/etc/nginx/sites-enabled/default" ]; then
-        NGINX_CONF="/etc/nginx/sites-enabled/default"
-    else
-        echo "ERROR: Nginx configuration file not found. Checked /etc/nginx/sites-available/default and /etc/nginx/conf.d/default.conf"
-        exit 1
-    fi
+    echo "ERROR: Nginx configuration file not found. Checked standard locations."
+    exit 1
 fi
 
 echo "Found Nginx config at: $NGINX_CONF"

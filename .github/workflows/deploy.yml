@@ -63,9 +63,13 @@ jobs:
           mv target/*.jar . 2>/dev/null || true
           chmod +x deploy.sh
           
-          # Apply database migrations first
+          # Ensure MySQL is running before migration
+          echo "Checking MySQL service..."
+          sudo systemctl start mariadb || sudo systemctl start mysqld || sudo systemctl start mysql || true
+          
+          # Apply database migrations first - Using -h 127.0.0.1 to avoid socket issues
           echo "Applying database migrations..."
-          mysql -u root -proot crewcanvas_db < UPDATE_SCHEMA.sql || echo "Migration notice: Migration might have failed or already applied."
+          mysql -h 127.0.0.1 -u root -proot crewcanvas_db < UPDATE_SCHEMA.sql || echo "Migration notice: Migration might have failed or already applied."
           
           # Run the blue-green deployment script
           ./deploy.sh
