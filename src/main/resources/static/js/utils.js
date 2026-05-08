@@ -98,6 +98,20 @@ function getCurrentUserId() {
 }
 
 // Get current user email
+function recordPageHit() {
+    const userId = getCurrentUserId();
+    const url = window.location.pathname;
+    // Don't track index.html hits to keep data clean
+    if (url.includes('index.html') || url === '/') return;
+    
+    fetch(`${API_BASE_URL}/api/public/metrics/hit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, url })
+    }).catch(e => console.warn("Metrics failed", e));
+}
+
+// Get current user email
 function getCurrentUserEmail() {
     const email = localStorage.getItem('userEmail');
     return email ? email.toLowerCase().trim() : '';
@@ -1408,6 +1422,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initUniversalHeader();
         // Init notifications
         NotificationHandler.init();
+        // Record analytics hit
+        recordPageHit();
     } catch (e) { console.error("Header init failed:", e); }
     
     try {
