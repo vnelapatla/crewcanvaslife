@@ -1013,24 +1013,10 @@ function initUniversalHeader() {
                 <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
             </div>
             <div class="status-bar" style="gap: 12px; display: flex; align-items: center; position: relative;">
-                <div class="notification-container" style="position: relative; ${window.location.pathname.includes('profile.html') ? 'display:none' : ''}">
-                    <button id="notifBellBtn" onclick="NotificationHandler.toggleDropdown(event)" class="notification-icon-link" title="Notifications" style="border: none; cursor: pointer; color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative;">
-                        <i class="fa-solid fa-bell"></i>
-                        <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
-                    </button>
-                    <div id="notificationsDropdown" class="notif-dropdown">
-                        <div class="notif-header">
-                            <h3>Notifications</h3>
-                            <button onclick="NotificationHandler.markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div id="notificationsList" class="notif-list">
-                            <div class="notif-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                        </div>
-                        <div class="notif-footer">
-                            <a href="notifications.html">View all notifications</a>
-                        </div>
-                    </div>
-                </div>
+                <a href="notifications.html" class="notification-icon-link" title="Notifications" style="color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative; ${window.location.pathname.includes('profile.html') ? 'display:none' : ''}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
+                </a>
                 <div class="user-profile-box" onclick="NotificationHandler.closeDropdown(); ProfileHandler.toggleProfileDropdown()">
                     <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
                     <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; document.getElementById('userInitialsSmall').style.display='flex';">
