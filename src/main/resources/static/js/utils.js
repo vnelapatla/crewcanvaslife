@@ -1742,16 +1742,32 @@ async function preFetchBackgroundData() {
                 .then(data => {
                     const posts = data.content || data;
                     localStorage.setItem('cache_feed_top10', JSON.stringify(posts));
+                    
+                    // Pre-load top 5 images
+                    posts.slice(0, 5).forEach(post => {
+                        if (post.imageUrl) {
+                            const img = new Image();
+                            img.src = post.imageUrl;
+                        }
+                    });
                 }).catch(e => {});
         }
 
         // 2. Pre-fetch top 10 Events (only if not on events page)
-        if (!window.location.pathname.includes('events.html')) {
+        if (!window.location.pathname.includes('events.html') && !window.location.pathname.includes('event.html')) {
             fetch(`${API_BASE_URL}/api/events?page=0&size=10`)
                 .then(res => res.json())
                 .then(data => {
                     const events = data.content || data;
                     localStorage.setItem('cache_events_top10', JSON.stringify(events));
+
+                    // Pre-load top 5 event images
+                    events.slice(0, 5).forEach(event => {
+                        if (event.imageUrl) {
+                            const img = new Image();
+                            img.src = event.imageUrl;
+                        }
+                    });
                 }).catch(e => {});
         }
 
