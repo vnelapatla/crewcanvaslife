@@ -1644,30 +1644,31 @@ function injectReadinessBanner(score, photos, hasVideo) {
 
     const popup = document.createElement('div');
     popup.id = 'readiness-popup';
-
-    let missing = [];
-    if (score < 60) missing.push(`Profile (${score}%)`);
-    if (photos < 3) missing.push(`${3 - photos} Photos`);
-    if (!hasVideo) missing.push(`Intro Video`);
+    
+    // Rectangle shape, small size, top-header style
+    popup.style.cssText = `
+        position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+        width: 90%; max-width: 500px; background: #111827; 
+        border: 1px solid rgba(255,140,0,0.3); border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 200000;
+        padding: 12px 16px; display: flex; align-items: center; gap: 15px;
+        animation: popupFadeDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        color: white; font-family: 'Inter', sans-serif;
+    `;
 
     popup.innerHTML = `
-        <button onclick="document.getElementById('readiness-popup').remove()" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: #6b7280; cursor: pointer; font-size: 16px;"><i class="fa-solid fa-xmark"></i></button>
-        
-        <div style="display: flex; gap: 15px; align-items: flex-start;">
-            <div style="width: 45px; height: 45px; background: rgba(255,140,0,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="fa-solid fa-rocket" style="color:#ff8c00; font-size: 20px;"></i>
-            </div>
-            <div style="text-align: left;">
-                <h4 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 700;">Profile Strength Low</h4>
-                <p style="margin: 0; font-size: 13px; color: #9ca3af; line-height: 1.4;">Stand out to recruiters! You are missing:</p>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                    ${missing.map(item => `<span style="background: rgba(255,140,0,0.1); color: #ff8c00; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,140,0,0.1);">${item}</span>`).join('')}
-                </div>
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <a href="edit-profile.html" style="background: #ff8c00; color: white; text-decoration: none; padding: 8px 20px; border-radius: 10px; font-size: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);">FIX NOW</a>
-                    <button onclick="sessionStorage.setItem('dismissReadinessBanner', 'true'); document.getElementById('readiness-popup').remove()" style="background: rgba(255,255,255,0.05); color: #9ca3af; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: 600;">Dismiss</button>
-                </div>
-            </div>
+        <div style="width: 32px; height: 32px; background: rgba(255,140,0,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i class="fa-solid fa-rocket" style="color:#ff8c00; font-size: 16px;"></i>
+        </div>
+        <div style="flex-grow: 1; min-width: 0;">
+            <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Boost your Professional Profile</h4>
+            <p style="margin: 0; font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                Missing: ${score < 60 ? 'Score, ' : ''}${photos < 3 ? 'Photos, ' : ''}${!hasVideo ? 'Video' : ''}
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+            <button onclick="window.location.href='edit-profile.html'" style="background: #ff8c00; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Fix Now</button>
+            <button onclick="document.getElementById('readiness-popup').remove(); sessionStorage.setItem('dismissReadinessBanner', 'true')" style="background: rgba(255,255,255,0.05); color: #9ca3af; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         </div>
     `;
 
