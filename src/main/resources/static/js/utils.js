@@ -1012,12 +1012,26 @@ function initUniversalHeader() {
             <div class="header-left">
                 <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
             </div>
-            <div class="status-bar" style="gap: 12px; display: flex; align-items: center;">
-                <a href="notifications.html" class="notification-icon-link" title="Notifications" style="color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
-                </a>
-                <div class="user-profile-box" onclick="ProfileHandler.toggleProfileDropdown()">
+            <div class="status-bar" style="gap: 12px; display: flex; align-items: center; position: relative;">
+                <div class="notification-container" style="position: relative; ${window.location.pathname.includes('profile.html') ? 'display:none' : ''}">
+                    <button id="notifBellBtn" onclick="NotificationHandler.toggleDropdown(event)" class="notification-icon-link" title="Notifications" style="border: none; cursor: pointer; color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative;">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
+                    </button>
+                    <div id="notificationsDropdown" class="notif-dropdown">
+                        <div class="notif-header">
+                            <h3>Notifications</h3>
+                            <button onclick="NotificationHandler.markAllAsRead()">Mark all as read</button>
+                        </div>
+                        <div id="notificationsList" class="notif-list">
+                            <div class="notif-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                        </div>
+                        <div class="notif-footer">
+                            <a href="notifications.html">View all notifications</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-profile-box" onclick="NotificationHandler.closeDropdown(); ProfileHandler.toggleProfileDropdown()">
                     <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
                     <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; document.getElementById('userInitialsSmall').style.display='flex';">
                     
@@ -1136,11 +1150,16 @@ const NotificationHandler = {
         // 3. Global click listener to close dropdown
         document.addEventListener('click', (e) => {
             const dropdown = document.getElementById('notificationsDropdown');
-            const bell = document.querySelector('.notification-bell-icon');
-            if (dropdown && dropdown.classList.contains('active') && !dropdown.contains(e.target) && e.target !== bell) {
+            const bell = document.getElementById('notifBellBtn');
+            if (dropdown && dropdown.classList.contains('active') && !dropdown.contains(e.target) && !bell.contains(e.target)) {
                 dropdown.classList.remove('active');
             }
         });
+    },
+
+    closeDropdown: function() {
+        const dropdown = document.getElementById('notificationsDropdown');
+        if (dropdown) dropdown.classList.remove('active');
     },
 
     connectWebSocket: function(userId) {
@@ -1244,9 +1263,22 @@ const NotificationHandler = {
     },
 
     toggleDropdown: function(event) {
-        // Redirection handled by link href="notifications.html"
-        // But if called manually, just redirect
-        window.location.href = 'notifications.html';
+        if (event) event.stopPropagation();
+        const dropdown = document.getElementById('notificationsDropdown');
+        if (!dropdown) return;
+
+        const isActive = dropdown.classList.contains('active');
+        
+        // Close other dropdowns
+        const profileDropdown = document.getElementById('profileDropdown');
+        if (profileDropdown) profileDropdown.classList.remove('active');
+
+        if (!isActive) {
+            dropdown.classList.add('active');
+            this.fetchNotifications();
+        } else {
+            dropdown.classList.remove('active');
+        }
     },
 
     fetchNotifications: async function() {
@@ -1584,15 +1616,14 @@ async function checkGlobalProfessionalReadiness() {
     const userId = getCurrentUserId();
     if (!userId || sessionStorage.getItem('dismissReadinessBanner') === 'true') return;
 
-    // Don't show on specific pages
+    // ONLY show on 3 target pages: Event, Feed, Casting Deck (Removed from Profile)
     const path = window.location.pathname.toLowerCase();
-    if (path.includes('index.html') || path === '/' || path.includes('edit-profile.html') || path.includes('casting-deck.html')) return;
+    const isTargetPage = path.includes('event.html') || path.includes('feed.html') || path.includes('casting-deck.html');
+    if (!isTargetPage) return;
 
     // First check localStorage for a quick decision
-    let score = parseInt(localStorage.getItem('profileScore') || '0');
-    
-    // If score is low, fetch the full profile to be sure (since score might be stale)
-    if (score < 70) {
+    // Threshold is 60%
+    if (score < 60) {
         try {
             const user = await getUserProfile(userId);
             if (!user) return;
@@ -1601,7 +1632,7 @@ async function checkGlobalProfessionalReadiness() {
             // Update cache
             localStorage.setItem('profileScore', score);
 
-            if (score < 70) {
+            if (score < 60) {
                 // Calculate missing items for the banner
                 const hasVideo = (user.showreel && user.showreel.trim() !== '') || (user.portfolioVideos && user.portfolioVideos.trim() !== '');
                 let photoCount = 0;
@@ -1621,62 +1652,87 @@ async function checkGlobalProfessionalReadiness() {
 }
 
 function injectReadinessBanner(score, photos, hasVideo) {
-    if (document.getElementById('readiness-banner')) return;
+    if (document.getElementById('readiness-popup')) return;
 
-    const banner = document.createElement('div');
-    banner.id = 'readiness-banner';
-    
-    // Aesthetic match for the provided image - Dark background, sticky top
-    banner.style.cssText = `
-        background: #121826;
-        color: white; 
-        padding: 14px 20px; 
-        text-align: center;
-        font-family: 'Outfit', 'Inter', sans-serif; 
-        font-size: 14px; 
-        font-weight: 500;
-        position: sticky; 
-        top: 0; 
-        z-index: 10000;
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        gap: 20px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
-        animation: readinessSlideDown 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-        border-bottom: 1px solid rgba(255,255,255,0.03);
-    `;
+    const popup = document.createElement('div');
+    popup.id = 'readiness-popup';
 
     let missing = [];
-    if (score < 70) missing.push(`Profile ${score}%`);
+    if (score < 60) missing.push(`Profile (${score}%)`);
     if (photos < 3) missing.push(`${3 - photos} Photos`);
     if (!hasVideo) missing.push(`Intro Video`);
 
-    banner.innerHTML = `
-        <div style="display:flex; align-items:center; gap:12px; flex-wrap: wrap; justify-content: center;">
-            <i class="fa-solid fa-rocket" style="color:#ff8c00; font-size: 18px; filter: drop-shadow(0 0 5px rgba(255,140,0,0.3));"></i>
-            <span style="letter-spacing: 0.3px; font-weight: 500;">
-                Professional Readiness: <strong style="color:#ff8c00; font-weight: 700; margin-left: 4px;">${missing.join(', ')}</strong> missing!
-            </span>
+    popup.innerHTML = `
+        <button onclick="document.getElementById('readiness-popup').remove()" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: #6b7280; cursor: pointer; font-size: 16px;"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div style="display: flex; gap: 15px; align-items: flex-start;">
+            <div style="width: 45px; height: 45px; background: rgba(255,140,0,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fa-solid fa-rocket" style="color:#ff8c00; font-size: 20px;"></i>
+            </div>
+            <div style="text-align: left;">
+                <h4 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 700;">Profile Strength Low</h4>
+                <p style="margin: 0; font-size: 13px; color: #9ca3af; line-height: 1.4;">Stand out to recruiters! You are missing:</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                    ${missing.map(item => `<span style="background: rgba(255,140,0,0.1); color: #ff8c00; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,140,0,0.1);">${item}</span>`).join('')}
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <a href="edit-profile.html" style="background: #ff8c00; color: white; text-decoration: none; padding: 8px 20px; border-radius: 10px; font-size: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);">FIX NOW</a>
+                    <button onclick="sessionStorage.setItem('dismissReadinessBanner', 'true'); document.getElementById('readiness-popup').remove()" style="background: rgba(255,255,255,0.05); color: #9ca3af; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: 600;">Dismiss</button>
+                </div>
+            </div>
         </div>
-        <a href="edit-profile.html" style="background: #ff8c00; color: white; padding: 10px 24px; border-radius: 14px; text-decoration: none; font-size: 13px; font-weight: 800; text-transform: uppercase; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3); border: none; outline: none; white-space: nowrap; letter-spacing: 0.5px;">FIX NOW</a>
-        <button onclick="sessionStorage.setItem('dismissReadinessBanner', 'true'); this.parentElement.style.transform='translateY(-100%)'; this.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.remove(), 400)" style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:20px; padding:5px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; margin-left: 10px;">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-        <style>
-            @keyframes readinessSlideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-            #readiness-banner a:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(255, 140, 0, 0.5); background: #ffa500; }
-            #readiness-banner button:hover { color: white; transform: rotate(90deg); }
-            @media (max-width: 768px) {
-                #readiness-banner { padding: 12px 15px; gap: 12px; font-size: 12px; }
-                #readiness-banner a { padding: 8px 16px; font-size: 11px; }
-                #readiness-banner .fa-rocket { font-size: 15px; }
-            }
-        </style>
     `;
 
-    document.body.prepend(banner);
+    document.body.appendChild(popup);
 }
+
+// Global UI Styles Injection
+const globalStyles = document.createElement('style');
+globalStyles.textContent = `
+    @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popupFadeDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    #readiness-modal a:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4); }
+    #readiness-modal button:hover { background: rgba(255,255,255,0.1); }
+    #readiness-popup {
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%); 
+        width: 450px; background: #111827; border: 1px solid rgba(255,140,0,0.2);
+        border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        z-index: 99999; padding: 24px; color: white; font-family: 'Outfit', sans-serif;
+        animation: popupFadeDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Notifications Dropdown Styles */
+    .notif-dropdown {
+        position: absolute; top: 40px; right: 0; width: 320px;
+        background: #111827; border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        display: none; flex-direction: column; z-index: 200000;
+        overflow: hidden; animation: dropdownSlide 0.3s ease;
+    }
+    .notif-dropdown.active { display: flex; }
+    .notif-header { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .notif-header h3 { color: white !important; font-size: 15px; margin: 0; }
+    .notif-header button { background: none; border: none; color: #ff8c00; font-size: 11px; cursor: pointer; font-weight: 600; }
+    .notif-list { max-height: 350px; overflow-y: auto; }
+    .notif-loading, .notif-empty { padding: 30px; text-align: center; color: #6b7280; font-size: 13px; }
+    .notif-item { padding: 12px 15px; display: flex; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer; transition: background 0.2s; text-align: left; }
+    .notif-item:hover { background: rgba(255,255,255,0.03); }
+    .notif-item.unread { background: rgba(255,140,0,0.03); }
+    .notif-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .notif-content p { color: #d1d5db; font-size: 13px; margin: 0 0 4px 0; line-height: 1.4; }
+    .notif-content strong { color: white; }
+    .notif-time { color: #6b7280; font-size: 11px; }
+    .notif-footer { padding: 12px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .notif-footer a { color: #ff8c00; font-size: 12px; text-decoration: none; font-weight: 600; }
+    @keyframes dropdownSlide { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes popupFadeDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    
+    @media (max-width: 768px) {
+        .notif-dropdown { position: fixed; top: 60px; left: 10px; right: 10px; width: calc(100% - 20px); max-height: 80vh; }
+        #readiness-popup { left: 15px !important; right: 15px !important; width: auto !important; transform: none !important; top: 75px !important; }
+    }
+`;
+document.head.appendChild(globalStyles);
 
 // Global initialization
 if (document.readyState === 'loading') {

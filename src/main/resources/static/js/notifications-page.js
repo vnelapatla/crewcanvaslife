@@ -8,10 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadNotifications() {
     const userId = getCurrentUserId();
-    if (!userId) return;
-
     const list = document.getElementById('notificationsList');
-    
+    if (!list) return;
+
+    if (!userId) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-user-lock"></i><p>Please log in to view notifications.</p></div>';
+        return;
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}`);
         if (response.ok) {
@@ -22,7 +26,7 @@ async function loadNotifications() {
         }
     } catch (error) {
         console.error('Error fetching notifications:', error);
-        list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error connecting to server.</p></div>';
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error connecting to server. Please try refreshing.</p></div>';
     }
 }
 
