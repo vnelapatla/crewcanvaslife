@@ -37,8 +37,6 @@ jobs:
         script: |
           mkdir -p ~/app
           cd ~/app
-          # Ensure current_port.txt exists if it's the first time
-          if [ ! -f current_port.txt ]; then echo "8081" > current_port.txt; fi
 
     - name: Upload Artifacts
       uses: appleboy/scp-action@v0.1.4
@@ -51,7 +49,7 @@ jobs:
         strip_components: 0 # Keep target/ folder if needed, but we usually want it flat
         overwrite: true
 
-    - name: Execute Blue-Green Deploy
+    - name: Execute Standard Deploy
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.EC2_HOST }}
