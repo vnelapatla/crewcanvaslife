@@ -86,6 +86,21 @@ function updateStatsUI(user) {
 async function loadUsersPage(page = 0, refresh = false) {
     if (isLoading || (!hasMore && !refresh)) return;
     
+    // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+    if (page === 0 && refresh) {
+        const cached = localStorage.getItem('cache_crew_top10');
+        if (cached) {
+            try {
+                const cachedCrew = JSON.parse(cached);
+                if (cachedCrew && cachedCrew.length > 0) {
+                    console.log("✨ Instant Crew Search: Using pre-fetch cache");
+                    displayUsers(cachedCrew);
+                    allUsers = cachedCrew;
+                }
+            } catch (e) { localStorage.removeItem('cache_crew_top10'); }
+        }
+    }
+
     isLoading = true;
     const query = document.getElementById('searchInput')?.value.trim() || '';
     const container = document.getElementById('searchResults');

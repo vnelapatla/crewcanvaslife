@@ -1733,59 +1733,69 @@ async function preFetchBackgroundData() {
     if (!userId) return;
 
     try {
-        console.log("🚀 Starting background pre-fetch...");
-        
-        // 1. Pre-fetch top 10 Feed Posts (only if not on feed page)
-        if (!window.location.pathname.includes('feed.html')) {
-            fetch(`${API_BASE_URL}/api/posts?page=0&size=10`)
-                .then(res => res.json())
-                .then(data => {
-                    const posts = data.content || data;
-                    localStorage.setItem('cache_feed_top10', JSON.stringify(posts));
-                    
-                    // Pre-load top 5 images
-                    posts.slice(0, 5).forEach(post => {
-                        if (post.imageUrl) {
-                            const img = new Image();
-                            img.src = post.imageUrl;
-                        }
-                    });
-                }).catch(e => {});
+        console.log("🚀 Starting parallel background pre-fetch...");
+        const path = window.location.pathname;
+
+        const tasks = [];
+
+        // 1. Feed (Top 15)
+        if (!path.includes('feed')) {
+            tasks.push(
+                fetch(`${API_BASE_URL}/api/posts?page=0&size=15`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const posts = data.content || data;
+                        localStorage.setItem('cache_feed_top10', JSON.stringify(posts));
+                        posts.slice(0, 5).forEach(p => { if(p.imageUrl) new Image().src = p.imageUrl; });
+                    }).catch(e => {})
+            );
         }
 
-        // 2. Pre-fetch top 10 Events (only if not on events page)
-        if (!window.location.pathname.includes('events.html') && !window.location.pathname.includes('event.html')) {
-            fetch(`${API_BASE_URL}/api/events?page=0&size=10`)
+        // 2. Events (Top 15)
+        if (!path.includes('event')) {
+            tasks.push(
+                fetch(`${API_BASE_URL}/api/events?page=0&size=15`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const events = data.content || data;
+                        localStorage.setItem('cache_events_top10', JSON.stringify(events));
+                        events.slice(0, 5).forEach(ev => { if(ev.imageUrl) new Image().src = ev.imageUrl; });
+                    }).catch(e => {})
+            );
+        }
+
+        // 3. Crew Search (Discovery)
+        if (!path.includes('crew-search')) {
+            tasks.push(
+                fetch(`${API_BASE_URL}/api/profile/search?page=0&size=12`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const crew = data.content || data;
+                        localStorage.setItem('cache_crew_top10', JSON.stringify(crew));
+                    }).catch(e => {})
+            );
+        }
+
+        // 4. Messages & Event Dashboard
+        tasks.push(
+            fetch(`${API_BASE_URL}/api/messages/conversations/${userId}`)
+                .then(res => res.json())
+                .then(data => localStorage.setItem('cache_conversations', JSON.stringify(data.slice(0, 10))))
+                .catch(e => {})
+        );
+        tasks.push(
+            fetch(`${API_BASE_URL}/api/events/user/${userId}`)
                 .then(res => res.json())
                 .then(data => {
                     const events = data.content || data;
-                    localStorage.setItem('cache_events_top10', JSON.stringify(events));
+                    localStorage.setItem('cache_dashboard_events', JSON.stringify(events));
+                })
+                .catch(e => {})
+        );
 
-                    // Pre-load top 5 event images
-                    events.slice(0, 5).forEach(event => {
-                        if (event.imageUrl) {
-                            const img = new Image();
-                            img.src = event.imageUrl;
-                        }
-                    });
-                }).catch(e => {});
-        }
-
-        // 3. Pre-fetch Notifications
-        fetch(`${API_BASE_URL}/api/notifications/${userId}`)
-            .then(res => res.json())
-            .then(data => {
-                localStorage.setItem('cache_notifications', JSON.stringify(data.slice(0, 10)));
-            }).catch(e => {});
-
-        // 4. Pre-fetch Conversations List (Messages)
-        fetch(`${API_BASE_URL}/api/messages/conversations/${userId}`)
-            .then(res => res.json())
-            .then(data => {
-                localStorage.setItem('cache_conversations', JSON.stringify(data.slice(0, 10)));
-            }).catch(e => {});
-        
+        await Promise.all(tasks);
+        console.log("✅ Parallel pre-fetch complete.");
     } catch (err) {
-        console.warn("Pre-fetch failed, skipping.", err);
+        console.warn("Pre-fetch sequence interrupted.", err);
     }
 }

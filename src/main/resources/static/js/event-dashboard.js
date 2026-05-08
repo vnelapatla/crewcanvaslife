@@ -32,6 +32,19 @@ async function showListView() {
     if (!userId) return;
 
     try {
+        // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
+        const cached = localStorage.getItem('cache_dashboard_events');
+        if (cached && eventsCache.length === 0) {
+            try {
+                const cachedEvents = JSON.parse(cached);
+                if (cachedEvents && cachedEvents.length > 0) {
+                    console.log("✨ Instant Dashboard: Using pre-fetch cache");
+                    eventsCache = cachedEvents;
+                    renderEventList(eventsCache);
+                }
+            } catch (e) { localStorage.removeItem('cache_dashboard_events'); }
+        }
+
         // If admin, load ALL events, otherwise just user events
         const url = (currentUser && currentUser.isAdmin) 
             ? `${API_BASE_URL}/api/events` 
