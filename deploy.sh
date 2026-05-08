@@ -109,8 +109,18 @@ echo "Found Nginx config at: $NGINX_CONF"
 # Backup Nginx config
 sudo cp $NGINX_CONF ${NGINX_CONF}.bak
 
-# Replace port in Nginx config - look for proxy_pass and replace the port
-sudo sed -i "s/proxy_pass http:\/\/localhost:[0-9]*/proxy_pass http:\/\/localhost:$NEW_PORT/g" $NGINX_CONF
+# Replace port in Nginx config - handle both localhost and 127.0.0.1, and optional trailing slashes
+# Using 127.0.0.1 explicitly in the replacement to avoid IPv6 resolution issues (common cause of 502)
+sudo sed -i "s/proxy_pass http:\/\/\(localhost\|127\.0\.0\.1\):[0-9]*/proxy_pass http:\/\/127.0.0.1:$NEW_PORT/g" $NGINX_CONF
+
+# Verify the change
+if grep -q ":$NEW_PORT" "$NGINX_CONF"; then
+    echo "SUCCESS: Nginx configuration updated to port $NEW_PORT."
+else
+    echo "WARNING: Could not verify port update in $NGINX_CONF. Checking for other configuration files..."
+    # Attempt to update any other potential config files in conf.d
+    sudo sed -i "s/proxy_pass http:\/\/\(localhost\|127\.0\.0\.1\):[0-9]*/proxy_pass http:\/\/127.0.0.1:$NEW_PORT/g" /etc/nginx/conf.d/*.conf 2>/dev/null || true
+fi
 
 # Test and Reload Nginx
 if sudo nginx -t; then
