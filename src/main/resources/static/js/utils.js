@@ -1707,11 +1707,12 @@ globalStyles.textContent = `
 `;
 document.head.appendChild(globalStyles);
 
-// Global initialization
+// Global initialization (Optimized for performance)
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        checkGlobalProfessionalReadiness();
+        // Small delay to let critical page data (Feed/Events) start loading first
+        setTimeout(checkGlobalProfessionalReadiness, 100);
     });
 } else {
-    checkGlobalProfessionalReadiness();
+    setTimeout(checkGlobalProfessionalReadiness, 100);
 }

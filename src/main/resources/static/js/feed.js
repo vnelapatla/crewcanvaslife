@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (createCard) createCard.style.display = 'block';
     }
 
-    await loadFeed(0, true);
+    // Load feed in background (non-blocking for faster mobile init)
+    loadFeed(0, true);
     setupImageUpload();
     setupEditImageUpload();
     setupInfiniteScroll();

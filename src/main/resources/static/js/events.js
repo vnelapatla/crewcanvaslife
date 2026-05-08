@@ -12,8 +12,8 @@ let editModeId = null;
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     currentUserId = getCurrentUserId();
-    // Load everything in parallel for maximum speed
-    await Promise.all([
+    // Load everything in background (non-blocking for faster mobile init)
+    Promise.all([
         loadCurrentUser(),
         loadEvents()
     ]);
