@@ -192,7 +192,6 @@ const AdvancedMessaging = {
     }
 };
 
-// Enhancement for existing loadMessages in messages.js
 function enhanceMessageDisplay(msg) {
     let content = AdvancedMessaging.decrypt(msg.content);
 
@@ -202,8 +201,14 @@ function enhanceMessageDisplay(msg) {
         return `<div class="sticker-msg" style="font-size: 80px; text-align: center; padding: 10px; animation: bounceIn 0.5s ease;">${icon}</div>`;
     }
 
+    // Linkify URLs
+    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    content = (content || '').replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" style="color: #ff8c00; text-decoration: underline; font-weight: 600;">${url}</a>`;
+    });
+
     // Process hashtags or @mentions if needed
-    return (content || '').replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+    return content.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
 }
 
 // Export for use in messages.js

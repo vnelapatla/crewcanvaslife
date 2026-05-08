@@ -114,8 +114,8 @@ public class UserService {
         String content = "Welcome to CrewCanvas! 🎬 We're thrilled to have you here. " +
                 "To get the most out of this platform and catch up with upcoming openings, " +
                 "please make sure to fill your profile to 100%. " +
-                "Productions and recruiters will look into your profile for recommendations and casting. " +
-                "You can view and complete your profile here: " + profileLink + " " +
+                "Productions and recruiters prioritize completed profiles for recommendations and casting. \n\n" +
+                "🚀 You can complete your profile in the 'My Profile' section or by clicking here: " + profileLink + " \n\n" +
                 "Let's build something great together!";
 
         // 1. Send In-App Message
