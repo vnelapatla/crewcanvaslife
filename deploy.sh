@@ -50,7 +50,7 @@ echo "Starting new instance on port $NEW_PORT..."
 LATEST_JAR=$(ls -t *.jar | head -1)
 
 nohup java \
-  -Xms64m -Xmx192m \
+  -Xms128m -Xmx320m \
   -XX:+UseSerialGC \
   -XX:MaxMetaspaceSize=128m \
   -jar $LATEST_JAR \

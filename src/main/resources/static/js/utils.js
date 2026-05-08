@@ -1114,30 +1114,6 @@ function initSidebarToggle() {
     }
 }
 
-/**
- * Calculates profile completion score on the client side as a fallback
- */
-function calculateProfileScore(user) {
-    if (!user) return 0;
-    let score = 0;
-    
-    // Core Identity (Max 40)
-    if (user.name) score += 10;
-    if (user.email) score += 10;
-    if (user.phone) score += 10;
-    if (user.bio) score += 10;
-    
-    // Professional Assets (Max 40)
-    if (user.resume) score += 15;
-    if (user.showreel || user.portfolioVideos) score += 15;
-    if (user.skills) score += 10;
-    
-    // Media & Craft (Max 20)
-    if (user.recentPictures && user.recentPictures.length > 5) score += 10;
-    if (user.role && user.experience) score += 10;
-    
-    return Math.min(score, 100);
-}
 
 /**
  * NotificationHandler - Manages real-time notifications via WebSocket
