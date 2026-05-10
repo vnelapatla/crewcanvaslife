@@ -95,7 +95,7 @@ async function loadEvents() {
     try {
         // Parallel fetch for applications and events
         const fetchPromises = [
-            fetch(`${API_BASE_URL}/api/events?page=0&size=50`)
+            fetch(`${API_BASE_URL}/api/events?page=0&size=10`)
         ];
         
         // Only fetch applications if user is logged in

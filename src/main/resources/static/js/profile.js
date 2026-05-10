@@ -85,9 +85,9 @@ async function refreshProfileData() {
                 profileUserData = data.user;
                 displayProfile(data.user);
                 
-                // Update counts directly from consolidated data
-                if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = data.followers?.length || 0;
-                if (document.getElementById('followingCount')) document.getElementById('followingCount').textContent = data.following?.length || 0;
+                // Update counts directly from consolidated data (Optimized: Use counts from user object)
+                if (document.getElementById('followerCount')) document.getElementById('followerCount').textContent = data.user.followers || 0;
+                if (document.getElementById('followingCount')) document.getElementById('followingCount').textContent = data.user.following || 0;
             }
         });
 

@@ -32,7 +32,7 @@ public class MessageController {
     @GetMapping
     public ResponseEntity<?> getRoot(@RequestParam(required = false) Long userId) {
         if (userId != null) {
-            return getUserMessages(userId, 0, 50);
+            return getUserMessages(userId, 0, 15);
         }
         return ResponseEntity.ok(java.util.Collections.singletonMap("status", "Message API is active"));
     }
@@ -179,7 +179,7 @@ public class MessageController {
 
 
     @GetMapping("/conversations")
-    public ResponseEntity<?> getUserMessages(@RequestParam Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
+    public ResponseEntity<?> getUserMessages(@RequestParam Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "15") int size) {
         if (userId == null) {
             return ResponseEntity.badRequest().body("Error: userId parameter is required");
         }

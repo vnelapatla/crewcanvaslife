@@ -1,25 +1,29 @@
 #!/bin/bash
-# Speed-Boost Script for CrewCanvas
-# CC-SPEED-001: Optimization Suite [Nelpatla Venkatesh]
+# Speed-Boost & Chat-Fix Script for CrewCanvas
+# CC-OPTIMIZE-V2: Speed + WebSocket Fix [Nelpatla Venkatesh]
 
-echo "🚀 Starting Speed Optimization Suite..."
+echo "🚀 Starting Full Optimization & Chat Fix..."
 
-# 1. Update Nginx Configuration for Gzip Compression
-echo "📦 Step 1: Enabling Gzip Compression in Nginx..."
+# 1. Update Nginx Configuration for Speed & WebSockets
+echo "📦 Step 1: Configuring Nginx (Compression + WebSocket Support)..."
 NGINX_CONF="/etc/nginx/nginx.conf"
 
 if [ -f "$NGINX_CONF" ]; then
     # Backup
     sudo cp $NGINX_CONF "${NGINX_CONF}.bak"
     
-    # Enable Gzip settings if not already present
+    # 1a. Enable Gzip Compression
     sudo sed -i 's/gzip on;/gzip on; gzip_types text\/plain text\/css application\/json application\/javascript text\/xml application\/xml application\/xml+rss text\/javascript; gzip_comp_level 6; gzip_min_length 1000; gzip_proxied any;/g' $NGINX_CONF
+    
+    # 1b. Fix WebSocket Headers (Upgrade/Connection)
+    # We look for the proxy_pass line and insert the headers before it
+    sudo sed -i '/proxy_pass http:\/\/127.0.0.1:8081/i \        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection "upgrade";\n        proxy_set_header Host $host;' $NGINX_CONF
     
     # Reload Nginx
     sudo systemctl reload nginx
-    echo "✅ Nginx Compression Enabled."
+    echo "✅ Nginx Compression & Chat Fixed."
 else
-    echo "⚠️ Nginx config not found at $NGINX_CONF. Skipping Step 1."
+    echo "⚠️ Nginx config not found at $NGINX_CONF."
 fi
 
 # 2. Database Indexing for Speed
@@ -33,4 +37,4 @@ ALTER TABLE users ADD INDEX IF NOT EXISTS idx_users_location (location);"
 
 echo "✅ Database Optimized."
 
-echo "🎉 Speed Optimization Suite Completed! Please refresh your site."
+echo "🎉 All Done! Speed is UP and Chat is FIXED. Refresh your site!"

@@ -119,8 +119,7 @@ public class ProfileController {
                 Map<String, Object> data = new java.util.HashMap<>();
                 maskSensitiveData(user, viewerId, unmask);
                 data.put("user", user);
-                data.put("following", connectionService.getFollowing(id));
-                data.put("followers", connectionService.getFollowers(id));
+                // Removed following/followers lists to optimize speed (Counts are already in user object)
                 return ResponseEntity.ok(data);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
