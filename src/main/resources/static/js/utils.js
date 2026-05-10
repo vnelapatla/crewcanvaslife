@@ -1933,7 +1933,8 @@ async function preFetchBackgroundData() {
     const userId = getCurrentUserId();
     if (!userId) return;
 
-    try {
+    // DELAY pre-fetch by 2 seconds so the current page loads INSTANTLY first
+    setTimeout(async () => {
         console.log("🚀 Starting parallel background pre-fetch...");
         const path = window.location.pathname;
 
@@ -1996,7 +1997,5 @@ async function preFetchBackgroundData() {
 
         await Promise.all(tasks);
         console.log("✅ Parallel pre-fetch complete.");
-    } catch (err) {
-        console.warn("Pre-fetch sequence interrupted.", err);
-    }
+    }, 2000); // 2 second delay
 }
