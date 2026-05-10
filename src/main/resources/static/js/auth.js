@@ -1,5 +1,4 @@
-let GOOGLE_CLIENT_ID = ""; // Will be fetched from backend
-
+// GOOGLE_CLIENT_ID is now declared globally in utils.js to avoid conflicts
 // Auth script for login and signup
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
