@@ -1086,12 +1086,12 @@ function renderAvatarFallback(name, className = '', size = '40px') {
 
 // Global path variables for navigation
 const path = window.location.pathname;
-const currentPage = path.split("/").pop() || 'index.html';
+const navCurrentPage = path.split("/").pop() || 'index.html';
 
 // Helper to check if current page is an authentication page
 function isAuthPage() {
     const authPages = ['index.html', 'register.html', 'forgot-password.html', 'reset-password.html', 'pass.html', 'scan.html', 'shared-audition.html'];
-    return authPages.includes(currentPage) || path === '/' || path === '';
+    return authPages.includes(navCurrentPage) || path === '/' || path === '';
 }
 
 // Initialize Universal Bottom Navigation for Mobile
@@ -1107,19 +1107,19 @@ function initUniversalBottomNav() {
 
     const navHtml = `
     <div class="bottom-nav">
-        <a href="feed.html" class="nav-item ${currentPage.includes('feed.html') ? 'active' : ''}">
+        <a href="feed.html" class="nav-item ${navCurrentPage.includes('feed.html') ? 'active' : ''}">
             <i class="fa-solid fa-newspaper icon"></i> <span>Feed</span>
         </a>
-        <a href="home.html" class="nav-item ${currentPage.includes('home.html') ? 'active' : ''}">
+        <a href="home.html" class="nav-item ${navCurrentPage.includes('home.html') ? 'active' : ''}">
             <i class="fa-solid fa-house icon"></i> <span>Dashboard</span>
         </a>
-        <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search.html') ? 'active' : ''}">
+        <a href="crew-search.html" class="nav-item ${navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
             <i class="fa-solid fa-magnifying-glass icon"></i> <span>Search</span>
         </a>
-        <a href="messages.html" class="nav-item ${currentPage.includes('messages.html') ? 'active' : ''}">
+        <a href="messages.html" class="nav-item ${navCurrentPage.includes('messages.html') ? 'active' : ''}">
             <i class="fa-solid fa-message icon"></i> <span>Messages</span>
         </a>
-        <a href="event.html" class="nav-item ${currentPage.includes('event.html') ? 'active' : ''}">
+        <a href="event.html" class="nav-item ${navCurrentPage.includes('event.html') ? 'active' : ''}">
             <i class="fa-solid fa-clapperboard icon"></i> <span>Events</span>
         </a>
     </div>
@@ -1151,26 +1151,26 @@ function initUniversalSidebar() {
             <p>Where all crafts connect</p>
         </div>
         <nav class="nav-menu">
-            <a href="feed.html" class="nav-item ${currentPage.includes('feed.html') ? 'active' : ''}">
+            <a href="feed.html" class="nav-item ${navCurrentPage.includes('feed.html') ? 'active' : ''}">
                 <i class="fa-solid fa-newspaper"></i> Feed
             </a>
-            <a href="home.html" class="nav-item ${currentPage.includes('home.html') ? 'active' : ''}">
+            <a href="home.html" class="nav-item ${navCurrentPage.includes('home.html') ? 'active' : ''}">
                 <i class="fa-solid fa-house"></i> Dashboard
             </a>
-            <a href="crew-search.html" class="nav-item ${currentPage.includes('crew-search.html') ? 'active' : ''}">
+            <a href="crew-search.html" class="nav-item ${navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
                 <i class="fa-solid fa-magnifying-glass"></i> Crew Search
             </a>
-            <a href="messages.html" class="nav-item ${currentPage.includes('messages.html') ? 'active' : ''}">
+            <a href="messages.html" class="nav-item ${navCurrentPage.includes('messages.html') ? 'active' : ''}">
                 <i class="fa-solid fa-message"></i> Messages
             </a>
-            <a href="event.html" class="nav-item ${currentPage.includes('event.html') ? 'active' : ''}">
+            <a href="event.html" class="nav-item ${navCurrentPage.includes('event.html') ? 'active' : ''}">
                 <i class="fa-solid fa-clapperboard"></i> Events
             </a>
-            <a href="profile.html" class="nav-item ${currentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
+            <a href="profile.html" class="nav-item ${navCurrentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
                 <i class="fa-solid fa-user"></i> My Profile
             </a>
             ${getCurrentUserIsAdmin() ? `
-            <a href="admin-insights.html" class="nav-item ${currentPage.includes('admin-insights.html') ? 'active' : ''}">
+            <a href="admin-insights.html" class="nav-item ${navCurrentPage.includes('admin-insights.html') ? 'active' : ''}">
                 <i class="fa-solid fa-chart-line"></i> Performance Insights
             </a>
             ` : ''}
@@ -1204,7 +1204,7 @@ function initUniversalHeader() {
     const userId = localStorage.getItem('userId');
     const avatarVisible = (userAvatar && typeof userAvatar === 'string' && userAvatar.length > 10);
     
-    const isPrimaryPage = currentPage.includes('feed.html') || currentPage.includes('home.html') || currentPage.includes('index.html');
+    const isPrimaryPage = navCurrentPage.includes('feed.html') || navCurrentPage.includes('home.html') || navCurrentPage.includes('index.html');
     
     if (userId) {
         header.innerHTML = `
