@@ -107,6 +107,12 @@ function checkAuth() {
 async function initializeSharedGoogleAuth() {
     if (localStorage.getItem('userId')) return; // Already logged in
 
+    // CC-FIX: Don't initialize on index.html to avoid conflict with auth.js
+    if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+        console.log("⏭️ Skipping Shared Auth Init: Using main auth engine on login page.");
+        return;
+    }
+
     try {
         if (!GOOGLE_CLIENT_ID) {
             const res = await fetch(`${API_BASE_URL}/api/auth/google-client-id`);
