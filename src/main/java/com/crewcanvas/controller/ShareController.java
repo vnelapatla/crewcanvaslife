@@ -66,7 +66,7 @@ public class ShareController {
 
         String publicBaseUrl = getPublicBaseUrl(request);
         String imageUrl = publicBaseUrl + "/share/image/event/" + id + "?v=" + System.currentTimeMillis();
-        String redirectUrl = publicBaseUrl + "/events.html?eventId=" + id;
+        String redirectUrl = publicBaseUrl + "/event.html?eventId=" + id;
 
         String html = generateShareHtml(title, truncatedDescription, imageUrl, redirectUrl, publicBaseUrl, "Accessing Event Details...");
         return ResponseEntity.ok()
@@ -193,20 +193,28 @@ public class ShareController {
     }
 
     private String getPublicBaseUrl(jakarta.servlet.http.HttpServletRequest request) {
-        String host = request.getHeader("Host");
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host == null || host.isEmpty()) {
+            host = request.getHeader("Host");
+        }
+        
         String proto = request.getHeader("X-Forwarded-Proto");
         
-        // Default to https if we're on a real domain, otherwise use what we have
-        if (proto == null) {
-            proto = (host != null && (host.contains(".life") || host.contains(".in"))) ? "https" : request.getScheme();
+        // Default to https if we're on a real domain or explicitly told, otherwise use what we have
+        if (proto == null || proto.isEmpty()) {
+            proto = (host != null && (host.contains(".life") || host.contains(".in") || host.contains("crewcanvas"))) ? "https" : request.getScheme();
         }
         
         if (host == null) {
-            host = request.getServerName() + ":" + request.getServerPort();
+            host = request.getServerName();
+            int port = request.getServerPort();
+            if (port != 80 && port != 443) {
+                host += ":" + port;
+            }
         }
         
-        // Remove port if it's standard or if we are behind Nginx
-        if (host.contains(":8081") || host.contains(":8080")) {
+        // Only strip internal ports if we are on a production-like domain
+        if ((host.contains(".life") || host.contains(".in") || host.contains("crewcanvas")) && (host.contains(":8081") || host.contains(":8080"))) {
             host = host.split(":")[0];
         }
         
@@ -222,22 +230,28 @@ public class ShareController {
     }
 
     private String generateShareHtml(String title, String description, String imageUrl, String redirectUrl, String baseUrl, String loadingMessage) {
+        // Robust escaping for HTML attributes
+        String safeTitle = title.replace("\"", "&quot;").replace("'", "&apos;");
+        String safeDescription = description.replace("\"", "&quot;").replace("'", "&apos;");
+        String safeImageUrl = imageUrl.replace("\"", "&quot;");
+        String safeRedirectUrl = redirectUrl.replace("\"", "&quot;");
+
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
                 "    <meta charset=\"UTF-8\">\n" +
                 "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    <title>" + title + " | CrewCanvas</title>\n" +
+                "    <title>" + safeTitle + " | CrewCanvas</title>\n" +
                 "    <meta property=\"og:site_name\" content=\"CrewCanvas\" />\n" +
-                "    <meta property=\"og:title\" content=\"" + title + "\" />\n" +
-                "    <meta property=\"og:description\" content=\"" + description.replace("\"", "&quot;") + "\" />\n" +
-                "    <meta property=\"og:image\" content=\"" + imageUrl + "\" />\n" +
-                "    <meta property=\"og:url\" content=\"" + redirectUrl + "\" />\n" +
+                "    <meta property=\"og:title\" content=\"" + safeTitle + "\" />\n" +
+                "    <meta property=\"og:description\" content=\"" + safeDescription + "\" />\n" +
+                "    <meta property=\"og:image\" content=\"" + safeImageUrl + "\" />\n" +
+                "    <meta property=\"og:url\" content=\"" + safeRedirectUrl + "\" />\n" +
                 "    <meta property=\"og:type\" content=\"website\" />\n" +
                 "    <meta name=\"twitter:card\" content=\"summary_large_image\" />\n" +
-                "    <meta name=\"twitter:title\" content=\"" + title + "\" />\n" +
-                "    <meta name=\"twitter:description\" content=\"" + description.replace("\"", "&quot;") + "\" />\n" +
-                "    <meta name=\"twitter:image\" content=\"" + imageUrl + "\" />\n" +
+                "    <meta name=\"twitter:title\" content=\"" + safeTitle + "\" />\n" +
+                "    <meta name=\"twitter:description\" content=\"" + safeDescription + "\" />\n" +
+                "    <meta name=\"twitter:image\" content=\"" + safeImageUrl + "\" />\n" +
                 "    <link href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Inter:wght@400;600&display=swap\" rel=\"stylesheet\">\n" +
                 "    <style>\n" +
                 "        body { font-family: 'Inter', sans-serif; background: #020617; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }\n" +
@@ -245,10 +259,13 @@ public class ShareController {
                 "        .logo { font-family: 'Outfit'; font-weight: 900; color: #ff8c00; font-size: 32px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px; display: block; }\n" +
                 "        .loader { width: 40px; height: 40px; border: 3px solid rgba(255,140,0,0.1); border-top-color: #ff8c00; border-radius: 50%; margin: 30px auto; animation: spin 1s linear infinite; }\n" +
                 "        @keyframes spin { to { transform: rotate(360deg); } }\n" +
-                "        h1 { font-family: 'Outfit'; font-size: 20px; color: #94a3b8; letter-spacing: 1px; font-weight: 600; }\n" +
+                "        h1 { font-family: 'Outfit'; font-size: 20px; color: #94a3b8; letter-spacing: 1px; font-weight: 600; margin-bottom: 20px; }\n" +
+                "        .fallback-link { color: #ff8c00; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border: 1px solid rgba(255,140,0,0.3); border-radius: 50px; transition: all 0.3s; }\n" +
+                "        .fallback-link:hover { background: rgba(255,140,0,0.1); border-color: #ff8c00; }\n" +
                 "    </style>\n" +
                 "    <script>\n" +
-                "        window.location.href = '" + redirectUrl + "';\n" +
+                "        // Escape single quotes for the JS string\n" +
+                "        window.location.href = '" + redirectUrl.replace("'", "\\'") + "';\n" +
                 "    </script>\n" +
                 "</head>\n" +
                 "<body>\n" +
@@ -256,6 +273,16 @@ public class ShareController {
                 "        <div class=\"logo\">CrewCanvas</div>\n" +
                 "        <div class=\"loader\"></div>\n" +
                 "        <h1>" + loadingMessage + "</h1>\n" +
+                "        <noscript>\n" +
+                "            <a href=\"" + safeRedirectUrl + "\" class=\"fallback-link\">Continue to Content</a>\n" +
+                "        </noscript>\n" +
+                "        <div id=\"fallback\" style=\"display:none; margin-top:10px;\">\n" +
+                "            <a href=\"" + safeRedirectUrl + "\" class=\"fallback-link\">Continue to Content</a>\n" +
+                "        </div>\n" +
+                "        <script>\n" +
+                "            // Show fallback after 3 seconds if redirect fails\n" +
+                "            setTimeout(function() { document.getElementById('fallback').style.display = 'block'; }, 3000);\n" +
+                "        </script>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";

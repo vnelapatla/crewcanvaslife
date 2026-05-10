@@ -805,7 +805,8 @@ async function openApplicantDetailModal(appId) {
             img.src = p;
             img.style.width = '100%';
             img.style.aspectRatio = '3/4';
-            img.style.objectFit = 'cover';
+            img.style.objectFit = 'contain';
+            img.style.background = '#f1f5f9';
             img.style.borderRadius = '12px';
             img.onclick = () => openBase64InNewTab(p);
             img.style.cursor = 'pointer';

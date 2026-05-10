@@ -1,4 +1,5 @@
 let API_BASE_URL = ''; // Use relative paths by default for better compatibility
+let GOOGLE_CLIENT_ID = ""; // Global Google Client ID for shared pages
 
 // CC-MAY-002: Multi-Language Support [M Sumanth] - Global Translation Engine
 window.Translations = {
@@ -83,13 +84,132 @@ function checkAuth() {
     const userId = localStorage.getItem('userId');
     const userEmail = localStorage.getItem('userEmail');
 
+    // Allow public access for shared links (Post, Event, Casting Deck)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isShared = urlParams.has('postId') || urlParams.has('eventId') || urlParams.has('userId') || urlParams.get('shared') === 'true';
+
     if (!userId || !userEmail) {
-        // Save current URL to redirect back after login (especially for shared links)
+        if (isShared) {
+            console.log("🔓 Public Mode: Viewing shared content without authentication.");
+            // Inject Guest CTA if not already present
+            setTimeout(injectGuestCTA, 1000);
+            return true; 
+        }
+        // Save current URL to redirect back after login
         sessionStorage.setItem('redirectAfterLogin', window.location.href);
         window.location.href = 'index.html';
         return false;
     }
     return true;
+}
+
+// CC-AUTH-003: Shared Login Engine [M Sumanth] - Allow login/signup directly from shared pages
+async function initializeSharedGoogleAuth() {
+    if (localStorage.getItem('userId')) return; // Already logged in
+
+    try {
+        if (!GOOGLE_CLIENT_ID) {
+            const res = await fetch(`${API_BASE_URL}/api/auth/google-client-id`);
+            if (res.ok) {
+                const data = await res.json();
+                GOOGLE_CLIENT_ID = data.clientId;
+            }
+        }
+
+        if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleSharedCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
+            // Show One Tap prompt for guests
+            google.accounts.id.prompt();
+        } else if (typeof google === 'undefined') {
+            setTimeout(initializeSharedGoogleAuth, 1000);
+        }
+    } catch (e) { console.error("Google Auth Init Error:", e); }
+}
+
+async function handleSharedCredentialResponse(response) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+        });
+
+        if (res.ok) {
+            const user = await res.json();
+            localStorage.setItem('userId', user.id);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userName', user.name);
+            localStorage.setItem('isAdmin', user.isAdmin || user.email === 'crewcanvas2@gmail.com');
+            localStorage.setItem('profileScore', user.profileScore || 0);
+            
+            showMessage('Welcome to CrewCanvas! Reloading...', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    } catch (e) { console.error("Shared Google Login Failed:", e); }
+}
+
+function injectGuestCTA() {
+    if (document.getElementById('guest-cta-banner') || localStorage.getItem('userId')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'guest-cta-banner';
+    banner.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 500px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+
+    banner.innerHTML = `
+        <style>
+            @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+            .cta-btn-primary { 
+                background: linear-gradient(90deg, #ff8c00, #ff4c3b);
+                color: white; border: none; padding: 12px 25px; border-radius: 12px;
+                font-weight: 700; font-size: 14px; cursor: pointer; width: 100%;
+                transition: transform 0.2s;
+            }
+            .cta-btn-primary:active { transform: scale(0.98); }
+        </style>
+        <div style="text-align: center;">
+            <h3 style="color: white; margin: 0 0 5px; font-size: 16px; font-family: 'Outfit', sans-serif;">Join the Creative Circle</h3>
+            <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 12px;">Sign up to apply, like, and connect with creators.</p>
+        </div>
+        <div id="sharedGoogleBtn" style="width: 100%; display: flex; justify-content: center;"></div>
+        <button class="cta-btn-primary" onclick="window.location.href='index.html?mode=signup'">Sign Up with Email</button>
+        <p onclick="this.parentElement.remove()" style="color: rgba(255,255,255,0.4); margin: 0; font-size: 10px; cursor: pointer; text-decoration: underline;">Maybe later</p>
+    `;
+
+    document.body.appendChild(banner);
+
+    // Initialize Google Button in the banner
+    if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
+        google.accounts.id.renderButton(
+            document.getElementById('sharedGoogleBtn'),
+            { theme: "filled_blue", size: "large", width: 280, text: "continue_with", shape: "pill" }
+        );
+    }
+    
+    initializeSharedGoogleAuth();
 }
 
 // Get current user ID
@@ -417,7 +537,7 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-async function uploadImage(file, maxWidth = 1080, quality = 0.6) {
+async function uploadImage(file, maxWidth = 1080, quality = 0.75) {
     return new Promise((resolve, reject) => {
         if (!file) {
             resolve(null);

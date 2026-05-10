@@ -14,6 +14,8 @@ public class UserDTO {
     private Integer following;
     private Integer profileScore;
     private String profilePicture;
+    private String ageRange;
+    private String experience;
 
     public UserDTO() {}
 
@@ -31,6 +33,8 @@ public class UserDTO {
         this.following = summary.getFollowing();
         this.profileScore = summary.getProfileScore();
         this.profilePicture = summary.getProfilePicture();
+        this.ageRange = summary.getAgeRange();
+        this.experience = summary.getExperience();
     }
 
     // Getters and Setters
@@ -60,4 +64,8 @@ public class UserDTO {
     public void setProfileScore(Integer profileScore) { this.profileScore = profileScore; }
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+    public String getAgeRange() { return ageRange; }
+    public void setAgeRange(String ageRange) { this.ageRange = ageRange; }
+    public String getExperience() { return experience; }
+    public void setExperience(String experience) { this.experience = experience; }
 }

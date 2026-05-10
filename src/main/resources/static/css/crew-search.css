@@ -329,6 +329,11 @@
         gap: 10px !important;
     }
 
+    /* Fix for odd number of cards (like 3) to prevent blank side-space */
+    .crew-grid > .crew-card:last-child:nth-child(odd) {
+        grid-column: span 2;
+    }
+
     .crew-card {
         padding: 15px 10px !important;
         border-radius: 20px !important;

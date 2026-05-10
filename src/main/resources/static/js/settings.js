@@ -28,18 +28,23 @@ async function loadSettings() {
 }
 
 async function updatePassword() {
-    const currentPass = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirmPass = document.getElementById('confirmPassword').value;
+    const currentPass = document.getElementById('currentPassword').value.trim();
+    const newPass = document.getElementById('newPassword').value.trim();
+    const confirmPass = document.getElementById('confirmPassword').value.trim();
     const userId = getCurrentUserId();
 
-    if (!newPass || newPass !== confirmPass) {
-        showMessage("Passwords do not match!", "error");
+    if (!newPass) {
+        showMessage("Please enter a new password.", "error");
         return;
     }
 
-    if (newPass === currentPass) {
-        showMessage("New password cannot be the same as the current password!", "error");
+    if (newPass !== confirmPass) {
+        showMessage("New passwords do not match!", "error");
+        return;
+    }
+
+    if (newPass === currentPass && currentPass !== "") {
+        showMessage("New password cannot be the same as your current password.", "error");
         return;
     }
 

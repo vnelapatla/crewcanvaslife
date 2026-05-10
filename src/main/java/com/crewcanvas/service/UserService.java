@@ -201,8 +201,13 @@ public class UserService {
     }
 
     public User registerUser(String name, String email, String password) {
-        if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already registered.");
+        Optional<User> existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            if (user.getGoogleId() != null && user.getPassword() == null) {
+                throw new RuntimeException("This email is already linked to a Google account. Please use 'Sign in with Google' to log in.");
+            }
+            throw new RuntimeException("This email is already registered. Please log in instead.");
         }
         User user = new User(name, email, password);
         return userRepository.save(user);
@@ -216,9 +221,15 @@ public class UserService {
 
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
-            String storedPassword = user.get().getPassword();
+            User u = user.get();
+            String storedPassword = u.getPassword();
             if (storedPassword != null && storedPassword.equals(password)) {
                 return user;
+            }
+            
+            // If password doesn't match or is null, check if it's a Google account
+            if (u.getGoogleId() != null && u.getPassword() == null) {
+                throw new RuntimeException("This account is linked to Google. Please 'Sign in with Google'.");
             }
         }
         return Optional.empty();
@@ -507,10 +518,14 @@ public class UserService {
 
     @Transactional
     public void changeUserPassword(User user, String newPassword) {
-        if (user.getPassword() != null && user.getPassword().equals(newPassword)) {
+        String trimmedNewPassword = newPassword != null ? newPassword.trim() : null;
+        String currentPassword = user.getPassword() != null ? user.getPassword().trim() : null;
+
+        if (trimmedNewPassword != null && trimmedNewPassword.equals(currentPassword)) {
             throw new RuntimeException("New password cannot be the same as the old password");
         }
-        user.setPassword(newPassword);
+        
+        user.setPassword(trimmedNewPassword);
         userRepository.save(user);
         tokenRepository.deleteByUser(user); // Invalidate token after use
     }

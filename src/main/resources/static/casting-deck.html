@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casting Deck | CrewCanvas Professional</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -70,10 +71,10 @@
         /* Hyper-Dark Deck Container */
         .deck-container {
             display: flex;
-            width: fit-content;
-            min-width: 700px;
-            max-width: 95vw;
-            margin: 40px auto;
+            flex-direction: column; /* Stacked for Cinematic Center */
+            width: 100%;
+            max-width: 900px; /* Focused width */
+            margin: 60px auto;
             background: #000;
             border-radius: 40px;
             overflow: hidden;
@@ -90,8 +91,8 @@
 
         /* Dynamic Layout Mode: If right side is empty */
         .deck-container.info-only {
-            width: 700px;
-            justify-content: center;
+            max-width: 700px;
+            margin: 60px auto;
         }
         .deck-container.info-only .info-panel {
             width: 100%;
@@ -101,16 +102,16 @@
             display: none;
         }
 
-        /* Left Identity Panel (Dark) */
+        /* Identity Panel (Top Section) */
         .info-panel {
-            width: 420px;
+            width: 100%; /* Full width in vertical layout */
             background: #0f0f0f;
-            padding: 60px 40px;
+            padding: 80px 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            border-right: 1px solid var(--glass-border);
-            flex-shrink: 0;
+            border-bottom: 1px solid var(--glass-border);
+            box-sizing: border-box;
         }
 
         .avatar-wrapper {
@@ -248,20 +249,21 @@
 
         .glass-capsule i { color: var(--brand-orange); }
 
-        /* Right Content Panel (Dark) */
+        /* Media Panel (Bottom Section) */
         .media-panel {
-            flex: 1;
-            width: 800px; /* Default wide width */
+            width: 100%;
             padding: 60px;
             background: #000;
             display: flex;
             flex-direction: column;
-            transition: width 0.5s ease;
+            box-sizing: border-box;
         }
 
-        /* Low Media Mode: Shrink the right side if there's very little content */
+        /* Low Media Mode: More compact view */
+        .deck-container.low-media {
+            max-width: 800px;
+        }
         .deck-container.low-media .media-panel {
-            width: 450px;
             padding: 60px 40px;
         }
         .deck-container.low-media .project-grid {
@@ -414,6 +416,13 @@
                 grid-template-columns: 1fr; 
                 gap: 15px;
             }
+            /* Fix for 3-image blank space: make the last item span full width if it's odd */
+            #photoGallery.project-grid > div:last-child:nth-child(odd) {
+                grid-column: span 2;
+            }
+            #photoGallery.project-grid > div:last-child:nth-child(odd) img {
+                height: 400px !important; /* Larger spotlight for the single item */
+            }
         }
 
         @media print {
@@ -488,6 +497,9 @@
                     <a href="#" id="resumeBtn" class="glass-capsule" style="margin:0; flex:1;">[ VIEW RESUME ]</a>
                     <a href="#" onclick="shareDeck()" class="glass-capsule" style="margin:0; flex:1; border-color:var(--brand-orange);">[ SHARE DECK ]</a>
                 </div>
+                <a href="#" onclick="redirectToCreateDeck()" class="glass-capsule" style="margin:0; background:linear-gradient(90deg, rgba(255, 140, 0, 0.15), rgba(255, 45, 85, 0.05)); border-color:var(--brand-orange); font-weight:800; color:#fff; text-shadow: 0 0 10px rgba(255,140,0,0.3);">
+                    <i class="fas fa-plus-circle" style="color:var(--brand-orange)"></i> [ CREATE YOUR OWN DECK ]
+                </a>
                 <a href="#" onclick="window.print()" class="glass-capsule" style="margin:0;">[ SAVE PDF AS PORTFOLIO ]</a>
             </div>
         </aside>
@@ -517,14 +529,15 @@
     <script src="js/utils.js?v=5.2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            checkAuth();
             // Safety Timeout to hide loader if JS hangs
             setTimeout(() => {
                 const loader = document.getElementById('loader');
-                if (loader.style.display !== 'none') {
+                if (loader && loader.style.display !== 'none') {
                     console.warn("Safety Timeout: Hiding loader due to delay.");
                     hideLoader();
                 }
-            }, 5000);
+            }, 3000); // Reduced to 3s for better mobile experience
 
             const userId = getQueryParam('userId');
             if (!userId) {
@@ -544,7 +557,8 @@
             try {
                 const response = await fetch(profileUrl);
                 if (!response.ok) throw new Error('Profile Fetch Failed');
-                const user = await response.json();
+                window.currentDeckUser = await response.json();
+                const user = window.currentDeckUser;
                 
                 // Content Injection
                 document.title = `${user.name} | Professional Casting Deck`;
@@ -593,7 +607,7 @@
                 const specs = [
                     { label: 'Height (cm)', value: user.height || '185' },
                     { label: 'Weight (kg)', value: user.weight || '75' },
-                    { label: 'Age Range', value: user.age || '28' },
+                    { label: 'Age', value: user.ageRange || user.age || '28' },
                     { label: 'Gender', value: user.gender || 'Male' },
                     { label: 'Body Type', value: user.bodyType || 'Natural' },
                     { label: 'Languages', value: user.languages || 'English' }
@@ -770,8 +784,9 @@
         }
 
         async function shareDeck() {
+            const user = window.currentDeckUser || {};
             const userName = document.getElementById('userName').textContent.toUpperCase();
-            const userAge = document.getElementById('pillExp').textContent; // Using Exp pill as age range proxy or age if available
+            const userAge = user.ageRange || user.age || document.getElementById('pillExp').textContent; 
             const userLoc = document.getElementById('locText').textContent;
             const userPhone = document.getElementById('phoneText').textContent;
             
@@ -788,10 +803,20 @@
                     await navigator.share(shareData);
                 } else {
                     await navigator.clipboard.writeText(shareText);
-                    alert("Portfolio summary copied to clipboard!");
+                    alert("Casting Deck link copied to clipboard!");
                 }
-            } catch (err) {
-                console.log("Error sharing:", err);
+            } catch (e) { console.error(e); }
+        }
+
+        function redirectToCreateDeck() {
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+                // Already logged in, go to edit profile
+                window.location.href = 'edit-profile.html';
+            } else {
+                // Not logged in, save redirect and go to login
+                sessionStorage.setItem('redirectAfterLogin', 'edit-profile.html');
+                window.location.href = 'index.html';
             }
         }
 

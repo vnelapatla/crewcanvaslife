@@ -14,4 +14,6 @@ public interface UserSummary {
     Integer getFollowing();
     Integer getProfileScore();
     String getProfilePicture();
+    String getAgeRange();
+    String getExperience();
 }

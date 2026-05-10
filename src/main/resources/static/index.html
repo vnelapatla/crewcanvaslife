@@ -32,15 +32,11 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* AGGRESSIVE DEEP LOCK */
+        /* GENTLE LOCK: Allow scroll if needed on small devices */
         html, body {
             margin: 0; padding: 0;
-            height: 100dvh; width: 100vw;
-            overflow: hidden !important;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            overscroll-behavior: none;
-            touch-action: none;
+            min-height: 100dvh; width: 100vw;
+            overflow-x: hidden;
             background-color: var(--bg-color);
             font-family: 'Outfit', sans-serif;
         }
@@ -420,10 +416,7 @@
             }
         }
 
-        // AGGRESSIVE SCROLL PREVENTION
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        // GENTLE SCROLL ENABLED
     </script>
 </body>
 

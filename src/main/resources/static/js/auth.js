@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, 1500);
             } else {
-                showMessage('We couldn’t find an account with those details. Please check your email and password.', 'error');
+                const errorMsg = await response.text();
+                showMessage(errorMsg || 'We couldn’t find an account with those details. Please check your email and password.', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -104,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('loginEmail').value = email;
                 }, 2000);
             } else {
-                showMessage('This email seems to be taken already. Try logging in instead.', 'error');
+                const errorMsg = await response.text();
+                showMessage(errorMsg || 'This email seems to be taken already. Try logging in instead.', 'error');
             }
         } catch (error) {
             console.error('Signup error:', error);

@@ -411,7 +411,7 @@ function displayCraftSpecs(user) {
         'Actor': [
             { label: 'Height (cm)', key: 'height' },
             { label: 'Weight (kg)', key: 'weight' },
-            { label: 'Age Range', key: 'ageRange' },
+            { label: 'Age', key: 'ageRange' },
             { label: 'Gender', key: 'gender' },
             { label: 'Body Type', key: 'bodyType' },
             { label: 'Languages', key: 'languages' },

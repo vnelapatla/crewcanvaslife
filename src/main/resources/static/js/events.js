@@ -17,11 +17,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadCurrentUser(),
         loadEvents()
     ]);
-    checkEditMode();
     scrollToEventFromUrl();
+    checkEditMode();
     const isManagedCheckbox = document.getElementById('isManaged');
     if (isManagedCheckbox) isManagedCheckbox.addEventListener('change', toggleManagedFields);
 });
+
+function scrollToEventFromUrl() {
+    const eventId = getQueryParam('eventId');
+    if (!eventId) return;
+
+    // Wait for events to load if they haven't yet
+    const checkInterval = setInterval(() => {
+        const element = document.getElementById(`event-card-${eventId}`);
+        if (element) {
+            clearInterval(checkInterval);
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.style.boxShadow = '0 0 30px rgba(255, 140, 0, 0.4)';
+            setTimeout(() => { element.style.boxShadow = ''; }, 3000);
+        }
+    }, 500);
+    
+    // Stop checking after 10 seconds to avoid infinite loop
+    setTimeout(() => clearInterval(checkInterval), 10000);
+}
+
+function checkEditMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('eventId');
+    const edit = urlParams.get('edit') === 'true';
+    
+    if (edit && eventId) {
+        // Logic to open edit form (if needed)
+        console.log("Edit mode for event:", eventId);
+    }
+}
 
 async function loadCurrentUser() {
     try {
@@ -64,12 +94,22 @@ async function loadEvents() {
 
     try {
         // Parallel fetch for applications and events
-        const [appsRes, eventsRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`),
+        const fetchPromises = [
             fetch(`${API_BASE_URL}/api/events?page=0&size=50`)
-        ]);
+        ];
+        
+        // Only fetch applications if user is logged in
+        if (currentUserId) {
+            fetchPromises.push(fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`));
+        }
 
-        if (appsRes.ok) userApplications = await appsRes.json();
+        const responses = await Promise.all(fetchPromises);
+        const eventsRes = responses[0];
+        const appsRes = currentUserId ? responses[1] : null;
+
+        if (appsRes && appsRes.ok) {
+            userApplications = await appsRes.json();
+        }
         
         if (eventsRes.ok) { 
             const data = await eventsRes.json();
@@ -111,19 +151,19 @@ function displayEvents(events, prepend = false) {
         const eventType = event.eventType || 'Audition';
         const isManaged = event.isManaged === true;
         const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
-        const useFeedLayout = isManaged && !isOwnerOrAdmin;
         const displayImage = event.imageUrl || getEventDefaultImage(eventType);
         const hasApplied = userApplications.some(app => app.eventId == event.id);
         const sTitle = (event.title || 'Untitled').replace(/'/g, "\\'");
+        const tagClass = 'tag-' + eventType.toLowerCase().replace(' ', '-');
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover;">
-                <div class="card-content" style="padding: ${useFeedLayout ? '0' : '15px'};">
-                    ${useFeedLayout ? '' : `
-                        <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
-                        ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
-                    `}
+                <div class="type-tag ${tagClass}">${eventType}</div>
+                ${isManaged ? `<div class="type-tag" style="left: auto; right: 20px; background: #FF8C00; color: white;"><i class="fas fa-certificate"></i> Official</div>` : ''}
+                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: contain; background: #000;">
+                <div class="card-content" style="padding: 15px;">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
+                    ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                         <div style="font-size: 11px; font-weight: 600; color: #64748b;">
                             <i class="fas fa-users"></i> ${event.applicants || 0} applied
@@ -302,7 +342,12 @@ async function handleExternalRedirect(eventId, url) {
     // 2. Build the Plain & Simple "Casting Deck" Message
     let message = `APPLICATION: ${eventTitle.toUpperCase()}\n\n`;
     message += `NAME: ${currentUser.name}\n`;
-    message += `AGE: ${currentUser.ageRange || 'Not Specified'}\n`;
+    
+    // Only add AGE if it exists and isn't a placeholder
+    if (currentUser.ageRange && currentUser.ageRange.trim() !== "" && currentUser.ageRange.toLowerCase() !== 'not specified') {
+        message += `AGE: ${currentUser.ageRange}\n`;
+    }
+    
     message += `LOCATION: ${currentUser.location || 'Not Specified'}\n\n`;
     
     const profileUrl = `${window.location.origin}/share/deck/${currentUser.id}`;

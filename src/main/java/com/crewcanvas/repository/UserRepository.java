@@ -63,7 +63,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT u.id as id, u.name as name, u.email as email, u.role as role, " +
             "u.location as location, u.phone as phone, u.userType as userType, " +
             "u.isVerifiedProfessional as isVerifiedProfessional, u.isAdmin as isAdmin, " +
-            "u.followers as followers, u.following as following, u.profileScore as profileScore " +
+            "u.followers as followers, u.following as following, u.profileScore as profileScore, " +
+            "u.ageRange as ageRange, u.experience as experience " +
             "FROM User u WHERE " +
             "(:currentUserId IS NULL OR u.id != :currentUserId) AND " +
             "(:excludeFollowed = false OR u.id NOT IN (SELECT c.followingId FROM Connection c WHERE c.followerId = :currentUserId)) AND " +
@@ -90,7 +91,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT u.id as id, u.name as name, u.email as email, u.role as role, " +
             "u.location as location, u.phone as phone, u.userType as userType, " +
             "u.isVerifiedProfessional as isVerifiedProfessional, u.isAdmin as isAdmin, " +
-            "u.followers as followers, u.following as following, u.profileScore as profileScore " +
+            "u.followers as followers, u.following as following, u.profileScore as profileScore, " +
+            "u.ageRange as ageRange, u.experience as experience " +
             "FROM User u WHERE u.id = :id")
     Optional<com.crewcanvas.dto.UserSummary> findSummaryById(@org.springframework.data.repository.query.Param("id") Long id);
 }
