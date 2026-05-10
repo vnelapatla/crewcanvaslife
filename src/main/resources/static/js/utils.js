@@ -104,12 +104,12 @@ function checkAuth() {
 }
 
 // CC-AUTH-003: Shared Login Engine [M Sumanth] - Allow login/signup directly from shared pages
+// CC-AUTH-003: Shared Login Engine [M Sumanth] - Allow login/signup directly from shared pages
 async function initializeSharedGoogleAuth() {
     if (localStorage.getItem('userId')) return; // Already logged in
 
     // CC-FIX: Don't initialize on index.html to avoid conflict with auth.js
     if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
-        console.log("⏭️ Skipping Shared Auth Init: Using main auth engine on login page.");
         return;
     }
 
@@ -119,45 +119,44 @@ async function initializeSharedGoogleAuth() {
             if (res.ok) {
                 const data = await res.json();
                 GOOGLE_CLIENT_ID = data.clientId;
-                console.log("✅ Google Client ID fetched for shared pages");
-                
-                // If banner is already there, render the button now
-                const btnDiv = document.getElementById('sharedGoogleBtn');
-                if (btnDiv && typeof google !== 'undefined') {
-                    renderGoogleButton(btnDiv);
-                }
+                console.log("✅ Google Client ID Loaded:", GOOGLE_CLIENT_ID.substring(0, 10) + "...");
             }
         }
 
         if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
-            console.log("🚀 Initializing Google Identity Services for domain:", window.location.hostname);
+            // Make callback globally accessible for Google's Iframe
+            window.handleSharedCredentialResponse = handleSharedCredentialResponse;
+
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
-                callback: handleSharedCredentialResponse,
+                callback: window.handleSharedCredentialResponse,
                 auto_select: false,
-                cancel_on_tap_outside: true
+                context: "signin",
+                ux_mode: "popup" 
             });
-            // Show One Tap prompt for guests
-            google.accounts.id.prompt((notification) => {
-                console.log("🔔 Google One Tap Status:", notification.getMomentType());
-                if (notification.isNotDisplayed()) {
-                    console.warn("⚠️ One Tap not displayed:", notification.getNotDisplayedReason());
-                }
-            });
+
+            const btnDiv = document.getElementById('sharedGoogleBtn');
+            if (btnDiv) {
+                google.accounts.id.renderButton(btnDiv, {
+                    theme: "filled_blue", size: "large", width: 280, text: "continue_with", shape: "pill"
+                });
+            }
+            
+            // Attempt to show One Tap
+            google.accounts.id.prompt();
         } else {
-            console.warn("⏳ Waiting for Google Auth dependencies...", { googleDefined: typeof google !== 'undefined', hasClientId: !!GOOGLE_CLIENT_ID });
-            // Retry if either script or ID is missing
-            setTimeout(initializeSharedGoogleAuth, 2000);
+            setTimeout(initializeSharedGoogleAuth, 1500);
         }
     } catch (e) { console.error("Google Auth Init Error:", e); }
 }
 
-function renderGoogleButton(element) {
+// CC-FIX: Manual Trigger for cases where native button is blocked
+function triggerManualGoogleLogin() {
+    console.log("🚀 Manual Google Login Triggered");
     if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
-        google.accounts.id.renderButton(
-            element,
-            { theme: "filled_blue", size: "large", width: 280, text: "continue_with", shape: "pill" }
-        );
+        google.accounts.id.prompt();
+    } else {
+        window.location.href = 'index.html';
     }
 }
 
