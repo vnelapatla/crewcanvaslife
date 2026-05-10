@@ -113,6 +113,13 @@ async function initializeSharedGoogleAuth() {
             if (res.ok) {
                 const data = await res.json();
                 GOOGLE_CLIENT_ID = data.clientId;
+                console.log("✅ Google Client ID fetched for shared pages");
+                
+                // If banner is already there, render the button now
+                const btnDiv = document.getElementById('sharedGoogleBtn');
+                if (btnDiv && typeof google !== 'undefined') {
+                    renderGoogleButton(btnDiv);
+                }
             }
         }
 
@@ -125,13 +132,24 @@ async function initializeSharedGoogleAuth() {
             });
             // Show One Tap prompt for guests
             google.accounts.id.prompt();
-        } else if (typeof google === 'undefined') {
+        } else {
+            // Retry if either script or ID is missing
             setTimeout(initializeSharedGoogleAuth, 1000);
         }
     } catch (e) { console.error("Google Auth Init Error:", e); }
 }
 
+function renderGoogleButton(element) {
+    if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
+        google.accounts.id.renderButton(
+            element,
+            { theme: "filled_blue", size: "large", width: 280, text: "continue_with", shape: "pill" }
+        );
+    }
+}
+
 async function handleSharedCredentialResponse(response) {
+    console.log("Shared Auth: Processing Google response...");
     try {
         const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
             method: 'POST',
@@ -147,10 +165,16 @@ async function handleSharedCredentialResponse(response) {
             localStorage.setItem('isAdmin', user.isAdmin || user.email === 'crewcanvas2@gmail.com');
             localStorage.setItem('profileScore', user.profileScore || 0);
             
-            showMessage('Welcome to CrewCanvas! Reloading...', 'success');
+            showMessage('Welcome back! Loading your profile...', 'success');
             setTimeout(() => window.location.reload(), 1500);
+        } else {
+            const err = await res.text();
+            showMessage('Google login failed: ' + err, 'error');
         }
-    } catch (e) { console.error("Shared Google Login Failed:", e); }
+    } catch (e) { 
+        console.error("Shared Google Login Failed:", e);
+        showMessage('Connection error during Google login.', 'error');
+    }
 }
 
 function injectGuestCTA() {
@@ -194,20 +218,16 @@ function injectGuestCTA() {
             <h3 style="color: white; margin: 0 0 5px; font-size: 16px; font-family: 'Outfit', sans-serif;">Join the Creative Circle</h3>
             <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 12px;">Sign up to apply, like, and connect with creators.</p>
         </div>
-        <div id="sharedGoogleBtn" style="width: 100%; display: flex; justify-content: center;"></div>
+        <div id="sharedGoogleBtn" style="width: 100%; min-height: 40px; display: flex; justify-content: center;"></div>
         <button class="cta-btn-primary" onclick="window.location.href='index.html?mode=signup'">Sign Up with Email</button>
         <p onclick="this.parentElement.remove()" style="color: rgba(255,255,255,0.4); margin: 0; font-size: 10px; cursor: pointer; text-decoration: underline;">Maybe later</p>
     `;
 
     document.body.appendChild(banner);
 
-    // Initialize Google Button in the banner
-    if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
-        google.accounts.id.renderButton(
-            document.getElementById('sharedGoogleBtn'),
-            { theme: "filled_blue", size: "large", width: 280, text: "continue_with", shape: "pill" }
-        );
-    }
+    // Initial attempt to render
+    const btnDiv = document.getElementById('sharedGoogleBtn');
+    if (btnDiv) renderGoogleButton(btnDiv);
     
     initializeSharedGoogleAuth();
 }
