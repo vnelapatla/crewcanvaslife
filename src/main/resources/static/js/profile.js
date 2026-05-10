@@ -791,17 +791,6 @@ function removeEditingImage(index) {
 function renderMediaLink(url, label) {
     if (!url) return '';
     
-    // Check if it's a video file (Base64 or direct URL)
-    const isVideoFile = url.startsWith('data:video/') || url.match(/\.(mp4|webm|ogg|mov|avi)$/i);
-    
-    if (isVideoFile) {
-        return `
-            <div class="video-container" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px;">
-                <video src="${url}" controls style="width: 100%; max-height: 400px; display: block;"></video>
-            </div>
-        `;
-    }
-    
     // Check if it's a YouTube link
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = extractYouTubeId(url);
@@ -812,6 +801,16 @@ function renderMediaLink(url, label) {
                 </div>
             `;
         }
+    }
+
+    // Check if it's a direct video file (Base64 or URL)
+    if (typeof isVideoFile === 'function' && isVideoFile(url)) {
+        const safeUrl = typeof getSafeMediaUrl === 'function' ? getSafeMediaUrl(url) : url;
+        return `
+            <div class="video-container" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px;">
+                <video src="${safeUrl}" controls muted playsinline style="width: 100%; max-height: 400px; display: block;"></video>
+            </div>
+        `;
     }
     
     // Default: Professional Link Button

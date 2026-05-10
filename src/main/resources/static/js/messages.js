@@ -637,9 +637,10 @@ function displayMessages(messages) {
                 if (isImage) {
                     attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; cursor: pointer; display: block;" onclick="viewImageFull('${url}')">`;
                 } else if (isVideo) {
+                    const safeUrl = typeof getSafeMediaUrl === 'function' ? getSafeMediaUrl(url) : url;
                     attachmentContent += `
                         <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
-                            <video src="${url}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
+                            <video src="${safeUrl}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; pointer-events: none;"><i class="fa-solid fa-play"></i></div>
                         </div>
                     `;
@@ -735,9 +736,10 @@ function appendSingleMessage(msg) {
             if (isImage) {
                 attachmentContent += `<img src="${url}" alt="Image" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; cursor: pointer; display: block;" onclick="viewImageFull('${url}')">`;
             } else if (isVideo) {
+                const safeUrl = typeof getSafeMediaUrl === 'function' ? getSafeMediaUrl(url) : url;
                 attachmentContent += `
                     <div style="width: 100%; height: 100px; position: relative; border-radius: 8px; overflow: hidden; background: #000;">
-                        <video src="${url}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
+                        <video src="${safeUrl}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="viewFile('${url}')"></video>
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; pointer-events: none;"><i class="fa-solid fa-play"></i></div>
                     </div>
                 `;

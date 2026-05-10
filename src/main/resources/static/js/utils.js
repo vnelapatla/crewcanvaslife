@@ -648,10 +648,43 @@ function showLikeAnimation(event, container) {
     setTimeout(() => heart.remove(), 800);
 }
 
+/**
+ * Optimizes a media source by converting Base64 to a Blob URL if necessary.
+ * This is crucial for videos as browsers handle Blob URLs much better than large Data URLs.
+ */
+function getSafeMediaUrl(src) {
+    if (!src || !src.startsWith('data:video/')) return src;
+    
+    try {
+        const parts = src.split(';base64,');
+        if (parts.length < 2) return src;
+
+        const contentType = parts[0].split(':')[1];
+        const byteCharacters = atob(parts[1]);
+        const byteArrays = [];
+
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+            byteArrays.push(new Uint8Array(byteNumbers));
+        }
+
+        const blob = new Blob(byteArrays, {type: contentType});
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        console.warn("Failed to convert Base64 to Blob URL, falling back to original src:", e);
+        return src;
+    }
+}
+
 // Helper to render media content (image or video)
 function renderMediaContent(src, className = 'post-image') {
     if (isVideoFile(src)) {
-        return `<video src="${src}" class="${className}" controls muted playsinline style="width:100%; display:block;"></video>`;
+        const safeSrc = getSafeMediaUrl(src);
+        return `<video src="${safeSrc}" class="${className}" controls muted playsinline style="width:100%; display:block;"></video>`;
     } else {
         return `<img src="${src}" class="${className}" alt="Media content" loading="lazy">`;
     }
