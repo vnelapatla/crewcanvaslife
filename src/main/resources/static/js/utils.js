@@ -1952,8 +1952,8 @@ async function preFetchBackgroundData() {
             );
         }
 
-        // 2. Events (Top 15)
-        if (!path.includes('event')) {
+        // 2. Events (Top 15) - Only pre-fetch if not already on the events page
+        if (!path.includes('event.html')) {
             tasks.push(
                 fetch(`${API_BASE_URL}/api/events?page=0&size=15`)
                     .then(res => res.json())
