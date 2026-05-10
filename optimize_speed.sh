@@ -15,9 +15,9 @@ echo "📦 Configuring Nginx at $NGINX_CONF..."
 # 1. Backup
 sudo cp $NGINX_CONF "${NGINX_CONF}.bak"
 
-# 2. Enable Gzip in the http block if not already there
+# 2. Enable Gzip and UTF-8 in the http block
 if ! grep -q "gzip on;" "$NGINX_CONF"; then
-    sudo sed -i '/http {/a \    gzip on;\n    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;\n    gzip_comp_level 6;\n    gzip_min_length 1000;\n    gzip_proxied any;' $NGINX_CONF
+    sudo sed -i '/http {/a \    gzip on;\n    charset utf-8;\n    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;\n    gzip_comp_level 6;\n    gzip_min_length 1000;\n    gzip_proxied any;' $NGINX_CONF
 fi
 
 # 3. Add WebSocket Headers to ALL location / blocks

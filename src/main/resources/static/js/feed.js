@@ -412,8 +412,13 @@ function renderPostHTML(post) {
                 </div>
             ` : ''}
         </div>
-        <div class="post-content" style="padding: 10px 0 5px 0; cursor: pointer;" onclick="handleDoubleTap(${post.id}, event)">
-            ${post.content ? `<p style="margin-bottom:10px; line-height:1.5;">${post.content}</p>` : ''}
+        <div class="post-content" style="padding: 10px 0 5px 0;">
+            ${post.content ? `
+                <div class="post-text-container" id="post-text-${post.id}">
+                    <p class="post-text-content" style="margin-bottom:10px; line-height:1.5; white-space: pre-wrap;">${post.content.length > 300 ? post.content.substring(0, 300) + '...' : post.content}</p>
+                    ${post.content.length > 300 ? `<button class="see-more-btn" onclick="toggleSeeMore(${post.id}, \`${post.content.replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)" style="background:none; border:none; color:var(--primary-orange); font-weight:700; cursor:pointer; padding:0; margin-bottom:10px;">See More</button>` : ''}
+                </div>
+            ` : ''}
             
             ${pollHtml}
 
@@ -1590,4 +1595,11 @@ function clearSmartFilter() { return; }
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toggleSeeMore(postId, fullContent) {
+    const container = document.getElementById(`post-text-${postId}`);
+    if (container) {
+        container.innerHTML = `<p class="post-text-content" style="margin-bottom:10px; line-height:1.5; white-space: pre-wrap;">${fullContent}</p>`;
+    }
 }
