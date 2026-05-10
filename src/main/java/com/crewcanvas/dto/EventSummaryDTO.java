@@ -19,7 +19,6 @@ public class EventSummaryDTO {
     private Boolean isManaged;
     private String externalLink;
     private String adminNote;
-    private String description;
 
     public EventSummaryDTO() {}
 
@@ -40,7 +39,7 @@ public class EventSummaryDTO {
         this.isManaged = event.getIsManaged();
         this.externalLink = event.getExternalLink();
         this.adminNote = event.getAdminNote();
-        this.description = event.getDescription();
+        // Removed description to optimize payload size
     }
 
     public Long getId() { return id; }
@@ -75,6 +74,4 @@ public class EventSummaryDTO {
     public void setExternalLink(String externalLink) { this.externalLink = externalLink; }
     public String getAdminNote() { return adminNote; }
     public void setAdminNote(String adminNote) { this.adminNote = adminNote; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
 }

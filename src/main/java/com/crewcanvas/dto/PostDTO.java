@@ -17,7 +17,7 @@ public class PostDTO {
     private List<String> pollOptions;
     private Map<Long, Integer> pollVotes;
     private Instant createdAt;
-    private UserDTO user;
+    private UserListDTO user;
 
     public PostDTO() {}
 
@@ -46,6 +46,6 @@ public class PostDTO {
     public void setPollVotes(Map<Long, Integer> pollVotes) { this.pollVotes = pollVotes; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public UserDTO getUser() { return user; }
-    public void setUser(UserDTO user) { this.user = user; }
+    public UserListDTO getUser() { return user; }
+    public void setUser(UserListDTO user) { this.user = user; }
 }

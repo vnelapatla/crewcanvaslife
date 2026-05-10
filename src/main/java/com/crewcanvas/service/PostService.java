@@ -560,7 +560,7 @@ public class PostService {
         dto.setCreatedAt(post.getCreatedAt());
 
         if (post.getUserDetails() != null) {
-            com.crewcanvas.dto.UserDTO userDTO = new com.crewcanvas.dto.UserDTO();
+            com.crewcanvas.dto.UserListDTO userDTO = new com.crewcanvas.dto.UserListDTO();
             Map<String, Object> details = post.getUserDetails();
             userDTO.setId((Long) details.get("id"));
             userDTO.setName((String) details.get("name"));
