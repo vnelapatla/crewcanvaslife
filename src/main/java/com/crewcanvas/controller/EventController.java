@@ -125,7 +125,7 @@ public class EventController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            return ResponseEntity.ok(eventService.getUserEvents(userId, page, size));
+            return ResponseEntity.ok(eventService.getUserEventsSummary(userId, page, size));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

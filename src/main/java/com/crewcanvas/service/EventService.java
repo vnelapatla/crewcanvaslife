@@ -110,8 +110,9 @@ public class EventService {
         return eventRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public org.springframework.data.domain.Page<Event> getUserEvents(Long userId, int page, int size) {
-        return eventRepository.findByUserId(userId, org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending()));
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSummaryDTO> getUserEventsSummary(Long userId, int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        return eventRepository.findByUserId(userId, pr).map(com.crewcanvas.dto.EventSummaryDTO::new);
     }
 
     public List<Event> getEventsByType(String eventType) {

@@ -67,7 +67,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
-            org.springframework.data.domain.Page<Post> posts = postService.getAllPosts(page, size);
+            org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> posts = postService.getAllPostsSummary(page, size);
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -93,7 +93,7 @@ public class PostController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserPosts(@PathVariable Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
-            org.springframework.data.domain.Page<Post> posts = postService.getUserPosts(userId, page, size);
+            org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> posts = postService.getUserPostsSummary(userId, page, size);
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

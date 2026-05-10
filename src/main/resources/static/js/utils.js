@@ -417,7 +417,7 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-async function uploadImage(file, maxWidth = 1200, quality = 0.7) {
+async function uploadImage(file, maxWidth = 1080, quality = 0.6) {
     return new Promise((resolve, reject) => {
         if (!file) {
             resolve(null);

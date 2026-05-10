@@ -80,10 +80,10 @@ public class PostService {
         return populatePollData(savedPost);
     }
 
-    public org.springframework.data.domain.Page<Post> getAllPosts(int page, int size) {
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> getAllPostsSummary(int page, int size) {
         org.springframework.data.domain.Page<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(org.springframework.data.domain.PageRequest.of(page, size));
         populateExtraData(posts.getContent());
-        return posts;
+        return posts.map(this::convertToDTO);
     }
 
     public List<Post> getAllPosts() {
@@ -125,10 +125,10 @@ public class PostService {
         return posts;
     }
 
-    public org.springframework.data.domain.Page<Post> getUserPosts(Long userId, int page, int size) {
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> getUserPostsSummary(Long userId, int page, int size) {
         org.springframework.data.domain.Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, org.springframework.data.domain.PageRequest.of(page, size));
         populateExtraData(posts.getContent());
-        return posts;
+        return posts.map(this::convertToDTO);
     }
 
     public List<Post> getUserPosts(Long userId) {
@@ -535,5 +535,38 @@ public class PostService {
     private Post populatePollData(Post post) {
         populateExtraData(java.util.Collections.singletonList(post));
         return post;
+    }
+
+    public com.crewcanvas.dto.PostDTO convertToDTO(Post post) {
+        if (post == null) return null;
+        com.crewcanvas.dto.PostDTO dto = new com.crewcanvas.dto.PostDTO();
+        dto.setId(post.getId());
+        dto.setUserId(post.getUserId());
+        
+        // Truncate content for summary if it's too long, but keep enough for the feed view
+        String content = post.getContent();
+        dto.setContent(content); 
+        
+        dto.setImageUrls(post.getImageUrls());
+        dto.setExternalLinks(post.getExternalLinks());
+        dto.setLikes(post.getLikes());
+        dto.setComments(post.getComments());
+        dto.setIsPoll(post.isPoll());
+        dto.setPollQuestion(post.getPollQuestion());
+        dto.setPollOptions(post.getPollOptions());
+        dto.setPollVotes(post.getPollVotes());
+        dto.setCreatedAt(post.getCreatedAt());
+
+        if (post.getUserDetails() != null) {
+            com.crewcanvas.dto.UserDTO userDTO = new com.crewcanvas.dto.UserDTO();
+            Map<String, Object> details = post.getUserDetails();
+            userDTO.setId((Long) details.get("id"));
+            userDTO.setName((String) details.get("name"));
+            userDTO.setRole((String) details.get("role"));
+            userDTO.setProfilePicture((String) details.get("profilePicture"));
+            dto.setUser(userDTO);
+        }
+
+        return dto;
     }
 }
