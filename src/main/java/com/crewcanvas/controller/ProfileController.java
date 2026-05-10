@@ -308,7 +308,7 @@ public class ProfileController {
                     System.out.println("Phone Unlock Success: Returning " + (phone != null ? (phone.length() > 4 ? "..." + phone.substring(phone.length()-4) : phone) : "null"));
                     java.util.Map<String, String> response = new java.util.HashMap<>();
                     response.put("phone", phone != null && !phone.trim().isEmpty() ? phone : "Data Not Available");
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.ok().body(response);
                 } else {
                     System.out.println("Phone Unlock Failed: User " + id + " not found");
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
