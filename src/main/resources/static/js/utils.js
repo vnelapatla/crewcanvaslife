@@ -1979,7 +1979,7 @@ async function preFetchBackgroundData() {
 
         // 4. Messages & Event Dashboard
         tasks.push(
-            fetch(`${API_BASE_URL}/api/messages/conversations/${userId}`)
+            fetch(`${API_BASE_URL}/api/conversations/${userId}`)
                 .then(res => res.json())
                 .then(data => localStorage.setItem('cache_conversations', JSON.stringify(data.slice(0, 10))))
                 .catch(e => {})

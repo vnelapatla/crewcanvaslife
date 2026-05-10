@@ -5,7 +5,7 @@ let pendingEventId = null;
 let allEvents = [];
 let userApplications = [];
 let currentFilter = 'all';
-let currentPage = 0;
+let eventPage = 0;
 let isLoading = false;
 let hasMore = true;
 const PAGE_SIZE = 15;
@@ -100,16 +100,16 @@ async function loadEvents() {
 
     try {
         const fetchPromises = [
-            fetch(`${API_BASE_URL}/api/events?page=${currentPage}&size=${PAGE_SIZE}`)
+            fetch(`${API_BASE_URL}/api/events?page=${eventPage}&size=${PAGE_SIZE}`)
         ];
         
-        if (currentUserId && currentPage === 0) {
+        if (currentUserId && eventPage === 0) {
             fetchPromises.push(fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`));
         }
 
         const responses = await Promise.all(fetchPromises);
         const eventsRes = responses[0];
-        const appsRes = (currentUserId && currentPage === 0) ? responses[1] : null;
+        const appsRes = (currentUserId && eventPage === 0) ? responses[1] : null;
 
         if (appsRes && appsRes.ok) {
             userApplications = await appsRes.json();
@@ -119,7 +119,7 @@ async function loadEvents() {
             const data = await eventsRes.json();
             const newEvents = data.content ? data.content : data; 
             
-            if (currentPage === 0) {
+            if (eventPage === 0) {
                 allEvents = newEvents;
             } else {
                 allEvents = [...allEvents, ...newEvents];
@@ -131,11 +131,11 @@ async function loadEvents() {
 
             updateCounts(); 
             searchEvents();
-            currentPage++;
+            eventPage++;
         }
     } catch (error) { 
         console.error(error); 
-        if (container && currentPage === 0) container.innerHTML = '<p style="text-align:center; padding:50px;">Failed to load events. Please refresh.</p>';
+        if (container && eventPage === 0) container.innerHTML = '<p style="text-align:center; padding:50px;">Failed to load events. Please refresh.</p>';
     } finally {
         isLoading = false;
     }
