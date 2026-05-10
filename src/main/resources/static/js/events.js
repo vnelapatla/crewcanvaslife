@@ -4,8 +4,11 @@ let currentUser = null;
 let pendingEventId = null;
 let allEvents = [];
 let userApplications = [];
-let hasScrolledToEvent = false;
 let currentFilter = 'all';
+let currentPage = 0;
+let isLoading = false;
+let hasMore = true;
+const PAGE_SIZE = 15;
 let currentType = ''; 
 let editModeId = null;
 
@@ -92,20 +95,21 @@ async function loadEvents() {
         `;
     }
 
+    if (isLoading || !hasMore) return;
+    isLoading = true;
+
     try {
-        // Parallel fetch for applications and events
         const fetchPromises = [
-            fetch(`${API_BASE_URL}/api/events?page=0&size=10`)
+            fetch(`${API_BASE_URL}/api/events?page=${currentPage}&size=${PAGE_SIZE}`)
         ];
         
-        // Only fetch applications if user is logged in
-        if (currentUserId) {
+        if (currentUserId && currentPage === 0) {
             fetchPromises.push(fetch(`${API_BASE_URL}/api/events/applications/user/${currentUserId}`));
         }
 
         const responses = await Promise.all(fetchPromises);
         const eventsRes = responses[0];
-        const appsRes = currentUserId ? responses[1] : null;
+        const appsRes = (currentUserId && currentPage === 0) ? responses[1] : null;
 
         if (appsRes && appsRes.ok) {
             userApplications = await appsRes.json();
@@ -113,16 +117,36 @@ async function loadEvents() {
         
         if (eventsRes.ok) { 
             const data = await eventsRes.json();
-            // Handle both Array (old) and Page Object (new)
-            allEvents = data.content ? data.content : data; 
+            const newEvents = data.content ? data.content : data; 
+            
+            if (currentPage === 0) {
+                allEvents = newEvents;
+            } else {
+                allEvents = [...allEvents, ...newEvents];
+            }
+
+            if (newEvents.length < PAGE_SIZE) {
+                hasMore = false;
+            }
+
             updateCounts(); 
-            searchEvents(); 
+            searchEvents();
+            currentPage++;
         }
     } catch (error) { 
         console.error(error); 
-        if (container) container.innerHTML = '<p style="text-align:center; padding:50px;">Failed to load events. Please refresh.</p>';
+        if (container && currentPage === 0) container.innerHTML = '<p style="text-align:center; padding:50px;">Failed to load events. Please refresh.</p>';
+    } finally {
+        isLoading = false;
     }
 }
+
+// Add scroll listener for infinite scroll
+window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        loadEvents();
+    }
+});
 
 function updateCounts() {
     const counts = { 'Workshop': 0, 'Course': 0, 'Contest': 0, 'Audition': 0, 'Film Event': 0 };
