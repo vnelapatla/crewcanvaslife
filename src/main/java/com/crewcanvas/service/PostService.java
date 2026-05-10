@@ -175,10 +175,14 @@ public class PostService {
         // CC-S1-101: Secure Post Deletion [Nelpatla Venkatesh] - Added ownership validation
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
-            if (postOpt.get().getUserId().equals(userId)) {
+            Post post = postOpt.get();
+            com.crewcanvas.model.User currentUser = userRepository.findById(userId).orElse(null);
+            boolean isAdmin = currentUser != null && (Boolean.TRUE.equals(currentUser.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(currentUser.getEmail()));
+            
+            if (post.getUserId().equals(userId) || isAdmin) {
                 postRepository.deleteById(id);
             } else {
-                throw new RuntimeException("Unauthorized: You do not own this post.");
+                throw new RuntimeException("Unauthorized: You do not own this post and are not an admin.");
             }
         } else {
             throw new RuntimeException("Post not found");

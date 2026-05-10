@@ -405,9 +405,9 @@ function renderPostHTML(post) {
                     <span style="font-size:10px; color:#999; opacity:0.8;">${formatDate(post.createdAt)}</span>
                 </div>
             </a>
-            ${post.userId == currentUserId ? `
+            ${(post.userId == currentUserId || localStorage.getItem('isAdmin') === 'true') ? `
                 <div class="post-actions-menu">
-                    <button onclick="editPost(${post.id})" title="Edit">✏️</button>
+                    ${post.userId == currentUserId ? `<button onclick="editPost(${post.id})" title="Edit">✏️</button>` : ''}
                     <button onclick="deletePost(${post.id})" title="Delete">🗑️</button>
                 </div>
             ` : ''}
