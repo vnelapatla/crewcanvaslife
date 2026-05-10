@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @org.springframework.transaction.annotation.Transactional
@@ -92,11 +94,11 @@ public class PostService {
         return posts;
     }
 
-    public org.springframework.data.domain.Page<Post> searchPosts(String keyword, String timeFrame, int page, int size) {
-        return searchAdvanced(keyword, timeFrame, null, "latest", page, size);
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> searchPostsSummary(String keyword, String timeFrame, int page, int size) {
+        return searchAdvancedSummary(keyword, timeFrame, null, "latest", page, size);
     }
 
-    public org.springframework.data.domain.Page<Post> searchAdvanced(String keyword, String timeFrame, String contentType, String sortBy, int page, int size) {
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> searchAdvancedSummary(String keyword, String timeFrame, String contentType, String sortBy, int page, int size) {
         java.time.LocalDateTime sinceDate = null;
         if (timeFrame != null) {
             switch (timeFrame.toLowerCase()) {
@@ -122,7 +124,7 @@ public class PostService {
             keywordPattern, sinceDate, contentType, sortBy, org.springframework.data.domain.PageRequest.of(page, size));
         
         populateExtraData(posts.getContent());
-        return posts;
+        return posts.map(this::convertToDTO);
     }
 
     public org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> getUserPostsSummary(Long userId, int page, int size) {

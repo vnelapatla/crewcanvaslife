@@ -50,14 +50,14 @@ public class PostController {
             if (q == null || q.trim().isEmpty()) {
                 // If keywords are empty, we still apply filters if present
                 if ((type != null && !type.equals("all")) || !sortBy.equals("latest") || !t.equals("all")) {
-                    org.springframework.data.domain.Page<Post> posts = postService.searchAdvanced("", t, type, sortBy, page, size);
+                    org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> posts = postService.searchAdvancedSummary("", t, type, sortBy, page, size);
                     return ResponseEntity.ok(posts);
                 }
                 // fallback: return paginated all posts
-                org.springframework.data.domain.Page<Post> posts = postService.getAllPosts(page, size);
+                org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> posts = postService.getAllPostsSummary(page, size);
                 return ResponseEntity.ok(posts);
             }
-            org.springframework.data.domain.Page<Post> posts = postService.searchAdvanced(q.trim(), t, type, sortBy, page, size);
+            org.springframework.data.domain.Page<com.crewcanvas.dto.PostDTO> posts = postService.searchAdvancedSummary(q.trim(), t, type, sortBy, page, size);
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Search failed.");
