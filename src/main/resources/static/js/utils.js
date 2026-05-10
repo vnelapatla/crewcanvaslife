@@ -124,6 +124,7 @@ async function initializeSharedGoogleAuth() {
         }
 
         if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID) {
+            console.log("🚀 Initializing Google Identity Services for domain:", window.location.hostname);
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleSharedCredentialResponse,
@@ -131,10 +132,16 @@ async function initializeSharedGoogleAuth() {
                 cancel_on_tap_outside: true
             });
             // Show One Tap prompt for guests
-            google.accounts.id.prompt();
+            google.accounts.id.prompt((notification) => {
+                console.log("🔔 Google One Tap Status:", notification.getMomentType());
+                if (notification.isNotDisplayed()) {
+                    console.warn("⚠️ One Tap not displayed:", notification.getNotDisplayedReason());
+                }
+            });
         } else {
+            console.warn("⏳ Waiting for Google Auth dependencies...", { googleDefined: typeof google !== 'undefined', hasClientId: !!GOOGLE_CLIENT_ID });
             // Retry if either script or ID is missing
-            setTimeout(initializeSharedGoogleAuth, 1000);
+            setTimeout(initializeSharedGoogleAuth, 2000);
         }
     } catch (e) { console.error("Google Auth Init Error:", e); }
 }
