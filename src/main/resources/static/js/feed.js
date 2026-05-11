@@ -230,15 +230,20 @@ async function loadFeed(page = 0, refresh = false) {
 
             currentFeedPage = page + 1;
         } else {
+            console.error('Feed API returned error:', response.status);
             if (refresh) {
-                container.innerHTML = '<p class="no-data">No posts yet. Be the first to post!</p>';
+                if (response.status === 403 || response.status === 401) {
+                    container.innerHTML = '<div class="no-data"><i class="fa-solid fa-lock" style="font-size: 40px; margin-bottom: 15px; color: #cbd5e1;"></i><p>Access denied. Please log in again.</p></div>';
+                } else {
+                    container.innerHTML = '<div class="no-data"><i class="fa-solid fa-circle-exclamation" style="font-size: 40px; margin-bottom: 15px; color: #cbd5e1;"></i><p>Unable to load the feed. Please try again later.</p></div>';
+                }
             }
             hasMore = false;
         }
     } catch (error) {
         console.error('Error loading feed:', error);
         if (refresh) {
-            container.innerHTML = '<p class="no-data">Error loading feed. Please try again.</p>';
+            container.innerHTML = '<div class="no-data"><i class="fa-solid fa-wifi" style="font-size: 40px; margin-bottom: 15px; color: #cbd5e1;"></i><p>Network error. Please check your connection.</p></div>';
         }
     } finally {
         isLoading = false;
@@ -390,7 +395,7 @@ function renderPostHTML(post) {
     }
 
     return `
-    <div class="post-card fade-in" data-post-id="${post.id}">
+    <div class="post-card fade-in" data-post-id="${post.id}" onclick="handlePostDoubleTap(${post.id}, event)">
         <div class="post-header">
             <a href="profile.html?userId=${post.userId}" class="post-user-link" style="display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit;">
                 ${renderAvatar(post.user || { name: 'Unknown' }, 'post-avatar')}
@@ -405,10 +410,10 @@ function renderPostHTML(post) {
                     <span style="font-size:10px; color:#999; opacity:0.8;">${formatDate(post.createdAt)}</span>
                 </div>
             </a>
-            ${(post.userId == currentUserId || localStorage.getItem('isAdmin') === 'true') ? `
+            ${(post.userId == currentUserId || getCurrentUserIsAdmin()) ? `
                 <div class="post-actions-menu">
-                    ${post.userId == currentUserId ? `<button onclick="editPost(${post.id})" title="Edit">✏️</button>` : ''}
-                    <button onclick="deletePost(${post.id})" title="Delete">🗑️</button>
+                    <button onclick="editPost(${post.id})" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="deletePost(${post.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </div>
             ` : ''}
         </div>
@@ -682,6 +687,60 @@ async function deletePost(postId) {
     }
 }
 
+// CC-MAY-005: Double Tap to Like [N Navilash]
+let feedLastTapTime = 0;
+let feedLastTapPostId = null;
+
+function handlePostDoubleTap(postId, event) {
+    // Only trigger if clicking on the content/media, not on actions or links
+    if (event.target.closest('button') || event.target.closest('a') || event.target.closest('.poll-option')) return;
+
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - feedLastTapTime;
+    
+    if (feedLastTapPostId === postId && tapLength < 350 && tapLength > 0) {
+        // Double tap!
+        const likesCount = document.getElementById(`likes-count-${postId}`);
+        const btn = likesCount ? likesCount.parentElement : null;
+        
+        // Always trigger like if not already liked, or toggle if preferred
+        // Usually double tap is specifically for LIKING
+        if (btn && !btn.classList.contains('liked')) {
+            likePost(postId);
+        }
+        
+        // Visual feedback
+        showFloatingHeart(event, postId);
+        
+        feedLastTapTime = 0; // reset
+    } else {
+        feedLastTapTime = currentTime;
+        feedLastTapPostId = postId;
+    }
+}
+
+function showFloatingHeart(event, postId) {
+    const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+    if (!postCard) return;
+
+    const heart = document.createElement('div');
+    heart.className = 'floating-heart';
+    heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
+    
+    // Position the heart at the tap location relative to the post card
+    const rect = postCard.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    heart.style.left = `${x - 40}px`;
+    heart.style.top = `${y - 40}px`;
+    
+    postCard.appendChild(heart);
+    
+    // Remove after animation
+    setTimeout(() => heart.remove(), 800);
+}
+
 // CC-S1-102: Social Interactions [Nelpatla Venkatesh] - Refine frontend like logic and optimistic UI.
 async function likePost(postId) {
     const likesCount = document.getElementById(`likes-count-${postId}`);
@@ -869,7 +928,7 @@ function renderSingleComment(postId, comment, isReply = false) {
                         <span id="comment-likes-${comment.id}" class="comment-likes-count">${comment.likesCount > 0 ? `(${comment.likesCount})` : ''}</span>
                     </button>
                     <button class="comment-action-btn" onclick="replyToComment(${postId}, ${comment.id}, '${user.name}')">Reply</button>
-                    ${comment.userId == currentUserId ? `
+                    ${(comment.userId == currentUserId || getCurrentUserIsAdmin()) ? `
                         <button class="comment-action-btn delete" onclick="deleteComment(${postId}, ${comment.id})">Delete</button>
                     ` : ''}
                 </div>
@@ -1151,6 +1210,7 @@ async function saveEditPost() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                userId: currentUserId,
                 content: content,
                 imageUrls: editingImages
             })

@@ -143,15 +143,21 @@ public class PostService {
         return postRepository.findById(id).map(this::populatePollData);
     }
 
-    public Post updatePost(Long id, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
+    public Post updatePost(Long id, Long userId, String content, List<String> imageUrls, List<String> externalLinks, String aspectRatio) {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
 
-            // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
-            com.crewcanvas.model.User user = userRepository.findById(post.getUserId()).orElse(null);
-            boolean isAdmin = user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()));
+            // Ownership/Admin check
+            com.crewcanvas.model.User currentUser = userRepository.findById(userId).orElse(null);
+            boolean isAdmin = currentUser != null && (Boolean.TRUE.equals(currentUser.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(currentUser.getEmail()));
             
+            if (!post.getUserId().equals(userId) && !isAdmin) {
+                throw new RuntimeException("Unauthorized: You do not own this post and are not an admin.");
+            }
+
+            // Restriction: Only admin (crewcanvas2@gmail.com) can post videos
+            // Note: We use the currentUser (the person doing the update) for this check
             boolean hasVideo = imageUrls != null && imageUrls.stream().anyMatch(url -> url != null && url.startsWith("data:video/"));
             
             if (hasVideo && !isAdmin) {
@@ -327,7 +333,11 @@ public class PostService {
         Optional<Comment> commentOpt = commentRepository.findById(commentId);
         if (commentOpt.isPresent()) {
             Comment comment = commentOpt.get();
-            if (comment.getUserId().equals(userId)) {
+            
+            com.crewcanvas.model.User currentUser = userRepository.findById(userId).orElse(null);
+            boolean isAdmin = currentUser != null && (Boolean.TRUE.equals(currentUser.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(currentUser.getEmail()));
+
+            if (comment.getUserId().equals(userId) || isAdmin) {
                 // Update post count
                 Optional<Post> postOpt = postRepository.findById(comment.getPostId());
                 if (postOpt.isPresent()) {
@@ -451,13 +461,25 @@ public class PostService {
                 .distinct()
                 .collect(java.util.stream.Collectors.toList());
 
-        java.util.Map<Long, com.crewcanvas.model.User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
+        java.util.Map<Long, com.crewcanvas.model.User> tempUserMap;
+        try {
+            tempUserMap = userRepository.findAllById(userIds).stream()
+                .filter(u -> u != null && u.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                    com.crewcanvas.model.User::getId, 
+                    u -> u, 
+                    (existing, replacement) -> existing // Keep the first one found if duplicates exist
+                ));
+        } catch (Exception e) {
+            System.err.println("PostService: Error during batch user fetch: " + e.getMessage());
+            tempUserMap = new java.util.HashMap<>();
+        }
+        final java.util.Map<Long, com.crewcanvas.model.User> finalUserMap = tempUserMap;
 
         // 2. Populate data for each post
         posts.forEach(post -> {
             // User Details
-            com.crewcanvas.model.User user = userMap.get(post.getUserId());
+            com.crewcanvas.model.User user = finalUserMap.get(post.getUserId());
             if (user != null) {
                 java.util.Map<String, Object> details = new java.util.HashMap<>();
                 details.put("id", user.getId());

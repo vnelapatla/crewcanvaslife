@@ -198,7 +198,8 @@ async function handleCredentialResponse(response) {
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userEmail', user.email);
             localStorage.setItem('userName', user.name);
-            localStorage.setItem('isAdmin', user.isAdmin);
+            const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
+            localStorage.setItem('isAdmin', isAdmin);
             localStorage.setItem('profileScore', user.profileScore || 0);
 
             // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---

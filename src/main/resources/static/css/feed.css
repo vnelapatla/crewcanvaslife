@@ -1625,3 +1625,24 @@
     font-size: 13px;
     font-weight: 500;
 }
+
+/* Floating Heart Animation for Double Tap */
+.floating-heart {
+    position: absolute;
+    color: #ff2d55;
+    font-size: 80px;
+    pointer-events: none;
+    z-index: 1000;
+    animation: heartPop 0.8s ease-out forwards;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+    15% { transform: scale(1.2) rotate(5deg); opacity: 0.9; }
+    30% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.5) translateY(-100px) rotate(15deg); opacity: 0; }
+}

@@ -104,7 +104,7 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody PostRequest request) {
         try {
-            Post post = postService.updatePost(id, request.getContent(), request.getImageUrls(), request.getExternalLinks(), request.getAspectRatio());
+            Post post = postService.updatePost(id, request.getUserId(), request.getContent(), request.getImageUrls(), request.getExternalLinks(), request.getAspectRatio());
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
