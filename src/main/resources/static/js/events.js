@@ -182,9 +182,7 @@ function displayEvents(events, prepend = false) {
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <div class="type-tag ${tagClass}">${eventType}</div>
-                ${isManaged ? `<div class="type-tag" style="left: auto; right: 20px; background: #FF8C00; color: white;"><i class="fas fa-certificate"></i> Official</div>` : ''}
-                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: contain; background: #000;">
+                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover; display: block;">
                 <div class="card-content" style="padding: 15px;">
                     <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
                     ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
@@ -375,6 +373,7 @@ async function handleExternalRedirect(eventId, url) {
     message += `LOCATION: ${currentUser.location || 'Not Specified'}\n\n`;
     
     const profileUrl = `${window.location.origin}/share/deck/${currentUser.id}`;
+    message += `PROFILE COMPLETION: ${score}%\n`;
     message += `FULL CASTING DECK: ${profileUrl}`;
 
     const encodedMessage = encodeURIComponent(message);

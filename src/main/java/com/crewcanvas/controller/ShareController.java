@@ -37,7 +37,7 @@ public class ShareController {
         Post post = postOpt.get();
         String content = post.getContent() != null ? post.getContent() : "";
         String title = content.length() > 40 ? content.substring(0, 37) + "..." : (content.isEmpty() ? "New Post on CrewCanvas" : content);
-        String truncatedDescription = truncateContent(content, 0.70);
+        String truncatedDescription = truncateContent(content, 1.0);
         
         String publicBaseUrl = getPublicBaseUrl(request);
         String imageUrl = publicBaseUrl + "/share/image/post/" + id + "?v=" + System.currentTimeMillis();
@@ -59,7 +59,7 @@ public class ShareController {
         Event event = eventOpt.get();
         String title = event.getTitle();
         String content = event.getDescription() != null ? event.getDescription() : "";
-        String truncatedDescription = truncateContent(content, 0.70);
+        String truncatedDescription = truncateContent(content, 1.0);
         
         // Hide contact info in the share preview
         truncatedDescription += "\n\n[Contact details hidden. Click to view on website]";
@@ -169,18 +169,10 @@ public class ShareController {
                 int width = originalImage.getWidth();
                 int height = originalImage.getHeight();
                 
-                // Crop top 70% (Cinematic/Poster aspect ratio concept)
-                int cropHeight = (int) (height * 0.70);
-                if (cropHeight > 0) {
-                    java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
-                    
-                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                    String format = contentType.contains("/") ? contentType.split("/")[1] : "png";
-                    javax.imageio.ImageIO.write(croppedImage, format, baos);
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.parseMediaType(contentType))
-                            .body(baos.toByteArray());
-                }
+                // No crop needed as per user request to show full poster
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(imageBytes);
             }
             
             return ResponseEntity.ok()
