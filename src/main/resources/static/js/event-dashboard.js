@@ -86,9 +86,9 @@ function renderEventList(events) {
 
         return `
         <div class="event-card" style="display: flex; flex-direction: column; height: auto; padding: 0; overflow: hidden; border-radius: 24px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 25px;">
-            <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #000; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <div class="event-banner" style="width: 100%; height: auto; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
-                     style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                     style="width: 100%; height: auto; display: block;">
                 <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px;">
                     <span style="background: rgba(67, 56, 202, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);">${event.eventType}</span>
                     ${event.isManaged ? `<span style="background: rgba(255, 140, 0, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</span>` : ''}
