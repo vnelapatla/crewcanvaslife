@@ -182,7 +182,9 @@ function displayEvents(events, prepend = false) {
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <img src="${displayImage}" style="width: 100%; height: 500px; object-fit: cover; display: block;">
+                <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #000; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                    <img src="${displayImage}" style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                </div>
                 <div class="card-content" style="padding: 15px;">
                     <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
                     ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
