@@ -236,7 +236,9 @@
 .post-image {
     width: 100%;
     height: auto;
-    object-fit: cover;
+    max-height: 80vh;
+    object-fit: contain;
+    background-color: #000;
     border-radius: 12px;
     margin-top: 10px;
     display: block;
@@ -386,7 +388,7 @@
 /* Post Image Slider */
 .post-slider-container {
     position: relative;
-    background: transparent;
+    background: #000;
     border-radius: 12px;
     overflow: hidden;
     margin-top: 10px;
