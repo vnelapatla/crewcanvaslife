@@ -137,11 +137,19 @@ public class ShareController {
         try {
             byte[] imageBytes;
             String contentType = "image/png";
-
             if (source.startsWith("data:image")) {
                 String[] parts = source.split(",");
                 contentType = parts[0].split(":")[1].split(";")[0];
                 imageBytes = java.util.Base64.getDecoder().decode(parts[1]);
+            } else if (source.startsWith("http")) {
+                // Handle external URLs
+                java.net.URL url = new java.net.URL(source);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                try (java.io.InputStream is = conn.getInputStream()) {
+                    imageBytes = is.readAllBytes();
+                    contentType = conn.getContentType();
+                }
             } else {
                 // Handle local file path (static assets)
                 String path = source.startsWith("/") ? source : "src/main/resources/static/" + source;
@@ -161,20 +169,7 @@ public class ShareController {
                 }
             }
 
-            // Load image to crop
-            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
-            java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
-
-            if (originalImage != null) {
-                int width = originalImage.getWidth();
-                int height = originalImage.getHeight();
-                
-                // No crop needed as per user request to show full poster
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .body(imageBytes);
-            }
-            
+            // No crop needed as per user request to show full poster
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(imageBytes);

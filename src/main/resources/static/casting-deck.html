@@ -563,7 +563,7 @@
                 // Content Injection
                 document.title = `${user.name} | Professional Casting Deck`;
                 document.getElementById('userName').textContent = user.name.toLowerCase();
-                document.getElementById('userBioShort').textContent = user.role ? `winning as ${user.role.toLowerCase()} twice in 2024` : 'professional creative talent';
+                document.getElementById('userBioShort').textContent = user.role ? user.role.toUpperCase() : 'CREATIVE PROFESSIONAL';
                 
                 // Stats Pills
                 document.getElementById('pillProjects').textContent = user.projectsDirected || user.totalProjects || '0';
@@ -573,7 +573,7 @@
                 document.getElementById('userEmailText').textContent = user.email || 'Email Protected';
                 document.getElementById('locText').textContent = user.location || 'Hyderabad';
                 if (user.bio) document.getElementById('fullBioText').textContent = user.bio;
-                else document.getElementById('fullBioText').textContent = "Professional creative talent with expertise in cinematic storytelling and artistic performance.";
+                else document.getElementById('fullBioText').textContent = "No professional narrative provided yet.";
 
                 // Phone Display (Primary from unmasked API)
                 let displayPhone = user.phone;
@@ -605,12 +605,12 @@
                 // Craft Specs (Dark Grid)
                 const specsContainer = document.getElementById('specsDisplayDark');
                 const specs = [
-                    { label: 'Height (cm)', value: user.height || '185' },
-                    { label: 'Weight (kg)', value: user.weight || '75' },
-                    { label: 'Age', value: user.ageRange || user.age || '28' },
-                    { label: 'Gender', value: user.gender || 'Male' },
-                    { label: 'Body Type', value: user.bodyType || 'Natural' },
-                    { label: 'Languages', value: user.languages || 'English' }
+                    { label: 'Height (cm)', value: user.height || 'Not Specified' },
+                    { label: 'Weight (kg)', value: user.weight || 'Not Specified' },
+                    { label: 'Age', value: user.ageRange || user.age || 'Not Specified' },
+                    { label: 'Gender', value: user.gender || 'Not Specified' },
+                    { label: 'Body Type', value: user.bodyType || 'Not Specified' },
+                    { label: 'Languages', value: user.languages || 'Not Specified' }
                 ];
                 specsContainer.innerHTML = specs.map(s => `
                     <div class="spec-item-dark">

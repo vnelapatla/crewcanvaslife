@@ -19,6 +19,7 @@ public class EventSummaryDTO {
     private Boolean isManaged;
     private String externalLink;
     private String adminNote;
+    private String createdAt;
 
     public EventSummaryDTO() {}
 
@@ -39,6 +40,7 @@ public class EventSummaryDTO {
         this.isManaged = event.getIsManaged();
         this.externalLink = event.getExternalLink();
         this.adminNote = event.getAdminNote();
+        this.createdAt = event.getCreatedAt() != null ? event.getCreatedAt().toString() : null;
         // Removed description to optimize payload size
     }
 
@@ -74,4 +76,6 @@ public class EventSummaryDTO {
     public void setExternalLink(String externalLink) { this.externalLink = externalLink; }
     public String getAdminNote() { return adminNote; }
     public void setAdminNote(String adminNote) { this.adminNote = adminNote; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 }

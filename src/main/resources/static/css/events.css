@@ -11,7 +11,6 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 30px;
     padding: 20px 0 100px;
-    align-items: start;
 }
 
 @media (max-width: 1200px) {

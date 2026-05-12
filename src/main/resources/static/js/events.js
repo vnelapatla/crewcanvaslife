@@ -182,11 +182,12 @@ function displayEvents(events, prepend = false) {
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <div class="event-banner" style="width: 100%; height: auto; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                    <img src="${displayImage}" style="width: 100%; height: auto; display: block;">
+                <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #f8fafc; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
+                    <img src="${displayImage}" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                 </div>
                 <div class="card-content" style="padding: 15px;">
-                    <h3 style="font-size: 18px; margin-bottom: 8px;">${event.title}</h3>
+                    <h3 style="font-size: 18px; margin-bottom: 4px;">${event.title}</h3>
+                    ${event.createdAt ? `<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;"><i class="far fa-clock"></i> Posted: ${typeof formatDate === 'function' ? formatDate(event.createdAt) : new Date(event.createdAt).toLocaleDateString()}</div>` : ''}
                     ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                         <div style="font-size: 11px; font-weight: 600; color: #64748b;">

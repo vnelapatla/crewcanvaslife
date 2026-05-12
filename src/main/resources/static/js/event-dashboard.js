@@ -86,9 +86,9 @@ function renderEventList(events) {
 
         return `
         <div class="event-card" style="display: flex; flex-direction: column; height: auto; padding: 0; overflow: hidden; border-radius: 24px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 25px;">
-            <div class="event-banner" style="width: 100%; height: auto; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #f8fafc; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
                 <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
-                     style="width: 100%; height: auto; display: block;">
+                     style="width: 100%; height: 100%; object-fit: contain; display: block;">
                 <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px;">
                     <span style="background: rgba(67, 56, 202, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);">${event.eventType}</span>
                     ${event.isManaged ? `<span style="background: rgba(255, 140, 0, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</span>` : ''}
@@ -99,6 +99,7 @@ function renderEventList(events) {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div class="event-info">
                         <h3 style="margin: 0; font-size: 22px; color: #1e293b; font-family: 'Outfit', sans-serif;">${event.title}</h3>
+                        ${event.createdAt ? `<div style="margin-top: 4px; color: #94a3b8; font-size: 12px;"><i class="far fa-clock"></i> Posted: ${typeof formatDate === 'function' ? formatDate(event.createdAt) : new Date(event.createdAt).toLocaleDateString()}</div>` : ''}
                         <div style="display: flex; gap: 12px; margin-top: 8px; color: #64748b; font-size: 13px; font-weight: 600;">
                             <span><i class="fas fa-map-marker-alt" style="color: var(--primary-orange);"></i> ${event.location}</span>
                             <span><i class="fas fa-users" style="color: var(--primary-orange);"></i> ${event.applicants || 0} Registered</span>
