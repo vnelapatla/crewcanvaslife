@@ -605,19 +605,25 @@
                 // Craft Specs (Dark Grid)
                 const specsContainer = document.getElementById('specsDisplayDark');
                 const specs = [
-                    { label: 'Height (cm)', value: user.height || 'Not Specified' },
-                    { label: 'Weight (kg)', value: user.weight || 'Not Specified' },
-                    { label: 'Age', value: user.ageRange || user.age || 'Not Specified' },
-                    { label: 'Gender', value: user.gender || 'Not Specified' },
-                    { label: 'Body Type', value: user.bodyType || 'Not Specified' },
-                    { label: 'Languages', value: user.languages || 'Not Specified' }
-                ];
-                specsContainer.innerHTML = specs.map(s => `
-                    <div class="spec-item-dark">
-                        <span>${s.label}</span>
-                        <b>${s.value}</b>
-                    </div>
-                `).join('');
+                    { label: 'Height', value: user.height },
+                    { label: 'Weight', value: user.weight },
+                    { label: 'Age', value: user.ageRange || user.age },
+                    { label: 'Gender', value: user.gender },
+                    { label: 'Body Type', value: user.bodyType },
+                    { label: 'Languages', value: user.languages }
+                ].filter(s => s.value && s.value.toString().trim() !== '' && s.value !== 'Not Specified');
+
+                if (specs.length > 0) {
+                    specsContainer.innerHTML = specs.map(s => `
+                        <div class="spec-item-dark">
+                            <span>${s.label}</span>
+                            <b>${s.value}</b>
+                        </div>
+                    `).join('');
+                } else {
+                    // Hide the entire Craft Specifications card if nothing was specified
+                    specsContainer.closest('.content-card').style.display = 'none';
+                }
 
                 // Skills Badge Count
                 const skillList = user.skills ? user.skills.split(',').map(s => s.trim()).filter(s => s) : [];
