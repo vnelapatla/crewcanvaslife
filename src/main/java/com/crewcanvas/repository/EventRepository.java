@@ -27,4 +27,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     java.util.Optional<Event> findByShareKey(String shareKey);
 
     long countByCreatedAtAfter(java.time.Instant instant);
+
+    @org.springframework.data.jpa.repository.Query("SELECT e.eventType, COUNT(e) FROM Event e GROUP BY e.eventType")
+    List<Object[]> countByEventType();
 }

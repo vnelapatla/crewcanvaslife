@@ -8,7 +8,7 @@ let currentFilter = 'all';
 let eventPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 1000;
+const PAGE_SIZE = 15;
 let currentType = ''; 
 let editModeId = null;
 let visibleCount = 15;
@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load everything in background (non-blocking for faster mobile init)
     Promise.all([
         loadCurrentUser(),
-        loadEvents()
+        loadEvents(),
+        loadEventStats()
     ]);
     scrollToEventFromUrl();
     checkEditMode();
@@ -69,6 +70,21 @@ async function loadCurrentUser() {
         }
     } catch (error) { console.error(error); }
     return null;
+}
+
+async function loadEventStats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/events/stats`);
+        if (response.ok) {
+            const stats = await response.json();
+            if (document.getElementById('workshopCount')) document.getElementById('workshopCount').innerText = stats['Workshop'] || 0;
+            if (document.getElementById('courseCount')) document.getElementById('courseCount').innerText = stats['Course'] || 0;
+            if (document.getElementById('contestCount')) document.getElementById('contestCount').innerText = stats['Contest'] || 0;
+            if (document.getElementById('auditionCount')) document.getElementById('auditionCount').innerText = stats['Audition'] || 0;
+            if (document.getElementById('filmEventCount')) document.getElementById('filmEventCount').innerText = stats['Film Event'] || 0;
+            if (document.getElementById('totalEventCount')) document.getElementById('totalEventCount').innerText = stats['total'] || 0;
+        }
+    } catch (error) { console.error('Error loading stats:', error); }
 }
 
 async function loadEvents() {
@@ -130,7 +146,7 @@ async function loadEvents() {
                 hasMore = false;
             }
 
-            updateCounts(); 
+            // Note: counts are now handled by loadEventStats()
             searchEvents();
             eventPage++;
         }
@@ -154,16 +170,7 @@ window.addEventListener('scroll', () => {
     }
 });
 
-function updateCounts() {
-    const counts = { 'Workshop': 0, 'Course': 0, 'Contest': 0, 'Audition': 0, 'Film Event': 0 };
-    allEvents.forEach(event => { if (counts[event.eventType] !== undefined) counts[event.eventType]++; });
-    if (document.getElementById('workshopCount')) document.getElementById('workshopCount').innerText = counts['Workshop'];
-    if (document.getElementById('courseCount')) document.getElementById('courseCount').innerText = counts['Course'];
-    if (document.getElementById('contestCount')) document.getElementById('contestCount').innerText = counts['Contest'];
-    if (document.getElementById('auditionCount')) document.getElementById('auditionCount').innerText = counts['Audition'];
-    if (document.getElementById('filmEventCount')) document.getElementById('filmEventCount').innerText = counts['Film Event'];
-    if (document.getElementById('totalEventCount')) document.getElementById('totalEventCount').innerText = allEvents.length;
-}
+// Removed updateCounts - counts are now handled by loadEventStats()
 
 function searchEvents() {
     const searchInput = document.getElementById('eventSearchInput');

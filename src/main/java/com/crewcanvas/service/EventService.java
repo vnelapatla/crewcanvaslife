@@ -58,6 +58,22 @@ public class EventService {
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
+    public Map<String, Long> getEventStats() {
+        List<Object[]> results = eventRepository.countByEventType();
+        Map<String, Long> stats = new HashMap<>();
+        long total = 0;
+        for (Object[] result : results) {
+            String type = (String) result[0];
+            Long count = (Long) result[1];
+            if (type != null) {
+                stats.put(type, count);
+                total += count;
+            }
+        }
+        stats.put("total", total);
+        return stats;
+    }
+
     private void sendRealTimeMessage(Message msg) {
         try {
             Map<String, Object> map = new HashMap<>();

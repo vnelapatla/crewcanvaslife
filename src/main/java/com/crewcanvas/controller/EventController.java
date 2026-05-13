@@ -87,6 +87,15 @@ public class EventController {
         }
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<?> getEventStats() {
+        try {
+            return ResponseEntity.ok(eventService.getEventStats());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllEvents(
             @RequestParam(required = false) String type,

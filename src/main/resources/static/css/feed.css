@@ -387,7 +387,7 @@
 /* Post Image Slider */
 .post-slider-container {
     position: relative;
-    background: transparent;
+    background: #000;
     border-radius: 12px;
     overflow: hidden;
     margin-top: 10px;

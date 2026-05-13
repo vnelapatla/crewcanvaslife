@@ -6,6 +6,11 @@ let allApplicants = [];
 let filteredApplicants = [];
 let eventsCache = [];
 let currentUser = null;
+let eventPage = 0;
+let hasMoreEvents = true;
+let isLoadingEvents = false;
+let applicantsPage = 1;
+const APPLICANTS_PER_PAGE = 20;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -22,44 +27,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         showListView();
     }
+
+    // Scroll listener for infinite scroll in list view
+    window.addEventListener('scroll', () => {
+        if (!currentEventId && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+            if (!isLoadingEvents && hasMoreEvents) {
+                eventPage++;
+                showListView(true);
+            }
+        }
+    });
 });
 
-async function showListView() {
+async function showListView(append = false) {
     document.getElementById('listView').style.display = 'block';
     document.getElementById('mgmtView').style.display = 'none';
     
     const userId = getCurrentUserId();
     if (!userId) return;
 
-    try {
-        // --- OPTIMIZATION: Try to load from Pre-fetch Cache first ---
-        const cached = localStorage.getItem('cache_dashboard_events');
-        if (cached && eventsCache.length === 0) {
-            try {
-                const cachedEvents = JSON.parse(cached);
-                if (cachedEvents && cachedEvents.length > 0) {
-                    console.log("✨ Instant Dashboard: Using pre-fetch cache");
-                    eventsCache = cachedEvents;
-                    renderEventList(eventsCache);
-                }
-            } catch (e) { localStorage.removeItem('cache_dashboard_events'); }
-        }
+    if (isLoadingEvents) return;
+    isLoadingEvents = true;
 
-        // If admin, load ALL events, otherwise just user events
+    const list = document.getElementById('eventList');
+    if (!append && list) {
+        list.innerHTML = `
+            <div class="skeleton" style="height: 150px; margin-bottom: 15px; border-radius: 16px;"></div>
+            <div class="skeleton" style="height: 150px; margin-bottom: 15px; border-radius: 16px;"></div>
+        `;
+    }
+
+    try {
         const url = (currentUser && currentUser.isAdmin) 
-            ? `${API_BASE_URL}/api/events` 
-            : `${API_BASE_URL}/api/events/user/${userId}`;
+            ? `${API_BASE_URL}/api/events?page=${eventPage}&size=10` 
+            : `${API_BASE_URL}/api/events/user/${userId}?page=${eventPage}&size=10`;
             
         const res = await fetch(url);
         if (res.ok) {
             const data = await res.json();
-            // Handle both Array and Page Object
             const events = data.content ? data.content : data;
-            eventsCache = events;
-            renderEventList(events);
+            
+            if (append) {
+                eventsCache = [...eventsCache, ...events];
+            } else {
+                eventsCache = events;
+            }
+
+            if (events.length < 10) hasMoreEvents = false;
+            renderEventList(eventsCache);
         }
     } catch (error) {
         console.error('Error loading events:', error);
+    } finally {
+        isLoadingEvents = false;
     }
 }
 
@@ -225,13 +245,17 @@ async function showManagementView() {
     try {
         await fetchEventDetails();
         
-        // Load Applicants (Optimized: Using summary endpoint to avoid heavy base64 payloads)
+        // Load Applicants
+        const body = document.getElementById('applicantsBody');
+        if (body) body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px;"><div class="loader-sm"></div> Loading applicants...</td></tr>';
+
         const viewerId = getCurrentUserId();
         const applicantsRes = await fetch(`${API_BASE_URL}/api/events/${currentEventId}/applicants/summary?viewerId=${viewerId}`);
         if (applicantsRes.ok) {
             const rawApplicants = await applicantsRes.json();
             allApplicants = rawApplicants;
             filteredApplicants = [...allApplicants];
+            applicantsPage = 1; // Reset to page 1
             renderApplicantsTable();
             updateStats();
         } else {
@@ -250,35 +274,19 @@ function renderApplicantsTable() {
     const table = document.querySelector('.applicants-table');
     if (!body || !table) return;
 
-    const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
-    const isAudition = (currentEvent.eventType || '').toLowerCase() === 'audition';
-
-    // Update Headers
-    const thead = table.querySelector('thead');
-    if (thead) {
-        thead.innerHTML = `
-            <tr>
-                <th style="width: 50px;">RANK</th>
-                <th>NAME</th>
-                <th>EMAIL ADDRESS</th>
-                <th>MOBILE NUMBER</th>
-                <th style="width: 100px;">STATUS</th>
-                <th style="width: 150px;">ACTIONS</th>
-            </tr>
-        `;
-    }
+    // Client-side pagination logic
+    const start = 0;
+    const end = applicantsPage * APPLICANTS_PER_PAGE;
+    const pagedApplicants = filteredApplicants.slice(start, end);
 
     if (filteredApplicants.length === 0) {
         body.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:#94a3b8;">No applicants found.</td></tr>`;
         return;
     }
 
-    body.innerHTML = filteredApplicants.map((app, index) => {
+    body.innerHTML = pagedApplicants.map((app, index) => {
         const isLowCompleteness = app.matchScore < -2000;
-        const rankLabel = isLowCompleteness ? 'NEXT ORDER' : `#${index + 1} MATCH`;
         const rankColor = isLowCompleteness ? '#94a3b8' : '#ff8c00';
-
-        const isContest = (currentEvent.eventType || '').toLowerCase() === 'contest';
         
         return `
             <tr>
@@ -310,29 +318,24 @@ function renderApplicantsTable() {
                         <button class="icon-btn" onclick="window.location.href='messages.html?userId=${app.userId}&from=applicant'" title="Message" style="background:#fef3c7; color:#d97706; border: 1px solid #fde68a;">
                             <i class="fas fa-comment"></i>
                         </button>
-                        
-                        ${app.status === 'PENDING' ? `
-                            <button class="icon-btn btn-check" onclick="updateAppStatus(${app.id}, 'SHORTLISTED')" title="Shortlist">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        ` : ''}
-
-                        ${app.status === 'SHORTLISTED' && ['audition', 'contest'].includes((currentEvent.eventType || '').toLowerCase()) ? `
-                            <button class="icon-btn" onclick="updateAppStatus(${app.id}, 'SELECTED')" title="Select" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;">
-                                <i class="fas fa-trophy"></i>
-                            </button>
-                        ` : ''}
-                        
-                        ${app.status === 'PENDING' ? `
-                            <button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'Reject')" title="Reject">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
+                        ${app.status === 'PENDING' ? `<button class="icon-btn btn-check" onclick="updateAppStatus(${app.id}, 'SHORTLISTED')" title="Shortlist"><i class="fas fa-check"></i></button>` : ''}
+                        ${app.status === 'PENDING' ? `<button class="icon-btn btn-cross" onclick="updateAppStatus(${app.id}, 'Reject')" title="Reject"><i class="fas fa-times"></i></button>` : ''}
                     </div>
                 </td>
             </tr>
         `;
     }).join('');
+
+    // Load more button if needed
+    if (end < filteredApplicants.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="6" style="text-align:center; padding: 20px;">
+                <button class="manage-btn" onclick="applicantsPage++; renderApplicantsTable()" style="background: #f1f5f9; width: 200px;">Load More Applicants</button>
+            </td>
+        `;
+        body.appendChild(row);
+    }
 }
 
 function updateStats() {
@@ -724,9 +727,9 @@ function filterApplicants(query) {
         (app.applicantName || '').toLowerCase().includes(query) || 
         (app.applicantEmail || '').toLowerCase().includes(query) ||
         (app.role || '').toLowerCase().includes(query) ||
-        (app.teamName || '').toLowerCase().includes(query) ||
-        (app.shortFilmTitle || '').toLowerCase().includes(query)
+        (app.mobileNumber || '').toLowerCase().includes(query)
     );
+    applicantsPage = 1; // Reset to page 1 on filter
     renderApplicantsTable();
 }
 
