@@ -194,21 +194,35 @@ const AdvancedMessaging = {
 
 function enhanceMessageDisplay(msg) {
     let content = AdvancedMessaging.decrypt(msg.content);
+    if (!content) return content;
+
+    // Escape HTML to prevent XSS
+    content = content.replace(/&/g, '&amp;')
+                     .replace(/</g, '&lt;')
+                     .replace(/>/g, '&gt;')
+                     .replace(/"/g, '&quot;')
+                     .replace(/'/g, '&#039;');
 
     // Handle Stickers
-    if (content && content.startsWith('[STICKER:') && content.endsWith(']')) {
+    if (content.startsWith('[STICKER:') && content.endsWith(']')) {
         const icon = content.replace('[STICKER:', '').replace(']', '');
         return `<div class="sticker-msg" style="font-size: 80px; text-align: center; padding: 10px; animation: bounceIn 0.5s ease;">${icon}</div>`;
     }
 
+    // Linkify URLs (after escaping, so URLs with '&' etc are safe to match, but we must use the escaped versions)
+    // Actually, it's safer to use rgb() to avoid hashtag matching, and to avoid hashtag matching inside href, 
+    // we should do hashtag replacement before URL linkification. Or, only match hashtags preceded by whitespace/start of string.
+    
+    // Process hashtags or @mentions first to avoid matching inside href
+    content = content.replace(/(^|\s)#([a-zA-Z0-9_]+)/g, '$1<span class="hashtag">#$2</span>');
+
     // Linkify URLs
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    content = (content || '').replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" style="color: #ff8c00; text-decoration: underline; font-weight: 600;">${url}</a>`;
+    content = content.replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" style="color: rgb(255, 140, 0); text-decoration: underline; font-weight: 600;">${url}</a>`;
     });
 
-    // Process hashtags or @mentions if needed
-    return content.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+    return content;
 }
 
 // Export for use in messages.js

@@ -169,7 +169,34 @@ public class ShareController {
                 }
             }
 
-            // No crop needed as per user request to show full poster
+            // Crop top 70% (hides bottom 30% where contact details usually are)
+            try {
+                java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
+                java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
+                
+                if (originalImage != null) {
+                    int width = originalImage.getWidth();
+                    int height = originalImage.getHeight();
+                    
+                    int cropHeight = (int) (height * 0.70);
+                    if (cropHeight > 0) {
+                        java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
+                        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                        
+                        String format = "png";
+                        if (contentType != null && (contentType.contains("jpeg") || contentType.contains("jpg"))) {
+                            format = "jpg";
+                        }
+                        
+                        javax.imageio.ImageIO.write(croppedImage, format, baos);
+                        imageBytes = baos.toByteArray();
+                    }
+                }
+            } catch (Exception cropEx) {
+                cropEx.printStackTrace();
+                // Fallback to original imageBytes if crop fails
+            }
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(imageBytes);

@@ -8,9 +8,10 @@ let currentFilter = 'all';
 let eventPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 1000;
 let currentType = ''; 
 let editModeId = null;
+let visibleCount = 15;
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
@@ -144,7 +145,12 @@ async function loadEvents() {
 // Add scroll listener for infinite scroll
 window.addEventListener('scroll', () => {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-        loadEvents();
+        if (visibleCount < allEvents.length) {
+            visibleCount += 15;
+            searchEvents();
+        } else {
+            loadEvents();
+        }
     }
 });
 
@@ -171,7 +177,10 @@ function searchEvents() {
 function displayEvents(events, prepend = false) {
     const container = document.getElementById('eventsGrid');
     if (!container) return;
-    const eventsHtml = events.map((event, index) => {
+    
+    const eventsToShow = events.slice(0, visibleCount);
+    
+    const eventsHtml = eventsToShow.map((event, index) => {
         const eventType = event.eventType || 'Audition';
         const isManaged = event.isManaged === true;
         const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
@@ -506,5 +515,6 @@ function switchEventTab(type, element) {
     else if (type === 'contests') filterType = 'Contest';
     else if (type === 'filmevents') filterType = 'Film Event';
     currentFilter = filterType;
+    visibleCount = 15; // Reset visible count on tab switch
     searchEvents();
 }

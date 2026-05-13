@@ -365,6 +365,7 @@
         margin-right: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        max-height: none !important;
         border-radius: 0 !important;
     }
 
