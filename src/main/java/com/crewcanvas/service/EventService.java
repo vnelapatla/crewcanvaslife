@@ -509,13 +509,14 @@ public class EventService {
                 .distinct()
                 .collect(Collectors.toList());
         
-        Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(User::getId, u -> u));
+        // Use the new summary method to avoid loading heavy blobs
+        Map<Long, com.crewcanvas.dto.UserSummary> userMap = userRepository.findAllSummaryByIdIn(userIds).stream()
+                .collect(Collectors.toMap(com.crewcanvas.dto.UserSummary::getId, u -> u));
 
         List<com.crewcanvas.dto.EventApplicationDTO> dtos = new java.util.ArrayList<>();
         for (com.crewcanvas.dto.EventApplicationSummary summary : summaries) {
             com.crewcanvas.dto.EventApplicationDTO dto = new com.crewcanvas.dto.EventApplicationDTO(summary);
-            User user = userMap.get(summary.getUserId());
+            com.crewcanvas.dto.UserSummary user = userMap.get(summary.getUserId());
             if (user != null) {
                 dto.setMatchScore(calculateMatchScore(event, user));
             }
@@ -536,7 +537,7 @@ public class EventService {
         return dtos;
     }
 
-    private int calculateMatchScore(Event event, User user) {
+    private int calculateMatchScore(Event event, com.crewcanvas.dto.UserSummary user) {
         int score = 0;
 
         // Priority 1: Skill match (Max 1000)

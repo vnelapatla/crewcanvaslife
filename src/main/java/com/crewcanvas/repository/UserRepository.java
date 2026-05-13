@@ -92,6 +92,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "u.location as location, u.phone as phone, u.userType as userType, " +
             "u.isVerifiedProfessional as isVerifiedProfessional, u.isAdmin as isAdmin, " +
             "u.followers as followers, u.following as following, u.profileScore as profileScore, " +
+            "u.ageRange as ageRange, u.experience as experience, u.skills as skills, " +
+            "u.instagram as instagram, u.youtube as youtube, u.showreel as showreel, u.portfolioVideos as portfolioVideos " +
+            "FROM User u WHERE u.id IN :ids")
+    List<com.crewcanvas.dto.UserSummary> findAllSummaryByIdIn(@org.springframework.data.repository.query.Param("ids") List<Long> ids);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u.id as id, u.name as name, u.email as email, u.role as role, " +
+            "u.location as location, u.phone as phone, u.userType as userType, " +
+            "u.isVerifiedProfessional as isVerifiedProfessional, u.isAdmin as isAdmin, " +
+            "u.followers as followers, u.following as following, u.profileScore as profileScore, " +
             "u.ageRange as ageRange, u.experience as experience " +
             "FROM User u WHERE u.id = :id")
     Optional<com.crewcanvas.dto.UserSummary> findSummaryById(@org.springframework.data.repository.query.Param("id") Long id);
