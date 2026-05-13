@@ -538,12 +538,20 @@ public class EventService {
     }
 
     private int calculateMatchScore(Event event, com.crewcanvas.dto.UserSummary user) {
+        return calculateMatchScoreInternal(event, user.getSkills(), user.getShowreel(), user.getPortfolioVideos(), user.getInstagram(), user.getYoutube(), user.getProfileScore());
+    }
+
+    private int calculateMatchScore(Event event, User user) {
+        return calculateMatchScoreInternal(event, user.getSkills(), user.getShowreel(), user.getPortfolioVideos(), user.getInstagram(), user.getYoutube(), user.getProfileScore());
+    }
+
+    private int calculateMatchScoreInternal(Event event, String userSkillsStr, String showreel, String portfolioVideos, String instagram, String youtube, int profileScore) {
         int score = 0;
 
         // Priority 1: Skill match (Max 1000)
-        if (event.getSkills() != null && user.getSkills() != null) {
+        if (event.getSkills() != null && userSkillsStr != null) {
             Set<String> eventSkills = new HashSet<>(Arrays.asList(event.getSkills().toLowerCase().split("\\s*,\\s*")));
-            Set<String> userSkills = new HashSet<>(Arrays.asList(user.getSkills().toLowerCase().split("\\s*,\\s*")));
+            Set<String> userSkills = new HashSet<>(Arrays.asList(userSkillsStr.toLowerCase().split("\\s*,\\s*")));
 
             long matchCount = userSkills.stream().filter(eventSkills::contains).count();
             if (eventSkills.size() > 0) {
@@ -552,15 +560,14 @@ public class EventService {
         }
 
         // Priority 2: Portfolio strength (Max 500)
-        if (user.getShowreel() != null && !user.getShowreel().isEmpty())
+        if (showreel != null && !showreel.isEmpty())
             score += 200;
-        if (user.getPortfolioVideos() != null && !user.getPortfolioVideos().isEmpty())
+        if (portfolioVideos != null && !portfolioVideos.isEmpty())
             score += 150;
-        if (user.getInstagram() != null || user.getYoutube() != null)
+        if (instagram != null || youtube != null)
             score += 150;
 
         // Priority 3: Profile completeness (Max 250)
-        int profileScore = user.getProfileScore();
         score += (profileScore * 250) / 100;
 
         // Additional Rule: Users with profile completeness < 70 put them in next order
