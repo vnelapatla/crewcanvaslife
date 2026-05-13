@@ -270,10 +270,11 @@ public class DatabaseFixerConfig {
                 }
                 
                 // --- DATA COMPRESSION: Shrink existing large images to fix 10s delay ---
-                System.out.println("Checking for oversized images to compress...");
-                compressExistingImages(jdbcTemplate, "users", "profile_picture", "id");
-                compressExistingImages(jdbcTemplate, "users", "cover_image", "id");
-                compressExistingImages(jdbcTemplate, "posts", "image_url", "id");
+                // Disabled to prevent OutOfMemoryError / OS kill on 1GB/2GB RAM servers
+                // System.out.println("Checking for oversized images to compress...");
+                // compressExistingImages(jdbcTemplate, "users", "profile_picture", "id");
+                // compressExistingImages(jdbcTemplate, "users", "cover_image", "id");
+                // compressExistingImages(jdbcTemplate, "posts", "image_url", "id");
                 
                 // Mark maintenance as done
                 try {

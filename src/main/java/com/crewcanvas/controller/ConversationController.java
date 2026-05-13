@@ -32,7 +32,7 @@ public class ConversationController {
             return ResponseEntity.ok(java.util.Collections.emptyList());
         }
         try {
-            System.out.println("Fetching conversations for user: " + userId);
+            // System.out.println("Fetching conversations for user: " + userId);
             List<Message> allMessages = messageService.getUserMessages(userId);
             
             // Group by other user to get unique conversations
