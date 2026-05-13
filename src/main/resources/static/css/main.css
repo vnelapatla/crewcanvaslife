@@ -2,8 +2,8 @@
 :root {
     --primary-orange: #ff8c00;
     --accent-red: #ff4c3b;
-    --sidebar-bg: #111111;
-    --content-bg: #ffffff;
+    --sidebar-bg: #000000;
+    --content-bg: #000000;
     --white: #ffffff;
     --text-dark: #1f2937;
     --text-muted: #6b7280;
@@ -44,7 +44,7 @@
 
 body {
     background-color: var(--content-bg);
-    color: var(--text-dark);
+    color: #ffffff;
     min-height: 100vh;
 }
 
@@ -191,8 +191,8 @@ img, video, iframe {
     top: 0;
     left: 0;
     z-index: 10000; /* Higher than overlays */
-    background: white;
-    border-bottom: 1px solid #f1f5f9;
+    background: #000000;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     height: 70px;
     box-sizing: border-box;
 }
@@ -241,7 +241,7 @@ img, video, iframe {
     background: none;
     border: none;
     font-size: 20px;
-    color: var(--text-dark);
+    color: #ffffff;
     cursor: pointer;
     margin-right: 15px;
 }
@@ -442,11 +442,12 @@ img, video, iframe {
     .top-header {
         padding: 10px 15px;
         justify-content: space-between !important;
-        background: white;
+        background: #000000;
         height: 70px;
         left: 0 !important;
         right: 0 !important;
         width: auto !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
     .main-content {
@@ -528,8 +529,8 @@ img, video, iframe {
 }
 
 /* Mobile Padding & Grid Utilities */
-@media (max-width: 600px) {
-    .content-body { padding: 15px; }
+@media (max-width: 1024px) {
+    .content-body { padding: 0 !important; }
     .card { padding: 15px; border-radius: 12px; }
     .stats-grid, .info-grid, .quick-actions { 
         grid-template-columns: 1fr !important; 
