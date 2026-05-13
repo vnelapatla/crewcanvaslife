@@ -1921,7 +1921,7 @@ if (document.readyState === 'loading') {
 } else {
     setTimeout(() => {
         checkGlobalProfessionalReadiness();
-        preFetchBackgroundData();
+        // preFetchBackgroundData(); // DISABLED: Causes server overload on small instances
     }, 500);
 }
 
