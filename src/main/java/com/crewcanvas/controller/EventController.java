@@ -128,6 +128,34 @@ public class EventController {
         }
     }
 
+    @GetMapping("/slim")
+    public ResponseEntity<?> getAllEventsSlim(
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            if (type != null && !type.isEmpty()) {
+                return ResponseEntity.ok(eventService.getEventsByTypeSlim(type, page, size));
+            } else {
+                return ResponseEntity.ok(eventService.getAllEventsSlim(page, size));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/user/{userId}/slim")
+    public ResponseEntity<?> getEventsByUserSlim(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            return ResponseEntity.ok(eventService.getUserEventsSlim(userId, page, size));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserEvents(
             @PathVariable Long userId,

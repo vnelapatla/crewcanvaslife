@@ -117,7 +117,7 @@ async function loadEvents() {
 
     try {
         const fetchPromises = [
-            fetch(`${API_BASE_URL}/api/events?page=${eventPage}&size=${PAGE_SIZE}`)
+            fetch(`${API_BASE_URL}/api/events/slim?page=${eventPage}&size=${PAGE_SIZE}&type=${currentTab}`)
         ];
         
         if (currentUserId && eventPage === 0) {

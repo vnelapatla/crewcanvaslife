@@ -59,8 +59,8 @@ async function showListView(append = false) {
 
     try {
         const url = (currentUser && currentUser.isAdmin) 
-            ? `${API_BASE_URL}/api/events?page=${eventPage}&size=10` 
-            : `${API_BASE_URL}/api/events/user/${userId}?page=${eventPage}&size=10`;
+            ? `${API_BASE_URL}/api/events/slim?page=${eventPage}&size=10` 
+            : `${API_BASE_URL}/api/events/user/${userId}/slim?page=${eventPage}&size=10`;
             
         const res = await fetch(url);
         if (res.ok) {
@@ -97,7 +97,8 @@ function renderEventList(events) {
         detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Schedule</b> ${formatDate(event.date || event.startDate)}</div>`);
         if (event.price !== undefined && event.price !== null) detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Budget/Price</b> ${event.price === 0 ? 'Free' : '₹' + event.price}</div>`);
         if (event.capacity !== undefined && event.capacity !== null && event.capacity > 0) detailsHtml.push(`<div><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Capacity</b> ${event.capacity}</div>`);
-        if (event.description && event.description.trim()) detailsHtml.push(`<div style="grid-column: 1 / -1;"><b style="color: #64748b; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">About this Opportunity</b> ${event.description}</div>`);
+        // Description is now omitted in the slim list for 1-second performance.
+        // Full details are visible in the Management view.
 
         const gridHtml = detailsHtml.length > 0 ? `
         <div class="event-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; background: #f8fafc; padding: 20px; border-radius: 16px; font-size: 13px; border: 1px solid #f1f5f9;">

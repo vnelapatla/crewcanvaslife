@@ -126,6 +126,21 @@ public class EventService {
         return eventRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSlimDTO> getAllEventsSlim(int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending());
+        return eventRepository.findAll(pr).map(com.crewcanvas.dto.EventSlimDTO::new);
+    }
+
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSlimDTO> getUserEventsSlim(Long userId, int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        return eventRepository.findByUserId(userId, pr).map(com.crewcanvas.dto.EventSlimDTO::new);
+    }
+
+    public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSlimDTO> getEventsByTypeSlim(String type, int page, int size) {
+        org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("date").descending());
+        return eventRepository.findByEventType(type, pr).map(com.crewcanvas.dto.EventSlimDTO::new);
+    }
+
     public org.springframework.data.domain.Page<com.crewcanvas.dto.EventSummaryDTO> getUserEventsSummary(Long userId, int page, int size) {
         org.springframework.data.domain.PageRequest pr = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         return eventRepository.findByUserId(userId, pr).map(com.crewcanvas.dto.EventSummaryDTO::new);
