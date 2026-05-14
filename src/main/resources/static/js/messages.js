@@ -938,14 +938,6 @@ async function sendMessage() {
     if (!input || isSending) return;
     
     const content = input.value.trim();
-    
-    // CC-MODERATION: Check content safety
-    const contentCheck = isContentSafe(content);
-    if (!contentCheck.safe) {
-        showMessage(`Message Blocked: Contains a restricted phrase ("${contentCheck.keyword}"). Scam and fraudulent messages are strictly prohibited.`, 'error');
-        return;
-    }
-
     const hasAttachments = selectedFiles && selectedFiles.length > 0;
 
     if (!content && !hasAttachments) {
