@@ -17,7 +17,7 @@ const ProfileHandler = {
 
             try {
                 // Fetch consolidated onboarding data (Profile, Following, Followers) in ONE request
-                const res = await fetch(`${API_BASE_URL}/api/profile/onboarding-data/${currentUserId}?viewerId=${currentUserId}&t=${Date.now()}`);
+                const res = await fetch(`${API_BASE_URL}/api/profile/onboarding-data/${currentUserId}?t=${Date.now()}`);
 
                 if (res.ok) {
                     const data = await res.json();
