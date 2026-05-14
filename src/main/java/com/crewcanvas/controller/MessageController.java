@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.crewcanvas.repository.UserRepository;
+import com.crewcanvas.repository.ContentReportRepository;
+import com.crewcanvas.model.User;
+import com.crewcanvas.model.ContentReport;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -25,6 +29,12 @@ import java.time.format.DateTimeFormatter;
 @RequestMapping("/api/messages")
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class MessageController {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ContentReportRepository reportRepository;
 
     @Autowired
     private MessageService messageService;
@@ -51,6 +61,7 @@ public class MessageController {
             Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
                     request.getReceiverId(),
+                    request.getGroupId(),
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
@@ -67,12 +78,17 @@ public class MessageController {
             map.put("fileUrl", savedMessage.getFileUrl());
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
+            map.put("groupId", savedMessage.getGroupId());
             map.put("isRead", savedMessage.getIsRead());
             map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            if (savedMessage.getGroupId() != null) {
+                messagingTemplate.convertAndSend("/topic/group/" + savedMessage.getGroupId(), map);
+            } else {
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            }
 
         } catch (Exception e) {
             System.err.println("Error sending websocket message: " + e.getMessage());
@@ -87,6 +103,7 @@ public class MessageController {
             Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
                     request.getReceiverId(),
+                    request.getGroupId(),
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
@@ -108,13 +125,18 @@ public class MessageController {
             map.put("fileUrl", savedMessage.getFileUrl());
             map.put("fileType", savedMessage.getFileType());
             map.put("fileUrls", savedMessage.getFileUrls());
+            map.put("groupId", savedMessage.getGroupId());
             map.put("isRead", savedMessage.getIsRead());
             map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             System.out.println("DEBUG: Notifying participants via WebSocket...");
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            if (savedMessage.getGroupId() != null) {
+                messagingTemplate.convertAndSend("/topic/group/" + savedMessage.getGroupId(), map);
+            } else {
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
         } catch (Throwable e) {
@@ -292,6 +314,30 @@ public class MessageController {
         }
     }
 
+    @PostMapping("/block/{targetId}")
+    public ResponseEntity<?> blockUser(@PathVariable Long targetId, @RequestParam Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            user.getBlockedUserIds().add(targetId);
+            userRepository.save(user);
+        });
+        return ResponseEntity.ok("User blocked");
+    }
+
+    @PostMapping("/unblock/{targetId}")
+    public ResponseEntity<?> unblockUser(@PathVariable Long targetId, @RequestParam Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            user.getBlockedUserIds().remove(targetId);
+            userRepository.save(user);
+        });
+        return ResponseEntity.ok("User unblocked");
+    }
+
+    @PostMapping("/report")
+    public ResponseEntity<?> reportContent(@RequestBody com.crewcanvas.model.ContentReport report) {
+        reportRepository.save(report);
+        return ResponseEntity.ok("Report submitted");
+    }
+
     @PutMapping("/edit/{id}")
     public ResponseEntity<?> updateMessage(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
         System.out.println("Updating message ID: " + id + " with content length: " + (payload != null && payload.get("content") != null ? payload.get("content").length() : "null"));
@@ -360,6 +406,10 @@ class MessageRequest {
     private String fileUrl;
     private String fileType;
     private java.util.List<String> fileUrls;
+    private Long groupId;
+
+    public Long getGroupId() { return groupId; }
+    public void setGroupId(Long groupId) { this.groupId = groupId; }
 
     public Long getSenderId() {
         return senderId;

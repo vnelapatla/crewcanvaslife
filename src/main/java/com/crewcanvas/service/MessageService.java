@@ -47,6 +47,11 @@ public class MessageService {
 
         // Check recipient settings
         return userRepository.findById(receiverId).map(receiver -> {
+            // Check for blocks
+            if (receiver.getBlockedUserIds() != null && receiver.getBlockedUserIds().contains(senderId)) {
+                return false;
+            }
+
             String permissions = receiver.getMessagePermissions();
             if (permissions == null || permissions.equals("Everyone")) {
                 return true;
@@ -63,12 +68,20 @@ public class MessageService {
     }
 
     @Transactional
-    public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
-        if (!canUserMessage(senderId, receiverId)) {
+    public Message sendMessage(Long senderId, Long receiverId, Long groupId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
+        if (receiverId == null && groupId == null) {
+            throw new RuntimeException("Message must have either a receiver or a group destination.");
+        }
+        
+        if (groupId == null && !canUserMessage(senderId, receiverId)) {
             throw new RuntimeException("This user has restricted their message permissions.");
         }
         
-        Message message = new Message(senderId, receiverId, content);
+        Message message = new Message();
+        message.setSenderId(senderId);
+        message.setReceiverId(receiverId);
+        message.setGroupId(groupId);
+        message.setContent(content);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
         message.setFileType(fileType);
@@ -88,27 +101,40 @@ public class MessageService {
                                     imageUrl != null ? "Sent an image" : 
                                     fileUrl != null ? "Sent a file" : "Sent a message";
         
-        notificationService.createNotification(
-            receiverId,
-            senderId,
-            notificationType,
-            notificationContent,
-            senderId.toString()
-        );
+        // Handle Sticker preview
+        if (notificationContent != null && notificationContent.startsWith("[STICKER:")) {
+            notificationContent = "Sent a sticker";
+        }
+        
+        // Truncate for notification preview (max 100 chars)
+        if (notificationContent != null && notificationContent.length() > 100) {
+            notificationContent = notificationContent.substring(0, 100) + "...";
+        }
+        
+        if (receiverId != null) {
+            notificationService.createNotification(
+                receiverId,
+                senderId,
+                notificationType,
+                notificationContent,
+                senderId.toString()
+            );
 
-        // Send Email Notification if enabled
-        try {
-            userRepository.findById(receiverId).ifPresent(receiver -> {
-                if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
-                    userRepository.findById(senderId).ifPresent(senderUser -> {
-                        String preview = notificationContent;
-                        if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
-                        emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
-                    });
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("Failed to send message email notification: " + e.getMessage());
+            // Send Email Notification if enabled
+            try {
+                final String finalPreview = notificationContent;
+                userRepository.findById(receiverId).ifPresent(receiver -> {
+                    if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
+                        userRepository.findById(senderId).ifPresent(senderUser -> {
+                            String preview = finalPreview;
+                            if (preview != null && preview.length() > 50) preview = preview.substring(0, 50) + "...";
+                            emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to send message email notification: " + e.getMessage());
+            }
         }
 
         return savedMessage;

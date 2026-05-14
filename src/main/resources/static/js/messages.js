@@ -86,7 +86,10 @@ function filterConnections(type) {
 
 let currentUserId = null;
 let selectedConversationUserId = null;
+let selectedGroupId = null; // Track group chat
 let conversations = [];
+let userGroups = []; // Track groups user belongs to
+let groupMemberRoles = new Map();
 let stompClient = null;
 let isSending = false;
 
@@ -144,10 +147,21 @@ function connectWebSocket() {
 
     stompClient.connect({}, (frame) => {
         console.log('Connected to WebSocket');
+        
+        // Subscribe to private messages
         stompClient.subscribe(`/topic/messages/${currentUserId}`, (message) => {
             const msg = JSON.parse(message.body);
             onMessageReceived(msg);
         });
+
+        // Subscribe to all group messages
+        userGroups.forEach(group => {
+            stompClient.subscribe(`/topic/group/${group.id}`, (message) => {
+                const msg = JSON.parse(message.body);
+                onMessageReceived(msg);
+            });
+        });
+
     }, (error) => {
         console.error('WebSocket error:', error);
         setTimeout(connectWebSocket, 5000);
@@ -163,8 +177,9 @@ function onMessageReceived(msg) {
     }
 
     // Robust ID comparison using String conversion
-    const isCurrentChat = selectedConversationUserId && (String(selectedConversationUserId) === String(msg.senderId) || 
-                         String(selectedConversationUserId) === String(msg.receiverId));
+    const isCurrentChat = (selectedConversationUserId && (String(selectedConversationUserId) === String(msg.senderId) || 
+                          String(selectedConversationUserId) === String(msg.receiverId))) ||
+                          (selectedGroupId && String(selectedGroupId) === String(msg.groupId));
     
     if (isCurrentChat) {
         loadMessages(); 
@@ -189,6 +204,15 @@ async function initMessaging() {
     });
 
     try {
+        // Fetch user profile to check terms
+        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`);
+        if (userRes.ok) {
+            const user = await userRes.json();
+            if (user.termsAccepted === false) {
+                showTermsModal();
+            }
+        }
+
         await loadConversations(); 
         await loadFollowersAndMutuals();
         console.log("Messaging initialized successfully");
@@ -314,41 +338,64 @@ async function displayConversations(listToDisplay = null) {
     const container = document.getElementById('conversationsList');
     if (!container) return;
     
-    const items = listToDisplay || conversations;
+    let items = [];
+    if (listToDisplay) {
+        items = listToDisplay;
+    } else {
+        // Merge conversations and groups
+        const mappedConvs = conversations.map(c => ({...c, chatType: 'private'}));
+        const mappedGroups = userGroups.map(g => ({...g, chatType: 'group'}));
+        items = [...mappedConvs, ...mappedGroups];
+        
+        // Sort by last message time
+        items.sort((a, b) => {
+            const timeA = new Date(a.lastMessageAt || a.updatedAt || a.createdAt || 0).getTime();
+            const timeB = new Date(b.lastMessageAt || b.updatedAt || b.createdAt || 0).getTime();
+            return timeB - timeA;
+        });
+    }
 
     if (items.length === 0) {
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size:13px;">No conversations yet</div>';
         return;
     }
 
-    // Display all conversations that exist in the database
-    container.innerHTML = items.map(conv => {
+    container.innerHTML = items.map(item => {
         try {
-            // Handle both optimized ConversationSummary and legacy Conversation DTO
-            const otherUserId = conv.otherUserId || conv.user2Id || (conv.otherUser ? conv.otherUser.id : null); 
-            const name = conv.otherUserName || conv.otherUser?.name || 'User';
-            const profilePicture = conv.otherUserProfilePicture || conv.otherUser?.profilePicture;
-            const role = conv.otherUserRole || conv.otherUser?.role;
-            const updatedAt = conv.lastMessageAt || conv.updatedAt;
-            
-            if (!otherUserId) {
-                console.warn("Skipping conversation with no partner ID:", conv);
-                return ''; 
+            if (item.chatType === 'group') {
+                const isActive = String(selectedGroupId) === String(item.id);
+                return `
+                    <div class="user-row ${isActive ? 'active' : ''}" onclick="selectGroup(${item.id})">
+                        <div class="initials-avatar group-avatar" style="width: 45px; height: 45px; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 50%;">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="user-main">
+                            <div class="user-name-row">
+                                <h4>${item.name}</h4>
+                                <span class="user-time">${formatDateShort(item.createdAt)}</span>
+                            </div>
+                            <div class="user-status-row">
+                                <span class="user-status">Group Chat</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
+
+            const otherUserId = item.otherUserId || item.user2Id || (item.otherUser ? item.otherUser.id : null); 
+            const name = item.otherUserName || item.otherUser?.name || 'User';
+            const profilePicture = item.otherUserProfilePicture || item.otherUser?.profilePicture;
+            const role = item.otherUserRole || item.otherUser?.role;
+            const updatedAt = item.lastMessageAt || item.updatedAt;
+            
+            if (!otherUserId) return ''; 
 
             const isActive = String(selectedConversationUserId) === String(otherUserId);
+            let previewText = item.lastMessage || 'Start a conversation...';
+            previewText = typeof decryptMessage === 'function' ? decryptMessage(previewText) : previewText;
             
-            // Format preview text
-            let previewText = conv.lastMessage || 'Start a conversation...';
-            
-            // Decrypt preview using global utility
-            previewText = decryptMessage(previewText);
-            
-            if (previewText.startsWith('[STICKER:')) {
-                previewText = 'Sticker';
-            }
+            if (previewText.startsWith('[STICKER:')) previewText = 'Sticker';
 
-            // Create a temporary user object for renderAvatar
             const tempUser = { id: otherUserId, name: name, profilePicture: profilePicture, role: role };
 
             return `
@@ -366,7 +413,7 @@ async function displayConversations(listToDisplay = null) {
                 </div>
             `;
         } catch (e) {
-            console.error("Error rendering conversation row:", e, conv);
+            console.error("Error rendering row:", e, item);
             return '';
         }
     }).join('');
@@ -419,6 +466,10 @@ async function openConversation(userId) {
         chatOverlay.classList.add('active'); // Added for mobile visibility
         document.body.classList.add('scroll-lock');
     }
+
+    // Hide group-specific buttons for private chat
+    const leaveBtn = document.getElementById('leaveGroupBtn');
+    if (leaveBtn) leaveBtn.style.display = 'none';
     
     // Handle Visual Viewport for mobile keyboard stability
     if (window.visualViewport) {
@@ -507,6 +558,10 @@ function closeChatArea() {
         chatOverlay.classList.remove('active');
         document.body.classList.remove('scroll-lock');
     }
+    
+    // Hide group specific buttons
+    const leaveBtn = document.getElementById('leaveGroupBtn');
+    if (leaveBtn) leaveBtn.style.display = 'none';
     selectedConversationUserId = null;
     selectedPartnerProfile = null;
     if (refreshInterval) clearInterval(refreshInterval);
@@ -537,7 +592,14 @@ function getRandomColor(name) {
 // Load messages
 async function loadMessages() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}`);
+        let url = "";
+        if (selectedGroupId) {
+            url = `${API_BASE_URL}/api/groups/${selectedGroupId}/history?userId=${currentUserId}`;
+        } else {
+            url = `${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}`;
+        }
+        
+        const response = await fetch(url);
         if (!response.ok) {
             const errText = await response.text();
             const container = document.getElementById('messagesArea');
@@ -684,7 +746,7 @@ function displayMessages(messages) {
                         <div id="options-${msg.id}" class="message-dropdown">
                             ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
                             <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
-                            ${(isSent && allFiles.length > 0) ? `<div class="message-dropdown-item" onclick="removeImageUI(${msg.id})"><i class="fa-solid fa-image-slash"></i> Remove Image</div>` : ''}
+                            ${(isSent && (msg.imageUrl || msg.fileUrl || (msg.fileUrls && msg.fileUrls.length > 0))) ? `<div class="message-dropdown-item" onclick="removeImageUI(${msg.id})"><i class="fa-solid fa-image-slash"></i> Remove Attachment</div>` : ''}
                             ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
                         </div>
                     </div>
@@ -766,7 +828,10 @@ function appendSingleMessage(msg) {
             ${avatarHtml}
             <div class="message-content-wrapper">
                 <div class="message-text">
-                    <div class="message-sender-name" style="color: ${isSent ? 'var(--primary-orange)' : '#64748b'};">${senderName}</div>
+                    <div class="message-sender-name" style="color: ${isSent ? 'var(--primary-orange)' : '#64748b'}; display: flex; align-items: center; gap: 5px;">
+                        ${senderName}
+                        ${selectedGroupId && groupMemberRoles.get(String(msg.senderId))?.toUpperCase() === 'ADMIN' ? '<span class="admin-badge-mini">Admin</span>' : ''}
+                    </div>
                     <div class="message-body">
                         <div class="text-content">${msg.displayContent || msg.content}</div>
                     </div>
@@ -878,15 +943,17 @@ function openBottomSheet(messageId) {
     activeSheetMessageId = messageId;
     const msgEl = document.getElementById(`msg-${messageId}`);
     const isSent = msgEl.classList.contains('sent');
-    const hasImage = msgEl.querySelector('img') !== null;
+    const hasAttachments = msgEl.querySelector('img') !== null || msgEl.querySelector('.file-attachment') !== null || msgEl.querySelector('video') !== null;
 
     document.getElementById('sheetEditBtn').style.display = isSent ? 'flex' : 'none';
     document.getElementById('sheetDeleteBtn').style.display = isSent ? 'flex' : 'none';
     
-    // Toggle Remove Image in bottom sheet if it exists in HTML
+    // Toggle Remove Attachment in bottom sheet
     const removeImgBtn = document.getElementById('sheetRemoveImgBtn');
     if (removeImgBtn) {
-        removeImgBtn.style.display = (isSent && hasImage) ? 'flex' : 'none';
+        removeImgBtn.style.display = (isSent && hasAttachments) ? 'flex' : 'none';
+        const removeLabel = removeImgBtn.querySelector('span');
+        if (removeLabel) removeLabel.textContent = 'Remove Attachment';
     }
 
     // Update labels if needed
@@ -909,6 +976,8 @@ function handleSheetAction(action) {
     else if (action === 'delete') confirmDeleteMessage(id);
     else if (action === 'copy') copyToClipboardText(id);
     else if (action === 'removeImage') removeImageUI(id);
+    else if (action === 'block') blockUserUI(id);
+    else if (action === 'report') reportMessageUI(id);
 }
 
 function copyToClipboardText(id) {
@@ -952,7 +1021,7 @@ async function sendMessage() {
         return;
     }
 
-    if (!selectedConversationUserId || !currentUserId) {
+    if (!selectedConversationUserId && !selectedGroupId && !currentUserId) {
         showMessage('Please select a conversation first.', 'error');
         return;
     }
@@ -966,6 +1035,7 @@ async function sendMessage() {
     const payload = {
         senderId: currentUserId,
         receiverId: selectedConversationUserId,
+        groupId: selectedGroupId,
         content: finalContent,
         imageUrl: selectedFiles.length > 0 && selectedFiles[0].type === 'image' ? selectedFiles[0].url : '',
         fileUrl: selectedFiles.length > 0 && selectedFiles[0].type === 'file' ? selectedFiles[0].url : '',
@@ -1061,14 +1131,20 @@ function handleEnter(event) {
 }
 
 // Mark as read
-async function markAsRead(messageId) {
-    if (!messageId) return;
+async function loadConversations() {
+    if (!currentUserId) return;
     try {
-        await fetch(`${API_BASE_URL}/api/messages/${messageId}/read`, {
-            method: 'PUT'
-        });
-    } catch (error) {
-        console.error('Error marking as read:', error);
+        const [convRes, groupsRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/messages/conversations?userId=${currentUserId}`),
+            fetch(`${API_BASE_URL}/api/groups/user/${currentUserId}`)
+        ]);
+        
+        if (convRes.ok) conversations = await convRes.json();
+        if (groupsRes.ok) userGroups = await groupsRes.json();
+        
+        displayConversations();
+    } catch (e) {
+        console.error("Error loading conversations:", e);
     }
 }
 
@@ -1235,3 +1311,418 @@ function viewFile(url) {
         window.open(url, '_blank');
     }
 }
+
+// Group Creation Functions
+function openCreateGroupModal() {
+    document.getElementById('createGroupModal').style.display = 'flex';
+    const listEl = document.getElementById('groupMembersList');
+    listEl.innerHTML = '<div style="padding: 10px; text-align: center;">Loading connections...</div>';
+    
+    // Fetch followers to add to group
+    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers`)
+        .then(res => res.json())
+        .then(users => {
+            if (users.length === 0) {
+                listEl.innerHTML = '<div style="padding: 10px; text-align: center; color: #999;">No connections to add.</div>';
+                return;
+            }
+            listEl.innerHTML = users.map(u => `
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f9f9f9;">
+                    <input type="checkbox" class="group-member-checkbox" value="${u.id}">
+                    <div class="initials-avatar" style="width: 30px; height: 30px; font-size: 12px;">${getInitials(u.name)}</div>
+                    <span style="font-size: 14px;">${u.name}</span>
+                </div>
+            `).join('');
+        });
+}
+
+function closeCreateGroupModal() {
+    document.getElementById('createGroupModal').style.display = 'none';
+}
+
+async function submitCreateGroup() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    const description = document.getElementById('groupDescInput').value.trim();
+    const selectedCheckboxes = document.querySelectorAll('.group-member-checkbox:checked');
+    const memberIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+
+    if (!name) {
+        if (typeof showMessage === 'function') showMessage('Please enter a group name', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                description,
+                creatorId: currentUserId,
+                memberIds
+            })
+        });
+
+        if (res.ok) {
+            if (typeof showMessage === 'function') showMessage('Group created successfully!', 'success');
+            closeCreateGroupModal();
+            loadConversations();
+            // Re-connect WS to subscribe to new group
+            connectWebSocket();
+        } else {
+            const err = await res.text();
+            if (typeof showMessage === 'function') showMessage('Error: ' + err, 'error');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function selectGroup(groupId) {
+    selectedConversationUserId = null;
+    selectedGroupId = groupId;
+    
+    const group = userGroups.find(g => String(g.id) === String(groupId));
+    if (!group) return;
+
+    document.getElementById('chatUserName').textContent = group.name;
+    document.getElementById('chatUserStatus').textContent = 'Group Chat';
+    
+    const avatarEl = document.getElementById('chatUserAvatar');
+    avatarEl.innerHTML = `<i class="fa-solid fa-users"></i>`;
+    avatarEl.className = 'initials-avatar group-avatar';
+
+    // Show leave group button
+    const leaveBtn = document.getElementById('leaveGroupBtn');
+    if (leaveBtn) leaveBtn.style.display = 'inline-block';
+    
+    document.getElementById('chatOverlay').style.display = 'flex';
+    
+    // Fetch member roles for this group to show badges in messages
+    await fetchGroupMemberRoles(groupId);
+    
+    loadMessages();
+}
+
+async function fetchGroupMemberRoles(groupId) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${groupId}/members`);
+        if (res.ok) {
+            const members = await res.json();
+            groupMemberRoles.clear();
+            members.forEach(m => groupMemberRoles.set(String(m.userId), m.role));
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function blockUserUI(messageId) {
+    const targetId = selectedConversationUserId;
+    if (!targetId) return;
+    
+    if (!confirm('Are you sure you want to block this user? You will no longer receive messages from them.')) return;
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/messages/block/${targetId}?userId=${currentUserId}`, { method: 'POST' });
+        if (res.ok) {
+            showMessage('User blocked', 'success');
+            closeChatArea();
+            loadConversations();
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function leaveGroupUI() {
+    if (!selectedGroupId) return;
+    if (!confirm('Are you sure you want to leave this group?')) return;
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${selectedGroupId}/member/${currentUserId}?adminId=${currentUserId}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            showMessage('You have left the group', 'success');
+            closeChatArea();
+            loadConversations();
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function reportMessageUI(messageId) {
+    const reason = prompt('Why are you reporting this message? (e.g. HARASSMENT, SPAM, INAPPROPRIATE)');
+    if (!reason) return;
+    
+    const details = prompt('Any additional details?');
+    
+    const payload = {
+        reporterId: currentUserId,
+        targetUserId: selectedConversationUserId,
+        messageId: messageId,
+        reason: reason.toUpperCase(),
+        details: details
+    };
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/messages/report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            showMessage('Report submitted to admins', 'success');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Terms Consent Functions
+function showTermsModal() {
+    const modal = document.getElementById('termsConsentModal');
+    const checkbox = document.getElementById('termsCheckbox');
+    const btn = document.getElementById('consentSubmitBtn');
+    
+    if (modal) modal.style.display = 'flex';
+    
+    if (checkbox && btn) {
+        checkbox.addEventListener('change', () => {
+            btn.disabled = !checkbox.checked;
+            btn.style.background = checkbox.checked ? '#f97316' : '#cbd5e1';
+            btn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
+        });
+    }
+}
+
+async function submitTermsConsent() {
+    try {
+        // Fetch current user first to avoid data loss
+        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`);
+        if (!userRes.ok) return;
+        const user = await userRes.json();
+        
+        user.termsAccepted = true;
+        
+        const res = await fetch(`${API_BASE_URL}/api/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        });
+        
+        if (res.ok) {
+            document.getElementById('termsConsentModal').style.display = 'none';
+            if (typeof showMessage === 'function') showMessage('Terms accepted. Welcome!', 'success');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Helper for Initials
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
+async function getUserProfile(userId) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${currentUserId}`);
+        if (res.ok) return await res.json();
+    } catch (e) { console.error(e); }
+    return null;
+}
+
+function getRandomColor(seed) {
+    const colors = ['#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#009688', '#4caf50', '#ff9800', '#795548'];
+    if (!seed) return colors[0];
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function toggleGroupInfo() {
+    const panel = document.getElementById('groupInfoPanel');
+    if (!panel) return;
+    
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'flex';
+        if (selectedGroupId) loadGroupMembers(selectedGroupId);
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+async function loadGroupMembers(groupId) {
+    const listEl = document.getElementById('infoMembersList');
+    const group = userGroups.find(g => String(g.id) === String(groupId));
+    
+    if (group) {
+        document.getElementById('infoGroupName').textContent = group.name;
+        document.getElementById('infoGroupDesc').textContent = group.description || 'No description provided';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${groupId}/members`);
+        if (res.ok) {
+            const members = await res.json();
+            
+            // Check if current user is admin
+            const currentMember = members.find(m => String(m.userId) === String(currentUserId));
+            const isAdmin = currentMember && currentMember.role === 'ADMIN';
+            
+            const addBtn = document.getElementById('addMemberBtn');
+            if (addBtn) addBtn.style.display = isAdmin ? 'block' : 'none';
+
+            // Fetch user details for each member
+            const membersWithDetails = await Promise.all(members.map(async m => {
+                const profile = await getUserProfile(m.userId);
+                return { ...m, profile };
+            }));
+
+            listEl.innerHTML = membersWithDetails.map(m => `
+                <div class="info-member-row">
+                    <div class="initials-avatar" style="width: 32px; height: 32px; font-size: 12px; background: ${getRandomColor(m.profile?.name)}">
+                        ${getInitials(m.profile?.name)}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;">
+                            ${m.profile?.name || 'Unknown'}
+                            ${String(m.role).toUpperCase() === 'ADMIN' ? '<span class="admin-badge">Admin</span>' : ''}
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8;">${m.profile?.role || 'Member'}</div>
+                    </div>
+                    ${isAdmin && String(m.userId) !== String(currentUserId) ? `
+                        <div class="member-actions" style="position: relative;">
+                            <button onclick="toggleMemberActions(event, ${m.userId})" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 5px;">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <div id="member-actions-${m.userId}" class="message-dropdown" style="right: 0; top: 100%;">
+                                ${m.role !== 'ADMIN' ? `<div class="message-dropdown-item" onclick="promoteToAdmin(${m.userId})"><i class="fa-solid fa-shield"></i> Make Admin</div>` : ''}
+                                <div class="message-dropdown-item delete" onclick="removeMember(${m.userId})"><i class="fa-solid fa-user-minus"></i> Remove</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function toggleMemberActions(event, userId) {
+    event.stopPropagation();
+    document.querySelectorAll('.message-dropdown').forEach(d => {
+        if (d.id !== `member-actions-${userId}`) d.classList.remove('active');
+    });
+    document.getElementById(`member-actions-${userId}`).classList.toggle('active');
+}
+
+function openAddMemberModal() {
+    document.getElementById('addMemberModal').style.display = 'flex';
+    const listEl = document.getElementById('addMembersSearchList');
+    listEl.innerHTML = '<div style="padding: 20px; text-align: center;">Loading connections...</div>';
+    
+    // Fetch followers who aren't in the group
+    fetch(`${API_BASE_URL}/api/profile/${currentUserId}/followers`)
+        .then(res => res.json())
+        .then(async followers => {
+            const currentMembersRes = await fetch(`${API_BASE_URL}/api/groups/${selectedGroupId}/members`);
+            const currentMembers = await currentMembersRes.json();
+            const memberIds = new Set(currentMembers.map(m => String(m.userId)));
+            
+            const nonMembers = followers.filter(u => !memberIds.has(String(u.id)));
+            
+            if (nonMembers.length === 0) {
+                listEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 13px;">No connections to add. Follow more people to expand your group!</div>';
+                return;
+            }
+
+            listEl.innerHTML = nonMembers.map(u => `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid #f8fafc;">
+                    <input type="checkbox" class="add-member-checkbox" value="${u.id}" style="width: 18px; height: 18px;">
+                    <div class="initials-avatar" style="width: 36px; height: 36px; font-size: 13px;">${getInitials(u.name)}</div>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600;">${u.name}</div>
+                        <div style="font-size: 11px; color: #94a3b8;">${u.role || 'Professional'}</div>
+                    </div>
+                </div>
+            `).join('');
+        });
+}
+
+function closeAddMemberModal() {
+    document.getElementById('addMemberModal').style.display = 'none';
+}
+
+async function submitAddMembers() {
+    const selected = document.querySelectorAll('.add-member-checkbox:checked');
+    const ids = Array.from(selected).map(cb => parseInt(cb.value));
+    
+    if (ids.length === 0) {
+        closeAddMemberModal();
+        return;
+    }
+
+    try {
+        for (const userId of ids) {
+            await fetch(`${API_BASE_URL}/api/groups/${selectedGroupId}/add?userId=${userId}&adderId=${currentUserId}`, {
+                method: 'POST'
+            });
+        }
+        showMessage('Members added successfully', 'success');
+        closeAddMemberModal();
+        loadGroupMembers(selectedGroupId);
+    } catch (e) {
+        console.error(e);
+        showMessage('Error adding members', 'error');
+    }
+}
+
+async function promoteToAdmin(userId) {
+    if (!confirm('Promote this member to Group Admin?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${selectedGroupId}/promote?userId=${userId}`, {
+            method: 'POST'
+        });
+        if (res.ok) {
+            showMessage('Member promoted to Admin', 'success');
+            // Refresh member list AND roles cache for badges
+            await fetchGroupMemberRoles(selectedGroupId);
+            loadGroupMembers(selectedGroupId);
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function removeMember(userId) {
+    if (!confirm('Remove this member from the group?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${selectedGroupId}/member/${userId}?adminId=${currentUserId}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            showMessage('Member removed', 'success');
+            loadGroupMembers(selectedGroupId);
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Ensure toggleGroupInfo is called correctly when switching groups
+const originalSelectGroup = selectGroup;
+window.selectGroup = async function(groupId) {
+    await originalSelectGroup(groupId);
+    // Hide info panel if it was open for a different group
+    const panel = document.getElementById('groupInfoPanel');
+    if (panel) panel.style.display = 'none';
+    
+    // Show info btn
+    const infoBtn = document.getElementById('groupInfoBtn');
+    if (infoBtn) infoBtn.style.display = 'block';
+};
+
+const originalOpenConversation = openConversation;
+window.openConversation = async function(userId) {
+    await originalOpenConversation(userId);
+    // Hide info panel and btn for private chats
+    const panel = document.getElementById('groupInfoPanel');
+    if (panel) panel.style.display = 'none';
+    const infoBtn = document.getElementById('groupInfoBtn');
+    if (infoBtn) infoBtn.style.display = 'none';
+    selectedGroupId = null;
+};
