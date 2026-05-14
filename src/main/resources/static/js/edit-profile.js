@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadProfileData() {
     try {
-        const url = `${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`;
+        const url = `${API_BASE_URL}/api/profile/${currentUserId}`;
         console.log("Fetching from:", url);
         
         const response = await fetch(url);

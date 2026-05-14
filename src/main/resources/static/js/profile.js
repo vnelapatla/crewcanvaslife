@@ -954,7 +954,7 @@ async function commentPost(postId) {
     if (!text) return;
 
     try {
-        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`);
+        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
         let userName = "A User";
         if (userRes.ok) {
             const profile = await userRes.json();
