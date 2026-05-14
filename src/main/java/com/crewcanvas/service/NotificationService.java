@@ -27,8 +27,6 @@ public class NotificationService {
     private EmailService emailService;
 
     public Notification createNotification(Long recipientId, Long actorId, String type, String content, String targetId) {
-        if (recipientId == null) return null;
-        
         Notification notification = new Notification();
         notification.setUserId(recipientId);
         notification.setActorId(actorId);
