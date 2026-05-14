@@ -619,7 +619,7 @@ function displayMessages(messages) {
     }
 
     container.innerHTML = messages.map((msg, index) => {
-        const isSent = msg.senderId == currentUserId;
+        const isSent = String(msg.senderId) === String(currentUserId);
         const senderName = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
         
         let attachmentContent = '';
@@ -678,15 +678,14 @@ function displayMessages(messages) {
                             ${isSent ? `<span class="checkmarks" style="${msg.isRead ? 'color:var(--primary-orange)' : 'color:#cbd5e1'}">${msg.isRead ? '✓✓' : '✓'}</span>` : ''}
                             ${msg.isEdited ? '<span class="edited-tag">(edited)</span>' : ''}
                         </div>
-                        ${isSent ? `
                         <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        ` : ''}
                         <div id="options-${msg.id}" class="message-dropdown">
-                            <div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>
-                            <div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>
+                            ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
                             <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
+                            ${(isSent && allFiles.length > 0) ? `<div class="message-dropdown-item" onclick="removeImageUI(${msg.id})"><i class="fa-solid fa-image-slash"></i> Remove Image</div>` : ''}
+                            ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -808,6 +807,8 @@ function handleOptionsClick(event, messageId) {
     }
 }
 
+
+
 function toggleMessageOptions(event, messageId) {
     const dropdown = document.getElementById(`options-${messageId}`);
     const wasActive = dropdown.classList.contains('active');
@@ -875,9 +876,23 @@ async function saveEdit(messageId) {
 
 function openBottomSheet(messageId) {
     activeSheetMessageId = messageId;
-    const isSent = document.getElementById(`msg-${messageId}`).classList.contains('sent');
+    const msgEl = document.getElementById(`msg-${messageId}`);
+    const isSent = msgEl.classList.contains('sent');
+    const hasImage = msgEl.querySelector('img') !== null;
+
     document.getElementById('sheetEditBtn').style.display = isSent ? 'flex' : 'none';
     document.getElementById('sheetDeleteBtn').style.display = isSent ? 'flex' : 'none';
+    
+    // Toggle Remove Image in bottom sheet if it exists in HTML
+    const removeImgBtn = document.getElementById('sheetRemoveImgBtn');
+    if (removeImgBtn) {
+        removeImgBtn.style.display = (isSent && hasImage) ? 'flex' : 'none';
+    }
+
+    // Update labels if needed
+    const deleteText = document.querySelector('#sheetDeleteBtn span');
+    if (deleteText) deleteText.textContent = hasImage ? 'Delete Message' : 'Delete Message';
+
     document.getElementById('bottomSheetOverlay').classList.add('active');
     document.getElementById('messageOptionsBottomSheet').classList.add('active');
 }
@@ -893,12 +908,26 @@ function handleSheetAction(action) {
     if (action === 'edit') editMessageUI(id);
     else if (action === 'delete') confirmDeleteMessage(id);
     else if (action === 'copy') copyToClipboardText(id);
+    else if (action === 'removeImage') removeImageUI(id);
 }
 
 function copyToClipboardText(id) {
     const text = document.getElementById(`msg-${id}`).querySelector('.message-body').innerText;
     navigator.clipboard.writeText(text);
     if (typeof showMessage === 'function') showMessage('Copied', 'success');
+}
+
+async function removeImageUI(messageId) {
+    if (!confirm('Remove image/file from this message?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/messages/remove-image/${messageId}`, { method: 'PUT' });
+        if (res.ok) {
+            const msgEl = document.getElementById(`msg-${messageId}`);
+            const attachments = msgEl.querySelector('.message-attachments-grid');
+            if (attachments) attachments.remove();
+            if (typeof showMessage === 'function') showMessage('Image Removed', 'success');
+        }
+    } catch (e) { console.error(e); }
 }
 
 

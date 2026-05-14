@@ -322,6 +322,34 @@ public class MessageController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @PutMapping("/remove-image/{id}")
+    public ResponseEntity<?> removeImage(@PathVariable Long id) {
+        try {
+            Message updated = messageService.removeImage(id);
+            
+            // Notify participants via WebSocket
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", updated.getId());
+            map.put("senderId", updated.getSenderId());
+            map.put("receiverId", updated.getReceiverId());
+            map.put("content", updated.getContent());
+            map.put("imageUrl", null);
+            map.put("fileUrl", null);
+            map.put("fileUrls", new java.util.ArrayList<>());
+            map.put("isRead", updated.getIsRead());
+            map.put("isEdited", updated.getIsEdited());
+            map.put("createdAt", updated.getCreatedAt() != null ? ZonedDateTime.ofInstant(updated.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
+
+            messagingTemplate.convertAndSend("/topic/messages/" + updated.getReceiverId(), map);
+            messagingTemplate.convertAndSend("/topic/messages/" + updated.getSenderId(), map);
+
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }
 
 class MessageRequest {

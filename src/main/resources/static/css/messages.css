@@ -910,7 +910,7 @@ body.scroll-lock {
 }
 
 @media (min-width: 1025px) {
-    .message-options-btn { opacity: 0; }
+    .message-options-btn { opacity: 0.6; }
     .message-text:hover .message-options-btn { opacity: 1; }
 }
 
