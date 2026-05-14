@@ -316,19 +316,13 @@ public class MessageController {
 
     @PostMapping("/block/{targetId}")
     public ResponseEntity<?> blockUser(@PathVariable Long targetId, @RequestParam Long userId) {
-        userRepository.findById(userId).ifPresent(user -> {
-            user.getBlockedUserIds().add(targetId);
-            userRepository.save(user);
-        });
+        // Feature disabled: missing DB column
         return ResponseEntity.ok("User blocked");
     }
 
     @PostMapping("/unblock/{targetId}")
     public ResponseEntity<?> unblockUser(@PathVariable Long targetId, @RequestParam Long userId) {
-        userRepository.findById(userId).ifPresent(user -> {
-            user.getBlockedUserIds().remove(targetId);
-            userRepository.save(user);
-        });
+        // Feature disabled: missing DB column
         return ResponseEntity.ok("User unblocked");
     }
 

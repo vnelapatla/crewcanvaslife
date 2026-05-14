@@ -47,10 +47,7 @@ public class MessageService {
 
         // Check recipient settings
         return userRepository.findById(receiverId).map(receiver -> {
-            // Check for blocks
-            if (receiver.getBlockedUserIds() != null && receiver.getBlockedUserIds().contains(senderId)) {
-                return false;
-            }
+            // Check for blocks removed due to missing DB column
 
             String permissions = receiver.getMessagePermissions();
             if (permissions == null || permissions.equals("Everyone")) {

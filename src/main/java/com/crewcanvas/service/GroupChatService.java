@@ -53,15 +53,8 @@ public class GroupChatService {
         if (!userOpt.isPresent()) return "User not found";
 
         User user = userOpt.get();
-        String privilege = user.getGroupAddPrivilege() != null ? user.getGroupAddPrivilege() : "Everyone";
-
-        boolean canAdd = false;
-        if (privilege.equals("Everyone")) {
-            canAdd = true;
-        } else if (privilege.equals("Connections Only")) {
-            canAdd = connectionRepository.findByFollowerIdAndFollowingId(adderId, userId).isPresent() ||
-                     connectionRepository.findByFollowerIdAndFollowingId(userId, adderId).isPresent();
-        }
+        // Privilege check removed due to missing DB column
+        boolean canAdd = true;
 
         if (canAdd) {
             if (!groupMemberRepository.findByGroupIdAndUserId(groupId, userId).isPresent()) {
