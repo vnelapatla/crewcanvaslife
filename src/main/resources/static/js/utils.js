@@ -720,6 +720,40 @@ function debounce(func, wait) {
     };
 }
 
+// Helper to check if a URL is valid
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;  
+    }
+}
+
+// CC-MODERATION: Automated Keyword Filter
+function isContentSafe(text) {
+    if (!text) return { safe: true };
+    
+    // Convert to lowercase for checking
+    const lowerText = text.toLowerCase();
+    
+    // List of banned words/phrases commonly used in scams or fraudulent casting
+    const bannedKeywords = [
+        "pay to audition", "pay for audition", "registration fee", 
+        "processing fee", "security deposit", "send money to",
+        "wire transfer", "crypto investment", "forex", 
+        "guaranteed casting", "pay us first", "refundable deposit"
+    ];
+
+    for (let keyword of bannedKeywords) {
+        if (lowerText.includes(keyword)) {
+            return { safe: false, keyword: keyword };
+        }
+    }
+
+    return { safe: true };
+}
+
 // Helper to check if a source is a video
 function isVideoFile(src) {
     if (!src) return false;

@@ -597,6 +597,14 @@ async function createPost() {
         body.pollOptions = options;
     } else {
         const content = document.getElementById('postContent').value.trim();
+        
+        // CC-MODERATION: Check content safety
+        const contentCheck = isContentSafe(content);
+        if (!contentCheck.safe) {
+            showMessage(`Action Blocked: Your post contains a restricted phrase ("${contentCheck.keyword}"). Scam and fraudulent casting posts are strictly prohibited.`, 'error');
+            return;
+        }
+
         const link = document.getElementById('postLink').value.trim();
 
         if (!content && selectedImageFiles.length === 0) {
