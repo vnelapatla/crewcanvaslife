@@ -61,7 +61,7 @@ function checkEditMode() {
 async function loadCurrentUser() {
     try {
         if (!currentUserId) return;
-        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/summary`);
+        const response = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}/summary?viewerId=${currentUserId}`);
         if (response.ok) {
             currentUser = await response.json();
             const nameEle = document.getElementById('currentUserName') || document.getElementById('userNameHeader');

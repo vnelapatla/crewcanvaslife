@@ -283,7 +283,8 @@ async function getUserProfile(userId) {
     if (userCache.has(userId)) return userCache.get(userId);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+        const currentUserId = getCurrentUserId();
+        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${currentUserId || ''}`);
         if (response.ok) {
             const user = await response.json();
             userCache.set(userId, user);
