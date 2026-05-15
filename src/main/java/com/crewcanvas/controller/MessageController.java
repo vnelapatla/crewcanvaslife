@@ -51,6 +51,7 @@ public class MessageController {
             Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
                     request.getReceiverId(),
+                    request.getGroupId(),
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
@@ -71,8 +72,12 @@ public class MessageController {
             map.put("isEdited", savedMessage.getIsEdited());
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            if (request.getGroupId() != null) {
+                messagingTemplate.convertAndSend("/topic/groups/" + request.getGroupId(), map);
+            } else {
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            }
 
         } catch (Exception e) {
             System.err.println("Error sending websocket message: " + e.getMessage());
@@ -87,6 +92,7 @@ public class MessageController {
             Message savedMessage = messageService.sendMessage(
                     request.getSenderId(),
                     request.getReceiverId(),
+                    request.getGroupId(),
                     request.getContent(),
                     request.getImageUrl(),
                     request.getFileUrl(),
@@ -113,8 +119,12 @@ public class MessageController {
             map.put("createdAt", savedMessage.getCreatedAt() != null ? ZonedDateTime.ofInstant(savedMessage.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
 
             System.out.println("DEBUG: Notifying participants via WebSocket...");
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
-            messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            if (request.getGroupId() != null) {
+                messagingTemplate.convertAndSend("/topic/groups/" + request.getGroupId(), map);
+            } else {
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), map);
+                messagingTemplate.convertAndSend("/topic/messages/" + request.getSenderId(), map);
+            }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMessage);
         } catch (Throwable e) {
@@ -174,6 +184,34 @@ public class MessageController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("We couldn't load your conversation. Please refresh and try again.");
+        }
+    }
+
+
+    @GetMapping("/group/{groupId}")
+    public ResponseEntity<?> getGroupHistory(@PathVariable Long groupId) {
+        try {
+            List<Message> messages = messageService.getGroupHistory(groupId);
+            java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+            for (Message m : messages) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", m.getId());
+                map.put("senderId", m.getSenderId());
+                map.put("receiverId", m.getReceiverId());
+                map.put("groupId", m.getGroupId());
+                map.put("content", m.getContent());
+                map.put("imageUrl", m.getImageUrl());
+                map.put("fileUrl", m.getFileUrl());
+                map.put("fileType", m.getFileType());
+                map.put("fileUrls", m.getFileUrls());
+                map.put("isRead", m.getIsRead());
+                map.put("isEdited", m.getIsEdited());
+                map.put("createdAt", m.getCreatedAt() != null ? ZonedDateTime.ofInstant(m.getCreatedAt(), ZoneId.of("UTC")).format(ISO_FORMATTER) : null);
+                result.add(map);
+            }
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to load group history.");
         }
     }
 
@@ -355,6 +393,7 @@ public class MessageController {
 class MessageRequest {
     private Long senderId;
     private Long receiverId;
+    private Long groupId;
     private String content;
     private String imageUrl;
     private String fileUrl;
@@ -375,6 +414,14 @@ class MessageRequest {
 
     public void setReceiverId(Long receiverId) {
         this.receiverId = receiverId;
+    }
+
+    public Long getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
     }
 
     public String getContent() {

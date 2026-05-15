@@ -84,9 +84,9 @@ function checkAuth() {
     const userId = localStorage.getItem('userId');
     const userEmail = localStorage.getItem('userEmail');
 
-    // Allow public access for shared links (Post, Event, Casting Deck)
+    // Allow public access for shared links (Post, Event, Casting Deck, Quiz)
     const urlParams = new URLSearchParams(window.location.search);
-    const isShared = urlParams.has('postId') || urlParams.has('eventId') || urlParams.has('userId') || urlParams.get('shared') === 'true';
+    const isShared = urlParams.has('postId') || urlParams.has('eventId') || urlParams.has('userId') || urlParams.get('shared') === 'true' || window.location.pathname.includes('movie-quiz.html');
 
     if (!userId || !userEmail) {
         if (isShared) {
@@ -514,7 +514,9 @@ function truncateText(text, length = 30) {
 const AppSounds = {
     notification: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
     message: 'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
-    like: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'
+    like: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+    success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+    error: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'
 };
 
 let lastSoundPlayTime = {};

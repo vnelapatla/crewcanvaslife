@@ -15,8 +15,11 @@ public class Message {
     @Column(name = "sender_id", nullable = false)
     private Long senderId;
 
-    @Column(name = "receiver_id", nullable = false)
+    @Column(name = "receiver_id", nullable = true) // Can be null if it's a group message
     private Long receiverId;
+
+    @Column(name = "group_id", nullable = true)
+    private Long groupId;
 
     @Column(columnDefinition = "LONGTEXT")
     private String content;
@@ -97,6 +100,14 @@ public class Message {
 
     public void setReceiverId(Long receiverId) {
         this.receiverId = receiverId;
+    }
+
+    public Long getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
     }
 
     public String getContent() {

@@ -78,7 +78,7 @@ async function loadEventStats() {
         if (response.ok) {
             const stats = await response.json();
             if (document.getElementById('workshopCount')) document.getElementById('workshopCount').innerText = stats['Workshop'] || 0;
-            if (document.getElementById('courseCount')) document.getElementById('courseCount').innerText = stats['Course'] || 0;
+
             if (document.getElementById('contestCount')) document.getElementById('contestCount').innerText = stats['Contest'] || 0;
             if (document.getElementById('auditionCount')) document.getElementById('auditionCount').innerText = stats['Audition'] || 0;
             if (document.getElementById('filmEventCount')) document.getElementById('filmEventCount').innerText = stats['Film Event'] || 0;
@@ -249,7 +249,7 @@ function updateFormFields(type) {
     const labels = {
         'Audition': { title: 'Audition Title', date: 'Audition Date', price: 'Payout (₹)', desc: 'Description' },
         'Workshop': { title: 'Workshop Title', date: 'Start Date', price: 'Fee (₹)', desc: 'Agenda' },
-        'Course': { title: 'Course Title', date: 'Batch Start', price: 'Course Fee (₹)', desc: 'Curriculum' },
+
         'Contest': { title: 'Contest Name', date: 'Deadline', price: 'Entry Fee (₹)', desc: 'Rules' },
         'Film Event': { title: 'Event Title', date: 'Event Date', price: 'Ticket (₹)', desc: 'Highlights' }
     };
@@ -503,7 +503,7 @@ async function shareEvent(id, title) {
 }
 
 function getEventDefaultImage(type) {
-    const imgs = { 'Audition': 'images/defaults/audition.png', 'Workshop': 'images/defaults/workshop.png', 'Course': 'images/defaults/course.png', 'Contest': 'images/defaults/contest.png', 'Film Event': 'images/cinema.png' };
+    const imgs = { 'Audition': 'images/defaults/audition.png', 'Workshop': 'images/defaults/workshop.png', 'Contest': 'images/defaults/contest.png', 'Film Event': 'images/cinema.png' };
     return imgs[type] || imgs['Audition'];
 }
 
@@ -518,7 +518,7 @@ function switchEventTab(type, element) {
     let filterType = 'all';
     if (type === 'auditions') filterType = 'Audition';
     else if (type === 'workshops') filterType = 'Workshop';
-    else if (type === 'courses') filterType = 'Course';
+
     else if (type === 'contests') filterType = 'Contest';
     else if (type === 'filmevents') filterType = 'Film Event';
     currentFilter = filterType;

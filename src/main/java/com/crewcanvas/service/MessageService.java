@@ -63,12 +63,13 @@ public class MessageService {
     }
 
     @Transactional
-    public Message sendMessage(Long senderId, Long receiverId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
-        if (!canUserMessage(senderId, receiverId)) {
+    public Message sendMessage(Long senderId, Long receiverId, Long groupId, String content, String imageUrl, String fileUrl, String fileType, java.util.List<String> fileUrls) {
+        if (groupId == null && !canUserMessage(senderId, receiverId)) {
             throw new RuntimeException("This user has restricted their message permissions.");
         }
         
         Message message = new Message(senderId, receiverId, content);
+        message.setGroupId(groupId);
         message.setImageUrl(imageUrl);
         message.setFileUrl(fileUrl);
         message.setFileType(fileType);
@@ -83,32 +84,34 @@ public class MessageService {
         }
 
         // Trigger Notification
-        String notificationType = "MESSAGE";
+        String notificationType = groupId != null ? "GROUP_MESSAGE" : "MESSAGE";
         String notificationContent = content != null && !content.isEmpty() ? content : 
                                     imageUrl != null ? "Sent an image" : 
                                     fileUrl != null ? "Sent a file" : "Sent a message";
         
-        notificationService.createNotification(
-            receiverId,
-            senderId,
-            notificationType,
-            notificationContent,
-            senderId.toString()
-        );
+        if (groupId == null) {
+            notificationService.createNotification(
+                receiverId,
+                senderId,
+                notificationType,
+                notificationContent,
+                senderId.toString()
+            );
 
-        // Send Email Notification if enabled
-        try {
-            userRepository.findById(receiverId).ifPresent(receiver -> {
-                if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
-                    userRepository.findById(senderId).ifPresent(senderUser -> {
-                        String preview = notificationContent;
-                        if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
-                        emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
-                    });
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("Failed to send message email notification: " + e.getMessage());
+            // Send Email Notification if enabled
+            try {
+                userRepository.findById(receiverId).ifPresent(receiver -> {
+                    if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
+                        userRepository.findById(senderId).ifPresent(senderUser -> {
+                            String preview = notificationContent;
+                            if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
+                            emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to send message email notification: " + e.getMessage());
+            }
         }
 
         return savedMessage;
@@ -130,7 +133,11 @@ public class MessageService {
     }
 
     public List<Message> getUserMessages(Long userId) {
-        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId, userId);
+        return messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAtDesc(userId);
+    }
+
+    public List<Message> getGroupHistory(Long groupId) {
+        return messageRepository.findByGroupIdOrderByCreatedAtAsc(groupId);
     }
 
     public List<Message> getUnreadMessages(Long userId) {

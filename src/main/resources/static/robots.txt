@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /about.html
+Allow: /event.html
+Allow: /crew-search.html
+Allow: /casting-deck.html
+
+Disallow: /home.html
+Disallow: /event-dashboard.html
+Disallow: /edit-profile.html
+Disallow: /settings.html
+Disallow: /messages.html
+Disallow: /notifications.html
+Disallow: /api/
+
+Sitemap: https://crewcanvas.in/sitemap.xml

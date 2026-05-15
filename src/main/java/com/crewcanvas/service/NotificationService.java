@@ -148,4 +148,27 @@ public class NotificationService {
             System.err.println("Error broadcasting new event notification: " + e.getMessage());
         }
     }
+
+    @Async
+    public void broadcastQuizNotification(User admin) {
+        try {
+            List<User> allUsers = userRepository.findAll();
+            Long actorId = admin != null ? admin.getId() : null;
+            String actorName = admin != null ? admin.getName() : "System";
+
+            for (User targetUser : allUsers) {
+                if (admin != null && targetUser.getId().equals(admin.getId())) continue;
+
+                createNotification(
+                    targetUser.getId(),
+                    actorId,
+                    "QUIZ_START",
+                    "A new Movie Quiz is live! Test your knowledge and win your spot on the leaderboard! 🎬🏆",
+                    "movie-quiz"
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Error broadcasting quiz notification: " + e.getMessage());
+        }
+    }
 }

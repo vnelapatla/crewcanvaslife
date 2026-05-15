@@ -19,11 +19,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE m.receiverId = ?1 AND m.isRead = false")
     List<Message> findUnreadMessages(Long userId);
 
-    @Query("SELECT m FROM Message m WHERE m.senderId = ?1 OR m.receiverId = ?1 ORDER BY m.createdAt DESC")
-    List<Message> findBySenderIdOrReceiverIdOrderByCreatedAtDesc(Long senderId, Long receiverId);
+    @Query("SELECT m FROM Message m WHERE m.senderId = ?1 OR m.receiverId = ?1 OR m.groupId IN (SELECT gm.groupChat.id FROM GroupMember gm WHERE gm.userId = ?1) ORDER BY m.createdAt DESC")
+    List<Message> findBySenderIdOrReceiverIdOrderByCreatedAtDesc(Long userId);
 
-    @Query("SELECT m FROM Message m WHERE m.senderId = ?1 OR m.receiverId = ?2 ORDER BY m.createdAt DESC")
-    org.springframework.data.domain.Page<Message> findBySenderIdOrReceiverIdOrderByCreatedAtDesc(Long senderId, Long receiverId, org.springframework.data.domain.Pageable pageable);
+    @Query("SELECT m FROM Message m WHERE m.senderId = ?1 OR m.receiverId = ?1 OR m.groupId IN (SELECT gm.groupChat.id FROM GroupMember gm WHERE gm.userId = ?1) ORDER BY m.createdAt DESC")
+    org.springframework.data.domain.Page<Message> findBySenderIdOrReceiverIdOrderByCreatedAtDesc(Long userId, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT m FROM Message m WHERE m.groupId = ?1 ORDER BY m.createdAt ASC")
+    List<Message> findByGroupIdOrderByCreatedAtAsc(Long groupId);
 
     @org.springframework.transaction.annotation.Transactional
     void deleteBySenderId(Long senderId);
