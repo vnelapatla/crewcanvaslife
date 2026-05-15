@@ -224,8 +224,8 @@ function displayEvents(events, prepend = false) {
                         </div>
                         ` : '<div></div>'}
                         ${(() => {
-                            const sLink = (event.externalLink || '').replace(/'/g, "\\'");
-                            const regAct = (isManaged && event.externalLink) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;
+                            const sLink = (event.externalLink || event.orgPhone || '').replace(/'/g, "\\'");
+                            const regAct = (isManaged && (event.externalLink || event.orgPhone)) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;
                             const brandOrange = '#FF8C00';
                             const successGreen = '#10b981';
                             const btnColor = hasApplied ? successGreen : brandOrange;

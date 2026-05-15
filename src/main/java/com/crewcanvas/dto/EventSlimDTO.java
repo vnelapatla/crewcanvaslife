@@ -16,6 +16,7 @@ public class EventSlimDTO {
     private String imageUrl;
     private String externalLink;
     private String adminNote;
+    private String orgPhone;
     private java.time.Instant createdAt;
 
     public EventSlimDTO(com.crewcanvas.model.Event event) {
@@ -32,6 +33,7 @@ public class EventSlimDTO {
         this.imageUrl = event.getImageUrl();
         this.externalLink = event.getExternalLink();
         this.adminNote = event.getAdminNote();
+        this.orgPhone = event.getOrgPhone();
         this.createdAt = event.getCreatedAt();
     }
 
@@ -49,5 +51,6 @@ public class EventSlimDTO {
     public String getImageUrl() { return imageUrl; }
     public String getExternalLink() { return externalLink; }
     public String getAdminNote() { return adminNote; }
+    public String getOrgPhone() { return orgPhone; }
     public java.time.Instant getCreatedAt() { return createdAt; }
 }
