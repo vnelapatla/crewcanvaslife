@@ -45,6 +45,16 @@ public class SchemaMigrationService {
                 }
             }
 
+            // Check if terms_accepted column exists in users table
+            try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN terms_accepted BOOLEAN DEFAULT FALSE;");
+                System.out.println("Added terms_accepted column to users table.");
+            } catch (Exception e) {
+                if (!e.getMessage().contains("Duplicate column name")) {
+                    System.err.println("Note adding terms_accepted: " + e.getMessage());
+                }
+            }
+
             System.out.println("Database schema verified for groups.");
         } catch (Exception e) {
             System.err.println("Migration warning: " + e.getMessage());
