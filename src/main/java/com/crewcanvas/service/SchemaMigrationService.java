@@ -65,7 +65,32 @@ public class SchemaMigrationService {
                 }
             }
 
-            System.out.println("Database schema verified for groups.");
+            // Ensure Polls table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS polls (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "question TEXT NOT NULL, " +
+                    "post_id BIGINT, " +
+                    "FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE" +
+                    ") ENGINE=InnoDB;");
+
+            // Ensure Poll Options table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS poll_options (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "option_text TEXT NOT NULL, " +
+                    "poll_id BIGINT, " +
+                    "FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE" +
+                    ") ENGINE=InnoDB;");
+
+            // Ensure Poll Votes table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS poll_votes (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "poll_id BIGINT NOT NULL, " +
+                    "user_id BIGINT NOT NULL, " +
+                    "option_id BIGINT NOT NULL, " +
+                    "UNIQUE KEY uk_poll_user (poll_id, user_id)" +
+                    ") ENGINE=InnoDB;");
+
+            System.out.println("Database schema verified for groups and polls.");
         } catch (Exception e) {
             System.err.println("Migration warning: " + e.getMessage());
         }

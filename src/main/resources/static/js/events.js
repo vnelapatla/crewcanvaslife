@@ -229,7 +229,7 @@ function displayEvents(events, prepend = false) {
                             const brandOrange = '#FF8C00';
                             const successGreen = '#10b981';
                             const btnColor = hasApplied ? successGreen : brandOrange;
-                            let btnText = isManaged ? (hasApplied ? 'Registered' : 'WhatsApp Me') : (hasApplied ? 'Applied' : 'Apply Now');
+                            let btnText = isManaged ? (hasApplied ? 'Registered' : 'Register Now') : (hasApplied ? 'Applied' : 'Apply Now');
                             return `<button class="apply-btn" style="flex: 1; max-width: 180px; padding: 10px 15px; font-size: 13px; border-radius: 10px; border: none; font-weight: 700; background: ${btnColor}; color: white;" onclick="${regAct}">${btnText}</button>`;
                         })()}
                         <div onclick="event.stopPropagation(); shareEvent(${event.id}, '${sTitle}')" style="cursor: pointer; color: #6366f1; font-size: 11px; font-weight: 600; text-align: right;">
@@ -438,7 +438,7 @@ async function handleExternalRedirect(eventId, url) {
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify({ 
             applicantName: currentUser.name, 
-            additionalNote: 'WhatsApp Redirect: Full Portfolio Data Sent' 
+            additionalNote: 'Registration Redirect: Full Portfolio Data Sent' 
         })
     });
     
