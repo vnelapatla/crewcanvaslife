@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadProfileData() {
     try {
-        const url = `${API_BASE_URL}/api/profile/${currentUserId}`;
+        const url = `${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`;
         console.log("Fetching from:", url);
         
         const response = await fetch(url);
@@ -709,7 +709,7 @@ async function saveProfile() {
 // Project Management Functions
 async function loadUserProjects() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/projects/user/${currentUserId}`);
+        const response = await fetch(`${API_BASE_URL}/api/projects/user/${currentUserId}?viewerId=${currentUserId}`);
         const projects = await response.json();
         renderProjectsList(projects);
     } catch (err) {

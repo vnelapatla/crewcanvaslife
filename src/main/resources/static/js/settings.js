@@ -9,7 +9,9 @@ async function loadSettings() {
     if (!userId) return;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+        const url = `${API_BASE_URL}/api/profile/${userId}?viewerId=${userId}`;
+        console.log("Fetching from:", url);
+        const res = await fetch(url);
         if (res.ok) {
             const user = await res.json();
             
@@ -103,7 +105,7 @@ async function saveSettings(data) {
         }
 
         // Fetch current user first to avoid overwriting other fields with null
-        const currentRes = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+        const currentRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${userId}`);
         const currentUser = await currentRes.json();
         
         const updatedUser = { ...currentUser, ...data, id: userId };
