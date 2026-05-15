@@ -288,7 +288,15 @@ function toggleManagedFields() {
     const adminNoteGroup = document.getElementById('adminNoteGroup');
     if (regMethodGroup) regMethodGroup.style.display = isManaged ? 'block' : 'none';
     if (adminNoteGroup) adminNoteGroup.style.display = isManaged ? 'block' : 'none';
-    if (isManaged) toggleRegistrationLink();
+    
+    // CC-MAY-2026: Default to 'external' for managed events as per user request [Nelpatla Venkatesh]
+    if (isManaged) {
+        const methodSelect = document.getElementById('registrationMethod');
+        if (methodSelect && !editModeId) { // Only force on new creation
+            methodSelect.value = 'external';
+        }
+        toggleRegistrationLink();
+    }
 }
 
 function toggleRegistrationLink() {

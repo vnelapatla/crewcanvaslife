@@ -426,7 +426,12 @@ function openEditModal() {
         if (currentEvent.isManaged) {
             const methodSelect = document.getElementById('editRegistrationMethod');
             if (methodSelect) {
-                methodSelect.value = currentEvent.externalLink ? 'external' : 'internal';
+                // CC-MAY-2026: Default to 'external' for managed events as per user request [Nelpatla Venkatesh]
+                if (currentEvent.externalLink || currentEvent.isManaged) {
+                    methodSelect.value = 'external';
+                } else {
+                    methodSelect.value = 'internal';
+                }
                 const linkInput = document.getElementById('editExternalLink');
                 if (linkInput) linkInput.value = currentEvent.externalLink || '';
                 toggleEditRegistrationLink();

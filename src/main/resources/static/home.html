@@ -151,8 +151,7 @@
                             <b id="totalEvents">0</b>
                         </div>
                     </div>
-                    <div class="stat-breakdown">
-
+                        <div class="breakdown-item"><span><span class="dot" style="background:#ff8c00"></span>Courses</span> <span id="countCourses">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#3b82f6"></span>Auditions</span> <span id="countAuditions">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#10b981"></span>Contests</span> <span id="countContests">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#8b5cf6"></span>Workshops</span> <span id="countWorkshops">0</span></div>
@@ -172,7 +171,7 @@
                         </div>
                     </div>
                     <div class="stat-breakdown">
-
+                        <div class="breakdown-item"><span><span class="dot" style="background:#ff8c00"></span>Courses</span> <span id="appCourses">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#3b82f6"></span>Auditions</span> <span id="appAuditions">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#10b981"></span>Contests</span> <span id="appContests">0</span></div>
                         <div class="breakdown-item"><span><span class="dot" style="background:#8b5cf6"></span>Workshops</span> <span id="appWorkshops">0</span></div>
@@ -244,14 +243,14 @@
                     const hostedEvents = Array.isArray(data) ? data : (data.content || []);
                     const totalHosted = data.totalElements !== undefined ? data.totalElements : hostedEvents.length;
                     
-                    document.getElementById('totalEvents').innerText = totalHosted;
+                    if(document.getElementById('totalEvents')) document.getElementById('totalEvents').innerText = totalHosted;
                     const hostedCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     hostedEvents.forEach(e => { if(hostedCounts[e.eventType] !== undefined) hostedCounts[e.eventType]++; });
                     
-                    document.getElementById('countCourses').innerText = hostedCounts['Course'];
-                    document.getElementById('countAuditions').innerText = hostedCounts['Audition'];
-                    document.getElementById('countContests').innerText = hostedCounts['Contest'];
-                    document.getElementById('countWorkshops').innerText = hostedCounts['Workshop'];
+                    if(document.getElementById('countCourses')) document.getElementById('countCourses').innerText = hostedCounts['Course'];
+                    if(document.getElementById('countAuditions')) document.getElementById('countAuditions').innerText = hostedCounts['Audition'];
+                    if(document.getElementById('countContests')) document.getElementById('countContests').innerText = hostedCounts['Contest'];
+                    if(document.getElementById('countWorkshops')) document.getElementById('countWorkshops').innerText = hostedCounts['Workshop'];
 
                     // Render Hosted Events (Organizer Dashboard)
                     const container = document.getElementById('hostedEventsContainer');
@@ -289,7 +288,7 @@
                     const apps = Array.isArray(data) ? data : (data.content || []);
                     const totalAppsCount = data.totalElements !== undefined ? data.totalElements : apps.length;
                     
-                    document.getElementById('totalApps').innerText = totalAppsCount;
+                    if(document.getElementById('totalApps')) document.getElementById('totalApps').innerText = totalAppsCount;
                     const appCounts = { 'Course': 0, 'Audition': 0, 'Contest': 0, 'Workshop': 0 };
                     let shortlisted = 0;
                     
@@ -297,12 +296,12 @@
                         if(app.eventType && appCounts[app.eventType] !== undefined) appCounts[app.eventType]++;
                         if(app.status === 'SHORTLISTED' || app.status === 'ACCEPTED') shortlisted++;
                     });
-
-                    document.getElementById('appCourses').innerText = appCounts['Course'];
-                    document.getElementById('appAuditions').innerText = appCounts['Audition'];
-                    document.getElementById('appContests').innerText = appCounts['Contest'];
-                    document.getElementById('appWorkshops').innerText = appCounts['Workshop'];
-                    document.getElementById('shortlistedCount').innerText = shortlisted;
+    
+                    if(document.getElementById('appCourses')) document.getElementById('appCourses').innerText = appCounts['Course'];
+                    if(document.getElementById('appAuditions')) document.getElementById('appAuditions').innerText = appCounts['Audition'];
+                    if(document.getElementById('appContests')) document.getElementById('appContests').innerText = appCounts['Contest'];
+                    if(document.getElementById('appWorkshops')) document.getElementById('appWorkshops').innerText = appCounts['Workshop'];
+                    if(document.getElementById('shortlistedCount')) document.getElementById('shortlistedCount').innerText = shortlisted;
 
                     // Render Application List
                     const list = document.getElementById('appList');

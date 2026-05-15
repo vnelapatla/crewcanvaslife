@@ -27,12 +27,12 @@
 
 @media (max-width: 1024px) {
     .feed-search-wrapper {
-        margin-top: 30px; /* Increased slightly */
-        margin-bottom: 55px; /* Significant increase for more gap */
+        margin-top: 0; /* Removed 30px gap */
+        margin-bottom: 20px; /* Reduced from 55px */
     }
     .create-post-card {
         padding: 20px 15px; 
-        margin-top: 20px; /* Increased gap from above */
+        margin-top: 10px; /* Reduced from 20px */
     }
 }
 
@@ -323,7 +323,7 @@
 /* Responsive Optimization - Force 100% Width */
 @media (max-width: 768px) {
     .main-content {
-        padding: 70px 0 80px 0 !important; /* Top for header, bottom for nav */
+        padding: 60px 0 80px 0 !important; /* Top for header (60px), bottom for nav */
         margin: 0 !important;
         width: 100% !important;
     }
@@ -877,8 +877,8 @@
 /* Responsive Search */
 @media (max-width: 768px) {
     .feed-search-wrapper {
-        padding: 12px 16px 12px 16px;
-        top: 55px !important; /* Force sticky position below mobile header */
+        padding: 12px 16px;
+        top: 60px !important; /* Matches new 60px header height */
         background: white;
         position: sticky;
         border-bottom: 1.5px solid #f1f5f9;
