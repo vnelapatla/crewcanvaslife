@@ -28,7 +28,7 @@ public class DatabaseFixerConfig {
 
                 System.out.println("Applying manual database fixes to resolve row size limits...");
                 
-                // Manually force these columns to TEXT to free up row space
+                String[] columnsToFix = {
                     "role", "location", "experience", "phone", "availability",
                     "height", "weight", "age_range", "gender", "body_type",
                     "turnaround_time", "instagram", "youtube", "tiktok", "twitter",
