@@ -27,6 +27,6 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "DELETE FROM followers WHERE follower_id = ?1 OR following_id = ?1", nativeQuery = true)
+    @Query(value = "DELETE FROM connections WHERE follower_id = ?1 OR following_id = ?1", nativeQuery = true)
     void deleteFromFollowersTable(Long userId);
 }

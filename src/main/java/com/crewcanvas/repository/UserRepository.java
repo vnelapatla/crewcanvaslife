@@ -1,6 +1,7 @@
 package com.crewcanvas.repository;
 
 import com.crewcanvas.model.User;
+import com.crewcanvas.model.Connection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -450,6 +450,15 @@ async function handleExternalRedirect(eventId, url) {
 
 async function submitEventApplication() {
     if (!pendingEventId || !currentUserId) return;
+    
+    if (!currentUser) {
+        currentUser = await loadCurrentUser();
+    }
+    
+    if (!currentUser) {
+        console.error("submitEventApplication: currentUser is null");
+        return;
+    }
 
     const btn = document.querySelector('button[onclick="submitEventApplication()"]');
     const originalText = btn ? btn.innerText : 'Submit Application';

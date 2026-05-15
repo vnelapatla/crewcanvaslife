@@ -403,10 +403,7 @@ public class UserService {
             org.springframework.data.domain.PageRequest.of(page, size));
         
         return summaryPage.map(summary -> {
-            com.crewcanvas.dto.UserDTO dto = new com.crewcanvas.dto.UserDTO(summary);
-            // Fetch profile picture separately to keep search results light but visual
-            userRepository.findById(summary.getId()).ifPresent(u -> dto.setProfilePicture(u.getProfilePicture()));
-            return dto;
+            return new com.crewcanvas.dto.UserDTO(summary);
         });
     }
 

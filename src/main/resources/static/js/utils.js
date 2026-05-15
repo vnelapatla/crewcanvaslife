@@ -1,5 +1,11 @@
-let API_BASE_URL = ''; // Use relative paths by default for better compatibility
-let GOOGLE_CLIENT_ID = ""; // Global Google Client ID for shared pages
+if (typeof window.API_BASE_URL === 'undefined') {
+    window.API_BASE_URL = ''; // Use relative paths by default for better compatibility
+}
+if (typeof window.GOOGLE_CLIENT_ID === 'undefined') {
+    window.GOOGLE_CLIENT_ID = ""; // Global Google Client ID for shared pages
+}
+var API_BASE_URL = window.API_BASE_URL;
+var GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID;
 
 // CC-MAY-002: Multi-Language Support [M Sumanth] - Global Translation Engine
 window.Translations = {

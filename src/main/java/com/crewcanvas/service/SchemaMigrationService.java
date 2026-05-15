@@ -90,7 +90,15 @@ public class SchemaMigrationService {
                     "UNIQUE KEY uk_poll_user (poll_id, user_id)" +
                     ") ENGINE=InnoDB;");
 
-            System.out.println("Database schema verified for groups and polls.");
+            // Ensure connections table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS connections (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "follower_id BIGINT NOT NULL, " +
+                    "following_id BIGINT NOT NULL, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                    ") ENGINE=InnoDB;");
+
+            System.out.println("Database schema verified for groups, polls, and connections.");
         } catch (Exception e) {
             System.err.println("Migration warning: " + e.getMessage());
         }
