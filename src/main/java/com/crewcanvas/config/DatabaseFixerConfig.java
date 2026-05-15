@@ -29,10 +29,10 @@ public class DatabaseFixerConfig {
                 System.out.println("Applying manual database fixes to resolve row size limits...");
                 
                 // Manually force these columns to TEXT to free up row space
-                String[] columnsToFix = {
                     "role", "location", "experience", "phone", "availability",
                     "height", "weight", "age_range", "gender", "body_type",
-                    "turnaround_time", "instagram", "youtube", "tiktok", "twitter"
+                    "turnaround_time", "instagram", "youtube", "tiktok", "twitter",
+                    "profile_visibility", "message_permissions", "group_add_privilege"
                 };
 
                 for (String col : columnsToFix) {
@@ -95,8 +95,10 @@ public class DatabaseFixerConfig {
                     "is_verified_professional BOOLEAN DEFAULT FALSE",
                     "is_admin BOOLEAN DEFAULT FALSE",
                     "welcome_sent BOOLEAN DEFAULT FALSE",
-                    "profile_visibility VARCHAR(50) DEFAULT 'Everyone'",
-                    "message_permissions VARCHAR(50) DEFAULT 'Everyone'",
+                    "profile_visibility TEXT",
+                    "message_permissions TEXT",
+                    "group_add_privilege TEXT",
+                    "terms_accepted BOOLEAN DEFAULT FALSE",
                     "email_notifications BOOLEAN DEFAULT TRUE",
                     "follower_notifications BOOLEAN DEFAULT TRUE",
                     "event_reminders BOOLEAN DEFAULT TRUE"

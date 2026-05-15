@@ -18,7 +18,7 @@ public class SchemaMigrationService {
             // Create group_chats table
             jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS group_chats (" +
                     "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
-                    "name VARCHAR(255) NOT NULL, " +
+                    "name TEXT, " +
                     "description TEXT, " +
                     "created_by BIGINT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
@@ -52,6 +52,16 @@ public class SchemaMigrationService {
             } catch (Exception e) {
                 if (!e.getMessage().contains("Duplicate column name")) {
                     System.err.println("Note adding terms_accepted: " + e.getMessage());
+                }
+            }
+
+            // Check if group_add_privilege exists
+            try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN group_add_privilege TEXT;");
+                System.out.println("Added group_add_privilege column to users table.");
+            } catch (Exception e) {
+                if (!e.getMessage().contains("Duplicate column name")) {
+                    System.err.println("Note adding group_add_privilege: " + e.getMessage());
                 }
             }
 

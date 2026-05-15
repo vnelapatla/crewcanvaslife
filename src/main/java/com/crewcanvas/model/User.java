@@ -196,11 +196,17 @@ public class User {
     @Column(name = "welcome_sent")
     private Boolean welcomeSent = false;
 
-    @Column(name = "profile_visibility")
+    @Column(name = "profile_visibility", columnDefinition = "TEXT")
     private String profileVisibility = "Everyone";
 
-    @Column(name = "message_permissions")
+    @Column(name = "message_permissions", columnDefinition = "TEXT")
     private String messagePermissions = "Everyone";
+
+    @Column(name = "group_add_privilege", columnDefinition = "TEXT")
+    private String groupAddPrivilege = "Everyone";
+
+    @Column(name = "terms_accepted")
+    private Boolean termsAccepted = false;
 
     @Column(name = "email_notifications")
     private Boolean emailNotifications = true;
@@ -383,6 +389,12 @@ public class User {
 
     public String getMessagePermissions() { return messagePermissions; }
     public void setMessagePermissions(String messagePermissions) { this.messagePermissions = messagePermissions; }
+
+    public String getGroupAddPrivilege() { return groupAddPrivilege; }
+    public void setGroupAddPrivilege(String groupAddPrivilege) { this.groupAddPrivilege = groupAddPrivilege; }
+
+    public Boolean getTermsAccepted() { return termsAccepted; }
+    public void setTermsAccepted(Boolean termsAccepted) { this.termsAccepted = termsAccepted; }
 
     public Boolean getEmailNotifications() { return emailNotifications; }
     public void setEmailNotifications(Boolean emailNotifications) { this.emailNotifications = emailNotifications; }
