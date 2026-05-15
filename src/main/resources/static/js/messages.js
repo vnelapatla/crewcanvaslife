@@ -412,6 +412,22 @@ async function openConversation(userId) {
     selectedConversationUserId = userId;
     console.log("Opening conversation with:", userId);
 
+    // Reset UI immediately to prevent "ghosting" of previous conversation
+    const messagesArea = document.getElementById('messagesArea');
+    if (messagesArea) {
+        messagesArea.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">
+                <div class="loader-spinner" style="width: 30px; height: 30px; border: 3px solid #f1f5f9; border-top: 3px solid var(--primary-orange); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px;"></div>
+                <div style="font-size: 13px;">Loading conversation...</div>
+            </div>`;
+    }
+    const nameEl = document.getElementById('chatUserName');
+    if (nameEl) nameEl.textContent = 'Loading...';
+    const avatarEl = document.getElementById('chatUserAvatar');
+    if (avatarEl) avatarEl.innerHTML = '<div style="width: 45px; height: 45px; background: #f1f5f9; border-radius: 50%;"></div>';
+    const statusEl = document.getElementById('chatUserStatus');
+    if (statusEl) statusEl.textContent = '...';
+
     // UI Updates for mobile and desktop (Modal Overlay)
     const chatOverlay = document.getElementById('chatOverlay');
     if (chatOverlay) {

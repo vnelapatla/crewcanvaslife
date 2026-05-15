@@ -74,15 +74,27 @@ async function loadCurrentUser() {
 
 async function loadEventStats() {
     try {
+        const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : (localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com');
+        if (!isAdmin) return;
+
         const response = await fetch(`${API_BASE_URL}/api/events/stats`);
         if (response.ok) {
             const stats = await response.json();
-            if (document.getElementById('workshopCount')) document.getElementById('workshopCount').innerText = stats['Workshop'] || 0;
+            const countMap = {
+                'workshopCount': stats['Workshop'] || 0,
+                'contestCount': stats['Contest'] || 0,
+                'auditionCount': stats['Audition'] || 0,
+                'filmEventCount': stats['Film Event'] || 0,
+                'totalEventCount': stats['total'] || 0
+            };
 
-            if (document.getElementById('contestCount')) document.getElementById('contestCount').innerText = stats['Contest'] || 0;
-            if (document.getElementById('auditionCount')) document.getElementById('auditionCount').innerText = stats['Audition'] || 0;
-            if (document.getElementById('filmEventCount')) document.getElementById('filmEventCount').innerText = stats['Film Event'] || 0;
-            if (document.getElementById('totalEventCount')) document.getElementById('totalEventCount').innerText = stats['total'] || 0;
+            Object.keys(countMap).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerText = countMap[id];
+                    el.style.display = 'block';
+                }
+            });
         }
     } catch (error) { console.error('Error loading stats:', error); }
 }
@@ -206,9 +218,11 @@ function displayEvents(events, prepend = false) {
                     ${event.createdAt ? `<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;"><i class="far fa-clock"></i> Posted: ${typeof formatDate === 'function' ? formatDate(event.createdAt) : new Date(event.createdAt).toLocaleDateString()}</div>` : ''}
                     ${event.adminNote ? `<p style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 10px; background: rgba(99, 102, 241, 0.05); padding: 8px; border-radius: 8px;"><i class="fas fa-info-circle"></i> Note: ${event.adminNote}</p>` : ''}
                     <div class="card-footer" style="padding: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        ${(currentUser && currentUser.isAdmin) ? `
                         <div style="font-size: 11px; font-weight: 600; color: #64748b;">
                             <i class="fas fa-users"></i> ${event.applicants || 0} applied
                         </div>
+                        ` : '<div></div>'}
                         ${(() => {
                             const sLink = (event.externalLink || '').replace(/'/g, "\\'");
                             const regAct = (isManaged && event.externalLink) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;

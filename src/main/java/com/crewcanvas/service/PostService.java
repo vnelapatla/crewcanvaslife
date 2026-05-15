@@ -53,9 +53,16 @@ public class PostService {
         if (aspectRatio != null) post.setAspectRatio(aspectRatio);
         Post savedPost = postRepository.save(post);
         
-        // Broadcast notification if Admin
+        // Broadcast notification if Admin or Special User
+        boolean isSpecialUser = user != null && (
+            "Movie Fan Boy".equalsIgnoreCase(user.getName()) || 
+            "Rating Boy".equalsIgnoreCase(user.getName())
+        );
+
         if (isAdmin) {
             notificationService.broadcastAdminPostNotification(savedPost, user);
+        } else if (isSpecialUser) {
+            notificationService.broadcastSpecialPostNotification(savedPost, user);
         }
 
         return populatePollData(savedPost);
@@ -73,10 +80,17 @@ public class PostService {
         post.setPoll(poll);
         Post savedPost = postRepository.save(post);
 
-        // Broadcast notification if Admin
+        // Broadcast notification if Admin or Special User
         com.crewcanvas.model.User user = userRepository.findById(userId).orElse(null);
-        if (user != null && (Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail()))) {
-            notificationService.broadcastAdminPostNotification(savedPost, user);
+        if (user != null) {
+            boolean isAdmin = Boolean.TRUE.equals(user.getIsAdmin()) || "crewcanvas2@gmail.com".equalsIgnoreCase(user.getEmail());
+            boolean isSpecialUser = "Movie Fan Boy".equalsIgnoreCase(user.getName()) || "Rating Boy".equalsIgnoreCase(user.getName());
+            
+            if (isAdmin) {
+                notificationService.broadcastAdminPostNotification(savedPost, user);
+            } else if (isSpecialUser) {
+                notificationService.broadcastSpecialPostNotification(savedPost, user);
+            }
         }
 
         return populatePollData(savedPost);

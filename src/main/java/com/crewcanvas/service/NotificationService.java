@@ -88,30 +88,39 @@ public class NotificationService {
 
     @Async
     public void broadcastAdminPostNotification(Post post, User admin) {
+        broadcastPostNotification(post, admin, "ADMIN_POST", "posted a new requirement: ");
+    }
+
+    @Async
+    public void broadcastSpecialPostNotification(Post post, User user) {
+        broadcastPostNotification(post, user, "FEATURED_POST", "shared a new update: ");
+    }
+
+    private void broadcastPostNotification(Post post, User actor, String type, String prefix) {
         try {
             List<User> allUsers = userRepository.findAll();
-            String postContent = post.getContent() != null ? post.getContent() : "New Requirement";
+            String postContent = post.getContent() != null ? post.getContent() : (post.isPoll() ? "New Poll" : "New Post");
             String preview = postContent.length() > 50 ? postContent.substring(0, 50) + "..." : postContent;
 
             for (User targetUser : allUsers) {
-                if (targetUser.getId().equals(admin.getId())) continue;
+                if (actor != null && targetUser.getId().equals(actor.getId())) continue;
 
                 // 1. Create In-App Notification
                 createNotification(
                     targetUser.getId(),
-                    admin.getId(),
-                    "ADMIN_POST",
-                    "posted a new requirement: " + preview,
+                    actor != null ? actor.getId() : null,
+                    type,
+                    prefix + preview,
                     post.getId().toString()
                 );
 
-                // 2. Send Email Notification
-                if (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications())) {
+                // 2. Send Email Notification for Admin Posts
+                if ("ADMIN_POST".equals(type) && (targetUser.getEmailNotifications() == null || Boolean.TRUE.equals(targetUser.getEmailNotifications()))) {
                     emailService.sendAdminPostNotificationEmail(targetUser.getEmail(), targetUser.getName(), postContent, post.getId());
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error broadcasting admin post notification: " + e.getMessage());
+            System.err.println("Error broadcasting post notification: " + e.getMessage());
         }
     }
     @Async
