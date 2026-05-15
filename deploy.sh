@@ -40,10 +40,11 @@ sleep 3
 LATEST_JAR=$(ls -t *.jar | head -1)
 echo "Starting new instance: $LATEST_JAR"
 
-# Using 384MB Heap - Safe for 1GB RAM when only one instance is running
+# Using 768MB Heap - Optimized for 2GB RAM environment
 nohup java \
-  -Xms128m -Xmx384m \
+  -Xms256m -Xmx768m \
   -XX:+UseSerialGC \
+  -XX:+ExitOnOutOfMemoryError \
   -XX:MaxMetaspaceSize=128m \
   -jar $LATEST_JAR \
   --server.port=$APP_PORT \
