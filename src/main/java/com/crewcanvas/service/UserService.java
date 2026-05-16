@@ -201,7 +201,10 @@ public class UserService {
     }
 
     public User registerUser(String name, String email, String password) {
-        Optional<User> existing = userRepository.findByEmail(email);
+        // Normalize email
+        String cleanEmail = email.trim().toLowerCase();
+        
+        Optional<User> existing = userRepository.findByEmail(cleanEmail);
         if (existing.isPresent()) {
             User user = existing.get();
             if (user.getGoogleId() != null && user.getPassword() == null) {
@@ -209,8 +212,14 @@ public class UserService {
             }
             throw new RuntimeException("This email is already registered. Please log in instead.");
         }
-        User user = new User(name, email, password);
-        return userRepository.save(user);
+        
+        try {
+            User user = new User(name, cleanEmail, password);
+            return userRepository.save(user);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Catch race conditions where another registration with same email happened between check and save
+            throw new RuntimeException("This email is already registered. Please log in instead.");
+        }
     }
 
     public Optional<User> loginUser(String email, String password) {

@@ -560,10 +560,11 @@ async function saveProfile() {
         const getVal = (id) => {
             const el = document.getElementById(id);
             if (!el) {
-                console.warn(`Element #${id} not found, returning empty string`);
-                return '';
+                // If element is missing from DOM, return null so backend skips it (prevents data loss)
+                return null;
             }
-            return el.value ? el.value.trim() : '';
+            // If element exists, return its value (including empty string to allow clearing)
+            return el.value !== undefined ? el.value.trim() : '';
         };
 
         const selectedRole = role; 

@@ -22,7 +22,7 @@ sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"
 echo "🔍 Checking for orphan Java processes..."
 APP_PORT=8081
 # This kills anything on the app port, which is already in deploy.sh but good for a standalone cleanup
-sudo fuser -k $APP_PORT/tcp 2>/dev/null || echo "No active process on port $APP_PORT"
+# sudo fuser -k $APP_PORT/tcp 2>/dev/null || echo "No active process on port $APP_PORT"
 
 # 4. Flush MySQL to release internal buffers
 echo "🗄️ Flushing MySQL buffers..."
