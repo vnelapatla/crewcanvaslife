@@ -1,0 +1,18 @@
+[Unit]
+Description=CrewCanvas Spring Boot Application
+After=syslog.target network.target mariadb.service
+
+[Service]
+User=ec2-user
+# Adjust the path below to where your app is actually located
+WorkingDirectory=/home/ec2-user/app
+ExecStart=/usr/bin/java -Xms128m -Xmx512m -XX:+UseSerialGC -jar crewcanvas.jar --server.port=8081
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=crewcanvas
+
+[Install]
+WantedBy=multi-user.target

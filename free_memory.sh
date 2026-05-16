@@ -33,11 +33,47 @@ mysqladmin -u root -proot flush-tables 2>/dev/null || echo "MySQL flush skipped 
 echo "🗑️ Cleaning /tmp directory..."
 sudo find /tmp -type f -atime +1 -delete
 
-echo "----------------------------------------"
-echo "✅ Memory Cleanup Completed!"
-echo "----------------------------------------"
+# 6. Self-Healing: Ensure application is running
+echo "🛡️ Verifying Application Health..."
+CHECK_PORT=8081
+HEALTH_URL="http://127.0.0.1:$CHECK_PORT/api/health"
 
-# Show new memory status
-free -m
+# Try health endpoint, fallback to root
+if ! curl -s --head --request GET "$HEALTH_URL" | grep "200\|302" > /dev/null; then
+    if ! curl -s --head --request GET "http://127.0.0.1:$CHECK_PORT" | grep "200\|302" > /dev/null; then
+        echo "⚠️ Application is DOWN on port $CHECK_PORT. Searching for JAR to restart..."
+        
+        # Search path priority
+        POSSIBLE_PATHS=("." "./target" "$HOME/app" "$HOME/crewcanvaslife-main")
+        LATEST_JAR=""
+        
+        for p in "${POSSIBLE_PATHS[@]}"; do
+            if [ -d "$p" ]; then
+                FOUND=$(ls -t "$p"/*.jar 2>/dev/null | head -1)
+                if [ -n "$FOUND" ]; then
+                    LATEST_JAR=$FOUND
+                    break
+                fi
+            fi
+        done
+
+        if [ -n "$LATEST_JAR" ]; then
+            echo "🚀 Restarting with: $LATEST_JAR"
+            nohup java -Xms128m -Xmx512m \
+                -XX:+UseSerialGC \
+                -XX:+ExitOnOutOfMemoryError \
+                -jar "$LATEST_JAR" --server.port=$CHECK_PORT > app.log 2>&1 &
+            echo "✅ Application restart initiated. Check 'app.log' for details."
+        else
+            echo "❌ Error: Could not find any .jar file. Please run ./deploy.sh manually."
+        fi
+    else
+        echo "✅ Application is up (Root responding)."
+    fi
+else
+    echo "✅ Application is healthy (API responding)."
+fi
+
 echo "----------------------------------------"
-echo "Tip: If memory usage is still high, consider restarting the 'mariadb' or 'nginx' services."
+echo "✅ Memory Cleanup & Health Check Completed!"
+echo "----------------------------------------"
