@@ -149,7 +149,8 @@ public class NotificationService {
                         hostName, 
                         event.getTitle(), 
                         event.getEventType(), 
-                        event.getId()
+                        event.getId(),
+                        event.getImageUrl()
                     );
                 }
             }

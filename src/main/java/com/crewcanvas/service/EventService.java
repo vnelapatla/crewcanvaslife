@@ -875,7 +875,7 @@ public class EventService {
                                 // 2. Send Email
                                 if (sendEmail) {
                                     emailService.sendEventDetailsEmail(applicant.getEmail(), applicant.getName(),
-                                            event.getTitle(), event.getEventType(), location, time, date);
+                                            event.getTitle(), event.getEventType(), location, time, date, event.getImageUrl());
                                 }
 
                                 // 3. Send Notification if reminders enabled

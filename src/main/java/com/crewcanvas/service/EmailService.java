@@ -3,6 +3,8 @@ package com.crewcanvas.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +23,29 @@ public class EmailService {
         } catch (org.springframework.mail.MailSendException e) {
             String msg = e.getMessage();
             if (msg != null && msg.contains("550-5.4.5")) {
-                System.err.println("[EMAIL LIMIT] Gmail daily limit exceeded. Skipping email to: " + message.getTo()[0]);
+                System.err.println("[EMAIL LIMIT] Gmail daily limit exceeded. Skipping email to: " + (message.getTo() != null ? message.getTo()[0] : "unknown"));
             } else {
-                System.err.println("[EMAIL ERROR] Failed to send email to " + message.getTo()[0] + ": " + msg);
+                System.err.println("[EMAIL ERROR] Failed to send email to " + (message.getTo() != null ? message.getTo()[0] : "unknown") + ": " + msg);
             }
         } catch (Exception e) {
             System.err.println("[EMAIL ERROR] Critical failure sending email: " + e.getMessage());
+        }
+    }
+
+    private void safeSendHtml(String to, String subject, String htmlBody) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL SKIPPED] HTML Email to: " + to);
+            return;
+        }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("[EMAIL ERROR] Failed to send HTML email to " + to + ": " + e.getMessage());
         }
     }
 
@@ -95,29 +114,34 @@ public class EmailService {
     }
 
     @Async
-    public void sendEventDetailsEmail(String to, String name, String eventTitle, String eventType, String location, String time, String date) {
-        if (!emailEnabled) {
-            System.out.println("[EMAIL SKIPPED] Event Details to: " + to);
-            return;
-        }
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
+    public void sendEventDetailsEmail(String to, String name, String eventTitle, String eventType, String location, String time, String date, String imageUrl) {
+        if (!emailEnabled) return;
+
+        String detailsLabel = getBroadcastSubject(eventType);
         
-        String subjectLabel = getBroadcastSubject(eventType);
-        message.setSubject(subjectLabel + ": " + eventTitle + " 🎬");
+        String imgHtml = "";
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            imgHtml = "<div style='width: 100%; max-width: 600px; height: 300px; overflow: hidden; border-radius: 8px; margin-bottom: 20px;'>" +
+                      "<img src='" + imageUrl + "' style='width: 100%; height: 100%; object-fit: cover; display: block;' alt='Event Poster'>" +
+                      "</div>";
+        }
 
-        String body = "Hi " + name + ",\n\n" +
-                "The organizers of '" + eventTitle + "' have shared the details for the upcoming " + (eventType != null ? eventType.toLowerCase() : "event") + ":\n\n" +
-                "📍 Location: " + location + "\n" +
-                "⏰ Time: " + time + "\n" +
-                "📅 Date: " + date + "\n\n" +
-                "Please make sure to reach the venue on time. If you have any questions, you can contact the organizers through the CrewCanvas platform.\n\n" +
-                "Looking forward to seeing you there!\n\n" +
-                "Best regards,\n" +
-                "The CrewCanvas Team";
+        String htmlBody = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px;'>" +
+                "<h2 style='color: #E50914;'>" + detailsLabel + " Details</h2>" +
+                "<p>Hi " + name + ",</p>" +
+                "<p>The organizers of <b>" + eventTitle + "</b> (" + eventType + ") have shared the following details:</p>" +
+                imgHtml +
+                "<div style='background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #E50914;'>" +
+                "<p style='margin: 5px 0;'>📍 <b>Location:</b> " + location + "</p>" +
+                "<p style='margin: 5px 0;'>⏰ <b>Time:</b> " + time + "</p>" +
+                "<p style='margin: 5px 0;'>📅 <b>Date:</b> " + date + "</p>" +
+                "</div>" +
+                "<p>Looking forward to seeing you!</p>" +
+                "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The CrewCanvas Team</p>" +
+                "</div>";
 
-        message.setText(body);
-        safeSend(message);
+        safeSendHtml(to, detailsLabel + ": " + eventTitle, htmlBody);
     }
 
     @Async
@@ -406,26 +430,33 @@ public class EmailService {
     }
 
     @Async
-    public void sendNewEventBroadcastEmail(String to, String name, String hostName, String eventTitle, String eventType, Long eventId) {
-        if (!emailEnabled) {
-            System.out.println("[EMAIL SKIPPED] New Event Broadcast to: " + to);
-            return;
-        }
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("New Opportunity: " + eventTitle + " by " + hostName + " 🎬");
+    public void sendNewEventBroadcastEmail(String to, String name, String hostName, String eventTitle, String eventType, Long eventId, String imageUrl) {
+        if (!emailEnabled) return;
 
         String eventLink = "https://crewcanvas.in/event.html?id=" + eventId;
+        
+        String imgHtml = "";
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            imgHtml = "<div style='width: 100%; max-width: 600px; height: 350px; overflow: hidden; border-radius: 12px; margin: 20px 0;'>" +
+                      "<a href='" + eventLink + "'><img src='" + imageUrl + "' style='width: 100%; height: 100%; object-fit: cover; display: block;' alt='Event Poster'></a>" +
+                      "</div>";
+        }
 
-        String body = "Hi " + name + ",\n\n" +
-                "A new opportunity has been posted on CrewCanvas by " + hostName + ":\n\n" +
-                "✨ " + eventTitle + " (" + eventType + ")\n\n" +
-                "Check out the details and apply here:\n" + eventLink + "\n\n" +
-                "Don't miss out on this opportunity!\n\n" +
-                "Best regards,\n" +
-                "The CrewCanvas Team";
+        String htmlBody = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px;'>" +
+                "<h2 style='color: #E50914;'>New Opportunity on CrewCanvas! 🎬</h2>" +
+                "<p>Hi " + name + ",</p>" +
+                "<p>A new opportunity has been posted by <b>" + hostName + "</b>:</p>" +
+                "<div style='background: #f4f4f4; padding: 20px; border-radius: 12px; text-align: center;'>" +
+                "<h3 style='margin: 0; color: #222;'>" + eventTitle + "</h3>" +
+                "<p style='color: #666; margin: 5px 0;'>" + eventType + "</p>" +
+                imgHtml +
+                "<a href='" + eventLink + "' style='display: inline-block; background: #E50914; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 30px; font-weight: bold; margin-top: 10px;'>View Details & Apply</a>" +
+                "</div>" +
+                "<p style='margin-top: 20px;'>Don't miss out on this opportunity!</p>" +
+                "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The CrewCanvas Team</p>" +
+                "</div>";
 
-        message.setText(body);
-        safeSend(message);
+        safeSendHtml(to, "New Opportunity: " + eventTitle + " by " + hostName + " 🎬", htmlBody);
     }
 }
