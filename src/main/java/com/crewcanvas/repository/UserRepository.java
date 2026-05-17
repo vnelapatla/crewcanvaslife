@@ -110,4 +110,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "u.showreel as showreel, u.portfolioVideos as portfolioVideos " +
             "FROM User u WHERE u.id = :id")
     Optional<com.crewcanvas.dto.UserSummary> findSummaryById(@org.springframework.data.repository.query.Param("id") Long id);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u.id, u.name, u.role, u.profilePicture FROM User u WHERE u.id IN :ids")
+    List<Object[]> findPostUserDetailsByIds(@org.springframework.data.repository.query.Param("ids") List<Long> ids);
 }

@@ -382,13 +382,30 @@ public class PostService {
                 .map(Comment::getUserId)
                 .collect(java.util.stream.Collectors.toSet());
         
-        java.util.Map<Long, com.crewcanvas.model.User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
+        java.util.List<Long> userIdList = new java.util.ArrayList<>(userIds);
+        java.util.Map<Long, java.util.Map<String, Object>> userDetailsMap = new java.util.HashMap<>();
+        try {
+            java.util.List<Object[]> userResults = userRepository.findPostUserDetailsByIds(userIdList);
+            for (Object[] row : userResults) {
+                Long id = (Long) row[0];
+                java.util.Map<String, Object> details = new java.util.HashMap<>();
+                details.put("id", id);
+                details.put("name", (String) row[1]);
+                details.put("role", (String) row[2]);
+                details.put("profilePicture", (String) row[3]);
+                userDetailsMap.put(id, details);
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching user details for comments: " + e.getMessage());
+        }
 
         // 2. Build map and populate user details
         java.util.Map<Long, Comment> commentMap = new java.util.HashMap<>();
         for (Comment c : allComments) {
-            assignUserDetailsToComment(c, userMap);
+            java.util.Map<String, Object> details = userDetailsMap.get(c.getUserId());
+            if (details != null) {
+                c.setUserDetails(details);
+            }
             commentMap.put(c.getId(), c);
         }
 
@@ -428,15 +445,7 @@ public class PostService {
     }
 
     private void assignUserDetailsToComment(Comment comment, java.util.Map<Long, com.crewcanvas.model.User> userMap) {
-        com.crewcanvas.model.User user = userMap.get(comment.getUserId());
-        if (user != null) {
-            java.util.Map<String, Object> details = new java.util.HashMap<>();
-            details.put("id", user.getId());
-            details.put("name", user.getName());
-            details.put("profilePicture", user.getProfilePicture());
-            details.put("role", user.getRole());
-            comment.setUserDetails(details);
-        }
+        // Obsolete, logic merged into getCommentsForPost directly.
     }
 
     public Post votePoll(Long postId, Long userId, Integer optionIndex) {
@@ -475,31 +484,27 @@ public class PostService {
                 .distinct()
                 .collect(java.util.stream.Collectors.toList());
 
-        java.util.Map<Long, com.crewcanvas.model.User> tempUserMap;
+        java.util.Map<Long, java.util.Map<String, Object>> userDetailsMap = new java.util.HashMap<>();
         try {
-            tempUserMap = userRepository.findAllById(userIds).stream()
-                .filter(u -> u != null && u.getId() != null)
-                .collect(java.util.stream.Collectors.toMap(
-                    com.crewcanvas.model.User::getId, 
-                    u -> u, 
-                    (existing, replacement) -> existing // Keep the first one found if duplicates exist
-                ));
+            java.util.List<Object[]> userResults = userRepository.findPostUserDetailsByIds(userIds);
+            for (Object[] row : userResults) {
+                Long id = (Long) row[0];
+                java.util.Map<String, Object> details = new java.util.HashMap<>();
+                details.put("id", id);
+                details.put("name", (String) row[1]);
+                details.put("role", (String) row[2]);
+                details.put("profilePicture", (String) row[3]);
+                userDetailsMap.put(id, details);
+            }
         } catch (Exception e) {
             System.err.println("PostService: Error during batch user fetch: " + e.getMessage());
-            tempUserMap = new java.util.HashMap<>();
         }
-        final java.util.Map<Long, com.crewcanvas.model.User> finalUserMap = tempUserMap;
 
         // 2. Populate data for each post
         posts.forEach(post -> {
             // User Details
-            com.crewcanvas.model.User user = finalUserMap.get(post.getUserId());
-            if (user != null) {
-                java.util.Map<String, Object> details = new java.util.HashMap<>();
-                details.put("id", user.getId());
-                details.put("name", user.getName());
-                details.put("role", user.getRole());
-                details.put("profilePicture", user.getProfilePicture());
+            java.util.Map<String, Object> details = userDetailsMap.get(post.getUserId());
+            if (details != null) {
                 post.setUserDetails(details);
             }
 
@@ -549,18 +554,26 @@ public class PostService {
                     .distinct()
                     .collect(java.util.stream.Collectors.toList());
             
-            java.util.Map<Long, com.crewcanvas.model.User> originalUserMap = userRepository.findAllById(originalUserIds).stream()
-                    .collect(java.util.stream.Collectors.toMap(com.crewcanvas.model.User::getId, u -> u));
+            java.util.Map<Long, java.util.Map<String, Object>> originalUserDetailsMap = new java.util.HashMap<>();
+            try {
+                java.util.List<Object[]> userResults = userRepository.findPostUserDetailsByIds(originalUserIds);
+                for (Object[] row : userResults) {
+                    Long id = (Long) row[0];
+                    java.util.Map<String, Object> details = new java.util.HashMap<>();
+                    details.put("id", id);
+                    details.put("name", (String) row[1]);
+                    details.put("role", (String) row[2]);
+                    details.put("profilePicture", (String) row[3]);
+                    originalUserDetailsMap.put(id, details);
+                }
+            } catch (Exception e) {
+                System.err.println("PostService: Error during batch original user fetch: " + e.getMessage());
+            }
 
             java.util.Map<Long, Post> originalMap = new java.util.HashMap<>();
             for (Post op : originalPosts) {
-                com.crewcanvas.model.User u = originalUserMap.get(op.getUserId());
-                if (u != null) {
-                    java.util.Map<String, Object> details = new java.util.HashMap<>();
-                    details.put("id", u.getId());
-                    details.put("name", u.getName());
-                    details.put("role", u.getRole());
-                    details.put("profilePicture", u.getProfilePicture());
+                java.util.Map<String, Object> details = originalUserDetailsMap.get(op.getUserId());
+                if (details != null) {
                     op.setUserDetails(details);
                 }
                 originalMap.put(op.getId(), op);
