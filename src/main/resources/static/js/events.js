@@ -8,10 +8,10 @@ let currentFilter = 'all';
 let eventPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 5;
 let currentType = ''; 
 let editModeId = null;
-let visibleCount = 15;
+let visibleCount = 5;
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
@@ -174,7 +174,7 @@ async function loadEvents() {
 window.addEventListener('scroll', () => {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
         if (visibleCount < allEvents.length) {
-            visibleCount += 15;
+            visibleCount += 5;
             searchEvents();
         } else {
             loadEvents();
@@ -553,6 +553,6 @@ function switchEventTab(type, element) {
     else if (type === 'contests') filterType = 'Contest';
     else if (type === 'filmevents') filterType = 'Film Event';
     currentFilter = filterType;
-    visibleCount = 15; // Reset visible count on tab switch
+    visibleCount = 5; // Reset visible count on tab switch
     searchEvents();
 }

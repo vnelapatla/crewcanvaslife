@@ -59,8 +59,8 @@ async function showListView(append = false) {
 
     try {
         const url = (currentUser && currentUser.isAdmin) 
-            ? `${API_BASE_URL}/api/events/slim?page=${eventPage}&size=10` 
-            : `${API_BASE_URL}/api/events/user/${userId}/slim?page=${eventPage}&size=10`;
+            ? `${API_BASE_URL}/api/events/slim?page=${eventPage}&size=5` 
+            : `${API_BASE_URL}/api/events/user/${userId}/slim?page=${eventPage}&size=5`;
             
         const res = await fetch(url);
         if (res.ok) {
@@ -73,7 +73,7 @@ async function showListView(append = false) {
                 eventsCache = events;
             }
 
-            if (events.length < 10) hasMoreEvents = false;
+            if (events.length < 5) hasMoreEvents = false;
             renderEventList(eventsCache);
         }
     } catch (error) {
