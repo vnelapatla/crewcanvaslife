@@ -550,25 +550,46 @@ function getRandomColor(name) {
 }
 
 
+let currentChatPage = 0;
+let isChatLoading = false;
+let hasMoreChatMessages = true;
+
 // Load messages
-async function loadMessages() {
+async function loadMessages(isPagination = false) {
+    if (isChatLoading || (isPagination && !hasMoreChatMessages)) return;
+    
+    isChatLoading = true;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}`);
+        const pageToFetch = isPagination ? currentChatPage + 1 : 0;
+        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}&page=${pageToFetch}&size=20`);
+        
         if (!response.ok) {
             const errText = await response.text();
             const container = document.getElementById('messagesArea');
-            if (container) container.innerHTML = `<div style="text-align: center; color: #f44336; padding: 40px; font-size:14px;">Error loading messages: ${errText.substring(0, 100)}</div>`;
+            if (container && !isPagination) container.innerHTML = `<div style="text-align: center; color: #f44336; padding: 40px; font-size:14px;">Error loading messages: ${errText.substring(0, 100)}</div>`;
+            isChatLoading = false;
             return;
         }
         
         let messages = await response.json();
         
-        // Backend now returns messages in DESC order (newest first) for paged fetching.
-        // We reverse them for correct chronological display in the chat interface.
-        if (Array.isArray(messages)) {
-            messages.reverse();
+        // Backend returns messages in DESC order (newest first).
+        // Since we use flex-direction: column-reverse, we DO NOT reverse them anymore!
+        if (!Array.isArray(messages)) {
+            isChatLoading = false;
+            return;
         }
-        if (!Array.isArray(messages)) return;
+
+        if (messages.length < 20) {
+            hasMoreChatMessages = false; // No more messages to load
+        }
+        
+        if (isPagination) {
+            currentChatPage++;
+        } else {
+            currentChatPage = 0;
+            hasMoreChatMessages = messages.length === 20;
+        }
         
         // Filter out technical signaling messages
         messages = messages.filter(m => !m.content || !m.content.startsWith('__CALL_SIGNAL__'));
@@ -592,49 +613,66 @@ async function loadMessages() {
             });
         }
 
-        displayMessages(messages);
+        displayMessages(messages, isPagination);
     } catch (error) {
         console.error('Error loading messages:', error);
+    } finally {
+        isChatLoading = false;
     }
 }
 
 let lastMessageCountMap = new Map();
 let lastLoadedConversationId = null;
 
+// Initialize scroll listener for pagination
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('messagesArea');
+    if (container) {
+        container.addEventListener('scroll', () => {
+            // In flex-direction: column-reverse, scrollTop starts at 0 at bottom and goes negative (or positive depending on browser)
+            // The absolute value of scrollTop represents how far we've scrolled UP.
+            const scrollDistance = Math.abs(container.scrollTop) + container.clientHeight;
+            if (scrollDistance >= container.scrollHeight - 100) {
+                if (!isChatLoading && hasMoreChatMessages && selectedConversationUserId) {
+                    loadMessages(true);
+                }
+            }
+        });
+    }
+});
+
 
 // Display messages
-function displayMessages(messages) {
+function displayMessages(messages, isPagination = false) {
     const container = document.getElementById('messagesArea');
     if (!container) return;
     
-    // Check if we actually need to re-render everything
-    // This prevents the "not moving" or "jumping" feeling when polling
     const conversationId = selectedConversationUserId;
     const lastCount = lastMessageCountMap.get(conversationId) || 0;
     const isNewMessage = messages.length > lastCount || conversationId !== lastLoadedConversationId;
     
-    // Detect if user is currently scrolled up
-    const isAtBottomBefore = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
-
-    // Optimization: If no new messages and not a new conversation, don't re-render
-    if (messages.length === lastCount && conversationId === lastLoadedConversationId && messages.length > 0) {
-        // Just update read statuses if they changed
+    // In flex-direction: column-reverse, we don't need to manually force scroll to bottom on new messages
+    // The browser natively handles it if scrollTop is 0.
+    
+    if (!isPagination && messages.length === lastCount && conversationId === lastLoadedConversationId && messages.length > 0) {
         return;
     }
 
-    lastMessageCountMap.set(conversationId, messages.length);
-    lastLoadedConversationId = conversationId;
+    if (!isPagination) {
+        lastMessageCountMap.set(conversationId, messages.length);
+        lastLoadedConversationId = conversationId;
+    }
 
-    if (messages.length === 0) {
+    if (messages.length === 0 && !isPagination) {
         container.innerHTML = `
-            <div style="text-align: center; color: #999; padding: 60px 40px; font-size:14px; display:flex; flex-direction:column; align-items:center; gap:15px;">
+            <div style="text-align: center; color: #999; padding: 60px 40px; font-size:14px; display:flex; flex-direction:column; align-items:center; gap:15px; margin: auto;">
                 <div style="font-size:40px; opacity:0.3;">✨</div>
                 <div>No messages yet.<br><span style="font-size:12px; opacity:0.7;">Start the conversation with ${selectedPartnerProfile?.name || 'them'}!</span></div>
             </div>`;
         return;
     }
 
-    container.innerHTML = messages.map((msg, index) => {
+    const htmlContent = messages.map((msg, index) => {
         const isSent = String(msg.senderId) === String(currentUserId);
         const senderName = isSent ? 'You' : (selectedPartnerProfile?.name || 'User');
         
@@ -709,11 +747,11 @@ function displayMessages(messages) {
         `;
     }).join('');
 
-    // Force scroll to bottom if new message OR first load OR was already at bottom
-    if (isNewMessage || isAtBottomBefore) {
-        requestAnimationFrame(() => {
-            container.scrollTop = container.scrollHeight;
-        });
+    if (isPagination) {
+        // Keep the existing content, just append the older messages to the bottom of the array (which is the top of the UI)
+        container.insertAdjacentHTML('beforeend', htmlContent);
+    } else {
+        container.innerHTML = htmlContent;
     }
 }
 
@@ -796,11 +834,14 @@ function appendSingleMessage(msg) {
         </div>
     `;
 
-    container.insertAdjacentHTML('beforeend', html);
+    // In flex-direction: column-reverse, the newest messages go at the TOP of the container's child list (which renders at the BOTTOM visually)
+    container.insertAdjacentHTML('afterbegin', html);
     
-    // Auto scroll to bottom
+    // Auto scroll to bottom (in column-reverse, 0 is the bottom)
     requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
+        if (Math.abs(container.scrollTop) < 50) {
+            container.scrollTop = 0;
+        }
     });
 
     // Update internal count tracker to avoid jumpy re-render on next poll

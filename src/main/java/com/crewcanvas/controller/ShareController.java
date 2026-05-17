@@ -181,15 +181,19 @@ public class ShareController {
                     int cropHeight = (int) (height * 0.70);
                     if (cropHeight > 0) {
                         java.awt.image.BufferedImage croppedImage = originalImage.getSubimage(0, 0, width, cropHeight);
+                        
+                        // Always convert to JPEG with a white background to severely compress size for WhatsApp
+                        java.awt.image.BufferedImage newImage = new java.awt.image.BufferedImage(width, cropHeight, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                        java.awt.Graphics2D g = newImage.createGraphics();
+                        g.setColor(java.awt.Color.WHITE);
+                        g.fillRect(0, 0, width, cropHeight);
+                        g.drawImage(croppedImage, 0, 0, null);
+                        g.dispose();
+
                         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                        
-                        String format = "png";
-                        if (contentType != null && (contentType.contains("jpeg") || contentType.contains("jpg"))) {
-                            format = "jpg";
-                        }
-                        
-                        javax.imageio.ImageIO.write(croppedImage, format, baos);
+                        javax.imageio.ImageIO.write(newImage, "jpg", baos);
                         imageBytes = baos.toByteArray();
+                        contentType = "image/jpeg";
                     }
                 }
             } catch (Exception cropEx) {

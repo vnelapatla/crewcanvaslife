@@ -385,7 +385,7 @@ body.scroll-lock {
         radial-gradient(at 0% 0%, hsla(28,100%,95%,1) 0, transparent 50%), 
         radial-gradient(at 100% 0%, hsla(192,100%,95%,1) 0, transparent 50%);
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 16px;
     scroll-behavior: smooth;
 }
