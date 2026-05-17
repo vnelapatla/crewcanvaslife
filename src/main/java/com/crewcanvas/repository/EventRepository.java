@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    List<Event> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Event> findByUserIdOrderByIdDesc(Long userId);
     org.springframework.data.domain.Page<Event> findByUserId(Long userId, org.springframework.data.domain.Pageable pageable);
 
     List<Event> findByEventTypeOrderByDateDesc(String eventType);
