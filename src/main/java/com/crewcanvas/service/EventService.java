@@ -828,7 +828,7 @@ public class EventService {
     }
 
     public List<EventApplication> getAllApplicantsForUser(Long userId) {
-        List<Event> userEvents = eventRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        List<Event> userEvents = eventRepository.findByUserIdOrderByIdDesc(userId);
         if (userEvents.isEmpty())
             return new java.util.ArrayList<>();
 
