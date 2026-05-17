@@ -214,9 +214,15 @@ public class ShareController {
         
         String proto = request.getHeader("X-Forwarded-Proto");
         
-        // Default to https if we're on a real domain or explicitly told, otherwise use what we have
-        if (proto == null || proto.isEmpty()) {
-            proto = (host != null && (host.contains(".life") || host.contains(".in") || host.contains("crewcanvas"))) ? "https" : request.getScheme();
+        // Force HTTPS for production domains to ensure WhatsApp/Meta crawlers accept the images
+        if (host != null && (host.contains(".life") || host.contains(".in") || host.contains("crewcanvas"))) {
+            proto = "https";
+            // Strip internal ports for production links
+            if (host.contains(":8081") || host.contains(":8080")) {
+                host = host.split(":")[0];
+            }
+        } else if (proto == null || proto.isEmpty()) {
+            proto = request.getScheme();
         }
         
         if (host == null) {
@@ -225,11 +231,6 @@ public class ShareController {
             if (port != 80 && port != 443) {
                 host += ":" + port;
             }
-        }
-        
-        // Only strip internal ports if we are on a production-like domain
-        if ((host.contains(".life") || host.contains(".in") || host.contains("crewcanvas")) && (host.contains(":8081") || host.contains(":8080"))) {
-            host = host.split(":")[0];
         }
         
         return proto + "://" + host;
