@@ -45,7 +45,9 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "target/*.jar,UPDATE_SCHEMA.sql,deploy.sh"
-        target: "app"
+        target: "/home/${{ secrets.EC2_USER }}/app"
+        tar_tmp_path: "/home/${{ secrets.EC2_USER }}/app"
+        debug: true
         overwrite: true
 
     - name: Execute Standard Deploy
