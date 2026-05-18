@@ -415,11 +415,7 @@ async function openConversation(userId) {
     // Reset UI immediately to prevent "ghosting" of previous conversation
     const messagesArea = document.getElementById('messagesArea');
     if (messagesArea) {
-        messagesArea.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">
-                <div class="loader-spinner" style="width: 30px; height: 30px; border: 3px solid #f1f5f9; border-top: 3px solid var(--primary-orange); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px;"></div>
-                <div style="font-size: 13px;">Loading conversation...</div>
-            </div>`;
+        messagesArea.innerHTML = '';
     }
     const nameEl = document.getElementById('chatUserName');
     if (nameEl) nameEl.textContent = 'Loading...';
@@ -561,7 +557,7 @@ async function loadMessages(isPagination = false) {
     isChatLoading = true;
     try {
         const pageToFetch = isPagination ? currentChatPage + 1 : 0;
-        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}&page=${pageToFetch}&size=20`);
+        const response = await fetch(`${API_BASE_URL}/api/messages/history/${currentUserId}?otherUserId=${selectedConversationUserId}&page=${pageToFetch}&size=5`);
         
         if (!response.ok) {
             const errText = await response.text();
@@ -580,7 +576,7 @@ async function loadMessages(isPagination = false) {
             return;
         }
 
-        if (messages.length < 20) {
+        if (messages.length < 5) {
             hasMoreChatMessages = false; // No more messages to load
         }
         
@@ -588,7 +584,7 @@ async function loadMessages(isPagination = false) {
             currentChatPage++;
         } else {
             currentChatPage = 0;
-            hasMoreChatMessages = messages.length === 20;
+            hasMoreChatMessages = messages.length === 5;
         }
         
         // Filter out technical signaling messages

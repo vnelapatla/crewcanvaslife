@@ -100,10 +100,23 @@ public class MessageService {
 
             // Send Email Notification if enabled
             try {
+                String decryptedContent = content;
+                if (content != null && content.length() >= 4 && !content.matches(".*\\s.*")) {
+                    try {
+                        decryptedContent = new String(java.util.Base64.getDecoder().decode(content), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        // Not base64 encoded
+                    }
+                }
+                
+                final String finalPreview = decryptedContent != null && !decryptedContent.isEmpty() ? decryptedContent : 
+                                            imageUrl != null ? "Sent an image" : 
+                                            fileUrl != null ? "Sent a file" : "Sent a message";
+
                 userRepository.findById(receiverId).ifPresent(receiver -> {
                     if (Boolean.TRUE.equals(receiver.getEmailNotifications())) {
                         userRepository.findById(senderId).ifPresent(senderUser -> {
-                            String preview = notificationContent;
+                            String preview = finalPreview;
                             if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
                             emailService.sendMessageNotificationEmail(receiver.getEmail(), senderUser.getName(), preview);
                         });
