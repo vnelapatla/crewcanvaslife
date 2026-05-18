@@ -211,7 +211,7 @@ function displayEvents(events, prepend = false) {
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
                 <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #f8fafc; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
-                    <img src="${displayImage}" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: block;">
+                    <img src="${displayImage}" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                 </div>
                 <div class="card-content" style="padding: 15px;">
                     <h3 style="font-size: 18px; margin-bottom: 4px;">${event.title}</h3>
