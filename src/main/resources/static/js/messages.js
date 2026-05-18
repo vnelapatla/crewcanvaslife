@@ -729,7 +729,7 @@ function displayMessages(messages, isPagination = false) {
                         ${attachmentContent}
                         <div class="message-status">
                             <span class="time">${formatTime(msg.createdAt)}</span>
-                            ${isSent ? `<span class="checkmarks" style="${msg.isRead ? 'color:var(--primary-orange)' : 'color:#cbd5e1'}">${msg.isRead ? '✓✓' : '✓'}</span>` : ''}
+                            ${isSent ? `<span class="checkmarks" style="${msg.isRead ? 'color:var(--primary-orange)' : 'color:#cbd5e1'}">✓✓</span>` : ''}
                             ${msg.isEdited ? '<span class="edited-tag">(edited)</span>' : ''}
                         </div>
                         <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
@@ -1065,7 +1065,7 @@ async function sendMessage() {
                 tempEl.style.opacity = '1';
                 tempEl.classList.remove('optimistic');
                 const checkmarks = tempEl.querySelector('.checkmarks');
-                if (checkmarks) checkmarks.textContent = '✓'; // Single check for sent
+                if (checkmarks) checkmarks.textContent = '✓✓'; // Double check for reached/delivered
             }
 
             // Load conversations in background to update sidebar

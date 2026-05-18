@@ -32,7 +32,7 @@ public class MovieQuizDataInitializer implements CommandLineRunner {
                     "Nani", "Balakrishna", "Siddhu Jonnalagadda", "Sharwanand", "B"),
                 
                 createQuestion("Which movie gave us the famous dialogue “Nenu once decide ayithe…”?", 
-                    "Pokiri", "Businessman", "Gabbar Singh", "Temper", "C"),
+                    "Pokiri", "Businessman", "Gabbar Singh", "Temper", "A"),
                 
                 createQuestion("Which Telugu movie hero worked as a doctor before becoming an actor?", 
                     "Ravi Teja", "Sumanth", "Rajasekhar", "Ram Pothineni", "C"),

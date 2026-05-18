@@ -120,11 +120,7 @@ public class EmailService {
         String detailsLabel = getBroadcastSubject(eventType);
         
         String imgHtml = "";
-        if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("data:image")) {
-            imgHtml = "<div style='width: 100%; max-width: 600px; height: 300px; overflow: hidden; border-radius: 8px; margin-bottom: 20px;'>" +
-                      "<img src='" + imageUrl + "' style='width: 100%; height: 100%; object-fit: cover; display: block;' alt='Event Poster'>" +
-                      "</div>";
-        }
+        // Poster images are no longer sent in emails
 
         String htmlBody = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px;'>" +
                 "<h2 style='color: #E50914;'>" + detailsLabel + " Details</h2>" +
@@ -436,11 +432,7 @@ public class EmailService {
         String eventLink = "https://crewcanvas.in/event.html?id=" + eventId;
         
         String imgHtml = "";
-        if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("data:image")) {
-            imgHtml = "<div style='width: 100%; max-width: 600px; height: 350px; overflow: hidden; border-radius: 12px; margin: 20px 0;'>" +
-                      "<a href='" + eventLink + "'><img src='" + imageUrl + "' style='width: 100%; height: 100%; object-fit: cover; display: block;' alt='Event Poster'></a>" +
-                      "</div>";
-        }
+        // Poster images are no longer sent in emails
 
         String htmlBody = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px;'>" +
                 "<h2 style='color: #E50914;'>New Opportunity on CrewCanvas! 🎬</h2>" +

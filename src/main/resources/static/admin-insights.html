@@ -314,6 +314,25 @@
 
             <div class="stats-grid">
                 <div class="stat-card">
+                    <span class="stat-label">Total Hits (7 Days)</span>
+                    <div class="stat-value"><span id="statLastWeekHits">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Total Hits (3 Months)</span>
+                    <div class="stat-value"><span id="statLast3MonthsHits">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Lifetime Hits</span>
+                    <div class="stat-value"><span id="statLifetimeHits">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">User Time Spent</span>
+                    <div class="stat-value"><span id="statTotalHours">0</span> <span style="font-size:16px; margin-left:8px; font-weight:600; color:var(--text-muted);">hrs</span></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
                     <span class="stat-label">Registrations (Last 24h)</span>
                     <div class="stat-value">
                         <span id="statNewReg">0</span>
@@ -488,6 +507,11 @@
             document.getElementById('statDailyEarned').innerText = '₹' + dailyEarned.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('statClickIncome').innerText = '₹' + (data.estClickMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            document.getElementById('statLastWeekHits').innerText = (data.lastWeekHits || 0).toLocaleString();
+            document.getElementById('statLast3MonthsHits').innerText = (data.last3MonthsHits || 0).toLocaleString();
+            document.getElementById('statLifetimeHits').innerText = (data.lifetimeHits || 0).toLocaleString();
+            document.getElementById('statTotalHours').innerText = (data.totalHoursSpent || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
             // Calculate Avg Completion
 

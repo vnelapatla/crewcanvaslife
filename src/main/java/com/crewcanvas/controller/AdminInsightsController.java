@@ -88,14 +88,26 @@ public class AdminInsightsController {
         // Traffic & Income
         long dailyHits = metricRepository.findById(LocalDate.now())
                 .map(SiteMetric::getPageViews).orElse(0L);
+                
+        long lastWeekHits = metricRepository.sumPageViewsSince(LocalDate.now().minusDays(7));
+        long last3MonthsHits = metricRepository.sumPageViewsSince(LocalDate.now().minusMonths(3));
+        long lifetimeHits = metricRepository.sumTotalPageViews();
         
-        // Method 1: View-Based (CPM - ₹35/1000 views)
-        double estMonthlyIncome = (dailyHits * 30.0 * 35.0) / 1000.0;
+        // Assume avg session duration is ~3.5 minutes per hit for total hours calculation
+        double totalHoursSpent = (lifetimeHits * 3.5) / 60.0;
+        
+        // Method 1: View-Based (CPM - ₹35/1000 views) based on 30-day avg
+        long last30DaysHits = metricRepository.sumPageViewsSince(LocalDate.now().minusDays(30));
+        double estMonthlyIncome = (last30DaysHits * 35.0) / 1000.0;
         
         // Method 2: Click-Based (CTR 1%, CPC ₹12)
-        double estClickMonthlyIncome = (dailyHits * 30.0 * 0.01 * 12.0);
+        double estClickMonthlyIncome = (last30DaysHits * 0.01 * 12.0);
 
         response.put("dailyHits", dailyHits);
+        response.put("lastWeekHits", lastWeekHits);
+        response.put("last3MonthsHits", last3MonthsHits);
+        response.put("lifetimeHits", lifetimeHits);
+        response.put("totalHoursSpent", totalHoursSpent);
         response.put("estMonthlyIncome", estMonthlyIncome);
         response.put("estClickMonthlyIncome", estClickMonthlyIncome);
 
