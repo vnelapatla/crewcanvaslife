@@ -33,8 +33,8 @@ fi
 
 # 2. Stop the current instance to free up memory
 echo "Stopping current instance on port $APP_PORT to free up RAM..."
-sudo fuser -k $APP_PORT/tcp || true
-sleep 3
+sudo fuser -k -9 $APP_PORT/tcp || true
+sleep 5
 
 # 3. Find and start the new version
 LATEST_JAR=$(ls -t *.jar | head -1)
