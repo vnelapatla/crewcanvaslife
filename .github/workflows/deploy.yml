@@ -38,17 +38,14 @@ jobs:
           mkdir -p ~/app
           cd ~/app
 
-    - name: Upload Artifacts
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        source: "target/*.jar,UPDATE_SCHEMA.sql,deploy.sh"
-        target: "/home/${{ secrets.EC2_USER }}/app"
-        tar_tmp_path: "/home/${{ secrets.EC2_USER }}/app"
-        debug: true
-        overwrite: true
+    - name: Upload Artifacts via native SCP
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa UPDATE_SCHEMA.sql deploy.sh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/*.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/
 
     - name: Execute Standard Deploy
       uses: appleboy/ssh-action@v0.1.10
