@@ -37,7 +37,7 @@ public class NotificationService {
         if (actorId != null) {
             userRepository.findById(actorId).ifPresent(actor -> {
                 notification.setActorName(actor.getName());
-                notification.setActorAvatar(actor.getProfilePicture());
+                // Intentionally NOT setting actorAvatar to prevent database from exploding with Base64 copies
             });
         }
 
