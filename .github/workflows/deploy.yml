@@ -42,8 +42,6 @@ jobs:
           sudo journalctl --vacuum-time=1h || true
           sudo apt-get clean || true
           rm -rf ~/.cache || true
-          sudo rm -rf /tmp/* || true
-          sudo rm -rf /var/tmp/* || true
           sudo rm -rf /var/log/mysql/*.log || true
           sudo rm -f ~/app/*.log.* || true
           sudo truncate -s 0 ~/app/app.log || true
