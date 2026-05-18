@@ -1,0 +1,30 @@
+name: Check EC2 Disk Space
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-disk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Disk Space on EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== DISK SPACE (df -h) ==="
+            df -h
+            
+            echo ""
+            echo "=== TOP 10 LARGEST DIRECTORIES IN / ==="
+            sudo du -ahx / 2>/dev/null | sort -rh | head -10
+            
+            echo ""
+            echo "=== MYSQL DATABASE SIZE ==="
+            sudo du -sh /var/lib/mysql/crewcanvas_db || true
+            
+            echo ""
+            echo "=== MEMORY USAGE (free -m) ==="
+            free -m
