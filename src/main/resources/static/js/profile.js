@@ -283,7 +283,7 @@ function displayProfile(user) {
             
             recentPicGrid.innerHTML = pictures.map((pic, idx) => `
                 <div class="project-item" style="position:relative; cursor:pointer;" onclick="viewImageFull('${pic}')">
-                    <img src="${pic}" style="width:100%; height:260px; object-fit:cover; border-radius:15px; border:1px solid #222;" loading="lazy">
+                    <img src="${pic}" style="width:100%; height:260px; object-fit:cover; border-radius:15px; border:1px solid #222;" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x600/1e293b/ef4444?text=BROKEN+IMAGE';">
                     <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); color:white; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:800;">
                         PIC ${idx + 1}
                     </div>

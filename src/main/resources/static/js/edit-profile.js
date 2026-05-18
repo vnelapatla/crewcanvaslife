@@ -393,7 +393,7 @@ function renderRecentPictures() {
 
     container.innerHTML = recentPicturesList.map((pic, index) => `
         <div style="position:relative; width:100px; height:120px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color);">
-            <img src="${pic}" style="width:100%; height:100%; object-fit:cover;">
+            <img src="${pic}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='https://placehold.co/100x120/1e293b/ef4444?text=ERROR';">
             <button onclick="removeRecentPicture(${index})" style="position:absolute; top:5px; right:5px; background:rgba(255,0,0,0.7); color:white; border:none; width:20px; height:20px; border-radius:50%; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;">✕</button>
         </div>
     `).join('');
