@@ -312,6 +312,80 @@
                 </div>
             </div>
 
+            <div class="conversion-box" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); flex-direction: column; align-items: stretch; gap: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <div>
+                        <h3 style="margin-bottom: 5px;"><i class="fas fa-money-bill-trend-up" style="color: #10b981;"></i> Ad Network Projections</h3>
+                        <p style="opacity: 0.7; font-size: 13px;">Estimated earnings comparison based on current views (Google: ₹50 CPM, Ezoic: ₹100 EPMV).</p>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <!-- 1 Month -->
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-weight: 800; color: white; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Est. 1 Month (<span id="monMonthHits">0</span> views)</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #94a3b8; font-size: 14px;">Google AdSense:</span>
+                            <div style="text-align: right;">
+                                <span style="color: #3b82f6; font-weight: 700;" id="monMonthGoogle">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="monMonthGoogleClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="monMonthGoogleTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #94a3b8; font-size: 14px;">Ezoic (AI Total):</span>
+                            <div style="text-align: right;">
+                                <span style="color: #10b981; font-weight: 700;" id="monMonthEzoic">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="monMonthEzoicClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="monMonthEzoicTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Months -->
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-weight: 800; color: white; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Total 3 Months (<span id="mon3MonthsHits">0</span> views)</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #94a3b8; font-size: 14px;">Google AdSense:</span>
+                            <div style="text-align: right;">
+                                <span style="color: #3b82f6; font-weight: 700;" id="mon3MonthsGoogle">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="mon3MonthsGoogleClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="mon3MonthsGoogleTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #94a3b8; font-size: 14px;">Ezoic (AI Total):</span>
+                            <div style="text-align: right;">
+                                <span style="color: #10b981; font-weight: 700;" id="mon3MonthsEzoic">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="mon3MonthsEzoicClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="mon3MonthsEzoicTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lifetime -->
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-weight: 800; color: white; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Lifetime Total (<span id="monLifeHits">0</span> views)</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #94a3b8; font-size: 14px;">Google AdSense:</span>
+                            <div style="text-align: right;">
+                                <span style="color: #3b82f6; font-weight: 700;" id="monLifeGoogle">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="monLifeGoogleClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="monLifeGoogleTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #94a3b8; font-size: 14px;">Ezoic (AI Total):</span>
+                            <div style="text-align: right;">
+                                <span style="color: #10b981; font-weight: 700;" id="monLifeEzoic">₹0.00</span>
+                                <span style="color: #fb923c; font-size: 12px; margin-left: 5px; font-weight: 600;" id="monLifeEzoicClicks">(+₹0.00 clicks)</span>
+                                <span style="color: white; font-weight: 800; margin-left: 5px;" id="monLifeEzoicTotal">= ₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-label">Total Hits (7 Days)</span>
@@ -512,6 +586,52 @@
             document.getElementById('statLast3MonthsHits').innerText = (data.last3MonthsHits || 0).toLocaleString();
             document.getElementById('statLifetimeHits').innerText = (data.lifetimeHits || 0).toLocaleString();
             document.getElementById('statTotalHours').innerText = (data.totalHoursSpent || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
+
+            // Monetization Projections
+            const lastMonthHits = data.lastMonthHits || Math.round((data.last3MonthsHits || 0) / 3) || (data.lastWeekHits ? data.lastWeekHits * 4 : 0);
+            const last3MonthsHits = data.last3MonthsHits || 0;
+            const lifetimeHits = data.lifetimeHits || 0;
+
+            const GOOGLE_CPM = 50.0;
+            const EZOIC_CPM = 100.0;
+            const CTR = 0.015; // 1.5%
+            const CPC = 3.0; // ₹3 per click
+
+            // 1 Month calculations
+            let gMonth = (lastMonthHits * GOOGLE_CPM) / 1000;
+            let eMonth = (lastMonthHits * EZOIC_CPM) / 1000;
+            let cMonth = lastMonthHits * CTR * CPC;
+            document.getElementById('monMonthHits').innerText = lastMonthHits.toLocaleString();
+            document.getElementById('monMonthGoogle').innerText = '₹' + gMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthGoogleClicks').innerText = ' (+₹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monMonthGoogleTotal').innerText = '= ₹' + (gMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthEzoic').innerText = '₹' + eMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthEzoicClicks').innerText = ' (+₹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monMonthEzoicTotal').innerText = '= ₹' + (eMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // 3 Months calculations
+            let g3 = (last3MonthsHits * GOOGLE_CPM) / 1000;
+            let e3 = (last3MonthsHits * EZOIC_CPM) / 1000;
+            let c3 = last3MonthsHits * CTR * CPC;
+            document.getElementById('mon3MonthsHits').innerText = last3MonthsHits.toLocaleString();
+            document.getElementById('mon3MonthsGoogle').innerText = '₹' + g3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsGoogleClicks').innerText = ' (+₹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('mon3MonthsGoogleTotal').innerText = '= ₹' + (g3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsEzoic').innerText = '₹' + e3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsEzoicClicks').innerText = ' (+₹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('mon3MonthsEzoicTotal').innerText = '= ₹' + (e3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Lifetime calculations
+            let gLife = (lifetimeHits * GOOGLE_CPM) / 1000;
+            let eLife = (lifetimeHits * EZOIC_CPM) / 1000;
+            let cLife = lifetimeHits * CTR * CPC;
+            document.getElementById('monLifeHits').innerText = lifetimeHits.toLocaleString();
+            document.getElementById('monLifeGoogle').innerText = '₹' + gLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeGoogleClicks').innerText = ' (+₹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monLifeGoogleTotal').innerText = '= ₹' + (gLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeEzoic').innerText = '₹' + eLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeEzoicClicks').innerText = ' (+₹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monLifeEzoicTotal').innerText = '= ₹' + (eLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Calculate Avg Completion
 
