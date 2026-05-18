@@ -37,6 +37,16 @@ jobs:
         script: |
           mkdir -p ~/app
           cd ~/app
+          
+          echo "Clearing disk space to prevent SCP failure..."
+          sudo journalctl --vacuum-time=1d || true
+          sudo apt-get clean || true
+          rm -rf ~/.cache || true
+          sudo rm -rf /tmp/* || true
+          
+          echo "Removing old jar files to prevent Text File Busy lock..."
+          sudo systemctl stop crewcanvas || true
+          rm -f *.jar
 
     - name: Upload Artifacts via native SCP
       run: |
