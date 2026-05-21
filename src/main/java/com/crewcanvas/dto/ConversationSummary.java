@@ -6,6 +6,6 @@ public interface ConversationSummary {
     String getOtherUserProfilePicture();
     String getOtherUserRole();
     String getLastMessage();
-    String getLastMessageAt();
+    java.time.OffsetDateTime getLastMessageAt();
     boolean getIsRead();
 }
