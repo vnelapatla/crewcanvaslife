@@ -1,7 +1,8 @@
 package com.crewcanvas.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "password_reset_tokens")
@@ -19,18 +20,18 @@ public class PasswordResetToken {
     private User user;
 
     @Column(nullable = false)
-    private LocalDateTime expiryDate;
+    private Instant expiryDate;
 
     public PasswordResetToken() {}
 
     public PasswordResetToken(String token, User user) {
         this.token = token;
         this.user = user;
-        this.expiryDate = LocalDateTime.now().plusHours(1); // 1 hour expiry
+        this.expiryDate = Instant.now().plus(1, ChronoUnit.HOURS); // 1 hour expiry
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiryDate);
+        return Instant.now().isAfter(this.expiryDate);
     }
 
     // Getters and Setters
@@ -40,6 +41,6 @@ public class PasswordResetToken {
     public void setToken(String token) { this.token = token; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
+    public Instant getExpiryDate() { return expiryDate; }
+    public void setExpiryDate(Instant expiryDate) { this.expiryDate = expiryDate; }
 }

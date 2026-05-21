@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import jakarta.persistence.PersistenceContext;
+import com.crewcanvas.config.UserPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -89,7 +91,9 @@ public class ProfileController {
     @GetMapping("/onboarding-data/{id}")
     public ResponseEntity<?> getOnboardingData(@PathVariable Long id, 
                                              @RequestParam(required = false) Long viewerId,
-                                             @RequestParam(required = false) Boolean unmask) {
+                                             @RequestParam(required = false) Boolean unmask,
+                                             @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveViewerId = viewerId != null ? viewerId : (principal != null ? principal.getId() : null);
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -100,14 +104,14 @@ public class ProfileController {
                 if (visibility == null || visibility.equals("Everyone")) {
                     allowed = true;
                 } else if (visibility.equals("Private")) {
-                    allowed = viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false));
+                    allowed = effectiveViewerId != null && (effectiveViewerId.equals(id) || userService.findById(effectiveViewerId).map(User::getIsAdmin).orElse(false));
                 } else if (visibility.equals("Connections Only")) {
-                    if (viewerId != null) {
-                        if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
+                    if (effectiveViewerId != null) {
+                        if (effectiveViewerId.equals(id) || userService.findById(effectiveViewerId).map(User::getIsAdmin).orElse(false)) {
                             allowed = true;
                         } else {
-                            allowed = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
-                                      connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
+                            allowed = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(effectiveViewerId)) ||
+                                      connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(effectiveViewerId));
                         }
                     }
                 }
@@ -117,7 +121,7 @@ public class ProfileController {
                 }
 
                 Map<String, Object> data = new java.util.HashMap<>();
-                maskSensitiveData(user, viewerId, unmask);
+                maskSensitiveData(user, effectiveViewerId, unmask);
                 data.put("user", user);
                 // Removed following/followers lists to optimize speed (Counts are already in user object)
                 return ResponseEntity.ok(data);
@@ -130,11 +134,14 @@ public class ProfileController {
     }
 
     @GetMapping("/{id}/summary")
-    public ResponseEntity<?> getProfileSummary(@PathVariable Long id, @RequestParam(required = false) Long viewerId) {
+    public ResponseEntity<?> getProfileSummary(@PathVariable Long id, 
+                                             @RequestParam(required = false) Long viewerId,
+                                             @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveViewerId = viewerId != null ? viewerId : (principal != null ? principal.getId() : null);
         try {
             return userService.findByIdDTO(id)
                 .map(dto -> {
-                    maskSensitiveData(dto, viewerId);
+                    maskSensitiveData(dto, effectiveViewerId);
                     return ResponseEntity.ok(dto);
                 })
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
@@ -146,7 +153,9 @@ public class ProfileController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProfile(@PathVariable Long id, 
                                       @RequestParam(required = false) Long viewerId,
-                                      @RequestParam(required = false) Boolean unmask) {
+                                      @RequestParam(required = false) Boolean unmask,
+                                      @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveViewerId = viewerId != null ? viewerId : (principal != null ? principal.getId() : null);
         try {
             Optional<User> userOpt = userService.findById(id);
             if (userOpt.isPresent()) {
@@ -155,14 +164,14 @@ public class ProfileController {
                 
                 // If visibility is Everyone, anyone can view
                 if (visibility == null || visibility.equals("Everyone")) {
-                    maskSensitiveData(user, viewerId, unmask);
+                    maskSensitiveData(user, effectiveViewerId, unmask);
                     return ResponseEntity.ok(user);
                 }
                 
                 // If visibility is Private, only the user themselves or an admin can view
                 if (visibility.equals("Private")) {
-                    if (viewerId != null && (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false))) {
-                        maskSensitiveData(user, viewerId, unmask);
+                    if (effectiveViewerId != null && (effectiveViewerId.equals(id) || userService.findById(effectiveViewerId).map(User::getIsAdmin).orElse(false))) {
+                        maskSensitiveData(user, effectiveViewerId, unmask);
                         return ResponseEntity.ok(user);
                     }
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is private.");
@@ -170,23 +179,23 @@ public class ProfileController {
                 
                 // If visibility is Connections Only
                 if (visibility.equals("Connections Only")) {
-                    if (viewerId != null) {
-                        if (viewerId.equals(id) || userService.findById(viewerId).map(User::getIsAdmin).orElse(false)) {
-                            maskSensitiveData(user, viewerId, unmask);
+                    if (effectiveViewerId != null) {
+                        if (effectiveViewerId.equals(id) || userService.findById(effectiveViewerId).map(User::getIsAdmin).orElse(false)) {
+                            maskSensitiveData(user, effectiveViewerId, unmask);
                             return ResponseEntity.ok(user);
                         }
                         // Check connection
-                        boolean isConnected = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(viewerId)) ||
-                                            connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(viewerId));
+                        boolean isConnected = connectionService.getFollowing(id).stream().anyMatch(u -> u.getId().equals(effectiveViewerId)) ||
+                                            connectionService.getFollowers(id).stream().anyMatch(u -> u.getId().equals(effectiveViewerId));
                         if (isConnected) {
-                            maskSensitiveData(user, viewerId, unmask);
+                            maskSensitiveData(user, effectiveViewerId, unmask);
                             return ResponseEntity.ok(user);
                         }
                     }
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This profile is only visible to connections.");
                 }
                 
-                maskSensitiveData(user, viewerId, unmask);
+                maskSensitiveData(user, effectiveViewerId, unmask);
                 return ResponseEntity.ok(user); // Fallback
 
             } else {
@@ -200,7 +209,13 @@ public class ProfileController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateProfile(@RequestBody User updatedUser) {
+    public ResponseEntity<?> updateProfile(@AuthenticationPrincipal UserPrincipal principal, @RequestBody User updatedUser) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication is required.");
+        }
+        if (!principal.getId().equals(updatedUser.getId()) && !principal.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. You can only update your own profile.");
+        }
         try {
             User user = userService.updateProfile(updatedUser);
             return ResponseEntity.ok(user);
@@ -211,7 +226,13 @@ public class ProfileController {
     }
     
     @PostMapping("/{id}/password")
-    public ResponseEntity<?> updatePassword(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> updatePassword(@AuthenticationPrincipal UserPrincipal principal, @PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication is required.");
+        }
+        if (!principal.getId().equals(id) && !principal.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. You can only update your own password.");
+        }
         try {
             String newPassword = payload.get("newPassword");
             if (newPassword == null || newPassword.isEmpty()) {
@@ -239,19 +260,21 @@ public class ProfileController {
             @RequestParam(required = false) Long currentUserId,
             @RequestParam(defaultValue = "false") boolean excludeFollowed,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "15") int size) {
+            @RequestParam(defaultValue = "15") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveUserId = currentUserId != null ? currentUserId : (principal != null ? principal.getId() : null);
         try {
-            org.springframework.data.domain.Page<User> userPage = userService.searchUsers(query, role, location, currentUserId, excludeFollowed, page, size);
+            org.springframework.data.domain.Page<User> userPage = userService.searchUsers(query, role, location, effectiveUserId, excludeFollowed, page, size);
             
             // SECURITY: Only admins see profile completion percentage
-            boolean isAdmin = currentUserId != null && userService.findById(currentUserId).map(User::getIsAdmin).orElse(false);
+            boolean isAdmin = effectiveUserId != null && userService.findById(effectiveUserId).map(User::getIsAdmin).orElse(false);
             if (!isAdmin) {
                 // Clear profile score for non-admins to prevent them from seeing it in API response
                 userPage.getContent().forEach(u -> u.setProfileScore(null));
             }
             
             // Mask sensitive data for search results
-            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId, false));
+            userPage.getContent().forEach(u -> maskSensitiveData(u, effectiveUserId, false));
             
             return ResponseEntity.ok(userPage);
         } catch (Exception e) {
@@ -267,16 +290,18 @@ public class ProfileController {
             @RequestParam(required = false) Long currentUserId,
             @RequestParam(defaultValue = "false") boolean excludeFollowed,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "15") int size) {
+            @RequestParam(defaultValue = "15") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveUserId = currentUserId != null ? currentUserId : (principal != null ? principal.getId() : null);
         try {
-            org.springframework.data.domain.Page<com.crewcanvas.dto.UserDTO> userPage = userService.searchUsersSummary(query, role, location, currentUserId, excludeFollowed, page, size);
+            org.springframework.data.domain.Page<com.crewcanvas.dto.UserDTO> userPage = userService.searchUsersSummary(query, role, location, effectiveUserId, excludeFollowed, page, size);
             
-            boolean isAdmin = currentUserId != null && userService.findById(currentUserId).map(User::getIsAdmin).orElse(false);
+            boolean isAdmin = effectiveUserId != null && userService.findById(effectiveUserId).map(User::getIsAdmin).orElse(false);
             if (!isAdmin) {
                 userPage.getContent().forEach(u -> u.setProfileScore(null));
             }
             
-            userPage.getContent().forEach(u -> maskSensitiveData(u, currentUserId));
+            userPage.getContent().forEach(u -> maskSensitiveData(u, effectiveUserId));
             
             return ResponseEntity.ok(userPage);
         } catch (Exception e) {
@@ -287,10 +312,12 @@ public class ProfileController {
     }
 
     @GetMapping("/top")
-    public ResponseEntity<?> getTopUsers(@RequestParam(required = false) Long viewerId) {
+    public ResponseEntity<?> getTopUsers(@RequestParam(required = false) Long viewerId,
+                                       @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveViewerId = viewerId != null ? viewerId : (principal != null ? principal.getId() : null);
         try {
             List<User> users = userService.getTopUsers();
-            users.forEach(u -> maskSensitiveData(u, viewerId, false));
+            users.forEach(u -> maskSensitiveData(u, effectiveViewerId, false));
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -299,13 +326,33 @@ public class ProfileController {
     }
 
     @GetMapping("/{id}/phone")
-    public ResponseEntity<?> getFullPhoneNumber(@PathVariable("id") Long id, @RequestParam("code") String code) {
+    public ResponseEntity<?> getFullPhoneNumber(@PathVariable("id") Long id, 
+                                              @RequestParam("code") String code, 
+                                              @RequestParam(value = "viewerId", required = false) Long viewerId,
+                                              @AuthenticationPrincipal UserPrincipal principal) {
+        final Long effectiveViewerId = viewerId != null ? viewerId : (principal != null ? principal.getId() : null);
         try {
-            System.out.println("Phone Unlock Attempt: ProfileID=" + id + ", Code=" + code);
+            System.out.println("Phone Unlock Attempt: ProfileID=" + id + ", Code=" + code + ", ViewerID=" + effectiveViewerId);
             if ("FREE".equalsIgnoreCase(code)) {
                 Optional<User> userOpt = userService.findById(id);
                 if (userOpt.isPresent()) {
-                    String phone = userOpt.get().getPhone();
+                    User user = userOpt.get();
+                    
+                    // SECURITY CHECK: Enforce authorization context for the FREE bypass
+                    boolean isOwner = effectiveViewerId != null && effectiveViewerId.equals(id);
+                    User viewer = effectiveViewerId != null ? userService.findById(effectiveViewerId).orElse(null) : null;
+                    boolean isAuthorized = isOwner || (viewer != null && (
+                        Boolean.TRUE.equals(viewer.getIsAdmin()) || 
+                        Boolean.TRUE.equals(viewer.getIsVerifiedProfessional()) ||
+                        "crewcanvas2@gmail.com".equalsIgnoreCase(viewer.getEmail())
+                    ));
+                    
+                    if (!isAuthorized) {
+                        System.out.println("Phone Unlock Denied: Viewer " + effectiveViewerId + " is not authorized to unlock user " + id);
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only verified professionals or admins can unlock phone numbers.");
+                    }
+
+                    String phone = user.getPhone();
                     System.out.println("Phone Unlock Success: Returning " + (phone != null ? (phone.length() > 4 ? "..." + phone.substring(phone.length()-4) : phone) : "null"));
                     java.util.Map<String, String> response = new java.util.HashMap<>();
                     response.put("phone", phone != null && !phone.trim().isEmpty() ? phone : "Data Not Available");
@@ -386,7 +433,13 @@ public class ProfileController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAccount(@PathVariable Long id) {
+    public ResponseEntity<?> deleteAccount(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long id) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication is required.");
+        }
+        if (!principal.getId().equals(id) && !principal.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. You can only delete your own account.");
+        }
         try {
             userService.deleteUser(id);
             return ResponseEntity.ok("Account deleted successfully");

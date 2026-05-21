@@ -33,6 +33,9 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.crewcanvas.config.JwtTokenProvider tokenProvider;
+
     @Value("${google.client.id}")
     private String googleClientId;
 
@@ -70,6 +73,11 @@ public class AuthController {
                 
                 if (existingUser.isPresent()) {
                     user = existingUser.get();
+                    if ("crewcanvas2@gmail.com".equalsIgnoreCase(email) && !Boolean.TRUE.equals(user.getIsAdmin())) {
+                        user.setIsAdmin(true);
+                        user.setUserType("Admin");
+                        userRepository.save(user);
+                    }
                     // Update google ID if not set
                     if (user.getGoogleId() == null) {
                         user.setGoogleId(googleId);
@@ -82,6 +90,10 @@ public class AuthController {
                     user.setName(name);
                     user.setGoogleId(googleId);
                     user.setProfilePicture(pictureUrl);
+                    if ("crewcanvas2@gmail.com".equalsIgnoreCase(email)) {
+                        user.setIsAdmin(true);
+                        user.setUserType("Admin");
+                    }
                     // Save directly via repository or a new service method
                     user = userRepository.save(user);
                 }
@@ -96,6 +108,10 @@ public class AuthController {
                 // Set last login time
                 user.setLastLogin(java.time.LocalDateTime.now());
                 userRepository.save(user);
+
+                // Generate JWT token
+                String token = tokenProvider.generateToken(user.getEmail(), user.getId(), user.getName(), Boolean.TRUE.equals(user.getIsAdmin()));
+                user.setToken(token);
 
                 // Check and send profile reminder if incomplete
                 try {
@@ -133,6 +149,10 @@ public class AuthController {
                 foundUser.setLastLogin(java.time.LocalDateTime.now());
                 userRepository.save(foundUser);
 
+                // Generate JWT token
+                String token = tokenProvider.generateToken(foundUser.getEmail(), foundUser.getId(), foundUser.getName(), Boolean.TRUE.equals(foundUser.getIsAdmin()));
+                foundUser.setToken(token);
+
                 // Check and send profile reminder if incomplete
                 try {
                     userService.checkAndSendProfileReminder(foundUser);
@@ -162,6 +182,10 @@ public class AuthController {
 
             // Auto-generated welcome message
             userService.sendWelcomeMessage(user);
+
+            // Generate JWT token
+            String token = tokenProvider.generateToken(user.getEmail(), user.getId(), user.getName(), Boolean.TRUE.equals(user.getIsAdmin()));
+            user.setToken(token);
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(user);

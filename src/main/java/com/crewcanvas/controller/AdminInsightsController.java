@@ -8,6 +8,8 @@ import com.crewcanvas.repository.EventRepository;
 import com.crewcanvas.repository.EventApplicationRepository;
 import com.crewcanvas.repository.SiteMetricRepository;
 import com.crewcanvas.model.SiteMetric;
+import com.crewcanvas.config.UserPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,10 +44,13 @@ public class AdminInsightsController {
     private SiteMetricRepository metricRepository;
 
     @GetMapping("/stats")
-    public ResponseEntity<?> getInsights(@RequestParam Long adminId) {
-        // Security check
-        User admin = userRepository.findById(adminId).orElse(null);
-        if (admin == null || !Boolean.TRUE.equals(admin.getIsAdmin())) {
+    public ResponseEntity<?> getInsights(@AuthenticationPrincipal UserPrincipal principal,
+                                         @RequestParam(value = "adminId", required = false) Long adminId) {
+        // Security check using AuthenticationPrincipal
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Authentication is required.");
+        }
+        if (!principal.isAdmin()) {
             return ResponseEntity.status(403).body("Access denied. Admin only.");
         }
 
@@ -115,10 +120,13 @@ public class AdminInsightsController {
     }
 
     @PostMapping("/sync-follows")
-    public ResponseEntity<?> syncFollows(@RequestParam Long adminId) {
-        // Security check
-        User admin = userRepository.findById(adminId).orElse(null);
-        if (admin == null || (!Boolean.TRUE.equals(admin.getIsAdmin()) && !"crewcanvas2@gmail.com".equalsIgnoreCase(admin.getEmail()))) {
+    public ResponseEntity<?> syncFollows(@AuthenticationPrincipal UserPrincipal principal,
+                                         @RequestParam(value = "adminId", required = false) Long adminId) {
+        // Security check using AuthenticationPrincipal
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Authentication is required.");
+        }
+        if (!principal.isAdmin() && !"crewcanvas2@gmail.com".equalsIgnoreCase(principal.getEmail())) {
             return ResponseEntity.status(403).body("Access denied. Admin only.");
         }
 

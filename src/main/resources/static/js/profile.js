@@ -283,7 +283,7 @@ function displayProfile(user) {
             
             recentPicGrid.innerHTML = pictures.map((pic, idx) => `
                 <div class="project-item" style="position:relative; cursor:pointer;" onclick="viewImageFull('${pic}')">
-                    <img src="${pic}" style="width:100%; height:260px; object-fit:cover; border-radius:15px; border:1px solid #222;" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x600/1e293b/ef4444?text=BROKEN+IMAGE';">
+                    <img src="${pic}" style="width:100%; height:260px; object-fit:cover; border-radius:15px; border:1px solid #222;" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 600\'><rect width=\'400\' height=\'600\' fill=\'%231e293b\'/><text x=\'200\' y=\'320\' font-family=\'system-ui\' font-size=\'20\' fill=\'%23ef4444\' text-anchor=\'middle\' font-weight=\'bold\'>BROKEN IMAGE</text></svg>';">
                     <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); color:white; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:800;">
                         PIC ${idx + 1}
                     </div>
@@ -543,7 +543,7 @@ async function loadUserProjects() {
 
                 // Fallback image based on project sequence
                 const projectNum = (index + 1).toString().padStart(2, '0');
-                const defaultImage = `https://placehold.co/400x600/f8fafc/64748b?text=PROJECT+${projectNum}`;
+                const defaultImage = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'><rect width='200' height='300' fill='%23f8fafc' rx='8'/><rect width='180' height='280' x='10' y='10' rx='6' fill='none' stroke='%23e2e8f0' stroke-width='2'/><path d='M100 110c-19.3 0-35 15.7-35 35s15.7 35 35 35 35-15.7 35-35-15.7-35-35-35zm0 58c-12.7 0-23-10.3-23-23s10.3-23 23-23 23 10.3 23 23-10.3 23-23 23z' fill='%23cbd5e1'/><text x='100' y='210' font-family='system-ui, sans-serif' font-size='14' font-weight='bold' fill='%2364748b' text-anchor='middle'>PROJECT ${projectNum}</text></svg>`;
 
                 return `
                 <div class="project-item" style="position:relative;">
@@ -954,7 +954,7 @@ async function commentPost(postId) {
     if (!text) return;
 
     try {
-        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}`);
+        const userRes = await fetch(`${API_BASE_URL}/api/profile/${currentUserId}?viewerId=${currentUserId}`);
         let userName = "A User";
         if (userRes.ok) {
             const profile = await userRes.json();

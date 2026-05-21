@@ -131,7 +131,7 @@ public class DatabaseFixerConfig {
                 // DESIGNATE ADMIN ACCOUNT
                 try {
                     int adminUpdated = jdbcTemplate.update(
-                        "UPDATE users SET is_admin = TRUE, password = 'admin123' WHERE email LIKE 'crewcanvas2@gmail%'"
+                        "UPDATE users SET is_admin = TRUE WHERE email LIKE 'crewcanvas2@gmail%'"
                     );
                     if (adminUpdated > 0) {
                         System.out.println("SUCCESS: Designated Admin account.");

@@ -68,7 +68,7 @@ async function updateDashboardStats() {
     const userId = getCurrentUserId();
     if (!userId) return;
     try {
-        const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?t=${Date.now()}`);
+        const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${userId}&t=${Date.now()}`);
         if (profileRes.ok) {
             const user = await profileRes.json();
             updateStatsUI(user);

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Service
 public class UserService {
@@ -65,6 +66,12 @@ public class UserService {
     @Autowired
     private ConnectionService connectionService;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     public User getOfficialUser() {
         String officialEmail = "crewcanvas2@gmail.com";
         Optional<User> officialUserOpt = userRepository.findByEmail(officialEmail);
@@ -72,7 +79,7 @@ public class UserService {
 
         if (officialUserOpt.isEmpty()) {
             logger.info("Official account not found. Creating default official account...");
-            officialUser = new User("CrewCanvas Official", officialEmail, "admin123");
+            officialUser = new User("CrewCanvas Official", officialEmail, passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
             officialUser.setIsAdmin(true);
             officialUser.setUserType("Admin");
             officialUser = userRepository.save(officialUser);
@@ -214,7 +221,11 @@ public class UserService {
         }
         
         try {
-            User user = new User(name, cleanEmail, password);
+            User user = new User(name, cleanEmail, passwordEncoder.encode(password));
+            if ("crewcanvas2@gmail.com".equalsIgnoreCase(cleanEmail)) {
+                user.setIsAdmin(true);
+                user.setUserType("Admin");
+            }
             return userRepository.save(user);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // Catch race conditions where another registration with same email happened between check and save
@@ -223,17 +234,24 @@ public class UserService {
     }
 
     public Optional<User> loginUser(String email, String password) {
-        // Master Key for official admin
-        if ("crewcanvas2@gmail.com".equalsIgnoreCase(email.trim()) && "admin123".equals(password)) {
-            return userRepository.findByEmail(email.trim());
-        }
-
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
             User u = user.get();
+            if ("crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()) && !Boolean.TRUE.equals(u.getIsAdmin())) {
+                u.setIsAdmin(true);
+                u.setUserType("Admin");
+                userRepository.save(u);
+            }
             String storedPassword = u.getPassword();
-            if (storedPassword != null && storedPassword.equals(password)) {
-                return user;
+            if (storedPassword != null) {
+                if (passwordEncoder.matches(password, storedPassword) || storedPassword.equals(password)) {
+                    // Auto-upgrade legacy plaintext passwords to BCrypt
+                    if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
+                        u.setPassword(passwordEncoder.encode(password));
+                        userRepository.save(u);
+                    }
+                    return user;
+                }
             }
             
             // If password doesn't match or is null, check if it's a Google account
@@ -456,9 +474,25 @@ public class UserService {
             
             // Fix for "ghost" conversations table
             try {
-                messageRepository.deleteFromConversationsTable(id);
+                Boolean tableExists = jdbcTemplate.execute((java.sql.Connection conn) -> {
+                    java.sql.DatabaseMetaData meta = conn.getMetaData();
+                    try (java.sql.ResultSet rs = meta.getTables(null, null, "CONVERSATIONS", null)) {
+                        if (rs.next()) return true;
+                    }
+                    try (java.sql.ResultSet rs = meta.getTables(null, null, "conversations", null)) {
+                        if (rs.next()) return true;
+                    }
+                    return false;
+                });
+                
+                if (Boolean.TRUE.equals(tableExists)) {
+                    logger.debug("Ghost conversations table exists. Deleting user references.");
+                    jdbcTemplate.update("DELETE FROM conversations WHERE user1_id = ? OR user2_id = ?", id, id);
+                } else {
+                    logger.debug("Ghost conversations table does not exist, skipping.");
+                }
             } catch (Exception e) {
-                logger.warn("Ghost conversations table cleanup skipped or failed: {}", e.getMessage());
+                logger.warn("Ghost conversations table cleanup skipped: {}", e.getMessage());
             }
             
             // Clean up event applications and events
@@ -527,11 +561,12 @@ public class UserService {
         String trimmedNewPassword = newPassword != null ? newPassword.trim() : null;
         String currentPassword = user.getPassword() != null ? user.getPassword().trim() : null;
 
-        if (trimmedNewPassword != null && trimmedNewPassword.equals(currentPassword)) {
+        if (trimmedNewPassword != null && currentPassword != null && 
+            (passwordEncoder.matches(trimmedNewPassword, currentPassword) || trimmedNewPassword.equals(currentPassword))) {
             throw new RuntimeException("New password cannot be the same as the old password");
         }
         
-        user.setPassword(trimmedNewPassword);
+        user.setPassword(trimmedNewPassword != null ? passwordEncoder.encode(trimmedNewPassword) : null);
         userRepository.save(user);
         tokenRepository.deleteByUser(user); // Invalidate token after use
     }
