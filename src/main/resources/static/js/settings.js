@@ -1,6 +1,13 @@
 // Settings Functionality for CrewCanvas
 document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
+    
+    if (!localStorage.getItem('token')) {
+        setTimeout(() => {
+            showMessage('⚠️ Security token missing. Please logout and log back in to enable changing settings.', 'warning');
+        }, 1500);
+    }
+
     await loadSettings();
 });
 
@@ -23,6 +30,13 @@ async function loadSettings() {
             document.getElementById('emailNotifications').checked = user.emailNotifications !== false;
             document.getElementById('followerNotifications').checked = user.followerNotifications !== false;
             document.getElementById('eventReminders').checked = user.eventReminders !== false;
+        } else if (res.status === 404) {
+            console.warn("User profile not found (likely DB reset). Clearing session.");
+            showMessage("Session invalid or user profile not found. Redirecting to login...", "error");
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }, 2000);
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -51,9 +65,19 @@ async function updatePassword() {
     }
 
     try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
+            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            return;
+        }
+
+        const headers = { 'Content-Type': 'application/json' };
+        headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch(`${API_BASE_URL}/api/profile/${userId}/password`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({ newPassword: newPass })
         });
 
@@ -106,14 +130,38 @@ async function saveSettings(data) {
 
         // Fetch current user first to avoid overwriting other fields with null
         const currentRes = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${userId}`);
+        if (!currentRes.ok) {
+            if (currentRes.status === 404) {
+                console.warn("User profile not found during save. Clearing session.");
+                showMessage("Session invalid or user profile not found. Redirecting to login...", "error");
+                setTimeout(() => {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                }, 2000);
+            } else {
+                const errorMsg = await currentRes.text();
+                showMessage(errorMsg || "Unable to save your settings. Please try again.", "error");
+            }
+            return;
+        }
         const currentUser = await currentRes.json();
         
         const updatedUser = { ...currentUser, ...data, id: userId };
         console.log('Saving settings:', updatedUser);
 
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
+            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            return;
+        }
+
+        const headers = { 'Content-Type': 'application/json' };
+        headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch(`${API_BASE_URL}/api/profile`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(updatedUser)
         });
 
@@ -135,8 +183,18 @@ async function deleteAccount() {
 
     const userId = getCurrentUserId();
     try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
+            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            return;
+        }
+        const headers = {};
+        headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch(`${API_BASE_URL}/api/profile/${userId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: headers
         });
 
         if (res.ok) {

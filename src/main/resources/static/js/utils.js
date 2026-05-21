@@ -182,6 +182,9 @@ async function handleSharedCredentialResponse(response) {
             localStorage.setItem('userName', user.name);
             localStorage.setItem('isAdmin', user.isAdmin || user.email === 'crewcanvas2@gmail.com');
             localStorage.setItem('profileScore', user.profileScore || 0);
+            if (user.token) {
+                localStorage.setItem('token', user.token);
+            }
             
             showMessage('Welcome back! Loading your profile...', 'success');
             setTimeout(() => window.location.reload(), 1500);
@@ -289,7 +292,11 @@ async function getUserProfile(userId) {
     if (userCache.has(userId)) return userCache.get(userId);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+        const viewerId = getCurrentUserId();
+        const url = viewerId 
+            ? `${API_BASE_URL}/api/profile/${userId}?viewerId=${viewerId}`
+            : `${API_BASE_URL}/api/profile/${userId}`;
+        const response = await fetch(url);
         if (response.ok) {
             const user = await response.json();
             userCache.set(userId, user);
@@ -1224,7 +1231,7 @@ function initUniversalHeader() {
                     <i class="fa-solid fa-bell"></i>
                     <span id="notifBadgeHeader" class="notif-pill" style="display:none; position: absolute; top: -2px; right: -2px; min-width: 14px; height: 14px; font-size: 8px;">0</span>
                 </a>
-                <div class="user-profile-box" onclick="NotificationHandler.closeDropdown(); ProfileHandler.toggleProfileDropdown()">
+                <div class="user-profile-box" onclick="NotificationHandler.closeDropdown(); if(window.ProfileHandler && typeof window.ProfileHandler.toggleProfileDropdown === 'function') { window.ProfileHandler.toggleProfileDropdown(); }">
                     <div class="user-initials" id="userInitialsSmall" style="${avatarVisible ? 'display:none' : 'display:flex'}; width: 24px; height: 24px; font-size: 11px;">${initials}</div>
                     <img id="userAvatarSmall" src="${avatarVisible ? userAvatar : ''}" alt="" loading="lazy" style="${avatarVisible ? 'display:block' : 'display:none'}; width:24px; height:24px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; document.getElementById('userInitialsSmall').style.display='flex';">
                     
@@ -2007,3 +2014,14 @@ async function preFetchBackgroundData() {
         console.log("✅ Parallel pre-fetch complete.");
     }, 2000); // 2 second delay
 }
+
+// Safe ProfileHandler fallback for pages that only load utils.js (prevents ReferenceError on dropdown toggle)
+var ProfileHandler = window.ProfileHandler || {
+    toggleProfileDropdown: function() {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('active');
+        }
+    }
+};
+window.ProfileHandler = ProfileHandler;

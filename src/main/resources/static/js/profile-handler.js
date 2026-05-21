@@ -2,7 +2,8 @@
  * Profile Handler for CrewCanvas
  * Handles connections (Follow/Unfollow) and dynamic profile interactions
  */
-const ProfileHandler = {
+var ProfileHandler = window.ProfileHandler || {};
+Object.assign(ProfileHandler, {
     followingSet: new Set(),
     followerSet: new Set(),
     isInitialized: false,
@@ -17,7 +18,22 @@ const ProfileHandler = {
 
             try {
                 // Fetch consolidated onboarding data (Profile, Following, Followers) in ONE request
-                const res = await fetch(`${API_BASE_URL}/api/profile/onboarding-data/${currentUserId}?t=${Date.now()}`);
+                // Pass viewerId=currentUserId so private/connections-only profiles don't block self-view
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                const res = await fetch(`${API_BASE_URL}/api/profile/onboarding-data/${currentUserId}?viewerId=${currentUserId}&t=${Date.now()}`, {
+                    headers: headers
+                });
+
+                if (res.status === 404) {
+                    console.warn("User profile not found (likely DB reset). Clearing session.");
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
 
                 if (res.ok) {
                     const data = await res.json();
@@ -83,7 +99,12 @@ const ProfileHandler = {
         this.broadcastUpdate(targetId, !isFollowing);
 
         try {
-            const res = await fetch(url, { method });
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const res = await fetch(url, { method, headers });
             if (!res.ok) {
                 // REVERT on failure
                 if (isFollowing) {
@@ -195,7 +216,7 @@ const ProfileHandler = {
             dropdown.classList.toggle('active');
         }
     }
-};
+});
 
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {

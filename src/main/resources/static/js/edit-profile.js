@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     currentUserId = getCurrentUserId();
     console.log("[EditProfile] Initializing for ID:", currentUserId);
+
+    if (!localStorage.getItem('token')) {
+        setTimeout(() => {
+            showMessage('⚠️ Security token missing. Please logout and log back in to enable saving changes.', 'warning');
+        }, 1500);
+    }
     
     if (!currentUserId || currentUserId === 'null') {
         alert("No valid User ID found in session. Please log in again.");
@@ -211,6 +217,12 @@ async function loadProfileData() {
 
             handleRoleChange();
         } else {
+            if (response.status === 404) {
+                alert("Your profile was not found. This can happen if the database was reset. You will be redirected to signup/login.");
+                localStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
             const errText = await response.text();
             alert("SERVER ERROR: Could not find your profile. (Status " + response.status + "): " + errText);
         }
@@ -662,9 +674,23 @@ async function saveProfile() {
         const hasResume = updatedUser.resume ? "YES" : "NO";
         console.log(`[Save] Data count - Photos: ${photoCount}, Resume: ${hasResume}`);
 
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out (using the top-right menu) and log back in to activate secure editing.');
+            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+            return;
+        }
+
+        const headers = { 'Content-Type': 'application/json' };
+        headers['Authorization'] = `Bearer ${token}`;
+
         const response = await fetch(`${API_BASE_URL}/api/profile`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(updatedUser)
         });
 

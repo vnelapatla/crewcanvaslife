@@ -27,31 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const user = await response.json();
-                localStorage.setItem('userId', user.id);
-                localStorage.setItem('userEmail', user.email);
-                localStorage.setItem('userName', user.name);
-                localStorage.setItem('profileScore', user.profileScore || 0);
-                
-                // Force Admin flag for the official account
-                const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
-                localStorage.setItem('isAdmin', isAdmin);
-                localStorage.setItem('profileScore', user.profileScore || 0);
-
-                // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
-                if (typeof preFetchBackgroundData === 'function') {
-                    preFetchBackgroundData();
-                }
-
-                showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-                    if (redirectUrl) {
-                        sessionStorage.removeItem('redirectAfterLogin');
-                        window.location.href = redirectUrl;
-                    } else {
-                        window.location.href = 'feed.html';
-                    }
-                }, 1500);
+                handleSuccessfulLogin(user, 'Login');
             } else {
                 const errorMsg = await response.text();
                 showMessage(errorMsg || 'We couldn’t find an account with those details. Please check your email and password.', 'error');
@@ -195,28 +171,7 @@ async function handleCredentialResponse(response) {
 
         if (res.ok) {
             const user = await res.json();
-            localStorage.setItem('userId', user.id);
-            localStorage.setItem('userEmail', user.email);
-            localStorage.setItem('userName', user.name);
-            const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
-            localStorage.setItem('isAdmin', isAdmin);
-            localStorage.setItem('profileScore', user.profileScore || 0);
-
-            // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
-            if (typeof preFetchBackgroundData === 'function') {
-                preFetchBackgroundData();
-            }
-
-            showMessage('Google Login successful! Redirecting...', 'success');
-            setTimeout(() => {
-                const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-                if (redirectUrl) {
-                    sessionStorage.removeItem('redirectAfterLogin');
-                    window.location.href = redirectUrl;
-                } else {
-                    window.location.href = 'feed.html';
-                }
-            }, 1500);
+            handleSuccessfulLogin(user, 'Google Login');
         } else {
             const errorMsg = await res.text();
             console.error('Google login failed:', errorMsg);
@@ -226,4 +181,34 @@ async function handleCredentialResponse(response) {
         console.error('Google Auth error:', error);
         showMessage('Having trouble reaching Google. Please check your connection.', 'error');
     }
+}
+
+function handleSuccessfulLogin(user, loginMethodName) {
+    localStorage.setItem('userId', user.id);
+    localStorage.setItem('userEmail', user.email);
+    localStorage.setItem('userName', user.name);
+    localStorage.setItem('profileScore', user.profileScore || 0);
+    if (user.token) {
+        localStorage.setItem('token', user.token);
+    }
+    
+    // Force Admin flag for the official account
+    const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
+    localStorage.setItem('isAdmin', isAdmin);
+
+    // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
+    if (typeof preFetchBackgroundData === 'function') {
+        preFetchBackgroundData();
+    }
+
+    showMessage(`${loginMethodName} successful! Redirecting...`, 'success');
+    setTimeout(() => {
+        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+            sessionStorage.removeItem('redirectAfterLogin');
+            window.location.href = redirectUrl;
+        } else {
+            window.location.href = 'feed.html';
+        }
+    }, 1500);
 }

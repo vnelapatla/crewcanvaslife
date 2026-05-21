@@ -962,7 +962,7 @@ async function loadCurrentUser() {
     const userId = getCurrentUserId();
     if (!userId) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/profile/${userId}?viewerId=${userId}`);
         if (response.ok) {
             currentUser = await response.json();
             const picEle = document.getElementById('userAvatarSmall');
