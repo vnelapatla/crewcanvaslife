@@ -698,10 +698,21 @@ async function saveProfile() {
             const result = await response.json();
             console.log('Profile updated successfully:', result);
             
-            // Update local storage
-            localStorage.setItem('userName', result.name);
-            if (result.profilePicture) localStorage.setItem('userAvatar', result.profilePicture);
-            if (result.resume) localStorage.setItem('userResume', result.resume);
+            // Update local storage safely
+            try {
+                localStorage.setItem('userName', result.name);
+                if (result.profilePicture) localStorage.setItem('userAvatar', result.profilePicture);
+            } catch (storageError) {
+                console.warn('LocalStorage write failed (quota exceeded):', storageError);
+                // Proactively free up space by evicting non-essential cache entries
+                try {
+                    localStorage.removeItem('cache_feed_top10');
+                    localStorage.removeItem('cache_events_top10');
+                    localStorage.removeItem('cache_crew_top10');
+                    localStorage.removeItem('cache_conversations');
+                    localStorage.removeItem('cache_dashboard_events');
+                } catch (e) {}
+            }
 
             showMessage('Profile saved successfully!', 'success');
             
