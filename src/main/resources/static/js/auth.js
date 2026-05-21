@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
 
+    // Check if redirected due to missing security token
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('token_missing') === 'true') {
+        setTimeout(() => {
+            showMessage('🔑 Security session refreshed. Please log back in to enable settings changes.', 'warning');
+        }, 800);
+    }
+
     // Login Submission
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();

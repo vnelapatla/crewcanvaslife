@@ -3,9 +3,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkAuth();
     
     if (!localStorage.getItem('token')) {
-        setTimeout(() => {
-            showMessage('⚠️ Security token missing. Please logout and log back in to enable changing settings.', 'warning');
-        }, 1500);
+        alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
+        localStorage.clear();
+        window.location.href = 'index.html?token_missing=true';
+        return;
     }
 
     await loadSettings();
@@ -67,8 +68,9 @@ async function updatePassword() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
-            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            localStorage.clear();
+            window.location.href = 'index.html?token_missing=true';
             return;
         }
 
@@ -151,8 +153,9 @@ async function saveSettings(data) {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
-            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            localStorage.clear();
+            window.location.href = 'index.html?token_missing=true';
             return;
         }
 
@@ -185,8 +188,9 @@ async function deleteAccount() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out and log back in to refresh your credentials.');
-            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            localStorage.clear();
+            window.location.href = 'index.html?token_missing=true';
             return;
         }
         const headers = {};

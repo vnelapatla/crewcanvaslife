@@ -634,6 +634,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Touch events for mobile long-press options trigger
+        let touchTimeout = null;
+        let touchStartPos = { x: 0, y: 0 };
+        let isLongPress = false;
+        
+        container.addEventListener('touchstart', (e) => {
+            const messageText = e.target.closest('.message-text');
+            if (!messageText) return;
+            
+            // Only trigger on mobile/tablet widths
+            if (window.innerWidth > 768) return;
+            
+            // Get the message ID
+            const messageEl = messageText.closest('.message');
+            if (!messageEl) return;
+            const messageId = messageEl.id.replace('msg-', '');
+            
+            // Don't trigger if it's currently editing
+            if (messageText.querySelector('.edit-message-container')) return;
+            
+            touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            isLongPress = false;
+            
+            touchTimeout = setTimeout(() => {
+                isLongPress = true;
+                openBottomSheet(messageId);
+            }, 600); // 600ms threshold for long press
+        }, { passive: true });
+        
+        container.addEventListener('touchmove', (e) => {
+            if (!touchTimeout) return;
+            
+            // If the user moves their finger significantly, cancel the long press (e.g. scrolling)
+            const moveX = e.touches[0].clientX - touchStartPos.x;
+            const moveY = e.touches[0].clientY - touchStartPos.y;
+            if (Math.abs(moveX) > 10 || Math.abs(moveY) > 10) {
+                clearTimeout(touchTimeout);
+                touchTimeout = null;
+            }
+        }, { passive: true });
+        
+        container.addEventListener('touchend', (e) => {
+            if (touchTimeout) {
+                clearTimeout(touchTimeout);
+                touchTimeout = null;
+            }
+            if (isLongPress) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+        
+        container.addEventListener('touchcancel', () => {
+            if (touchTimeout) {
+                clearTimeout(touchTimeout);
+                touchTimeout = null;
+            }
+        });
     }
 });
 
@@ -825,6 +884,15 @@ function appendSingleMessage(msg) {
                         <span class="time">${formatTime(msg.createdAt)}</span>
                         ${isSent ? `<span class="checkmarks" style="color:#cbd5e1">✓</span>` : ''}
                     </div>
+                    <button class="message-options-btn" onclick="handleOptionsClick(event, ${msg.id})">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div id="options-${msg.id}" class="message-dropdown">
+                        ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${msg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
+                        <div class="message-dropdown-item" onclick="copyToClipboardText(${msg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
+                        ${(isSent && allFiles.length > 0) ? `<div class="message-dropdown-item" onclick="removeImageUI(${msg.id})"><i class="fa-solid fa-image-slash"></i> Remove Image</div>` : ''}
+                        ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${msg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
+                    </div>
                 </div>
             </div>
         </div>
@@ -844,6 +912,50 @@ function appendSingleMessage(msg) {
     const conversationId = selectedConversationUserId;
     const currentCount = lastMessageCountMap.get(conversationId) || 0;
     lastMessageCountMap.set(conversationId, currentCount + 1);
+}
+
+/**
+ * Resolves an optimistic message with its real database ID and updates options action triggers
+ */
+function resolveOptimisticMessage(tempId, savedMsg) {
+    const tempEl = document.getElementById(`msg-${tempId}`);
+    if (!tempEl) return;
+    
+    const isSent = savedMsg.senderId == currentUserId;
+    const allFiles = [...(savedMsg.fileUrls || [])];
+    if (savedMsg.imageUrl && !allFiles.includes(savedMsg.imageUrl)) allFiles.unshift(savedMsg.imageUrl);
+    
+    // Update the main container ID
+    tempEl.id = `msg-${savedMsg.id}`;
+    tempEl.style.opacity = '1';
+    tempEl.classList.remove('optimistic');
+    
+    const checkmarks = tempEl.querySelector('.checkmarks');
+    if (checkmarks) checkmarks.textContent = '✓✓';
+    
+    // Find or recreate the options button & dropdown with correct database ID
+    const messageText = tempEl.querySelector('.message-text');
+    if (messageText) {
+        // Remove any old buttons or dropdowns if they exist
+        const oldBtn = messageText.querySelector('.message-options-btn');
+        if (oldBtn) oldBtn.remove();
+        const oldDropdown = messageText.querySelector('.message-dropdown');
+        if (oldDropdown) oldDropdown.remove();
+        
+        // Append new options button and dropdown with correct database ID
+        const btnHtml = `
+            <button class="message-options-btn" onclick="handleOptionsClick(event, ${savedMsg.id})">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <div id="options-${savedMsg.id}" class="message-dropdown">
+                ${isSent ? `<div class="message-dropdown-item" onclick="editMessageUI(${savedMsg.id})"><i class="fa-solid fa-pen"></i> Edit</div>` : ''}
+                <div class="message-dropdown-item" onclick="copyToClipboardText(${savedMsg.id})"><i class="fa-solid fa-copy"></i> Copy</div>
+                ${(isSent && allFiles.length > 0) ? `<div class="message-dropdown-item" onclick="removeImageUI(${savedMsg.id})"><i class="fa-solid fa-image-slash"></i> Remove Image</div>` : ''}
+                ${isSent ? `<div class="message-dropdown-item delete" onclick="confirmDeleteMessage(${savedMsg.id})"><i class="fa-solid fa-trash"></i> Delete</div>` : ''}
+            </div>
+        `;
+        messageText.insertAdjacentHTML('beforeend', btnHtml);
+    }
 }
 
 // Minimal Edit/Delete Logic
@@ -1055,14 +1167,8 @@ async function sendMessage() {
         if (response.ok) {
             const savedMsg = await response.json();
             
-            // Resolve optimistic UI
-            const tempEl = document.getElementById(`msg-${tempMsg.id}`);
-            if (tempEl) {
-                tempEl.style.opacity = '1';
-                tempEl.classList.remove('optimistic');
-                const checkmarks = tempEl.querySelector('.checkmarks');
-                if (checkmarks) checkmarks.textContent = '✓✓'; // Double check for reached/delivered
-            }
+            // Resolve optimistic UI with database ID and action listeners
+            resolveOptimisticMessage(tempMsg.id, savedMsg);
 
             // Load conversations in background to update sidebar
             loadConversations();
