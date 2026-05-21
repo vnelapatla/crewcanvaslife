@@ -8,7 +8,7 @@ let currentFilter = 'all';
 let eventPage = 0;
 let isLoading = false;
 let hasMore = true;
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 15;
 let currentType = ''; 
 let editModeId = null;
 let visibleCount = 5;
@@ -156,6 +156,11 @@ async function loadEvents() {
 
             if (newEvents.length < PAGE_SIZE) {
                 hasMore = false;
+            }
+
+            // Auto-increment visibleCount on subsequent page loads to reveal new items immediately
+            if (eventPage > 0 && newEvents.length > 0) {
+                visibleCount += 5;
             }
 
             // Note: counts are now handled by loadEventStats()
