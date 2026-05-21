@@ -974,8 +974,12 @@ async function loadCurrentUser() {
                 const initialsEle = document.getElementById('userInitialsSmall');
                 if (initialsEle) initialsEle.style.display = 'none';
                 
-                // Update localStorage
-                localStorage.setItem('userAvatar', currentUser.profilePicture);
+                // Update localStorage safely
+                try {
+                    localStorage.setItem('userAvatar', currentUser.profilePicture);
+                } catch (storageError) {
+                    console.warn('LocalStorage write failed for userAvatar:', storageError);
+                }
             }
         }
     } catch (error) {
