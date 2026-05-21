@@ -405,7 +405,7 @@ function renderRecentPictures() {
 
     container.innerHTML = recentPicturesList.map((pic, index) => `
         <div style="position:relative; width:100px; height:120px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color);">
-            <img src="${pic}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='https://placehold.co/100x120/1e293b/ef4444?text=ERROR';">
+            <img src="${pic}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 120\'><rect width=\'100\' height=\'120\' fill=\'%231e293b\'/><text x=\'50\' y=\'65\' font-family=\'system-ui\' font-size=\'10\' fill=\'%23ef4444\' text-anchor=\'middle\' font-weight=\'bold\'>ERROR</text></svg>';">
             <button onclick="removeRecentPicture(${index})" style="position:absolute; top:5px; right:5px; background:rgba(255,0,0,0.7); color:white; border:none; width:20px; height:20px; border-radius:50%; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;">✕</button>
         </div>
     `).join('');
@@ -755,7 +755,7 @@ function renderProjectsList(projects) {
 
     container.innerHTML = projects.map((p, index) => {
         const projectNum = (index + 1).toString().padStart(2, '0');
-        const defaultImage = `https://placehold.co/200x300/f8fafc/64748b?text=PROJECT+${projectNum}`;
+        const defaultImage = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'><rect width='200' height='300' fill='%23f8fafc' rx='8'/><rect width='180' height='280' x='10' y='10' rx='6' fill='none' stroke='%23e2e8f0' stroke-width='2'/><path d='M100 110c-19.3 0-35 15.7-35 35s15.7 35 35 35 35-15.7 35-35-15.7-35-35-35zm0 58c-12.7 0-23-10.3-23-23s10.3-23 23-23 23 10.3 23 23-10.3 23-23 23z' fill='%23cbd5e1'/><text x='100' y='210' font-family='system-ui, sans-serif' font-size='14' font-weight='bold' fill='%2364748b' text-anchor='middle'>PROJECT ${projectNum}</text></svg>`;
         
         return `
         <div class="project-item-card">

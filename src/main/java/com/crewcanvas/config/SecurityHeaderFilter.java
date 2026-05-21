@@ -36,7 +36,7 @@ public class SecurityHeaderFilter implements Filter {
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://accounts.google.com; " +
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://accounts.google.com; " +
                 "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
-                "img-src 'self' data: https://lh3.googleusercontent.com https://via.placeholder.com; " +
+                "img-src 'self' data: https://lh3.googleusercontent.com https://via.placeholder.com https://placehold.co; " +
                 "connect-src 'self' https://accounts.google.com https://cdnjs.cloudflare.com; " +
                 "frame-src 'self' https://accounts.google.com;");
 
