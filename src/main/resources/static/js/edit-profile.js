@@ -22,9 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("[EditProfile] Initializing for ID:", currentUserId);
 
     if (!localStorage.getItem('token')) {
-        setTimeout(() => {
-            showMessage('⚠️ Security token missing. Please logout and log back in to enable saving changes.', 'warning');
-        }, 1500);
+        alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
+        localStorage.clear();
+        window.location.href = 'index.html?token_missing=true';
+        return;
     }
     
     if (!currentUserId || currentUserId === 'null') {
@@ -676,12 +677,9 @@ async function saveProfile() {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. Your session is missing a cryptographic token.\n\nPlease log out (using the top-right menu) and log back in to activate secure editing.');
-            showMessage('Authentication token is missing. Please log out and log back in.', 'error');
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
-            }
+            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            localStorage.clear();
+            window.location.href = 'index.html?token_missing=true';
             return;
         }
 
