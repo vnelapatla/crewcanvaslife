@@ -17,7 +17,6 @@ public class MonolithChatWebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    @org.springframework.beans.factory.annotation.Qualifier("monolithMessageService")
     private com.crewcanvas.service.MessageService messageService;
 
     @MessageMapping("/chat.sendMessage")
@@ -34,10 +33,12 @@ public class MonolithChatWebSocketController {
             Message savedMessage = messageService.sendMessage(
                 senderId, 
                 receiverId, 
+                null, // groupId
                 content, 
                 imageUrl, 
                 fileUrl, 
-                fileType
+                fileType,
+                null  // fileUrls
             );
 
             // Send to receiver's topic
