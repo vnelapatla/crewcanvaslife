@@ -1,8 +1,8 @@
 // Settings Functionality for CrewCanvas
 document.addEventListener('DOMContentLoaded', async () => {
-    checkAuth();
+    if (!checkAuth()) return;
     
-    if (!localStorage.getItem('token')) {
+    if (localStorage.getItem('userEmail') && !localStorage.getItem('token')) {
         alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
         localStorage.clear();
         window.location.href = 'index.html?token_missing=true';
@@ -68,7 +68,7 @@ async function updatePassword() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            alert('Session expired. Please log back in.');
             localStorage.clear();
             window.location.href = 'index.html?token_missing=true';
             return;
@@ -153,7 +153,7 @@ async function saveSettings(data) {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            alert('Session expired. Please log back in.');
             localStorage.clear();
             window.location.href = 'index.html?token_missing=true';
             return;
@@ -188,7 +188,7 @@ async function deleteAccount() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            alert('Session expired. Please log back in.');
             localStorage.clear();
             window.location.href = 'index.html?token_missing=true';
             return;

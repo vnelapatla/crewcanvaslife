@@ -11,17 +11,14 @@ let originalUserData = {};
 let editingProjectId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("Edit Profile page loaded");
     if (!checkAuth()) {
-        alert("Auth failed - redirecting to login");
-        window.location.href = 'index.html';
         return;
     }
     
     currentUserId = getCurrentUserId();
     console.log("[EditProfile] Initializing for ID:", currentUserId);
 
-    if (!localStorage.getItem('token')) {
+    if (localStorage.getItem('userEmail') && !localStorage.getItem('token')) {
         alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
         localStorage.clear();
         window.location.href = 'index.html?token_missing=true';
@@ -677,7 +674,7 @@ async function saveProfile() {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in.');
+            alert('Session expired. Please log back in.');
             localStorage.clear();
             window.location.href = 'index.html?token_missing=true';
             return;
