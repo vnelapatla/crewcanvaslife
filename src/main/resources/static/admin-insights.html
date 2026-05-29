@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/admin-insights.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6911412543302758"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <aside class="sidebar"></aside>
@@ -34,7 +37,7 @@
             <div class="conversion-box" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div style="flex: 1;">
                     <h3 style="margin-bottom: 5px;"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Revenue & Traffic Insight</h3>
-                    <p style="opacity: 0.7; font-size: 13px;">Automatic estimation based on page views (Market Standard ₹35/1000 views).</p>
+                    <p style="opacity: 0.7; font-size: 13px;">Automatic estimation based on page views (Market Standard â‚¹35/1000 views).</p>
                 </div>
                 <div class="traffic-metrics-container">
                     <div class="traffic-metric-card">
@@ -44,18 +47,18 @@
 
                     <div class="traffic-metric-card" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);">
                         <label style="font-size: 10px; font-weight: 800; color: #3b82f6; text-transform: uppercase; display: block; margin-bottom: 5px;">Earned Today</label>
-                        <div id="statDailyEarned" style="font-size: 24px; font-weight: 800; color: #3b82f6;">₹0.00</div>
-                        <span style="font-size: 9px; opacity: 0.6; color: #fff; display: block; margin-top: 2px;">(Actual Views × ₹35/1k)</span>
+                        <div id="statDailyEarned" style="font-size: 24px; font-weight: 800; color: #3b82f6;">â‚¹0.00</div>
+                        <span style="font-size: 9px; opacity: 0.6; color: #fff; display: block; margin-top: 2px;">(Actual Views Ã— â‚¹35/1k)</span>
                     </div>
 
                     <div class="traffic-metric-card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
                         <label style="font-size: 10px; font-weight: 800; color: #10b981; text-transform: uppercase; display: block; margin-bottom: 5px;">Est. Monthly (Views)</label>
-                        <div id="statMonthlyIncome" style="font-size: 24px; font-weight: 800; color: #10b981;">₹0.00</div>
+                        <div id="statMonthlyIncome" style="font-size: 24px; font-weight: 800; color: #10b981;">â‚¹0.00</div>
                     </div>
 
                     <div class="traffic-metric-card" style="background: rgba(251, 146, 60, 0.1); border-color: rgba(251, 146, 60, 0.2);">
                         <label style="font-size: 10px; font-weight: 800; color: #fb923c; text-transform: uppercase; display: block; margin-bottom: 5px;">Est. Monthly (Clicks)</label>
-                        <div id="statClickIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">₹0.00</div>
+                        <div id="statClickIncome" style="font-size: 24px; font-weight: 800; color: #fb923c;">â‚¹0.00</div>
                     </div>
                 </div>
             </div>
@@ -64,7 +67,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
                     <div>
                         <h3 style="margin-bottom: 5px;"><i class="fas fa-money-bill-trend-up" style="color: #10b981;"></i> Ad Network Projections</h3>
-                        <p style="opacity: 0.7; font-size: 13px;">Estimated earnings comparison based on current views (Google: ₹50 CPM, Ezoic: ₹100 EPMV).</p>
+                        <p style="opacity: 0.7; font-size: 13px;">Estimated earnings comparison based on current views (Google: â‚¹50 CPM, Ezoic: â‚¹100 EPMV).</p>
                     </div>
                 </div>
                 
@@ -75,17 +78,17 @@
                         <div class="projection-row">
                             <span class="projection-label">Google AdSense:</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #3b82f6;" id="monMonthGoogle">₹0.00</span>
-                                <span class="projection-value-clicks" id="monMonthGoogleClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="monMonthGoogleTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #3b82f6;" id="monMonthGoogle">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="monMonthGoogleClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="monMonthGoogleTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                         <div class="projection-row">
                             <span class="projection-label">Ezoic (AI Total):</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #10b981;" id="monMonthEzoic">₹0.00</span>
-                                <span class="projection-value-clicks" id="monMonthEzoicClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="monMonthEzoicTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #10b981;" id="monMonthEzoic">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="monMonthEzoicClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="monMonthEzoicTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -96,17 +99,17 @@
                         <div class="projection-row">
                             <span class="projection-label">Google AdSense:</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #3b82f6;" id="mon3MonthsGoogle">₹0.00</span>
-                                <span class="projection-value-clicks" id="mon3MonthsGoogleClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="mon3MonthsGoogleTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #3b82f6;" id="mon3MonthsGoogle">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="mon3MonthsGoogleClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="mon3MonthsGoogleTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                         <div class="projection-row">
                             <span class="projection-label">Ezoic (AI Total):</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #10b981;" id="mon3MonthsEzoic">₹0.00</span>
-                                <span class="projection-value-clicks" id="mon3MonthsEzoicClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="mon3MonthsEzoicTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #10b981;" id="mon3MonthsEzoic">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="mon3MonthsEzoicClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="mon3MonthsEzoicTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -117,17 +120,17 @@
                         <div class="projection-row">
                             <span class="projection-label">Google AdSense:</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #3b82f6;" id="monLifeGoogle">₹0.00</span>
-                                <span class="projection-value-clicks" id="monLifeGoogleClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="monLifeGoogleTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #3b82f6;" id="monLifeGoogle">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="monLifeGoogleClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="monLifeGoogleTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                         <div class="projection-row">
                             <span class="projection-label">Ezoic (AI Total):</span>
                             <div class="projection-values">
-                                <span class="projection-value-base" style="color: #10b981;" id="monLifeEzoic">₹0.00</span>
-                                <span class="projection-value-clicks" id="monLifeEzoicClicks">(+₹0.00 clicks)</span>
-                                <span class="projection-value-total" id="monLifeEzoicTotal">= ₹0.00</span>
+                                <span class="projection-value-base" style="color: #10b981;" id="monLifeEzoic">â‚¹0.00</span>
+                                <span class="projection-value-clicks" id="monLifeEzoicClicks">(+â‚¹0.00 clicks)</span>
+                                <span class="projection-value-total" id="monLifeEzoicTotal">= â‚¹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -467,9 +470,9 @@
             const dailyEarned = (hits * 35.0) / 1000.0;
             
             document.getElementById('statDailyHits').innerText = hits.toLocaleString();
-            document.getElementById('statDailyEarned').innerText = '₹' + dailyEarned.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('statMonthlyIncome').innerText = '₹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('statClickIncome').innerText = '₹' + (data.estClickMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('statDailyEarned').innerText = 'â‚¹' + dailyEarned.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('statMonthlyIncome').innerText = 'â‚¹' + (data.estMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('statClickIncome').innerText = 'â‚¹' + (data.estClickMonthlyIncome || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             document.getElementById('statLastWeekHits').innerText = (data.lastWeekHits || 0).toLocaleString();
             document.getElementById('statLast3MonthsHits').innerText = (data.last3MonthsHits || 0).toLocaleString();
@@ -484,43 +487,43 @@
             const GOOGLE_CPM = 50.0;
             const EZOIC_CPM = 100.0;
             const CTR = 0.015; // 1.5%
-            const CPC = 3.0; // ₹3 per click
+            const CPC = 3.0; // â‚¹3 per click
 
             // 1 Month calculations
             let gMonth = (lastMonthHits * GOOGLE_CPM) / 1000;
             let eMonth = (lastMonthHits * EZOIC_CPM) / 1000;
             let cMonth = lastMonthHits * CTR * CPC;
             document.getElementById('monMonthHits').innerText = lastMonthHits.toLocaleString();
-            document.getElementById('monMonthGoogle').innerText = '₹' + gMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monMonthGoogleClicks').innerText = ' (+₹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('monMonthGoogleTotal').innerText = '= ₹' + (gMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monMonthEzoic').innerText = '₹' + eMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monMonthEzoicClicks').innerText = ' (+₹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('monMonthEzoicTotal').innerText = '= ₹' + (eMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthGoogle').innerText = 'â‚¹' + gMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthGoogleClicks').innerText = ' (+â‚¹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monMonthGoogleTotal').innerText = '= â‚¹' + (gMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthEzoic').innerText = 'â‚¹' + eMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monMonthEzoicClicks').innerText = ' (+â‚¹' + cMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monMonthEzoicTotal').innerText = '= â‚¹' + (eMonth + cMonth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // 3 Months calculations
             let g3 = (last3MonthsHits * GOOGLE_CPM) / 1000;
             let e3 = (last3MonthsHits * EZOIC_CPM) / 1000;
             let c3 = last3MonthsHits * CTR * CPC;
             document.getElementById('mon3MonthsHits').innerText = last3MonthsHits.toLocaleString();
-            document.getElementById('mon3MonthsGoogle').innerText = '₹' + g3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('mon3MonthsGoogleClicks').innerText = ' (+₹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('mon3MonthsGoogleTotal').innerText = '= ₹' + (g3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('mon3MonthsEzoic').innerText = '₹' + e3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('mon3MonthsEzoicClicks').innerText = ' (+₹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('mon3MonthsEzoicTotal').innerText = '= ₹' + (e3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsGoogle').innerText = 'â‚¹' + g3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsGoogleClicks').innerText = ' (+â‚¹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('mon3MonthsGoogleTotal').innerText = '= â‚¹' + (g3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsEzoic').innerText = 'â‚¹' + e3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('mon3MonthsEzoicClicks').innerText = ' (+â‚¹' + c3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('mon3MonthsEzoicTotal').innerText = '= â‚¹' + (e3 + c3).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Lifetime calculations
             let gLife = (lifetimeHits * GOOGLE_CPM) / 1000;
             let eLife = (lifetimeHits * EZOIC_CPM) / 1000;
             let cLife = lifetimeHits * CTR * CPC;
             document.getElementById('monLifeHits').innerText = lifetimeHits.toLocaleString();
-            document.getElementById('monLifeGoogle').innerText = '₹' + gLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monLifeGoogleClicks').innerText = ' (+₹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('monLifeGoogleTotal').innerText = '= ₹' + (gLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monLifeEzoic').innerText = '₹' + eLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('monLifeEzoicClicks').innerText = ' (+₹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
-            document.getElementById('monLifeEzoicTotal').innerText = '= ₹' + (eLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeGoogle').innerText = 'â‚¹' + gLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeGoogleClicks').innerText = ' (+â‚¹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monLifeGoogleTotal').innerText = '= â‚¹' + (gLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeEzoic').innerText = 'â‚¹' + eLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monLifeEzoicClicks').innerText = ' (+â‚¹' + cLife.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' clicks)';
+            document.getElementById('monLifeEzoicTotal').innerText = '= â‚¹' + (eLife + cLife).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Calculate Avg Completion
 
@@ -565,7 +568,7 @@
                     <div class="user-avatar">${(user.name || '?').charAt(0).toUpperCase()}</div>
                     <div class="user-info">
                         <b>${user.name}</b>
-                        <span>${user.role || 'Explorer'} • Registered ${formatRelativeTime(user.createdAt)}</span>
+                        <span>${user.role || 'Explorer'} â€¢ Registered ${formatRelativeTime(user.createdAt)}</span>
                     </div>
                 </div>
             `).join('') : '<p style="text-align:center; padding:20px; color:#94a3b8;">No new signups in the last 24h.</p>';
@@ -603,7 +606,7 @@
             const filtered = allDonations.filter(d => d.status === currentSupportTab.toUpperCase());
             
             if (filtered.length === 0) {
-                const msg = currentSupportTab === 'pending' ? "No pending donations to verify. ✨" : "No verified history yet.";
+                const msg = currentSupportTab === 'pending' ? "No pending donations to verify. âœ¨" : "No verified history yet.";
                 list.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #94a3b8;">${msg}</div>`;
                 return;
             }
@@ -614,7 +617,7 @@
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <b style="font-size: 16px;">${d.donorName}</b>
                         <span style="font-size: 13px; color: var(--text-muted);">${d.email}</span>
-                        <div style="margin-top: 8px; font-weight: 700; color: var(--primary);">₹${d.amount}</div>
+                        <div style="margin-top: 8px; font-weight: 700; color: var(--primary);">â‚¹${d.amount}</div>
                         <div style="font-family: monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; margin-top: 4px;">
                             UTR: ${d.utrNumber}
                         </div>
@@ -643,7 +646,7 @@
                 const res = await fetch(`${API_BASE_URL}/api/support/admin/verify/${id}`, { method: 'POST' });
                 if (res.ok) {
                     btn.closest('.donation-item').style.opacity = '0.5';
-                    btn.innerHTML = 'Verified ✅';
+                    btn.innerHTML = 'Verified âœ…';
                     setTimeout(() => fetchDonations(), 1000);
                 } else {
                     alert("Verification failed.");
@@ -771,3 +774,4 @@
     </script>
 </body>
 </html>
+

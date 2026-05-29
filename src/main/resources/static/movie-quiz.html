@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -296,6 +296,9 @@
             box-shadow: 0 0 0 4px rgba(255, 136, 0, 0.05);
         }
     </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6911412543302758"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <header class="top-header"></header>
@@ -390,7 +393,7 @@
     <!-- Leaderboard Modal -->
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
-            <span style="position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 20px;" onclick="closeLeaderboard()">✕</span>
+            <span style="position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 20px;" onclick="closeLeaderboard()">âœ•</span>
             <h2 style="font-family: 'Outfit'; margin-bottom: 30px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Global Rankings</h2>
             <div id="leaderboardList">
                 <p style="text-align: center; color: #94a3b8;">Loading rankings...</p>
@@ -610,7 +613,7 @@
                                 <div class="rank-circle ${index < 3 ? 'rank-' + (index + 1) : ''}">${index + 1}</div>
                                 <div class="player-info">
                                     <p class="player-name">${item.userName}</p>
-                                    <p class="player-meta">${item.timeTaken}s total time • ${new Date(item.playedAt).toLocaleDateString()}</p>
+                                    <p class="player-meta">${item.timeTaken}s total time â€¢ ${new Date(item.playedAt).toLocaleDateString()}</p>
                                 </div>
                                 <div class="player-score">${item.score}</div>
                             </div>
@@ -630,7 +633,7 @@
             const shareUrl = `${window.location.origin}${window.location.pathname}`;
             const shareData = {
                 title: 'Movie Quiz | CrewCanvas',
-                text: '🎬 Can you beat my score in the Movie Buff Challenge? Play now on CrewCanvas!',
+                text: 'ðŸŽ¬ Can you beat my score in the Movie Buff Challenge? Play now on CrewCanvas!',
                 url: shareUrl
             };
 
@@ -641,7 +644,7 @@
             } else {
                 try {
                     await navigator.clipboard.writeText(shareUrl);
-                    showMessage("Quiz link copied to clipboard! 📋", "success");
+                    showMessage("Quiz link copied to clipboard! ðŸ“‹", "success");
                 } catch (err) {
                     alert("Copy link: " + shareUrl);
                 }
@@ -732,3 +735,4 @@
     </script>
 </body>
 </html>
+
