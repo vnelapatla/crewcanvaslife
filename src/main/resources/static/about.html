@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -469,6 +469,9 @@
             to { opacity: 1; transform: scale(1); }
         }
     </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6911412543302758"
+     crossorigin="anonymous"></script>
 </head>
 
 <body class="about-page">
@@ -605,7 +608,7 @@
                         <input type="text" id="donorName" placeholder="Your Name" required>
                         <input type="email" id="donorEmail" placeholder="Your Email (For Thank You Mail)" required>
                         <input type="text" id="utrNumber" placeholder="12-digit UTR / Transaction ID" required>
-                        <input type="number" id="amount" placeholder="Amount Paid (₹)" required>
+                        <input type="number" id="amount" placeholder="Amount Paid (â‚¹)" required>
                         
                         <div class="full-width">
                             <label for="screenshot" class="file-input-label">
@@ -668,7 +671,7 @@
     <footer style="padding: 60px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0f19;">
         <div class="footer-legal" style="text-align: center; max-width: 600px; margin: 0 auto;">
             <div style="font-size: 13px; color: #94a3b8; font-weight: 700; margin-bottom: 20px;">
-                © 2026 CrewCanvas. All rights reserved. Made in India.
+                Â© 2026 CrewCanvas. All rights reserved. Made in India.
             </div>
             <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 25px;">
                 <a href="terms.html" style="font-size: 13px; font-weight: 700; color: #94a3b8; text-decoration: none;">Terms</a>
@@ -833,13 +836,13 @@
 
             try {
                 container.style.display = 'block';
-                list.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size: 14px;">📡 Connecting to server...</p>';
+                list.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-size: 14px;">ðŸ“¡ Connecting to server...</p>';
                 
                 const endpoint = (typeof API_BASE_URL !== 'undefined') ? `${API_BASE_URL}/api/support/public/supporters` : '/api/support/public/supporters';
                 
                 const res = await fetch(endpoint);
                 if (!res.ok) {
-                    list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">⚠️ Server Error (${res.status}). Try restarting the app!</p>`;
+                    list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">âš ï¸ Server Error (${res.status}). Try restarting the app!</p>`;
                     return;
                 }
                 
@@ -891,10 +894,10 @@
                         `;
                     }).join('');
                 } else {
-                    list.innerHTML = `<tr><td style="text-align:center; padding: 30px; color: rgba(255,255,255,0.4);">Be the first to support Crew Canvas! ❤️</td></tr>`;
+                    list.innerHTML = `<tr><td style="text-align:center; padding: 30px; color: rgba(255,255,255,0.4);">Be the first to support Crew Canvas! â¤ï¸</td></tr>`;
                 }
             } catch (err) {
-                list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">❌ Connection Failed. Is the server running?</p>`;
+                list.innerHTML = `<p style="color: #ef4444; font-size: 14px;">âŒ Connection Failed. Is the server running?</p>`;
             }
         }
 
@@ -903,3 +906,4 @@
 </body>
 
 </html>
+
