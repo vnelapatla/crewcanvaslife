@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | Download Script</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --secondary-orange: #ff4c3b;
+            --success-green: #10b981;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 50%);
+        }
+
+        .success-card {
+            max-width: 500px;
+            width: 90%;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: var(--success-green);
+            font-size: 40px;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            margin: 0 0 15px;
+            color: var(--text-main);
+        }
+
+        p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: var(--success-green);
+            color: white;
+            text-decoration: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+            background: #059669;
+        }
+
+        .download-btn.disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .warning-text {
+            font-size: 13px;
+            color: #ef4444;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="success-card">
+        <div class="icon-circle">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>Payment Successful!</h2>
+        <p>Thank you for your purchase. Your automation script is ready. Please click the button below to download your file.</p>
+        
+        <a href="#" id="downloadLink" class="download-btn">
+            <i class="fas fa-download"></i> Download Script (50MB)
+        </a>
+        
+        <div class="warning-text">
+            <i class="fas fa-exclamation-triangle"></i> Important: This link will work ONLY ONCE. Do not close or refresh this page until download completes.
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get('paymentId');
+        const downloadLink = document.getElementById('downloadLink');
+
+        if (paymentId) {
+            downloadLink.href = '/api/course/download/' + paymentId;
+        } else {
+            downloadLink.classList.add('disabled');
+            downloadLink.innerHTML = "Invalid Request";
+            downloadLink.href = "javascript:void(0)";
+            alert("No payment ID found. Cannot verify purchase.");
+        }
+
+        downloadLink.addEventListener('click', function(e) {
+            if (!this.classList.contains('disabled')) {
+                // Change button state after click to indicate one-time use
+                setTimeout(() => {
+                    this.classList.add('disabled');
+                    this.innerHTML = '<i class="fas fa-check"></i> Download Initiated';
+                    this.onclick = function(ev) { ev.preventDefault(); return false; };
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
