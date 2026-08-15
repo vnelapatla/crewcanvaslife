@@ -81,7 +81,7 @@ public class ConnectionService {
                 // Email notification if enabled
                 if (Boolean.TRUE.equals(user.getEmailNotifications())) {
                     try {
-                        String profileLink = "https://crewcanvas.in/profile.html?userId=" + followerId;
+                        String profileLink = "https://krewcanvas.in/profile.html?userId=" + followerId;
                         emailService.sendFollowNotificationEmail(user.getEmail(), follower.getName(), profileLink);
                     } catch (Exception e) {
                         System.err.println("Email fail: " + e.getMessage());
