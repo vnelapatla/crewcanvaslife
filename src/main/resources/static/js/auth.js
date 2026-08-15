@@ -137,8 +137,12 @@ async function initializeGoogleIdentity() {
                 );
             }
             
-            // Also show One Tap dialog (standard GIS behavior)
-            google.accounts.id.prompt(); 
+            // Also show One Tap dialog (safely handle FedCM origin errors)
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    console.log("Google OneTap display state:", notification.getNotDisplayedReason() || notification.getSkippedReason());
+                }
+            }); 
         } else if (typeof google === 'undefined') {
             // If script hasn't loaded yet, try again in a bit
             setTimeout(initializeGoogleIdentity, 500);

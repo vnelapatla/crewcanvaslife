@@ -5,7 +5,7 @@ set "MAVEN_BIN=C:\Users\Navi\crewcanvascopy\Crew_Canvas\CrewCanvas copy 5\tools\
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 echo ===================================================
-1: echo   CrewCanvas - Rebuild and Run (Monolith)
+echo   KrewCanvas - Rebuild and Run (Monolith)
 echo ===================================================
 echo.
 echo [1/3] Stopping any running Java processes...
