@@ -1127,9 +1127,6 @@ function initUniversalBottomNav() {
         <a href="event.html" class="nav-item ${navCurrentPage.includes('event.html') ? 'active' : ''}">
             <i class="fa-solid fa-clapperboard icon"></i> <span>Events</span>
         </a>
-        <a href="course.html" class="nav-item ${navCurrentPage.includes('course.html') ? 'active' : ''}">
-            <i class="fa-solid fa-graduation-cap icon"></i> <span>Course</span>
-        </a>
     </div>
     `;
 
@@ -1176,9 +1173,6 @@ function initUniversalSidebar() {
             </a>
             <a href="profile.html" class="nav-item ${navCurrentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
                 <i class="fa-solid fa-user"></i> My Profile
-            </a>
-            <a href="course.html" class="nav-item ${navCurrentPage.includes('course.html') ? 'active' : ''}">
-                <i class="fa-solid fa-graduation-cap"></i> Premium Course
             </a>
             ${getCurrentUserIsAdmin() ? `
             <a href="admin-insights.html" class="nav-item ${navCurrentPage.includes('admin-insights.html') ? 'active' : ''}">
