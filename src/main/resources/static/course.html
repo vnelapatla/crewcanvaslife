@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Script Course | Premium Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css/main.css?v=9.2">
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --secondary-orange: #ff4c3b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(255, 140, 0, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(255, 76, 59, 0.1), transparent 40%);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .course-container {
+            max-width: 800px;
+            width: 90%;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .course-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/></svg>') repeat;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .course-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .course-title {
+            font-size: 36px;
+            margin: 0 0 10px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .course-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .course-body {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .course-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .feature-list li i {
+            color: var(--primary-orange);
+            font-size: 18px;
+            margin-right: 12px;
+            margin-top: 3px;
+        }
+
+        .payment-section {
+            background: rgba(0,0,0,0.2);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .price {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .price-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .pay-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            color: white;
+            text-decoration: none;
+            padding: 18px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
+        }
+
+        .pay-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 140, 0, 0.3);
+        }
+        
+        .error-message {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar injected by utils.js -->
+    
+    <main class="main-content">
+        <header class="top-header"></header>
+        
+        <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); padding: 20px;">
+            <div class="course-container" style="margin: 0; max-width: 800px; width: 100%;">
+                <div class="course-header">
+            <div class="course-badge">Premium Script</div>
+            <h1 class="course-title">Ultimate Automation Script</h1>
+            <p class="course-subtitle">Boost your productivity with our 50MB master script</p>
+        </div>
+        
+        <div class="course-body">
+            <div>
+                <div id="error-alert" class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> Payment failed or was canceled. Please try again.
+                </div>
+                
+                <h3 style="margin-top:0;">About This Script</h3>
+                <p class="description">
+                    This highly requested automation script contains over 50MB of meticulously crafted code designed to save you hundreds of hours. Download it instantly upon successful payment.
+                </p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Instant Access After Payment</li>
+                    <li><i class="fas fa-check-circle"></i> Secure One-Time Download</li>
+                    <li><i class="fas fa-check-circle"></i> No Login Required</li>
+                    <li><i class="fas fa-check-circle"></i> 50MB Complete Package</li>
+                </ul>
+            </div>
+            
+            <div class="payment-section">
+                <div class="price">Unlock Now</div>
+                <div class="price-label">One-time payment, lifetime usage</div>
+                
+                <!-- Razorpay Payment Button -->
+                <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SzsNY17eJP1GKn" async> </script> </form>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:15px;">
+                    * Secure payment via Razorpay.
+                </p>
+            </div>
+        </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="text/javascript" src="js/utils.js?v=9.2"></script>
+    <script type="text/javascript" src="js/profile-handler.js?v=9.2"></script>
+    <script>
+        // Simple script to show error if redirected back with error
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error') === 'payment_failed') {
+            document.getElementById('error-alert').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

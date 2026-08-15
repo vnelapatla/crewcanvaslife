@@ -562,21 +562,7 @@ function playSound(type) {
 // Render a colored circle with initials as an avatar fallback
 
 
-/**
- * Returns a default image URL based on the event type
- */
-function getEventDefaultImage(eventType) {
-    const type = (eventType || '').toLowerCase();
-    const basePath = 'images/defaults/';
-    
-    if (type.includes('audition')) return basePath + 'audition.png';
-    if (type.includes('workshop')) return basePath + 'workshop.png';
-    if (type.includes('course')) return basePath + 'course.png';
-    if (type.includes('contest')) return basePath + 'contest.png';
-    
-    // Default fallback
-    return 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80';
-}
+
 
 // Get query parameter from URL
 function getQueryParam(name) {
@@ -1137,6 +1123,9 @@ function initUniversalBottomNav() {
         <a href="event.html" class="nav-item ${navCurrentPage.includes('event.html') ? 'active' : ''}">
             <i class="fa-solid fa-clapperboard icon"></i> <span>Events</span>
         </a>
+        <a href="course.html" class="nav-item ${navCurrentPage.includes('course.html') ? 'active' : ''}">
+            <i class="fa-solid fa-graduation-cap icon"></i> <span>Course</span>
+        </a>
     </div>
     `;
 
@@ -1183,6 +1172,9 @@ function initUniversalSidebar() {
             </a>
             <a href="profile.html" class="nav-item ${navCurrentPage.includes('profile.html') && !window.location.search.includes('userId') ? 'active' : ''}">
                 <i class="fa-solid fa-user"></i> My Profile
+            </a>
+            <a href="course.html" class="nav-item ${navCurrentPage.includes('course.html') ? 'active' : ''}">
+                <i class="fa-solid fa-graduation-cap"></i> Premium Course
             </a>
             ${getCurrentUserIsAdmin() ? `
             <a href="admin-insights.html" class="nav-item ${navCurrentPage.includes('admin-insights.html') ? 'active' : ''}">

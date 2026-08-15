@@ -227,7 +227,7 @@ public class EmailService {
         String body = "Hi,\n\n" +
                 "You have received a new message from " + senderName + ":\n\n" +
                 "\"" + messagePreview + "\"\n\n" +
-                "Reply to this message on the CrewCanvas platform here: https://crewcanvas.in/messages.html\n\n" +
+                "Reply to this message on the CrewCanvas platform here: https://krewcanvas.in/messages.html\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
 
@@ -247,7 +247,7 @@ public class EmailService {
 
         String body = "Hi,\n\n" +
                 "Great news! " + likerName + " liked your post on CrewCanvas. 🎬\n\n" +
-                "View your post and see who else is interacting here: https://crewcanvas.in/feed.html\n\n" +
+                "View your post and see who else is interacting here: https://krewcanvas.in/feed.html\n\n" +
                 "Keep sharing your creative journey!\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
@@ -277,7 +277,6 @@ public class EmailService {
         safeSend(message);
     }
 
-    @Async
     public void sendAdminPostNotificationEmail(String to, String name, String postContent, Long postId) {
         if (!emailEnabled) {
             System.out.println("[EMAIL SKIPPED] Admin Post Broadcast to: " + to);
@@ -287,7 +286,7 @@ public class EmailService {
         message.setTo(to);
         message.setSubject("New Requirement Posted by CrewCanvas Official 🎬");
 
-        String postLink = "https://crewcanvas.in/feed.html?postId=" + postId;
+        String postLink = "https://krewcanvas.in/feed.html?postId=" + postId;
 
         String body = "Hi " + name + ",\n\n" +
                 "A new requirement has been posted by CrewCanvas Official:\n\n" +
@@ -396,7 +395,7 @@ public class EmailService {
         String body = "Hi " + name + ",\n\n" +
                 "The organizers of '" + eventTitle + "' (" + eventType + ") have updated the event details.\n\n" +
                 "Please review the changes to the location, date, or timing to ensure you have the most current information.\n\n" +
-                "View the updated event here: https://crewcanvas.in/event.html?eventId=" + eventId + "\n\n" +
+                "View the updated event here: https://krewcanvas.in/event.html?eventId=" + eventId + "\n\n" +
                 "Best regards,\n" +
                 "The CrewCanvas Team";
 
@@ -425,11 +424,10 @@ public class EmailService {
         safeSend(message);
     }
 
-    @Async
     public void sendNewEventBroadcastEmail(String to, String name, String hostName, String eventTitle, String eventType, Long eventId, String imageUrl) {
         if (!emailEnabled) return;
 
-        String eventLink = "https://crewcanvas.in/event.html?id=" + eventId;
+        String eventLink = "https://krewcanvas.in/event.html?id=" + eventId;
         
         String imgHtml = "";
         // Poster images are no longer sent in emails

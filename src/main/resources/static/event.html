@@ -4,25 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Industry Events | CrewCanvas | Auditions, Workshops & Film Contests</title>
-    <meta name="description" content="Discover and apply to the latest film auditions, acting workshops, and cinema contests on CrewCanvas. Connect with production houses and grow your career.">
-    <meta name="keywords" content="film auditions, acting workshops, film contests, cinema events, filmmaking opportunities, crew canvas events">
+    <title>Industry Events | CrewCanvas | Auditions, Courses & Film Contests</title>
+    <meta name="description" content="Discover and apply to the latest film auditions, acting courses, and cinema contests on CrewCanvas. Connect with production houses and grow your career.">
+    <meta name="keywords" content="film auditions, acting courses, film contests, cinema events, filmmaking opportunities, crew canvas events">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://crewcanvas.in/event.html">
+    <link rel="canonical" href="https://krewcanvas.in/event.html">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://crewcanvas.in/event.html">
-    <meta property="og:title" content="Industry Events | CrewCanvas | Auditions & Workshops">
-    <meta property="og:description" content="Find your next big break. Explore curated film industry events, auditions, and workshops on CrewCanvas.">
-    <meta property="og:image" content="https://crewcanvas.in/images/crew_canvas_logo.png">
+    <meta property="og:url" content="https://krewcanvas.in/event.html">
+    <meta property="og:title" content="Industry Events | CrewCanvas | Auditions & Courses">
+    <meta property="og:description" content="Find your next big break. Explore curated film industry events, auditions, and courses on CrewCanvas.">
+    <meta property="og:image" content="https://krewcanvas.in/images/crew_canvas_logo.png">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://crewcanvas.in/event.html">
-    <meta name="twitter:title" content="Industry Events | CrewCanvas | Auditions & Workshops">
-    <meta name="twitter:description" content="Find your next big break. Explore curated film industry events, auditions, and workshops on CrewCanvas.">
-    <meta name="twitter:image" content="https://crewcanvas.in/images/crew_canvas_logo.png">
+    <meta name="twitter:url" content="https://krewcanvas.in/event.html">
+    <meta name="twitter:title" content="Industry Events | CrewCanvas | Auditions & Courses">
+    <meta name="twitter:description" content="Find your next big break. Explore curated film industry events, auditions, and courses on CrewCanvas.">
+    <meta name="twitter:image" content="https://krewcanvas.in/images/crew_canvas_logo.png">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/crew_canvas_logo.png">
@@ -32,7 +32,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="css/main.css?v=9.2">
-    <link rel="stylesheet" href="css/events.css?v=9.2">
+    <link rel="stylesheet" href="css/events.css?v=9.9">
     <link rel="stylesheet" href="css/multi-upload.css?v=9.2">
     <style>
         :root {
@@ -402,7 +402,7 @@
         }
 
         .tag-audition { background: rgba(59, 130, 246, 0.9); color: white; }
-        .tag-workshop { background: rgba(236, 72, 153, 0.9); color: white; }
+        .tag-course { background: rgba(236, 72, 153, 0.9); color: white; }
         .tag-course { background: rgba(16, 185, 129, 0.9); color: white; }
         .tag-contest { background: rgba(245, 158, 11, 0.9); color: white; }
 
@@ -872,19 +872,26 @@
                     </div>
                     <div class="badge" id="auditionCount">0</div>
                 </div>
-                <div class="event-feature-card" onclick="switchEventTab('workshops', this)">
-                    <div class="icon-box"><i class="fas fa-tools"></i></div>
+                <div class="event-feature-card" onclick="switchEventTab('courses', this)">
+                    <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
                     <div class="info">
-                        <h3>WORKSHOPS</h3>
+                        <h3>COURSES</h3>
                         <p>Skill Sessions</p>
                     </div>
-                    <div class="badge" id="workshopCount">0</div>
+                    <div class="badge" id="courseCount">0</div>
+                </div>
+                <div class="event-feature-card" onclick="location.href='course.html'">
+                    <div class="icon-box" style="color: #ec4899; background: rgba(236, 72, 153, 0.1);"><i class="fas fa-magic"></i></div>
+                    <div class="info">
+                        <h3>PREMIUM SCRIPT</h3>
+                        <p>Download Now</p>
+                    </div>
+                    <div class="badge"><i class="fas fa-download"></i></div>
                 </div>
                 <div class="event-feature-card" onclick="location.href='movie-quiz.html'">
                     <div class="icon-box"><i class="fas fa-gamepad"></i></div>
                     <div class="info">
                         <h3>MOVIE QUIZ</h3>
-                        <p>Play & Win</p>
                     </div>
                     <div class="badge"><i class="fas fa-play"></i></div>
                 </div>
@@ -902,13 +909,12 @@
                         <h3>FILM EVENTS</h3>
                         <p>Premiere & Screenings</p>
                     </div>
-                    <div class="badge" id="filmEventCount">0</div>
                 </div>
             </div>
 
             <div class="search-container">
                 <div class="search-wrapper">
-                    <input type="text" id="eventSearchInput" class="search-box" placeholder="Search events, auditions or workshops..." oninput="searchEvents()" onkeydown="if(event.key === 'Enter') searchEvents()">
+                    <input type="text" id="eventSearchInput" class="search-box" placeholder="Search events, auditions or courses..." oninput="searchEvents()" onkeydown="if(event.key === 'Enter') searchEvents()">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <button class="search-btn-premium" onclick="searchEvents()">
@@ -921,39 +927,6 @@
             </div>
         </div>
     </main>
-
-    <!-- Universal Bottom Navigation is injected by utils.js -->
-
-    <button class="fab" onclick="showChoiceModal()"><i class="fas fa-plus"></i></button>
-
-    <!-- Choice Modal -->
-    <div id="choiceModal" class="modal" style="display: none; align-items: flex-start; padding-top: 100px;">
-        <div class="modal-content" style="max-width: 440px; padding: 25px;">
-            <div class="modal-header" style="padding-bottom: 20px;">
-                <h2 style="font-size: 18px;">Create Opportunity</h2>
-                <span class="close" onclick="closeChoiceModal()">✕</span>
-            </div>
-            <div class="choices-grid">
-                <div class="choice-item" onclick="openCreateForm('Workshop')">
-                    <div class="choice-icon pink">🛠️</div>
-                    <span>Workshop</span>
-                </div>
-
-                <div class="choice-item" onclick="openCreateForm('Contest')">
-                    <div class="choice-icon yellow">🏆</div>
-                    <span>Contest</span>
-                </div>
-                <div class="choice-item" onclick="openCreateForm('Audition')">
-                    <div class="choice-icon blue">🎬</div>
-                    <span>Audition</span>
-                </div>
-                <div class="choice-item" onclick="openCreateForm('Film Event')">
-                    <div class="choice-icon" style="background: linear-gradient(135deg, #f59e0b, #ff8c00);">🎞️</div>
-                    <span>Film Event</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Form Modal -->
     <div id="formModal" class="modal" style="display: none;">
@@ -1067,25 +1040,6 @@
                     <div class="form-group" id="contestFields" style="display: none;">
                         <label class="form-label-premium">Prize Pool / Rewards</label>
                         <input type="text" id="eventPrizePool" class="form-control-premium" placeholder="e.g. Cash Prize ₹10k + Certificate">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label-premium">Event Banner Image</label>
-                        <div id="imageUploadContainer" style="display: flex; flex-direction: column; gap: 10px;">
-                            <div id="imagePreview" style="width: 100%; height: 120px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed #cbd5e1; cursor: pointer;" onclick="document.getElementById('eventImageInput').click()">
-                                <div id="previewPlaceholder" style="text-align: center; color: #94a3b8;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i>
-                                    <p style="font-size: 11px; font-weight: 600;">Click to upload banner</p>
-                                </div>
-                                <img id="previewImg" src="" style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                                <input type="file" id="eventImageInput" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
-                                <input type="hidden" id="eventImageUrl">
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <button type="button" id="clearImageBtn" class="btn-cancel-premium" style="padding: 8px 12px; display: none;" onclick="clearEventImage()">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                     <div class="form-group full-width" id="skillsGroup">
                         <label class="form-label-premium" id="labelSkills">Key Skills Required</label>
@@ -1254,9 +1208,86 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="js/utils.js?v=9.2"></script>
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="showChoiceModal()"><i class="fa-solid fa-plus"></i></button>
+
+    <!-- Choice Modal -->
+    <div id="choiceModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Create Opportunity</h2>
+                <span class="close" onclick="closeChoiceModal()"><i class="fa-solid fa-xmark"></i></span>
+            </div>
+            <div class="choices-grid">
+                <div class="choice-item" onclick="location.href='course.html'">
+                    <div class="choice-icon green"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <span>Course / Scripts</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Workshop')">
+                    <div class="choice-icon pink"><i class="fa-solid fa-hammer"></i></div>
+                    <span>Workshop</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Contest')">
+                    <div class="choice-icon yellow"><i class="fa-solid fa-trophy"></i></div>
+                    <span>Contest</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Audition')">
+                    <div class="choice-icon blue"><i class="fa-solid fa-video"></i></div>
+                    <span>Audition</span>
+                </div>
+                <div class="choice-item" onclick="openCreateForm('Film Event')">
+                    <div class="choice-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white;"><i class="fa-solid fa-film"></i></div>
+                    <span>Film Event</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulated Payment Modal -->
+    <div id="paymentModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; padding: 0; border-radius: 24px; overflow: hidden; background: #fff;">
+            <div style="background: #1e293b; padding: 25px 20px; color: white; text-align: center; position: relative;">
+                <span class="close" onclick="closePaymentModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; color: #94a3b8; cursor: pointer;">✕</span>
+                <i class="fa-solid fa-credit-card" style="font-size: 32px; color: #3b82f6; margin-bottom: 10px;"></i>
+                <h2 style="margin: 0; font-size: 22px;">Secure Checkout</h2>
+                <p style="margin: 5px 0 0; font-size: 13px; color: #cbd5e1;">Powered by CrewCanvas Payments</p>
+            </div>
+            <div style="padding: 25px;">
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 13px; color: #64748b; font-weight: 600;">Total Amount</p>
+                    <h1 id="paymentAmountDisplay" style="margin: 5px 0 0; font-size: 36px; color: #1e293b;">₹0</h1>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label-premium">Cardholder Name</label>
+                    <input type="text" class="form-control-premium" placeholder="Name on card" value="Test User">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label-premium">Card Number</label>
+                    <div style="position: relative;">
+                        <input type="text" class="form-control-premium" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242">
+                        <i class="fa-brands fa-cc-visa" style="position: absolute; right: 15px; top: 12px; color: #1e40af; font-size: 20px;"></i>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div class="form-group">
+                        <label class="form-label-premium">Expiry (MM/YY)</label>
+                        <input type="text" class="form-control-premium" placeholder="12/26" value="12/26">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-premium">CVV</label>
+                        <input type="password" class="form-control-premium" placeholder="•••" value="123">
+                    </div>
+                </div>
+                <button class="btn-next-premium" style="width: 100%; padding: 15px; font-size: 16px; display: flex; justify-content: center; align-items: center; gap: 10px;" onclick="processSimulatedPayment()">
+                    <i class="fa-solid fa-lock"></i> Pay Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="js/utils.js?v=9.3"></script>
     <script type="text/javascript" src="js/profile-handler.js?v=9.2"></script>
-    <script src="js/events.js?v=9.5"></script>
+    <script src="js/events.js?v=9.9"></script>
     <script>
         // Drag to scroll for horizontal-cards
         const slider = document.querySelector('.horizontal-cards');

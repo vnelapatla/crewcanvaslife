@@ -217,7 +217,7 @@ public class AuthController {
             userService.createPasswordResetTokenForUser(user, token);
             
             // Link to the frontend reset page
-            String resetLink = "https://crewcanvas.in/reset-password.html?token=" + token;
+            String resetLink = "https://krewcanvas.in/reset-password.html?token=" + token;
             try {
                 emailService.sendResetPasswordEmail(user.getEmail(), resetLink);
             } catch (Exception e) {
