@@ -116,7 +116,7 @@ public class UserService {
             return;
         }
 
-        String profileLink = "https://crewcanvas.in/profile.html?userId=" + receiverId;
+        String profileLink = "https://krewcanvas.in/profile.html?userId=" + receiverId;
 
         String content = "Welcome to CrewCanvas! 🎬 We're thrilled to have you here. " +
                 "To get the most out of this platform and catch up with upcoming openings, " +
@@ -140,7 +140,7 @@ public class UserService {
 
         // 3. Send Email
         try {
-            String profileLinkEmail = "https://crewcanvas.in/profile.html?userId=" + user.getId();
+            String profileLinkEmail = "https://krewcanvas.in/profile.html?userId=" + user.getId();
             emailService.sendWelcomeEmail(user.getEmail(), user.getName(), profileLinkEmail);
             logger.info("Welcome email sent to: {}", user.getEmail());
         } catch (Exception e) {
@@ -273,7 +273,7 @@ public class UserService {
         // Only send if profile is incomplete (Score < 70)
         if (user.getProfileScore() < 70) {
             try {
-                String profileLink = "https://crewcanvas.in/profile.html?userId=" + user.getId();
+                String profileLink = "https://krewcanvas.in/profile.html?userId=" + user.getId();
                 emailService.sendProfileReminderEmail(user.getEmail(), user.getName(), profileLink);
                 logger.info("Profile reminder email sent to: {}", user.getEmail());
             } catch (Exception e) {
