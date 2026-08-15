@@ -79,15 +79,15 @@ public class UserService {
 
         if (officialUserOpt.isEmpty()) {
             logger.info("Official account not found. Creating default official account...");
-            officialUser = new User("CrewCanvas Official", officialEmail, passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+            officialUser = new User("KrewCanvas Official", officialEmail, passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
             officialUser.setIsAdmin(true);
             officialUser.setUserType("Admin");
             officialUser = userRepository.save(officialUser);
         } else {
             officialUser = officialUserOpt.get();
             // Ensure the name is professional
-            if (!"CrewCanvas Official".equals(officialUser.getName())) {
-                officialUser.setName("CrewCanvas Official");
+            if (!"KrewCanvas Official".equals(officialUser.getName())) {
+                officialUser.setName("KrewCanvas Official");
                 userRepository.save(officialUser);
             }
         }
@@ -118,7 +118,7 @@ public class UserService {
 
         String profileLink = "https://krewcanvas.in/profile.html?userId=" + receiverId;
 
-        String content = "Welcome to CrewCanvas! 🎬 We're thrilled to have you here. " +
+        String content = "Welcome to KrewCanvas! 🎬 We're thrilled to have you here. " +
                 "To get the most out of this platform and catch up with upcoming openings, " +
                 "please make sure to fill your profile to 100%. " +
                 "Productions and recruiters prioritize completed profiles for recommendations and casting. \n\n" +
@@ -134,7 +134,7 @@ public class UserService {
                 receiverId,
                 senderId,
                 "MESSAGE",
-                "Welcome to CrewCanvas! Check your messages for a quick guide.",
+                "Welcome to KrewCanvas! Check your messages for a quick guide.",
                 senderId.toString()
         );
 
@@ -180,7 +180,7 @@ public class UserService {
         // Don't send to self
         if (senderId.equals(receiverId)) return;
 
-        String content = "Congratulations! 🎬 Your profile has been officially verified by CrewCanvas. " +
+        String content = "Congratulations! 🎬 Your profile has been officially verified by KrewCanvas. " +
                 "You are now a Verified Professional! ✅ " +
                 "This badge will help you gain more visibility and trust within the community. " +
                 "Keep showcasing your best work. Cheers!";
@@ -194,7 +194,7 @@ public class UserService {
                 receiverId,
                 senderId,
                 "MESSAGE",
-                "You have a new message from CrewCanvas Official regarding your verification.",
+                "You have a new message from KrewCanvas Official regarding your verification.",
                 senderId.toString()
         );
 

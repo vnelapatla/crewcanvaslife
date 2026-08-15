@@ -30,7 +30,7 @@ public class WhatsAppService {
             cleanPhone = "91" + cleanPhone;
         }
 
-        String content = "Welcome to CrewCanvas! 🎬 We're thrilled to have you here. " +
+        String content = "Welcome to KrewCanvas! 🎬 We're thrilled to have you here. " +
                 "To get the most out of this platform and catch up with upcoming openings, " +
                 "please make sure to fill your profile to 100%. " +
                 "Productions and recruiters will look into your profile for recommendations and casting. " +

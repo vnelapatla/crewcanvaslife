@@ -98,6 +98,15 @@ public class SchemaMigrationService {
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ") ENGINE=InnoDB;");
 
+            // Update official user name to KrewCanvas Official
+            try {
+                jdbcTemplate.execute("UPDATE users SET name = 'KrewCanvas Official' WHERE email = 'crewcanvas2@gmail.com' OR name = 'CrewCanvas Official';");
+                jdbcTemplate.execute("UPDATE messages SET content = REPLACE(REPLACE(content, 'crewcanvas.in', 'krewcanvas.in'), 'CrewCanvas', 'KrewCanvas') WHERE content LIKE '%CrewCanvas%' OR content LIKE '%crewcanvas.in%';");
+                jdbcTemplate.execute("UPDATE notifications SET content = REPLACE(REPLACE(content, 'crewcanvas.in', 'krewcanvas.in'), 'CrewCanvas', 'KrewCanvas') WHERE content LIKE '%CrewCanvas%' OR content LIKE '%crewcanvas.in%';");
+            } catch (Exception e) {
+                System.err.println("Branding migration note: " + e.getMessage());
+            }
+
             System.out.println("Database schema verified for groups, polls, and connections.");
         } catch (Exception e) {
             System.err.println("Migration warning: " + e.getMessage());

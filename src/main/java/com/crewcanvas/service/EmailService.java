@@ -57,7 +57,7 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Reset Your Password - CrewCanvas");
+        message.setSubject("Reset Your Password - KrewCanvas");
         message.setText("Click the link below to reset your password:\n\n" + resetLink + 
                         "\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.");
         
@@ -72,17 +72,17 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Welcome to CrewCanvas! 🎬");
+        message.setSubject("Welcome to KrewCanvas! 🎬");
         
         String body = "Hi " + name + ",\n\n" +
-                "Welcome to CrewCanvas! 🎬 We're thrilled to have you here.\n\n" +
+                "Welcome to KrewCanvas! 🎬 We're thrilled to have you here.\n\n" +
                 "To get the most out of this platform and catch up with upcoming openings, " +
                 "please make sure to fill your profile to 100%. " +
                 "Productions and recruiters will look into your profile for recommendations and casting.\n\n" +
                 "View and complete your profile here: " + profileLink + "\n\n" +
                 "Let's build something great together!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
         
         message.setText(body);
         safeSend(message);
@@ -103,11 +103,11 @@ public class EmailService {
         String body = "Hi " + name + ",\n\n" +
                 "Great news! You have been shortlisted for: " + eventTitle + " (" + eventType + ").\n\n" +
                 "The organizers are impressed with your profile. " +
-                "Soon you will receive further updates regarding the " + phase + " (location, time, and date) directly via the CrewCanvas platform and your email.\n\n" +
+                "Soon you will receive further updates regarding the " + phase + " (location, time, and date) directly via the KrewCanvas platform and your email.\n\n" +
                 "Keep an eye on your messages and notifications for the next steps.\n\n" +
                 "Best of luck!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -134,7 +134,7 @@ public class EmailService {
                 "</div>" +
                 "<p>Looking forward to seeing you!</p>" +
                 "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
-                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The CrewCanvas Team</p>" +
+                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The KrewCanvas Team</p>" +
                 "</div>";
 
         safeSendHtml(to, detailsLabel + ": " + eventTitle, htmlBody);
@@ -162,7 +162,7 @@ public class EmailService {
                 "They will connect with you manually soon to discuss the next steps and " + details + ".\n\n" +
                 "Welcome to the team!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -183,10 +183,10 @@ public class EmailService {
         String body = "Hi " + name + ",\n\n" +
                 "Thank you for participating in the " + phase + " for '" + eventTitle + "'.\n\n" +
                 "While we were impressed with your profile, we regret to inform you that the organizers have decided to move forward with other candidates for this specific opportunity.\n\n" +
-                "We truly appreciate the effort you put in. Please don't be discouraged, as many more opportunities will be coming up on CrewCanvas soon.\n\n" +
+                "We truly appreciate the effort you put in. Please don't be discouraged, as many more opportunities will be coming up on KrewCanvas soon.\n\n" +
                 "We wish you the very best in your future endeavors.\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -200,15 +200,15 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject(followerName + " is now following you on CrewCanvas! 🚀");
+        message.setSubject(followerName + " is now following you on KrewCanvas! 🚀");
 
         String body = "Hi,\n\n" +
-                "Great news! " + followerName + " has just started following you on CrewCanvas. 🎬\n\n" +
+                "Great news! " + followerName + " has just started following you on KrewCanvas. 🎬\n\n" +
                 "Check out their profile here: " + profileLink + "\n\n" +
                 "Building connections is a great way to grow your professional network in the creative industry.\n\n" +
                 "Keep creating and connecting!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -222,14 +222,14 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("New message from " + senderName + " on CrewCanvas ✉️");
+        message.setSubject("New message from " + senderName + " on KrewCanvas ✉️");
 
         String body = "Hi,\n\n" +
                 "You have received a new message from " + senderName + ":\n\n" +
                 "\"" + messagePreview + "\"\n\n" +
-                "Reply to this message on the CrewCanvas platform here: https://krewcanvas.in/messages.html\n\n" +
+                "Reply to this message on the KrewCanvas platform here: https://krewcanvas.in/messages.html\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -246,11 +246,11 @@ public class EmailService {
         message.setSubject(likerName + " liked your post! ❤️");
 
         String body = "Hi,\n\n" +
-                "Great news! " + likerName + " liked your post on CrewCanvas. 🎬\n\n" +
+                "Great news! " + likerName + " liked your post on KrewCanvas. 🎬\n\n" +
                 "View your post and see who else is interacting here: https://krewcanvas.in/feed.html\n\n" +
                 "Keep sharing your creative journey!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -264,14 +264,14 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Congratulations! You are now a Verified Professional on CrewCanvas! ✅");
+        message.setSubject("Congratulations! You are now a Verified Professional on KrewCanvas! ✅");
 
         String body = "Hi " + name + ",\n\n" +
-                "We are excited to inform you that your profile has been officially verified by the CrewCanvas Admin Team! ✅\n\n" +
+                "We are excited to inform you that your profile has been officially verified by the KrewCanvas Admin Team! ✅\n\n" +
                 "As a Verified Professional, you now have a verification badge on your profile and posts, which helps you stand out to productions and collaborators.\n\n" +
                 "Keep up the great work and continue building your professional presence in the industry.\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -284,17 +284,17 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("New Requirement Posted by CrewCanvas Official 🎬");
+        message.setSubject("New Requirement Posted by KrewCanvas Official 🎬");
 
         String postLink = "https://krewcanvas.in/feed.html?postId=" + postId;
 
         String body = "Hi " + name + ",\n\n" +
-                "A new requirement has been posted by CrewCanvas Official:\n\n" +
+                "A new requirement has been posted by KrewCanvas Official:\n\n" +
                 "\"" + postContent + "\"\n\n" +
                 "For more details and to interact with this post, check this link:\n" + postLink + "\n\n" +
                 "Stay tuned for more opportunities!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -312,12 +312,12 @@ public class EmailService {
         
         String body = "Hi " + name + ",\n\n" +
                 "We noticed your profile is not yet complete! 🎬\n\n" +
-                "To get the most out of CrewCanvas and find better opportunities, please make sure to fill out your bio, role, and portfolio link. " +
+                "To get the most out of KrewCanvas and find better opportunities, please make sure to fill out your bio, role, and portfolio link. " +
                 "A complete profile makes it much easier for productions and recruiters to find and recommend you.\n\n" +
                 "Update your profile here: " + profileLink + "\n\n" +
                 "More opportunities are waiting for you!\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
         
         message.setText(body);
         safeSend(message);
@@ -397,7 +397,7 @@ public class EmailService {
                 "Please review the changes to the location, date, or timing to ensure you have the most current information.\n\n" +
                 "View the updated event here: https://krewcanvas.in/event.html?eventId=" + eventId + "\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -411,14 +411,14 @@ public class EmailService {
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("A Heartfelt Thank You from CrewCanvas! ❤️");
+        message.setSubject("A Heartfelt Thank You from KrewCanvas! ❤️");
 
         String body = "Hi " + name + ",\n\n" +
                 "We have successfully verified your support of ₹" + amount + ". Thank you so much for your contribution! ❤️\n\n" +
-                "Your support helps us keep CrewCanvas running and allows us to continue building features that help the creative community thrive.\n\n" +
+                "Your support helps us keep KrewCanvas running and allows us to continue building features that help the creative community thrive.\n\n" +
                 "We are truly grateful to have you as part of our journey.\n\n" +
                 "Best regards,\n" +
-                "The CrewCanvas Team";
+                "The KrewCanvas Team";
 
         message.setText(body);
         safeSend(message);
@@ -433,7 +433,7 @@ public class EmailService {
         // Poster images are no longer sent in emails
 
         String htmlBody = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px;'>" +
-                "<h2 style='color: #E50914;'>New Opportunity on CrewCanvas! 🎬</h2>" +
+                "<h2 style='color: #E50914;'>New Opportunity on KrewCanvas! 🎬</h2>" +
                 "<p>Hi " + name + ",</p>" +
                 "<p>A new opportunity has been posted by <b>" + hostName + "</b>:</p>" +
                 "<div style='background: #f4f4f4; padding: 20px; border-radius: 12px; text-align: center;'>" +
@@ -444,7 +444,7 @@ public class EmailService {
                 "</div>" +
                 "<p style='margin-top: 20px;'>Don't miss out on this opportunity!</p>" +
                 "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
-                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The CrewCanvas Team</p>" +
+                "<p style='font-size: 12px; color: #777;'>Best regards,<br>The KrewCanvas Team</p>" +
                 "</div>";
 
         safeSendHtml(to, "New Opportunity: " + eventTitle + " by " + hostName + " 🎬", htmlBody);

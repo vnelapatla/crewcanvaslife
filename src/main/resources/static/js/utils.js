@@ -685,7 +685,7 @@ function shareContent(type, id, title = '') {
     // Optional: Web Share API for mobile devices
     if (navigator.share) {
         navigator.share({
-            title: title || `Check out this ${type} on CrewCanvas`,
+            title: title || `Check out this ${type} on KrewCanvas`,
             url: shareUrl
         }).catch(console.error);
     }
