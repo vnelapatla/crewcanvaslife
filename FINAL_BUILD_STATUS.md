@@ -29,7 +29,7 @@
 ## 📈 BUILD SUMMARY
 
 - **Total Progress:** 100%
-- **Technology:** Spring Boot 3.2, Java 17, MySQL, HTML5/CSS3/JS.
+- **Technology:** Spring Boot 3.2, Java 21, MySQL, HTML5/CSS3/JS.
 - **Theme:** Modern Film Orange (#ff8800).
 
 ---

@@ -9,7 +9,7 @@ Create a new Spring Boot project with these specifications:
 - Project name: CrewCanvas
 - Group: com.crewcanvas
 - Artifact: crewcanvas
-- Java version: 17
+- Java version: 21
 - Spring Boot version: 3.2.2
 - Dependencies: Spring Web, Spring Data JPA, H2 Database
 - Create the basic folder structure for a Spring Boot application
@@ -38,7 +38,7 @@ Create a minimal pom.xml file with:
 - Version: 1.0.0
 - Dependencies: spring-boot-starter-web, spring-boot-starter-data-jpa, h2 database
 - Build plugin: spring-boot-maven-plugin
-- Java version: 17
+- Java version: 21
 ```
 
 ---
@@ -185,7 +185,7 @@ Change the server port in application.properties to 3000 or 9090
 
 ### If build fails:
 ```
-1. Verify Java 17 is installed: java -version
+1. Verify Java 21 is installed: java -version
 2. Verify Maven is installed: mvn -version
 3. Delete the target folder
 4. Run: mvn clean install

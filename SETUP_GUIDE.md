@@ -6,7 +6,7 @@ Your system currently does not have Java and Maven installed. Follow these steps
 
 ---
 
-## Step 1: Install Java 17
+## Step 1: Install Java 21
 
 ### Option A: Using Chocolatey (Recommended for Windows)
 ```bash
@@ -14,13 +14,13 @@ Your system currently does not have Java and Maven installed. Follow these steps
 # Run PowerShell as Administrator and execute:
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# Then install Java 17
-choco install openjdk17 -y
+# Then install Java 21
+choco install openjdk21 -y
 ```
 
 ### Option B: Manual Installation
-1. Download Java 17 from: https://adoptium.net/
-2. Choose "Temurin 17 (LTS)"
+1. Download Java 21 from: https://adoptium.net/
+2. Choose "Temurin 21 (LTS)"
 3. Download the Windows installer (.msi)
 4. Run the installer
 5. **IMPORTANT**: Check "Add to PATH" during installation
@@ -28,7 +28,7 @@ choco install openjdk17 -y
 ### Verify Java Installation
 ```bash
 java -version
-# Should show: openjdk version "17.x.x"
+# Should show: openjdk version "21.x.x"
 ```
 
 ---
@@ -175,7 +175,7 @@ mvn package
 
 ## Next Steps After Setup
 
-1. ✅ Install Java 17
+1. ✅ Install Java 21
 2. ✅ Install Maven
 3. ✅ Build the project
 4. ✅ Run the application
@@ -204,7 +204,7 @@ mvn package
 ## Support
 
 If you encounter issues:
-1. Check Java version: `java -version` (must be 17+)
+1. Check Java version: `java -version` (must be 21+)
 2. Check Maven version: `mvn -version` (must be 3.6+)
 3. Verify project structure matches the guide
 4. Check logs in terminal for error messages

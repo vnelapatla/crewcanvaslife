@@ -217,9 +217,6 @@ public class User {
     @Column(name = "follower_notifications")
     private Boolean followerNotifications = true;
 
-    @Column(name = "event_reminders")
-    private Boolean eventReminders = true;
-
     @Column(name = "created_at")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime createdAt;
@@ -406,9 +403,6 @@ public class User {
 
     public Boolean getFollowerNotifications() { return followerNotifications; }
     public void setFollowerNotifications(Boolean followerNotifications) { this.followerNotifications = followerNotifications; }
-
-    public Boolean getEventReminders() { return eventReminders; }
-    public void setEventReminders(Boolean eventReminders) { this.eventReminders = eventReminders; }
 
     public Integer getProfileScore() {
         return profileScore;

@@ -55,9 +55,7 @@ function renderEventHeader() {
     const dateStr = !isNaN(date) ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Flexible Date';
     
     banner.innerHTML = `
-        <div class="poster-wrapper">
-            <img src="${currentEvent.imageUrl || getEventDefaultImage(currentEvent.eventType)}" alt="${currentEvent.title}">
-        </div>
+
         <div class="event-details-below">
             <h1 class="poster-title">${currentEvent.title}</h1>
             <div class="event-meta-modern">

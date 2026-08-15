@@ -43,14 +43,13 @@ public class DatabaseFixerConfig {
                     }
                 }
 
-                // Fix event image_url column size
+                // Drop deprecated event tables
                 try {
-                    System.out.println("DEBUG: Running Event table fix...");
-                    try { jdbcTemplate.execute("ALTER TABLE events MODIFY COLUMN image_url LONGTEXT"); } catch (Exception e1) { jdbcTemplate.execute("ALTER TABLE events CHANGE image_url image_url LONGTEXT"); }
-                    try { jdbcTemplate.execute("ALTER TABLE events MODIFY COLUMN requirements TEXT"); } catch (Exception e2) { jdbcTemplate.execute("ALTER TABLE events CHANGE requirements requirements TEXT"); }
-                    System.out.println("SUCCESS: Upgraded event table columns (image_url, requirements)");
+                    System.out.println("Dropping deprecated events tables...");
+                    jdbcTemplate.execute("DROP TABLE IF EXISTS event_applications;");
+                    jdbcTemplate.execute("DROP TABLE IF EXISTS events;");
                 } catch (Exception e) {
-                    System.err.println("Note: Event table fix skipped - " + e.getMessage());
+                    System.err.println("Note: Dropping events skipped - " + e.getMessage());
                 }
 
                 // Manually add missing columns that Hibernate might fail to create in Production
@@ -145,20 +144,6 @@ public class DatabaseFixerConfig {
                     {"posts", "author_id BIGINT"},
                     {"posts", "description TEXT"},
                     {"posts", "aspect_ratio VARCHAR(50) DEFAULT 'original'"},
-                    {"events", "end_date DATE"},
-                    {"events", "time_duration VARCHAR(255)"},
-                    {"events", "org_name TEXT"},
-                    {"events", "org_phone TEXT"},
-                    {"events", "org_email TEXT"},
-                    {"events", "skills TEXT"},
-                    {"events", "status VARCHAR(50) DEFAULT 'OPEN'"},
-                    {"events", "role_type VARCHAR(255)"},
-                    {"events", "age_range VARCHAR(255)"},
-                    {"events", "gender_preference VARCHAR(255)"},
-                    {"events", "prize_pool VARCHAR(255)"},
-                    {"events", "is_managed BOOLEAN DEFAULT FALSE"},
-                    {"events", "share_key VARCHAR(255)"},
-                    {"events", "applicants INT DEFAULT 0"},
                     {"messages", "is_edited BOOLEAN DEFAULT FALSE"}
                 };
 
@@ -175,63 +160,11 @@ public class DatabaseFixerConfig {
                     }
                 }
 
-                // --- Optimize Event Applications ---
-                String[] appCols = { 
-                    "event_title TEXT", 
-                    "event_type TEXT", 
-                    "event_location TEXT", 
-                    "event_date TEXT", 
-                    "pass_token VARCHAR(255)", 
-                    "is_scanned BOOLEAN DEFAULT FALSE",
-                    "applicant_name TEXT",
-                    "applicant_email TEXT",
-                    "mobile_number TEXT",
-                    "role TEXT",
-                    "location TEXT",
-                    "age TEXT",
-                    "height TEXT",
-                    "experience TEXT",
-                    "additional_note TEXT",
-                    "portfolio_link TEXT",
-                    "photo1 LONGTEXT",
-                    "photo2 LONGTEXT",
-                    "photo3 LONGTEXT",
-                    "resume_url LONGTEXT",
-                    "resume_file_name TEXT",
-                    "video_url LONGTEXT",
-                    "video_file_name TEXT",
-                    "poster_url LONGTEXT",
-                    "short_film_title TEXT",
-                    "team_name TEXT"
-                };
-                for (String colDef : appCols) {
-                    String colName = colDef.split(" ")[0];
-                    try {
-                        jdbcTemplate.queryForList("SELECT " + colName + " FROM event_applications LIMIT 1");
-                        
-                        // If it exists, also ensure it's TEXT/LONGTEXT if it's supposed to be
-                        if (colDef.contains("TEXT")) {
-                            String type = colDef.substring(colDef.indexOf(" ") + 1);
-                            try { jdbcTemplate.execute("ALTER TABLE event_applications MODIFY COLUMN " + colName + " " + type); } catch (Exception e) {}
-                        }
-                    } catch (Exception e) {
-                        try { 
-                            System.out.println("FIX: Adding missing column " + colName + " to event_applications");
-                            jdbcTemplate.execute("ALTER TABLE event_applications ADD COLUMN " + colDef); 
-                        } catch (Exception ex) {
-                            System.err.println("CRITICAL: Failed to add column " + colName + ": " + ex.getMessage());
-                        }
-                    }
-                }
+
 
                 // --- Performance Optimization: Add Database Indexes ---
                 String[] indexFixes = {
                     "CREATE INDEX idx_users_email ON users(email)",
-                    "CREATE INDEX idx_events_user ON events(user_id)",
-                    "CREATE INDEX idx_events_type ON events(event_type)",
-                    "CREATE INDEX idx_events_date ON events(date)",
-                    "CREATE INDEX idx_app_user ON event_applications(user_id)",
-                    "CREATE INDEX idx_app_event ON event_applications(event_id)",
                     "CREATE INDEX idx_posts_user ON posts(user_id)",
                     "CREATE INDEX idx_posts_date ON posts(created_at)",
                     "CREATE INDEX idx_notif_user ON notifications(user_id)",

@@ -9,7 +9,7 @@ echo [1/4] Checking Java installation...
 java -version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Java is not installed or not in PATH
-    echo Please install Java 17 from: https://adoptium.net/
+    echo Please install Java 21 from: https://adoptium.net/
     echo.
     pause
     exit /b 1

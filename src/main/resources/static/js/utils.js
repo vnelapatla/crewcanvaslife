@@ -1151,7 +1151,7 @@ function initUniversalSidebar() {
 
     const navHtml = `
         <div class="brand">
-            <h2>CC</h2>
+            <h2>KC</h2>
             <p>Where all crafts connect</p>
         </div>
         <nav class="nav-menu">
@@ -1216,7 +1216,7 @@ function initUniversalHeader() {
     if (userId) {
         header.innerHTML = `
             <div class="header-left">
-                <h2 class="brand-logo" onclick="window.location.href='home.html'">CrewCanvas</h2>
+                <h2 class="brand-logo" onclick="window.location.href='home.html'">KrewCanvas</h2>
             </div>
             <div class="status-bar" style="gap: 12px; display: flex; align-items: center; position: relative;">
                 <a href="notifications.html" class="notification-icon-link" title="Notifications" style="color: #64748b; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; transition: all 0.2s; position: relative; ${window.location.pathname.includes('profile.html') ? 'display:none' : ''}">
@@ -1231,7 +1231,7 @@ function initUniversalHeader() {
                         <a href="profile.html" class="dropdown-item profile-link"><i class="fas fa-user"></i> My Profile</a>
                         <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                         <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
-                        <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Crew Canvas</a>
+                        <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Krew Canvas</a>
                         <a href="mailto:crewcanvas2@gmail.com" class="dropdown-item contact-link"><i class="fas fa-envelope" style="color: #ff8c00;"></i> Contact & Collaborations</a>
                         ${isAdmin ? `<a href="admin-insights.html" class="dropdown-item"><i class="fas fa-chart-line" style="color: #3b82f6;"></i> Performance Insights</a>` : ''}
                         <a href="notifications.html" class="dropdown-item notifications-link">
@@ -1248,7 +1248,7 @@ function initUniversalHeader() {
         // Guest Header
         header.innerHTML = `
             <div class="header-left">
-                <h2 class="brand-logo" onclick="window.location.href='index.html'">CrewCanvas</h2>
+                <h2 class="brand-logo" onclick="window.location.href='index.html'">KrewCanvas</h2>
             </div>
             <div class="status-bar">
                 <a href="index.html" style="color: #1e293b; text-decoration: none; font-weight: 700; font-size: 13px; background: #f1f5f9; padding: 8px 18px; border-radius: 50px;">Login</a>

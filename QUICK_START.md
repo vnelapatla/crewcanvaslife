@@ -3,7 +3,7 @@
 ## ✅ Prerequisites Check
 
 Before starting, ensure you have:
-- ✅ **Java 17** installed
+- ✅ **Java 21** installed
 - ✅ **MySQL** installed and running
 - ✅ **Eclipse IDE** installed
 - ✅ **Maven** (usually comes with Eclipse)
@@ -256,7 +256,7 @@ You should see your registered user!
 1. Check MySQL is running: `sc query MySQL80`
 2. Check port 8080 is not in use
 3. Check console for error messages
-4. Verify Java 17 is installed: `java -version`
+4. Verify Java 21 is installed: `java -version`
 
 ---
 

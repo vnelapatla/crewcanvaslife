@@ -81,9 +81,9 @@ async function loadEventStats() {
         if (response.ok) {
             const stats = await response.json();
             const countMap = {
-                'workshopCount': stats['Workshop'] || 0,
                 'contestCount': stats['Contest'] || 0,
                 'auditionCount': stats['Audition'] || 0,
+                'courseCount': (stats['Course'] || 0) + (stats['Workshop'] || 0),
                 'filmEventCount': stats['Film Event'] || 0,
                 'totalEventCount': stats['total'] || 0
             };
@@ -193,7 +193,13 @@ function searchEvents() {
     const searchInput = document.getElementById('eventSearchInput');
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
     let filtered = allEvents;
-    if (currentFilter !== 'all') filtered = filtered.filter(event => event.eventType && event.eventType.toLowerCase() === currentFilter.toLowerCase());
+    if (currentFilter !== 'all') {
+        if (currentFilter === 'Course') {
+            filtered = filtered.filter(event => event.eventType && (event.eventType.toLowerCase() === 'course' || event.eventType.toLowerCase() === 'workshop'));
+        } else {
+            filtered = filtered.filter(event => event.eventType && event.eventType.toLowerCase() === currentFilter.toLowerCase());
+        }
+    }
     if (query) filtered = filtered.filter(event => (event.title && event.title.toLowerCase().includes(query)) || (event.location && event.location.toLowerCase().includes(query)));
     displayEvents(filtered);
 }
@@ -208,16 +214,12 @@ function displayEvents(events, prepend = false) {
         const eventType = event.eventType || 'Audition';
         const isManaged = event.isManaged === true;
         const isOwnerOrAdmin = (event.userId == currentUserId || (currentUser && currentUser.isAdmin));
-        const displayImage = event.imageUrl || getEventDefaultImage(eventType);
         const hasApplied = userApplications.some(app => app.eventId == event.id);
         const sTitle = (event.title || 'Untitled').replace(/'/g, "\\'");
         const tagClass = 'tag-' + eventType.toLowerCase().replace(' ', '-');
 
         return `
             <div class="cinematic-card" id="event-card-${event.id}" style="width: 100% !important; margin-bottom: 30px;">
-                <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #f8fafc; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
-                    <img src="${displayImage}" style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                </div>
                 <div class="card-content" style="padding: 15px;">
                     <h3 style="font-size: 18px; margin-bottom: 4px;">${event.title}</h3>
                     ${event.createdAt ? `<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;"><i class="far fa-clock"></i> Posted: ${typeof formatDate === 'function' ? formatDate(event.createdAt) : new Date(event.createdAt).toLocaleDateString()}</div>` : ''}
@@ -230,11 +232,16 @@ function displayEvents(events, prepend = false) {
                         ` : '<div></div>'}
                         ${(() => {
                             const sLink = (event.externalLink || event.orgPhone || '').replace(/'/g, "\\'");
-                            const regAct = (isManaged && (event.externalLink || event.orgPhone)) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;
+                            let regAct = (isManaged && (event.externalLink || event.orgPhone)) ? `event.stopPropagation(); handleExternalRedirect(${event.id}, '${sLink}')` : `applyToEvent(${event.id})`;
+                            if (eventType === 'Workshop' || eventType === 'Course') {
+                                const price = event.price || 999;
+                                regAct = `event.stopPropagation(); openPaymentModal(${event.id}, ${price});`;
+                            }
                             const brandOrange = '#FF8C00';
                             const successGreen = '#10b981';
                             const btnColor = hasApplied ? successGreen : brandOrange;
                             let btnText = isManaged ? (hasApplied ? 'Registered' : 'Register Now') : (hasApplied ? 'Applied' : 'Apply Now');
+                            if (eventType === 'Workshop' || eventType === 'Course') btnText = 'Pay & Register';
                             return `<button class="apply-btn" style="flex: 1; max-width: 180px; padding: 10px 15px; font-size: 13px; border-radius: 10px; border: none; font-weight: 700; background: ${btnColor}; color: white;" onclick="${regAct}">${btnText}</button>`;
                         })()}
                         <div onclick="event.stopPropagation(); shareEvent(${event.id}, '${sTitle}')" style="cursor: pointer; color: #6366f1; font-size: 11px; font-weight: 600; text-align: right;">
@@ -253,7 +260,6 @@ function openCreateForm(type, isEdit = false) {
     if (!isEdit) {
         editModeId = null;
         document.getElementById('formTitle').innerText = '✨ Launch Opportunity';
-        clearEventImage();
     }
     document.getElementById('formModal').style.display = 'flex';
     updateFormFields(type);
@@ -267,7 +273,7 @@ function openCreateForm(type, isEdit = false) {
 function updateFormFields(type) {
     const labels = {
         'Audition': { title: 'Audition Title', date: 'Audition Date', price: 'Payout (₹)', desc: 'Description' },
-        'Workshop': { title: 'Workshop Title', date: 'Start Date', price: 'Fee (₹)', desc: 'Agenda' },
+        'Course': { title: 'Course Title', date: 'Start Date', price: 'Fee (₹)', desc: 'Agenda' },
 
         'Contest': { title: 'Contest Name', date: 'Deadline', price: 'Entry Fee (₹)', desc: 'Rules' },
         'Film Event': { title: 'Event Title', date: 'Event Date', price: 'Ticket (₹)', desc: 'Highlights' }
@@ -314,36 +320,6 @@ function closeFormModal() { document.getElementById('formModal').style.display =
 function closeAppModal() { document.getElementById('applicationModal').style.display = 'none'; }
 function closeCreateEvent() { document.getElementById('createEventModal').style.display = 'none'; }
 
-async function handleEventImageUpload(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const previewImg = document.getElementById('previewImg');
-            const placeholder = document.getElementById('previewPlaceholder');
-            const clearBtn = document.getElementById('clearImageBtn');
-            const urlInput = document.getElementById('eventImageUrl');
-            if (previewImg) { previewImg.src = e.target.result; previewImg.style.display = 'block'; }
-            if (placeholder) placeholder.style.display = 'none';
-            if (clearBtn) clearBtn.style.display = 'block';
-            if (urlInput) urlInput.value = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function clearEventImage() {
-    const previewImg = document.getElementById('previewImg');
-    const placeholder = document.getElementById('previewPlaceholder');
-    const clearBtn = document.getElementById('clearImageBtn');
-    const urlInput = document.getElementById('eventImageUrl');
-    const fileInput = document.getElementById('eventImage');
-    if (previewImg) { previewImg.src = ''; previewImg.style.display = 'none'; }
-    if (placeholder) placeholder.style.display = 'block';
-    if (clearBtn) clearBtn.style.display = 'none';
-    if (urlInput) urlInput.value = '';
-    if (fileInput) fileInput.value = '';
-}
-
 async function submitEvent() {
     const isManaged = document.getElementById('isManaged').checked;
     const eventData = {
@@ -355,8 +331,7 @@ async function submitEvent() {
         location: isManaged ? '' : document.getElementById('eventLocation').value,
         isManaged: isManaged,
         adminNote: document.getElementById('eventAdminNote') ? document.getElementById('eventAdminNote').value : '',
-        externalLink: (isManaged && document.getElementById('registrationMethod').value === 'external') ? document.getElementById('externalLink').value : null,
-        imageUrl: document.getElementById('eventImageUrl') ? document.getElementById('eventImageUrl').value : ''
+        externalLink: (isManaged && document.getElementById('registrationMethod').value === 'external') ? document.getElementById('externalLink').value : null
     };
     const res = await fetch(editModeId ? `${API_BASE_URL}/api/events/${editModeId}` : `${API_BASE_URL}/api/events`, { 
         method: editModeId ? 'PUT' : 'POST', 
@@ -538,11 +513,6 @@ async function shareEvent(id, title) {
     else { await navigator.clipboard.writeText(shareUrl); alert('Link Copied! 📋'); }
 }
 
-function getEventDefaultImage(type) {
-    const imgs = { 'Audition': 'images/defaults/audition.png', 'Workshop': 'images/defaults/workshop.png', 'Contest': 'images/defaults/contest.png', 'Film Event': 'images/cinema.png' };
-    return imgs[type] || imgs['Audition'];
-}
-
 function formatEventDate(dateStr) {
     if (!dateStr) return 'TBA';
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
@@ -553,11 +523,46 @@ function switchEventTab(type, element) {
     element.classList.add('active');
     let filterType = 'all';
     if (type === 'auditions') filterType = 'Audition';
-    else if (type === 'workshops') filterType = 'Workshop';
-
+    else if (type === 'courses') filterType = 'Course';
     else if (type === 'contests') filterType = 'Contest';
     else if (type === 'filmevents') filterType = 'Film Event';
     currentFilter = filterType;
     visibleCount = 5; // Reset visible count on tab switch
     searchEvents();
+}
+
+let currentPaymentEventId = null;
+
+function openPaymentModal(eventId, amount) {
+    currentPaymentEventId = eventId;
+    document.getElementById('paymentAmountDisplay').innerText = '₹' + (amount || '999');
+    document.getElementById('paymentModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentPaymentEventId = null;
+}
+
+function processSimulatedPayment() {
+    const btn = document.querySelector('#paymentModal .btn-next-premium');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+    
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Payment Successful!';
+        btn.style.background = '#10b981';
+        
+        setTimeout(() => {
+            closePaymentModal();
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            
+            if (currentPaymentEventId) {
+                applyToEvent(currentPaymentEventId);
+            }
+        }, 1500);
+    }, 2000);
 }

@@ -8,7 +8,7 @@ The CrewCanvas film industry networking platform is now **FULLY BUILT**. Every l
 
 ## 🛠️ ARCHITECTURE COMPLETE
 
-### **1. Backend (Java 17 + Spring Boot 3.2.2)** ✅ 100%
+### **1. Backend (Java 21 + Spring Boot 3.2.2)** ✅ 100%
 - **Controllers:** 6 REST Controllers providing 41 API endpoints.
 - **Services:** 6 Service classes containing complete business logic.
 - **Repositories:** 6 JPA Repositories with custom MySQL queries.

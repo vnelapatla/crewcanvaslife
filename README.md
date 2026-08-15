@@ -5,7 +5,7 @@
 **Where All Crafts Connect**
 
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.6+-red.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -70,7 +70,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Java 17** or higher
+- **Java 21** or higher
 - **Maven 3.6+**
 - A web browser
 
@@ -171,7 +171,7 @@ CrewCanvas/
 - **Google Fonts** - Poppins typography
 
 ### Tools
-- **Java 17** - Programming language
+- **Java 21** - Programming language
 - **Git** - Version control
 
 ---

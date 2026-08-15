@@ -184,6 +184,13 @@
             text-align: center;
             font-weight: 600;
         }
+
+        .script-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange) !important;
+            box-shadow: 0 15px 30px rgba(255, 140, 0, 0.15);
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
     </style>
 </head>
 <body>
@@ -193,43 +200,73 @@
         <header class="top-header"></header>
         
         <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); padding: 20px;">
-            <div class="course-container" style="margin: 0; max-width: 800px; width: 100%;">
+            <div class="course-container" style="margin: 0; max-width: 1000px; width: 100%;">
                 <div class="course-header">
-            <div class="course-badge">Premium Script</div>
-            <h1 class="course-title">Ultimate Automation Script</h1>
-            <p class="course-subtitle">Boost your productivity with our 50MB master script</p>
-        </div>
-        
-        <div class="course-body">
-            <div>
-                <div id="error-alert" class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> Payment failed or was canceled. Please try again.
+                    <div class="course-badge">Premium Automation Scripts</div>
+                    <h1 class="course-title">WhatsApp Migration Automation</h1>
+                    <p class="course-subtitle">Choose the package that fits your workflow</p>
                 </div>
                 
-                <h3 style="margin-top:0;">About This Script</h3>
-                <p class="description">
-                    This highly requested automation script contains over 50MB of meticulously crafted code designed to save you hundreds of hours. Download it instantly upon successful payment.
-                </p>
-                
-                <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Instant Access After Payment</li>
-                    <li><i class="fas fa-check-circle"></i> Secure One-Time Download</li>
-                    <li><i class="fas fa-check-circle"></i> No Login Required</li>
-                    <li><i class="fas fa-check-circle"></i> 50MB Complete Package</li>
-                </ul>
-            </div>
-            
-            <div class="payment-section">
-                <div class="price">Unlock Now</div>
-                <div class="price-label">One-time payment, lifetime usage</div>
-                
-                <!-- Razorpay Payment Button -->
-                <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SzsNY17eJP1GKn" async> </script> </form>
-                <p style="font-size:12px; color:var(--text-muted); margin-top:15px;">
-                    * Secure payment via Razorpay.
-                </p>
-            </div>
-        </div>
+                <div id="error-alert" class="error-message" style="margin: 20px 40px 0;">
+                    <i class="fas fa-exclamation-circle"></i> Payment failed or was canceled. Please try again.
+                </div>
+
+                <div class="course-body" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; padding: 40px;">
+                    <!-- N Script (Normal Version) -->
+                    <div class="script-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange)); color: white; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px; text-transform: uppercase;">N Script (Normal UI)</span>
+                                <span style="font-weight: 800; font-size: 20px; color: var(--primary-orange);">₹900</span>
+                            </div>
+                            <h3 style="margin: 0 0 10px; font-size: 20px; font-weight: 700; font-family: 'Outfit';">Full SaaS Web Panel</h3>
+                            <p class="description" style="font-size: 13px; margin-bottom: 20px; color: var(--text-muted); line-height: 1.5;">
+                                Complete multi-tenant server-based WhatsApp migration tool. Includes real-time Socket.io status updates, Puppeteer session management, and QR scanning interface.
+                            </p>
+                            <ul class="feature-list" style="margin-bottom: 25px; padding: 0; list-style: none;">
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-shield-halved" style="color: #10b981; margin-right: 10px; margin-top: 3px;"></i> Anti-Ban Protection (3s delay)</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-network-wired" style="color: #3b82f6; margin-right: 10px; margin-top: 3px;"></i> Multi-Tenant (Multi-session)</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-qrcode" style="color: #ec4899; margin-right: 10px; margin-top: 3px;"></i> Real-Time Web QR Scan</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-download" style="color: #f59e0b; margin-right: 10px; margin-top: 3px;"></i> One-Time 50MB Master package</li>
+                            </ul>
+                        </div>
+                        <div class="payment-section" style="background: transparent; padding: 0; text-align: center;">
+                            <!-- Razorpay Payment Button -->
+                            <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SzsNY17eJP1GKn" async> </script> </form>
+                            <p style="font-size:11px; color:var(--text-muted); margin-top:10px; margin-bottom:0;">
+                                * Verify signature & instant download
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- L Script (Lite Version) -->
+                    <div class="script-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="background: rgba(255, 255, 255, 0.1); color: var(--text-main); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px; text-transform: uppercase;">L Script (Lite CLI)</span>
+                                <span style="font-weight: 800; font-size: 20px; color: #a855f7;">₹499</span>
+                            </div>
+                            <h3 style="margin: 0 0 10px; font-size: 20px; font-weight: 700; font-family: 'Outfit';">Terminal CLI Migration</h3>
+                            <p class="description" style="font-size: 13px; margin-bottom: 20px; color: var(--text-muted); line-height: 1.5;">
+                                Lightweight command-line script for direct and fast migration of contacts between groups. Saves the session locally, prints QR in terminal, and runs instantly.
+                            </p>
+                            <ul class="feature-list" style="margin-bottom: 25px; padding: 0; list-style: none;">
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-terminal" style="color: #a855f7; margin-right: 10px; margin-top: 3px;"></i> Runs directly from local console</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-bolt" style="color: #10b981; margin-right: 10px; margin-top: 3px;"></i> Direct API Call (Faster execution)</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-lock" style="color: #3b82f6; margin-right: 10px; margin-top: 3px;"></i> Session saved via LocalAuth</li>
+                                <li style="display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 14px;"><i class="fas fa-code" style="color: #ec4899; margin-right: 10px; margin-top: 3px;"></i> Pure JS, zero UI overhead</li>
+                            </ul>
+                        </div>
+                        <div class="payment-section" style="background: transparent; padding: 0; text-align: center;">
+                            <a href="https://wa.me/919032022889?text=Hi!%20I'm%20interested%20in%20buying%20the%20L%20Script%20(Lite%20CLI%20Migration)%20for%20₹499." class="pay-btn" style="padding: 12px 20px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box; text-shadow: none;">
+                                <i class="fab fa-whatsapp"></i> Buy via WhatsApp
+                            </a>
+                            <p style="font-size:11px; color:var(--text-muted); margin-top:10px; margin-bottom:0;">
+                                * Get delivery & setup support instantly
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

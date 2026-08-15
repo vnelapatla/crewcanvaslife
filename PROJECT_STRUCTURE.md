@@ -273,7 +273,7 @@ Content-Type: application/json
 - Documentation complete
 
 ⚠️ **PENDING:**
-- Java 17 installation
+- Java 21 installation
 - Maven installation
 - First build & run
 
@@ -296,4 +296,4 @@ Content-Type: application/json
 
 ---
 
-**All files are ready! Install Java 17 and Maven to start the application.**
+**All files are ready! Install Java 21 and Maven to start the application.**

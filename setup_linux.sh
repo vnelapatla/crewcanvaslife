@@ -10,9 +10,9 @@ echo "========================================"
 echo "[1/4] Updating system packages..."
 sudo yum update -y
 
-# Install Java 17 (Amazon Corretto)
-echo "[2/4] Installing Java 17..."
-sudo yum install java-17-amazon-corretto-devel -y
+# Install Java 21 (Amazon Corretto)
+echo "[2/4] Installing Java 21..."
+sudo yum install java-21-amazon-corretto-devel -y
 
 # Install Maven
 echo "[3/4] Installing Maven..."

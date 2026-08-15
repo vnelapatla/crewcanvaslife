@@ -107,16 +107,11 @@ function renderEventList(events) {
 
         return `
         <div class="event-card" style="display: flex; flex-direction: column; height: auto; padding: 0; overflow: hidden; border-radius: 24px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 25px;">
-            <div class="event-banner" style="width: 100%; aspect-ratio: 4/5; background: #f8fafc; position: relative; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
-                <img src="${event.imageUrl || getEventDefaultImage(event.eventType)}" 
-                     style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px;">
-                    <span style="background: rgba(67, 56, 202, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);">${event.eventType}</span>
-                    ${event.isManaged ? `<span style="background: rgba(255, 140, 0, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; backdrop-filter: blur(8px);"><i class="fas fa-check-circle"></i> Managed</span>` : ''}
-                </div>
-            </div>
-
             <div style="padding: 25px; display: flex; flex-direction: column;">
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <span style="background: rgba(67, 56, 202, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase;">${event.eventType}</span>
+                    ${event.isManaged ? `<span style="background: rgba(255, 140, 0, 0.9); color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 100px; text-transform: uppercase;"><i class="fas fa-check-circle"></i> Managed</span>` : ''}
+                </div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div class="event-info">
                         <h3 style="margin: 0; font-size: 22px; color: #1e293b; font-family: 'Outfit', sans-serif;">${event.title}</h3>
@@ -388,26 +383,6 @@ function openEditModal() {
     const orgPhoneEl = document.getElementById('editOrgPhone');
     if (orgPhoneEl) orgPhoneEl.value = currentEvent.orgPhone || '';
     
-    const imgUrlEl = document.getElementById('editImageUrl');
-    const previewImg = document.getElementById('editPreviewImg');
-    const placeholder = document.getElementById('editPreviewPlaceholder');
-    const clearBtn = document.getElementById('clearEditImageBtn');
-    
-    if (imgUrlEl) imgUrlEl.value = currentEvent.imageUrl || '';
-    
-    if (currentEvent.imageUrl) {
-        if (previewImg) {
-            previewImg.src = currentEvent.imageUrl;
-            previewImg.style.display = 'block';
-        }
-        if (placeholder) placeholder.style.display = 'none';
-        if (clearBtn) clearBtn.style.display = 'block';
-    } else {
-        if (previewImg) previewImg.style.display = 'none';
-        if (placeholder) placeholder.style.display = 'block';
-        if (clearBtn) clearBtn.style.display = 'none';
-    }
-    
     const reqEl = document.getElementById('editRequirements');
     if (reqEl) reqEl.value = currentEvent.requirements || '';
     
@@ -671,7 +646,6 @@ async function saveEventEdits() {
         orgName: document.getElementById('editOrgName') ? document.getElementById('editOrgName').value.trim() : (currentEvent.orgName || ''),
         orgEmail: document.getElementById('editOrgEmail') ? document.getElementById('editOrgEmail').value.trim() : (currentEvent.orgEmail || ''),
         orgPhone: document.getElementById('editOrgPhone') ? document.getElementById('editOrgPhone').value.trim() : (currentEvent.orgPhone || ''),
-        imageUrl: document.getElementById('editImageUrl') ? document.getElementById('editImageUrl').value.trim() : (currentEvent.imageUrl || ''),
         requirements: document.getElementById('editRequirements') ? document.getElementById('editRequirements').value.trim() : (currentEvent.requirements || ''),
         description: document.getElementById('editDescription').value.trim(),
         adminNote: document.getElementById('editAdminNote') ? document.getElementById('editAdminNote').value.trim() : (currentEvent.adminNote || ''),
@@ -1017,59 +991,4 @@ async function manualCheckIn(applicationId) {
         console.error(e);
         showMessage('Connection error during check-in', 'error');
     }
-}
-
-// CC-MAY-2026: Image Upload Handlers for Dashboard [Nelpatla Venkatesh]
-async function handleEditImageUpload(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        try {
-            const previewImg = document.getElementById('editPreviewImg');
-            const placeholder = document.getElementById('editPreviewPlaceholder');
-            const clearBtn = document.getElementById('clearEditImageBtn');
-            const urlInput = document.getElementById('editImageUrl');
-            
-            if (placeholder) placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Processing...</p>';
-            
-            const base64 = await uploadImage(file);
-            
-            if (base64) {
-                if (previewImg) {
-                    previewImg.src = base64;
-                    previewImg.style.display = 'block';
-                }
-                if (placeholder) placeholder.style.display = 'none';
-                if (clearBtn) clearBtn.style.display = 'block';
-                if (urlInput) urlInput.value = base64;
-            }
-        } catch (err) {
-            console.error('Image upload failed:', err);
-            showMessage('Failed to process image. Please try another.', 'error');
-        } finally {
-            const placeholder = document.getElementById('editPreviewPlaceholder');
-            if (placeholder && placeholder.style.display !== 'none') {
-                placeholder.innerHTML = '<i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i><p style="font-size: 11px; font-weight: 600;">Click to change banner</p>';
-            }
-        }
-    }
-}
-
-function clearEditImage() {
-    const previewImg = document.getElementById('editPreviewImg');
-    const placeholder = document.getElementById('editPreviewPlaceholder');
-    const clearBtn = document.getElementById('clearEditImageBtn');
-    const urlInput = document.getElementById('editImageUrl');
-    const fileInput = document.getElementById('editImageInput');
-    
-    if (previewImg) {
-        previewImg.src = '';
-        previewImg.style.display = 'none';
-    }
-    if (placeholder) {
-        placeholder.style.display = 'block';
-        placeholder.innerHTML = '<i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 5px;"></i><p style="font-size: 11px; font-weight: 600;">Click to change banner</p>';
-    }
-    if (clearBtn) clearBtn.style.display = 'none';
-    if (urlInput) urlInput.value = '';
-    if (fileInput) fileInput.value = '';
 }

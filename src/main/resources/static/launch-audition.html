@@ -9,14 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/events.css?v=9.9">
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6911412543302758"
      crossorigin="anonymous"></script>
 </head>
 <body>
     <aside class="sidebar">
-        <div class="brand"><h2>CrewCanvas</h2><p>Where all crafts connect</p></div>
+        <div class="brand"><h2>KrewCanvas</h2><p>Where all crafts connect</p></div>
         <nav class="nav-menu">
             <a href="feed.html" class="nav-item"><i class="fa-solid fa-file-lines"></i> Feed</a>
             <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -32,7 +32,6 @@
         <div class="content-body" style="padding-top: 20px;">
             <div class="horizontal-scroll" style="display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; -ms-overflow-style: none;">
                 <div class="feature-card active" onclick="switchEventTab('auditions', this)"><i class="fa-solid fa-video"></i> <div><b>AUDITIONS</b><p style="font-size:11px; opacity:0.8;">Casting & Roles</p></div> <b id="auditionCount" style="margin-left:auto; font-size:18px;">0</b></div>
-                <div class="feature-card" onclick="switchEventTab('workshops', this)"><i class="fa-solid fa-screwdriver-wrench"></i> <div><b>WORKSHOPS</b><p style="font-size:11px; opacity:0.8;">Skill Building</p></div> <b id="workshopCount" style="margin-left:auto; font-size:18px;">0</b></div>
                 <div class="feature-card" onclick="switchEventTab('courses', this)"><i class="fa-solid fa-graduation-cap"></i> <div><b>COURSES</b><p style="font-size:11px; opacity:0.8;">Learning</p></div> <b id="courseCount" style="margin-left:auto; font-size:18px;">0</b></div>
                 <div class="feature-card" onclick="switchEventTab('contests', this)"><i class="fa-solid fa-trophy"></i> <div><b>CONTESTS</b><p style="font-size:11px; opacity:0.8;">Awards</p></div> <b id="contestCount" style="margin-left:auto; font-size:18px;">0</b></div>
             </div>
@@ -55,7 +54,6 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header"><h2>What to create?</h2><span class="close" onclick="closeChoiceModal()"><i class="fa-solid fa-xmark"></i></span></div>
             <div class="choices-grid">
-                <div class="choice-item" onclick="openCreateForm('Workshop')"><div class="choice-icon pink"><i class="fa-solid fa-screwdriver-wrench"></i></div><span>Workshop</span></div>
                 <div class="choice-item" onclick="openCreateForm('Course')"><div class="choice-icon green"><i class="fa-solid fa-graduation-cap"></i></div><span>Course</span></div>
                 <div class="choice-item" onclick="openCreateForm('Contest')"><div class="choice-icon yellow"><i class="fa-solid fa-trophy"></i></div><span>Contest</span></div>
                 <div class="choice-item" onclick="openCreateForm('Audition')"><div class="choice-icon blue"><i class="fa-solid fa-video"></i></div><span>Audition</span></div>
@@ -65,7 +63,7 @@
 
     <script src="js/utils.js"></script>
     <script src="js/profile-handler.js"></script>
-    <script src="js/events.js"></script>
+    <script src="js/events.js?v=9.9"></script>
     <script>
         function showChoiceModal() { document.getElementById('choiceModal').style.display = 'flex'; }
         function closeChoiceModal() { document.getElementById('choiceModal').style.display = 'none'; }
