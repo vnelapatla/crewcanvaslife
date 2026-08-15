@@ -1431,7 +1431,7 @@ async function executeFeedSearch(keyword) {
             peopleSection.innerHTML = `
                 <div class="search-section-header">
                     <h4>PEOPLE</h4>
-                    <a href="crew-search.html?query=${encodeURIComponent(searchQuery)}" class="view-all-link">View all creators</a>
+                    <a href="krew-search.html?query=${encodeURIComponent(searchQuery)}" class="view-all-link">View all creators</a>
                 </div>
                 <div class="search-users-grid">
                     ${users.map(u => `

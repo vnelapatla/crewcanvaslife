@@ -1118,7 +1118,7 @@ function initUniversalBottomNav() {
         <a href="home.html" class="nav-item ${navCurrentPage.includes('home.html') ? 'active' : ''}">
             <i class="fa-solid fa-house icon"></i> <span>Dashboard</span>
         </a>
-        <a href="crew-search.html" class="nav-item ${navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
+        <a href="krew-search.html" class="nav-item ${navCurrentPage.includes('krew-search.html') || navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
             <i class="fa-solid fa-magnifying-glass icon"></i> <span>Search</span>
         </a>
         <a href="messages.html" class="nav-item ${navCurrentPage.includes('messages.html') ? 'active' : ''}">
@@ -1155,7 +1155,7 @@ function initUniversalSidebar() {
 
     const navHtml = `
         <div class="brand">
-            <h2>CC</h2>
+            <h2>KC</h2>
             <p>Where all crafts connect</p>
         </div>
         <nav class="nav-menu">
@@ -1165,8 +1165,8 @@ function initUniversalSidebar() {
             <a href="home.html" class="nav-item ${navCurrentPage.includes('home.html') ? 'active' : ''}">
                 <i class="fa-solid fa-house"></i> Dashboard
             </a>
-            <a href="crew-search.html" class="nav-item ${navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
-                <i class="fa-solid fa-magnifying-glass"></i> Crew Search
+            <a href="krew-search.html" class="nav-item ${navCurrentPage.includes('krew-search.html') || navCurrentPage.includes('crew-search.html') ? 'active' : ''}">
+                <i class="fa-solid fa-magnifying-glass"></i> Krew Search
             </a>
             <a href="messages.html" class="nav-item ${navCurrentPage.includes('messages.html') ? 'active' : ''}">
                 <i class="fa-solid fa-message"></i> Messages

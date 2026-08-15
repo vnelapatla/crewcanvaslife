@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krew Search | Find Film Industry Talent | KrewCanvas</title>
+    <meta name="description" content="Search for top directors, actors, cinematographers, and film krew on KrewCanvas. Connect with verified cinema professionals for your next project.">
+    <meta name="keywords" content="find film krew, search actors, film industry networking, hire cinematographers, film production talent">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://krewcanvas.in/krew-search.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://krewcanvas.in/krew-search.html">
+    <meta property="og:title" content="Krew Search | Find Film Industry Talent | KrewCanvas">
+    <meta property="og:description" content="Discover and connect with the best talent in the film industry. Search by role, experience, and location on KrewCanvas.">
+    <meta property="og:image" content="https://krewcanvas.in/images/crew_canvas_logo.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://krewcanvas.in/krew-search.html">
+    <meta name="twitter:title" content="Krew Search | Find Film Industry Talent | KrewCanvas">
+    <meta name="twitter:description" content="Discover and connect with the best talent in the film industry. Search by role, experience, and location on KrewCanvas.">
+    <meta name="twitter:image" content="https://krewcanvas.in/images/crew_canvas_logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/crew_canvas_logo.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/crew-search.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6911412543302758"
+     crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- Sidebar is dynamically injected by utils.js -->
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header"></header>
+
+        <div class="content-body">
+            <!-- Section Title -->
+            <div class="section-header">
+                <h2 class="section-title">TOP CREATORS</h2>
+            </div>
+
+            <!-- Feature Cards (Find Krew / Connections) -->
+            <div class="features-grid">
+                <div class="feature-card active" id="findCrewCard" onclick="switchSearchTab('find')">
+                    <div class="feature-icon-circle">👥</div>
+                    <div class="feature-info">
+                        <h3>FIND KREW</h3>
+                    </div>
+                    <div class="count-badge" id="totalCrewCount" style="display: none;">0</div>
+                </div>
+
+                <div class="feature-card" id="connectionsCard" onclick="switchSearchTab('connections'); switchConnectionTab('followers')">
+                    <div class="feature-icon-circle">🤝</div>
+                    <div class="feature-info">
+                        <h3>MY FOLLOWERS</h3>
+                        <p>People following you</p>
+                    </div>
+                    <div class="count-badge" id="myConnectionsCount">0</div>
+                </div>
+
+                <div class="feature-card" id="followingCard" onclick="switchSearchTab('connections'); switchConnectionTab('following')">
+                    <div class="feature-icon-circle">👤</div>
+                    <div class="feature-info">
+                        <h3>MY FOLLOWING</h3>
+                        <p>People you follow</p>
+                    </div>
+                    <div class="count-badge" id="myFollowingCount">0</div>
+                </div>
+            </div>
+
+            <!-- Toggle Switch Tabs -->
+            <div class="toggle-switch-container">
+                <div class="toggle-btn active" id="followersTab" onclick="switchConnectionTab('followers')">
+                    <span class="icon">👥</span> Followers
+                </div>
+                <div class="toggle-btn" id="followingTab" onclick="switchConnectionTab('following')">
+                    <span class="icon">👤</span> Following
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-section">
+                <div class="custom-search-bar">
+                    <input type="text" id="searchInput" placeholder="Search people by name or craft..." onkeydown="if(event.key === 'Enter') loadUsersPage(0, true)">
+                    <div class="search-actions">
+                        <span class="search-person-icon">👤</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="searchResults" class="crew-grid" style="margin-top: 40px;">
+                <!-- Dynamically loaded -->
+            </div>
+
+            <!-- Loading Dots -->
+            <div class="scroll-load">
+                <div class="loader-dots">
+                    <div class="dot dot-1"></div>
+                    <div class="dot dot-2"></div>
+                    <div class="dot dot-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Bottom Navigation is injected by utils.js -->
+
+    <script src="js/utils.js?v=9.2"></script>
+    <script src="js/profile-handler.js?v=9.2"></script>
+    <script src="js/crew-search.js?v=9.2"></script>
+</body>
+
+</html>
