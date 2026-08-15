@@ -110,7 +110,7 @@ async function loadUsersPage(page = 0, refresh = false) {
     if (refresh) {
         currentSearchPage = 0;
         hasMore = true;
-        if (container) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading crew...</div>';
+        if (container) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading krew...</div>';
     }
 
     try {
@@ -181,7 +181,7 @@ function displayUsers(users, forceFollowingState = false) {
     
     console.log(`displayUsers called with ${users ? users.length : 0} users`);
     if (!users || users.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No crew found.</div>`;
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No krew found.</div>`;
         return;
     }
 

@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 
 echo ====================================================
-echo   Commit & Push Directly to MAIN (Triggering CI/CD)
+echo   Commit ^& Push Directly to MAIN (Triggering CI/CD)
 echo ====================================================
 echo.
 
@@ -18,7 +18,7 @@ echo [3/4] Staging all modified files...
 git add -A
 
 echo.
-echo [4/4] Committing & Pushing directly to main...
+echo [4/4] Committing ^& Pushing directly to main...
 git commit -m "Update domain and brand name to krewcanvas.in across application" || echo "Nothing new to commit."
 git push origin main
 

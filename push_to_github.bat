@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 
 echo ====================================================
-echo   Pushing All Updates to MAIN & Triggering CI/CD
+echo   Pushing All Updates to MAIN ^& Triggering CI/CD
 echo ====================================================
 echo.
 echo Current Directory: %CD%
