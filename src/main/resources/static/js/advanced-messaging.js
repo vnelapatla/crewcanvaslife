@@ -1,5 +1,5 @@
-/**
- * Advanced Messaging System for CrewCanvas
+﻿/**
+ * Advanced Messaging System for KrewCanvas
  * Extends basic messaging with:
  * 1. Emoji Support
  * 2. File Attachments
@@ -227,3 +227,4 @@ function enhanceMessageDisplay(msg) {
 
 // Export for use in messages.js
 window.AdvancedMessaging = AdvancedMessaging;
+

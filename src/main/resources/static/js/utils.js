@@ -1,4 +1,4 @@
-if (typeof window.API_BASE_URL === 'undefined') {
+﻿if (typeof window.API_BASE_URL === 'undefined') {
     window.API_BASE_URL = ''; // Use relative paths by default for better compatibility
 }
 if (typeof window.GOOGLE_CLIENT_ID === 'undefined') {
@@ -184,7 +184,7 @@ async function handleSharedCredentialResponse(response) {
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userEmail', user.email);
             localStorage.setItem('userName', user.name);
-            localStorage.setItem('isAdmin', user.isAdmin || user.email === 'crewcanvas2@gmail.com');
+            localStorage.setItem('isAdmin', user.isAdmin || user.email === 'KrewCanvas2@gmail.com');
             localStorage.setItem('profileScore', user.profileScore || 0);
             if (user.token) {
                 localStorage.setItem('token', user.token);
@@ -291,7 +291,7 @@ function getCurrentUserIsAdmin() {
         isUserAdmin = currentUser && (currentUser.isAdmin === true || currentUser.isAdmin === 'true');
     } catch (e) {}
     const email = getCurrentUserEmail();
-    const isHardcodedAdmin = email === 'crewcanvas2@gmail.com';
+    const isHardcodedAdmin = email === 'KrewCanvas2@gmail.com';
     return Boolean(isAdmin || isUserAdmin || isHardcodedAdmin);
 }
 
@@ -1236,7 +1236,7 @@ function initUniversalHeader() {
                         <a href="edit-profile.html" class="dropdown-item edit-link"><i class="fas fa-user-edit"></i> Edit Profile</a>
                         <a href="settings.html" class="dropdown-item settings-link"><i class="fas fa-cog"></i> Settings</a>
                         <a href="about.html" class="dropdown-item about-link"><i class="fas fa-circle-info" style="color: #0d9488;"></i> About Krew Canvas</a>
-                        <a href="mailto:crewcanvas2@gmail.com" class="dropdown-item contact-link"><i class="fas fa-envelope" style="color: #ff8c00;"></i> Contact & Collaborations</a>
+                        <a href="mailto:KrewCanvas2@gmail.com" class="dropdown-item contact-link"><i class="fas fa-envelope" style="color: #ff8c00;"></i> Contact & Collaborations</a>
                         ${isAdmin ? `<a href="admin-insights.html" class="dropdown-item"><i class="fas fa-chart-line" style="color: #3b82f6;"></i> Performance Insights</a>` : ''}
                         <a href="notifications.html" class="dropdown-item notifications-link">
                             <i class="fas fa-bell" style="color: #fcd34d;"></i> Notifications 
@@ -2021,3 +2021,4 @@ var ProfileHandler = window.ProfileHandler || {
     }
 };
 window.ProfileHandler = ProfileHandler;
+

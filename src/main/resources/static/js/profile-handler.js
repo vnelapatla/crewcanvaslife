@@ -1,5 +1,5 @@
-/**
- * Profile Handler for CrewCanvas
+﻿/**
+ * Profile Handler for KrewCanvas
  * Handles connections (Follow/Unfollow) and dynamic profile interactions
  */
 var ProfileHandler = window.ProfileHandler || {};
@@ -231,3 +231,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+

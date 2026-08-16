@@ -1,5 +1,5 @@
-/**
- * Form Builder Logic for CrewCanvas
+﻿/**
+ * Form Builder Logic for KrewCanvas
  */
 let fields = [];
 
@@ -70,3 +70,4 @@ function saveForm() {
         window.location.href = 'event-dashboard.html';
     }, 1500);
 }
+

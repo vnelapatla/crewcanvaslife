@@ -1,9 +1,9 @@
-// Settings Functionality for CrewCanvas
+﻿// Settings Functionality for KrewCanvas
 document.addEventListener('DOMContentLoaded', async () => {
     if (!checkAuth()) return;
     
     if (localStorage.getItem('userEmail') && !localStorage.getItem('token')) {
-        alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
+        alert('SECURITY NOTICE: A new security update has been applied to KrewCanvas. To protect your account, please log back in to refresh your credentials.');
         localStorage.clear();
         window.location.href = 'index.html?token_missing=true';
         return;
@@ -214,3 +214,4 @@ async function deleteAccount() {
         console.error('Error deleting account:', error);
     }
 }
+

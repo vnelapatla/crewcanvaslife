@@ -1,4 +1,4 @@
-// Profile page functionality
+﻿// Profile page functionality
 let profileUserId = null;
 let currentUserId = null;
 let profileUserData = null; 
@@ -221,7 +221,7 @@ function displayProfile(user) {
             resumeDownload.onclick = null;
 
             // Use original filename if available
-            const fileName = user.resumeFileName || 'Resume_CrewCanvas.pdf';
+            const fileName = user.resumeFileName || 'Resume_KrewCanvas.pdf';
             resumeDownload.download = fileName;
             
             // For Base64 strings, we use a Blob to ensure the filename is respected by the browser
@@ -537,7 +537,7 @@ async function loadUserProjects() {
 
             grid.innerHTML = projects.map((p, index) => {
                 const userEmail = getCurrentUserEmail();
-                const isAdmin = getCurrentUserIsAdmin() || userEmail === 'crewcanvas2@gmail.com';
+                const isAdmin = getCurrentUserIsAdmin() || userEmail === 'KrewCanvas2@gmail.com';
                 const verifyBtn = (isAdmin && !p.verified) ? 
                     `<button onclick="verifyProject(${p.id})" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:1px solid var(--primary-orange); color:var(--primary-orange); padding:4px 10px; border-radius:15px; font-size:10px; font-weight:800; cursor:pointer; z-index:10;">VERIFY</button>` : '';
 
@@ -834,7 +834,7 @@ function setupEditImageUpload() {
     imageInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         for (const file of files) {
-            // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+            // Restriction: Only admin (KrewCanvas2@gmail.com) can select videos
             const isVideo = file.type.startsWith('video/') || 
                             file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
             
@@ -1098,3 +1098,4 @@ async function verifyProject(projectId) {
         console.error('Error verifying project:', err);
     }
 }
+

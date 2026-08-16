@@ -1,4 +1,4 @@
-let currentEvent = null;
+﻿let currentEvent = null;
 let allApplicants = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #0f172a; color: white; text-align: center; padding: 20px;">
                 <h1 style="font-family: 'Outfit'; font-size: 48px; color: #ff8c00; margin-bottom: 20px;">Link Expired</h1>
                 <p style="font-size: 18px; color: #94a3b8; max-width: 500px;">This casting deck link is invalid or the audition has been closed. Please contact the administrator for a new link.</p>
-                <a href="index.html" style="margin-top: 30px; color: #ff8c00; text-decoration: none; font-weight: 700; border: 1px solid #ff8c00; padding: 12px 24px; border-radius: 12px;">Back to CrewCanvas</a>
+                <a href="index.html" style="margin-top: 30px; color: #ff8c00; text-decoration: none; font-weight: 700; border: 1px solid #ff8c00; padding: 12px 24px; border-radius: 12px;">Back to KrewCanvas</a>
             </div>
         `;
         return;
@@ -241,3 +241,4 @@ window.onclick = function(event) {
         closeModal();
     }
 }
+

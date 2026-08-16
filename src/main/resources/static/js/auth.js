@@ -1,4 +1,4 @@
-// GOOGLE_CLIENT_ID is now declared globally in utils.js to avoid conflicts
+﻿// GOOGLE_CLIENT_ID is now declared globally in utils.js to avoid conflicts
 // Auth script for login and signup
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
@@ -205,7 +205,7 @@ function handleSuccessfulLogin(user, loginMethodName) {
     }
     
     // Force Admin flag for the official account
-    const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'crewcanvas2@gmail.com';
+    const isAdmin = user.isAdmin || user.email.toLowerCase().trim() === 'KrewCanvas2@gmail.com';
     localStorage.setItem('isAdmin', isAdmin);
 
     // --- NEW USER OPTIMIZATION: Pre-fetch immediately on login ---
@@ -224,3 +224,4 @@ function handleSuccessfulLogin(user, loginMethodName) {
         }
     }, 1500);
 }
+

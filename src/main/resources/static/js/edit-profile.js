@@ -1,4 +1,4 @@
-// Edit Profile functionality
+﻿// Edit Profile functionality
 let currentUserId = null;
 let selectedProfilePic = null;
 let selectedCoverImage = null;
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("[EditProfile] Initializing for ID:", currentUserId);
 
     if (localStorage.getItem('userEmail') && !localStorage.getItem('token')) {
-        alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
+        alert('SECURITY NOTICE: A new security update has been applied to KrewCanvas. To protect your account, please log back in to refresh your credentials.');
         localStorage.clear();
         window.location.href = 'index.html?token_missing=true';
         return;
@@ -940,3 +940,4 @@ async function deleteProject(projectId) {
         console.error('Error deleting project:', err);
     }
 }
+

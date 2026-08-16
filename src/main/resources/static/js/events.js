@@ -1,4 +1,4 @@
-// Events and Auditions functionality
+﻿// Events and Auditions functionality
 let currentUserId = null;
 let currentUser = null;
 let pendingEventId = null;
@@ -74,7 +74,7 @@ async function loadCurrentUser() {
 
 async function loadEventStats() {
     try {
-        const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : (localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com');
+        const isAdmin = typeof getCurrentUserIsAdmin === 'function' ? getCurrentUserIsAdmin() : (localStorage.getItem('userEmail') === 'KrewCanvas2@gmail.com');
         if (!isAdmin) return;
 
         const response = await fetch(`${API_BASE_URL}/api/events/stats`);
@@ -259,7 +259,7 @@ function openCreateForm(type, isEdit = false) {
     updateFormFields(type);
     const managedGroup = document.getElementById('managedGroup');
     if (managedGroup) {
-        const isAdmin = (currentUser && currentUser.isAdmin) || localStorage.getItem('userEmail') === 'crewcanvas2@gmail.com';
+        const isAdmin = (currentUser && currentUser.isAdmin) || localStorage.getItem('userEmail') === 'KrewCanvas2@gmail.com';
         managedGroup.style.display = isAdmin ? 'block' : 'none';
     }
 }
@@ -561,3 +561,4 @@ function switchEventTab(type, element) {
     visibleCount = 5; // Reset visible count on tab switch
     searchEvents();
 }
+

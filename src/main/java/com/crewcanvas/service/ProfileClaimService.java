@@ -60,7 +60,7 @@ public class ProfileClaimService {
     @Value("${claim.invitation.expiration-hours:72}")
     private int expirationHours;
 
-    @Value("${app.base-url:https://crewcanvas.in}")
+    @Value("${app.base-url:https://krewcanvas.in}")
     private String baseUrl;
 
     /**
@@ -113,7 +113,7 @@ public class ProfileClaimService {
         String email = profileData.getEmail();
         User user = null;
         if (email == null || email.trim().isEmpty()) {
-            email = "unclaimed_" + UUID.randomUUID().toString().substring(0, 8) + "@claim.crewcanvas.internal";
+            email = "unclaimed_" + UUID.randomUUID().toString().substring(0, 8) + "@claim.krewcanvas.internal";
             user = new User();
         } else {
             email = email.trim().toLowerCase();
@@ -121,7 +121,7 @@ public class ProfileClaimService {
             if (existingUser.isPresent()) {
                 User existing = existingUser.get();
                 if ("CLAIMED".equalsIgnoreCase(existing.getClaimStatus())) {
-                    throw new IllegalArgumentException("An account with email address '" + email + "' already exists in CrewCanvas.");
+                    throw new IllegalArgumentException("An account with email address '" + email + "' already exists in KrewCanvas.");
                 }
                 user = existing;
             } else {
@@ -237,7 +237,7 @@ public class ProfileClaimService {
                 profileId, savedInvitation.getId(), "INVITATION_CREATED",
                 "Secure claim token generated. Valid for " + expirationHours + " hours.", adminId));
 
-        String effectiveBaseUrl = (baseUrl != null) ? baseUrl.replaceAll("(?i)krewcanvas", "crewcanvas") : "https://crewcanvas.in";
+        String effectiveBaseUrl = (baseUrl != null && !baseUrl.trim().isEmpty()) ? baseUrl.trim() : "https://krewcanvas.in";
         String claimLink = effectiveBaseUrl + "/claim.html?token=" + rawToken;
 
         Map<String, Object> result = new HashMap<>();
@@ -258,13 +258,13 @@ public class ProfileClaimService {
 
         String tokenHash = hashToken(rawToken.trim());
         ProfileClaimInvitation invitation = invitationRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired claim link. Please contact CrewCanvas for a new link."));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired claim link. Please contact KrewCanvas for a new link."));
 
         if (!"UNCLAIMED".equals(invitation.getStatus()) && !"INVITED".equals(invitation.getStatus())) {
             if ("CLAIMED".equals(invitation.getStatus())) {
                 throw new IllegalStateException("This profile has already been claimed.");
             } else if ("EXPIRED".equals(invitation.getStatus())) {
-                throw new IllegalStateException("This claim link has expired. Please contact CrewCanvas for a new claim link.");
+                throw new IllegalStateException("This claim link has expired. Please contact KrewCanvas for a new claim link.");
             } else {
                 throw new IllegalStateException("This claim link is no longer valid.");
             }
@@ -276,7 +276,7 @@ public class ProfileClaimService {
             auditLogRepository.save(new ProfileClaimAuditLog(
                     invitation.getProfileId(), invitation.getId(), "INVITATION_EXPIRED",
                     "Token expired at " + invitation.getExpiresAt(), null));
-            throw new IllegalStateException("This claim link has expired. Please contact CrewCanvas for a new claim link.");
+            throw new IllegalStateException("This claim link has expired. Please contact KrewCanvas for a new claim link.");
         }
 
         User profile = userRepository.findById(invitation.getProfileId())
@@ -361,8 +361,8 @@ public class ProfileClaimService {
 
         // Check duplicate account by phone/email if provided
         String finalEmail = (actorEmail != null && !actorEmail.trim().isEmpty()) ? actorEmail.trim().toLowerCase() : profile.getEmail();
-        if (finalEmail != null && finalEmail.contains("@claim.crewcanvas.internal")) {
-            finalEmail = "actor_" + profile.getId() + "_" + UUID.randomUUID().toString().substring(0, 6) + "@crewcanvas.in";
+        if (finalEmail != null && (finalEmail.contains("@claim.crewcanvas.internal") || finalEmail.contains("@claim.krewcanvas.internal"))) {
+            finalEmail = "actor_" + profile.getId() + "_" + UUID.randomUUID().toString().substring(0, 6) + "@krewcanvas.in";
         }
 
         // Update profile fields to claimed state
@@ -433,7 +433,7 @@ public class ProfileClaimService {
             } catch (Exception e) {
                 logger.warn("WhatsApp dispatch warning: {}", e.getMessage());
             }
-        } else if ("EMAIL".equalsIgnoreCase(channel) && profile.getEmail() != null && !profile.getEmail().endsWith("@claim.crewcanvas.internal")) {
+        } else if ("EMAIL".equalsIgnoreCase(channel) && profile.getEmail() != null && !profile.getEmail().contains("krewcanvas.internal") && !profile.getEmail().contains("crewcanvas.internal")) {
             try {
                 emailService.sendWelcomeEmail(profile.getEmail(), profile.getName(), claimLink);
             } catch (Exception e) {

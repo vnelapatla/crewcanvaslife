@@ -1,4 +1,4 @@
-// v2.2.0 - Smart Search & Profile-Based Relevance Feed
+﻿// v2.2.0 - Smart Search & Profile-Based Relevance Feed
 let currentFeedPage = 0;
 let isLoading = false;
 let hasMore = true;
@@ -502,7 +502,7 @@ function setupImageUpload() {
         const files = Array.from(e.target.files);
         if (files.length > 0) {
             for (const file of files) {
-                // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+                // Restriction: Only admin (KrewCanvas2@gmail.com) can select videos
                 const isVideo = file.type.startsWith('video/') || 
                                 file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
                 
@@ -916,7 +916,7 @@ function renderSingleComment(postId, comment, isReply = false) {
                             <span class="comment-meta-dot">•</span>
                             <span class="comment-time">${formatDate(comment.createdAt)}</span>
                         </div>
-                        <p class="comment-author-headline">${user.role || 'CrewCanvas Member'}</p>
+                        <p class="comment-author-headline">${user.role || 'KrewCanvas Member'}</p>
                     </div>
                     <div class="comment-body">
                         ${content}
@@ -1166,7 +1166,7 @@ function setupEditImageUpload() {
     imageInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         for (const file of files) {
-            // Restriction: Only admin (crewcanvas2@gmail.com) can select videos
+            // Restriction: Only admin (KrewCanvas2@gmail.com) can select videos
             const isVideo = file.type.startsWith('video/') || 
                             file.name.match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)$/i);
             
@@ -1663,3 +1663,4 @@ function toggleSeeMore(postId, fullContent) {
         container.innerHTML = `<p class="post-text-content" style="margin-bottom:10px; line-height:1.5; white-space: pre-wrap;">${fullContent}</p>`;
     }
 }
+
