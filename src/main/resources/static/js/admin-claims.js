@@ -99,6 +99,9 @@ function renderClaimTable(profiles) {
                         <button onclick="viewClaimActivity(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" class="btn-action-sm" style="background: #f1f5f9; color: #475569;" title="View Audit Log">
                             <i class="fas fa-history"></i> Log
                         </button>
+                        <button onclick="deleteUnclaimedProfile(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" class="btn-action-sm" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5;" title="Wipe & Delete Profile">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -440,6 +443,34 @@ async function viewClaimActivity(profileId, name) {
         }
     } catch (e) {
         alert("Error fetching audit logs.");
+    }
+}
+
+async function deleteUnclaimedProfile(profileId, name) {
+    if (!confirm(`⚠️ Are you sure you want to PERMANENTLY DELETE and WIPE the profile for "${name}" from the database?\n\nThis action will erase the profile, claim tokens, filmography, and audit records completely. It cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${getApiBaseUrl()}/api/admin/profile-claims/${profileId}`, {
+            method: 'DELETE',
+            headers: headers
+        });
+
+        const resText = await res.text();
+        let data;
+        try { data = JSON.parse(resText); } catch (e) { data = { message: resText }; }
+
+        if (res.ok) {
+            alert("🗑️ " + (data.message || "Profile wiped and deleted successfully!"));
+            fetchClaimMetrics();
+            fetchClaimProfiles();
+        } else {
+            alert("Error deleting profile: " + (data.message || resText));
+        }
+    } catch (e) {
+        alert("Failed to delete profile: " + e);
     }
 }
 

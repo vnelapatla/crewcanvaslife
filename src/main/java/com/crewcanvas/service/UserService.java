@@ -233,6 +233,42 @@ public class UserService {
         }
     }
 
+    private Optional<User> findBestUserByPhone(String phoneInput) {
+        if (phoneInput == null || phoneInput.trim().isEmpty()) return Optional.empty();
+        
+        String cleanPhone = phoneInput.trim();
+        String digits = cleanPhone.replaceAll("[^0-9]", "");
+        
+        List<String> phoneVariants = new java.util.ArrayList<>();
+        phoneVariants.add(cleanPhone);
+        if (!digits.isEmpty()) {
+            phoneVariants.add(digits);
+            if (digits.length() == 10) {
+                phoneVariants.add("91" + digits);
+                phoneVariants.add("+91" + digits);
+                phoneVariants.add("+91 " + digits);
+            } else if (digits.startsWith("91") && digits.length() == 12) {
+                phoneVariants.add(digits.substring(2));
+                phoneVariants.add("+91" + digits.substring(2));
+            }
+        }
+
+        for (String p : phoneVariants) {
+            List<User> users = userRepository.findAllByPhone(p);
+            if (users != null && !users.isEmpty()) {
+                return users.stream()
+                        .sorted((u1, u2) -> {
+                            boolean c1 = "CLAIMED".equalsIgnoreCase(u1.getClaimStatus());
+                            boolean c2 = "CLAIMED".equalsIgnoreCase(u2.getClaimStatus());
+                            if (c1 != c2) return c1 ? -1 : 1;
+                            return Long.compare(u2.getId(), u1.getId());
+                        })
+                        .findFirst();
+            }
+        }
+        return Optional.empty();
+    }
+
     public Optional<User> loginUser(String identifier, String password) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return Optional.empty();
@@ -241,21 +277,9 @@ public class UserService {
         String clean = identifier.trim();
         Optional<User> user = userRepository.findByEmail(clean.toLowerCase());
 
-        // If not found by email, try searching by phone number
+        // If not found by email, try searching by phone number (safely handling duplicate/non-unique phone numbers)
         if (!user.isPresent()) {
-            String digits = clean.replaceAll("[^0-9]", "");
-            if (!digits.isEmpty()) {
-                user = userRepository.findByPhone(clean);
-                if (!user.isPresent()) {
-                    user = userRepository.findByPhone(digits);
-                }
-                if (!user.isPresent() && digits.length() == 10) {
-                    user = userRepository.findByPhone("91" + digits);
-                }
-                if (!user.isPresent() && digits.startsWith("91") && digits.length() == 12) {
-                    user = userRepository.findByPhone(digits.substring(2));
-                }
-            }
+            user = findBestUserByPhone(clean);
         }
 
         if (user.isPresent()) {

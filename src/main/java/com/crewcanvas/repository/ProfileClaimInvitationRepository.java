@@ -14,4 +14,6 @@ public interface ProfileClaimInvitationRepository extends JpaRepository<ProfileC
     Optional<ProfileClaimInvitation> findFirstByProfileIdOrderByCreatedAtDesc(Long profileId);
     List<ProfileClaimInvitation> findByStatus(String status);
     long countByStatus(String status);
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByProfileId(Long profileId);
 }

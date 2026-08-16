@@ -474,6 +474,29 @@ public class ProfileClaimService {
     }
 
     /**
+     * Deletes an unclaimed / unverified profile and wipes all associated records from the cloud DB.
+     */
+    @Transactional
+    public void deleteUnclaimedProfile(Long profileId, Long adminId) {
+        User profile = userRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("Profile not found with ID: " + profileId));
+
+        // Delete associated claim invitations
+        invitationRepository.deleteByProfileId(profileId);
+
+        // Delete associated audit logs
+        auditLogRepository.deleteByProfileId(profileId);
+
+        // Delete associated projects
+        if (projectRepository != null) {
+            projectRepository.deleteByUserId(profileId);
+        }
+
+        // Delete user row completely from database
+        userRepository.delete(profile);
+    }
+
+    /**
      * Returns all unclaimed and invited profiles for admin list view.
      */
     public List<User> getUnclaimedProfiles(String statusFilter) {

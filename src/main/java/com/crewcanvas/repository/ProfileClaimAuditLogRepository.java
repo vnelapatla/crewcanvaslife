@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ProfileClaimAuditLogRepository extends JpaRepository<ProfileClaimAuditLog, Long> {
     List<ProfileClaimAuditLog> findByProfileIdOrderByCreatedAtDesc(Long profileId);
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByProfileId(Long profileId);
 }

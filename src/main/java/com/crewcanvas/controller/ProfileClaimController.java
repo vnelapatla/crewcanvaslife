@@ -216,4 +216,28 @@ public class ProfileClaimController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Claim failed: " + e.getMessage()));
         }
     }
+
+    /**
+     * Admin: Delete unclaimed / unverified profile and wipe from database.
+     */
+    @DeleteMapping("/api/admin/profile-claims/{profileId}")
+    public ResponseEntity<?> deleteUnclaimedProfile(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long profileId) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required.");
+        }
+        if (!principal.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Admin privileges required.");
+        }
+
+        try {
+            profileClaimService.deleteUnclaimedProfile(profileId, principal.getId());
+            return ResponseEntity.ok(Map.of("message", "Unclaimed profile deleted and wiped successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to delete profile: " + e.getMessage()));
+        }
+    }
 }
