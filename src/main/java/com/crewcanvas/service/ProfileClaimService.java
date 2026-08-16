@@ -111,17 +111,23 @@ public class ProfileClaimService {
 
         // Handle email / placeholder email for unclaimed profile
         String email = profileData.getEmail();
+        User user = null;
         if (email == null || email.trim().isEmpty()) {
             email = "unclaimed_" + UUID.randomUUID().toString().substring(0, 8) + "@claim.crewcanvas.internal";
+            user = new User();
         } else {
             email = email.trim().toLowerCase();
             Optional<User> existingUser = userRepository.findByEmail(email);
-            if (existingUser.isPresent() && "CLAIMED".equalsIgnoreCase(existingUser.get().getClaimStatus())) {
-                throw new IllegalArgumentException("An active claimed account with email " + email + " already exists.");
+            if (existingUser.isPresent()) {
+                User existing = existingUser.get();
+                if ("CLAIMED".equalsIgnoreCase(existing.getClaimStatus())) {
+                    throw new IllegalArgumentException("An account with email address '" + email + "' already exists in CrewCanvas.");
+                }
+                user = existing;
+            } else {
+                user = new User();
             }
         }
-
-        User user = new User();
         user.setName(profileData.getName().trim());
         user.setEmail(email);
         user.setPassword(null);
