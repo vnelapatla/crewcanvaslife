@@ -34,6 +34,11 @@ async function validateToken(token) {
             if (data.actorName) document.getElementById('actorName').innerText = data.actorName;
             if (data.role) document.getElementById('actorCraft').innerText = data.role.toUpperCase();
 
+            if (data.alreadyClaimed) {
+                const claimBtn = document.getElementById('claimBtn');
+                if (claimBtn) claimBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> ACCESS MY PROFILE`;
+            }
+
             if (data.profilePicture) {
                 const img = document.getElementById('avatarImage');
                 const icon = document.getElementById('defaultAvatarIcon');

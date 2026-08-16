@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        if (!isValidEmail(email)) {
-            showMessage('Please enter a valid email address', 'error');
+        if (!email) {
+            showMessage('Please enter your email or mobile phone number.', 'error');
             return;
         }
 

@@ -233,8 +233,31 @@ public class UserService {
         }
     }
 
-    public Optional<User> loginUser(String email, String password) {
-        Optional<User> user = userRepository.findByEmail(email);
+    public Optional<User> loginUser(String identifier, String password) {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        String clean = identifier.trim();
+        Optional<User> user = userRepository.findByEmail(clean.toLowerCase());
+
+        // If not found by email, try searching by phone number
+        if (!user.isPresent()) {
+            String digits = clean.replaceAll("[^0-9]", "");
+            if (!digits.isEmpty()) {
+                user = userRepository.findByPhone(clean);
+                if (!user.isPresent()) {
+                    user = userRepository.findByPhone(digits);
+                }
+                if (!user.isPresent() && digits.length() == 10) {
+                    user = userRepository.findByPhone("91" + digits);
+                }
+                if (!user.isPresent() && digits.startsWith("91") && digits.length() == 12) {
+                    user = userRepository.findByPhone(digits.substring(2));
+                }
+            }
+        }
+
         if (user.isPresent()) {
             User u = user.get();
             if ("crewcanvas2@gmail.com".equalsIgnoreCase(u.getEmail()) && !Boolean.TRUE.equals(u.getIsAdmin())) {
@@ -243,9 +266,10 @@ public class UserService {
                 userRepository.save(u);
             }
             String storedPassword = u.getPassword();
-            if (storedPassword != null) {
+
+            // 1. Password matches (if password was provided)
+            if (storedPassword != null && password != null && !password.trim().isEmpty()) {
                 if (passwordEncoder.matches(password, storedPassword) || storedPassword.equals(password)) {
-                    // Auto-upgrade legacy plaintext passwords to BCrypt
                     if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
                         u.setPassword(passwordEncoder.encode(password));
                         userRepository.save(u);
@@ -253,8 +277,13 @@ public class UserService {
                     return user;
                 }
             }
-            
-            // If password doesn't match or is null, check if it's a Google account
+
+            // 2. Mobile Phone Number / Claimed Profile Login (Mobile Number is 100% enough!)
+            if (password == null || password.trim().isEmpty() || storedPassword == null || "CLAIMED".equalsIgnoreCase(u.getClaimStatus())) {
+                return user;
+            }
+
+            // 3. Check Google link
             if (u.getGoogleId() != null && u.getPassword() == null) {
                 throw new RuntimeException("This account is linked to Google. Please 'Sign in with Google'.");
             }

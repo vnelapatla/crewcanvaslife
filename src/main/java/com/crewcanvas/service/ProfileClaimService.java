@@ -283,9 +283,14 @@ public class ProfileClaimService {
                 .orElseThrow(() -> new IllegalArgumentException("Associated profile no longer exists."));
 
         if ("CLAIMED".equalsIgnoreCase(profile.getClaimStatus())) {
-            invitation.setStatus("CLAIMED");
-            invitationRepository.save(invitation);
-            throw new IllegalStateException("This profile has already been claimed.");
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", true);
+            response.put("alreadyClaimed", true);
+            response.put("profileId", profile.getId());
+            response.put("actorName", profile.getName());
+            response.put("role", profile.getRole());
+            response.put("profilePicture", profile.getProfilePicture());
+            return response;
         }
 
         // Record opened timestamp if not previously recorded
@@ -340,7 +345,18 @@ public class ProfileClaimService {
         if ("CLAIMED".equalsIgnoreCase(profile.getClaimStatus())) {
             invitation.setStatus("CLAIMED");
             invitationRepository.save(invitation);
-            throw new IllegalStateException("This profile has already been claimed.");
+            String jwt = tokenProvider.generateToken(
+                    profile.getEmail(),
+                    profile.getId(),
+                    profile.getName(),
+                    Boolean.TRUE.equals(profile.getIsAdmin()));
+            profile.setToken(jwt);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("token", jwt);
+            response.put("user", profile);
+            response.put("profileUrl", "edit-profile.html");
+            return response;
         }
 
         // Check duplicate account by phone/email if provided

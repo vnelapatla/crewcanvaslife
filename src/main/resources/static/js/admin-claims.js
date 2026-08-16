@@ -359,11 +359,10 @@ async function submitInlineUnclaimedProfile() {
 
 function formatClaimLink(rawLink) {
     if (!rawLink) return rawLink;
-    let updated = rawLink.replace(/krewcanvas\.in/gi, 'crewcanvas.in').replace(/krewcanvas/gi, 'crewcanvas');
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return updated.replace(/https?:\/\/[^\/]+/, window.location.origin);
+    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+        return rawLink.replace(/https?:\/\/[^\/]+/, window.location.origin);
     }
-    return updated;
+    return rawLink;
 }
 
 async function generateAndCopyClaimLink(profileId, phone) {
