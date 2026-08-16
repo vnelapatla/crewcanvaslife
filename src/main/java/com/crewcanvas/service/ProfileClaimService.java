@@ -33,6 +33,9 @@ public class ProfileClaimService {
     private UserRepository userRepository;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
     @org.springframework.context.annotation.Lazy
     private UserService userService;
 
