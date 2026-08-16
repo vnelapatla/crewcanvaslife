@@ -56,16 +56,13 @@ async function executeClaim() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = `<div class="spinner"></div> Claiming Profile...`;
 
-    const passwordEl = document.getElementById('claimPassword');
-    const password = passwordEl ? passwordEl.value : '';
-
     try {
         const response = await fetch(`/api/claim/${currentToken}/complete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ password: password })
+            body: JSON.stringify({})
         });
 
         const data = await response.json();
