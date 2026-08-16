@@ -14,6 +14,7 @@ import java.util.Map;
 
 @SpringBootTest
 @Transactional
+@org.springframework.test.context.ActiveProfiles("test")
 public class ProfileClaimServiceTest {
 
     @Autowired
