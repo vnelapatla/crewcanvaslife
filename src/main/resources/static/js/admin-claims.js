@@ -106,14 +106,112 @@ function renderClaimTable(profiles) {
     }).join('');
 }
 
-async function openCreateUnclaimedModal() {
+let adminMovieProjects = [];
+
+function openCreateUnclaimedModal() {
     const modal = document.getElementById('createUnclaimedModal');
     if (modal) modal.style.display = 'flex';
+    handleAdminRoleChange();
 }
 
 function closeCreateUnclaimedModal() {
     const modal = document.getElementById('createUnclaimedModal');
     if (modal) modal.style.display = 'none';
+    adminMovieProjects = [];
+    renderAdminProjectsList();
+}
+
+function handleAdminRoleChange() {
+    const roleSelect = document.getElementById('unclaimedRole');
+    if (!roleSelect) return;
+    const selectedRole = roleSelect.value;
+
+    document.querySelectorAll('.admin-craft-module').forEach(el => el.style.display = 'none');
+
+    if (selectedRole === 'Actor' || selectedRole === 'Model' || selectedRole === 'Dubbing Artist') {
+        if (document.getElementById('adminModuleActor')) document.getElementById('adminModuleActor').style.display = 'block';
+    } else if (selectedRole === 'Director' || selectedRole === 'Assistant Director' || selectedRole === 'Producer' || selectedRole === 'Script Writer') {
+        if (document.getElementById('adminModuleDirector')) document.getElementById('adminModuleDirector').style.display = 'block';
+    } else if (selectedRole === 'DOP' || selectedRole === 'Still Photographer') {
+        if (document.getElementById('adminModuleDOP')) document.getElementById('adminModuleDOP').style.display = 'block';
+    } else if (selectedRole === 'Editor' || selectedRole === 'VFX Artist' || selectedRole === 'Colorist') {
+        if (document.getElementById('adminModuleEditor')) document.getElementById('adminModuleEditor').style.display = 'block';
+    } else if (selectedRole === 'Music Director' || selectedRole === 'Sound Designer' || selectedRole === 'Playback Singer' || selectedRole === 'Lyricist') {
+        if (document.getElementById('adminModuleMusic')) document.getElementById('adminModuleMusic').style.display = 'block';
+    } else {
+        if (document.getElementById('adminModuleActor')) document.getElementById('adminModuleActor').style.display = 'block';
+    }
+}
+
+function clearAdminMediaField(inputId, statusId) {
+    const input = document.getElementById(inputId);
+    if (input) input.value = '';
+    const status = document.getElementById(statusId);
+    if (status) status.innerHTML = '';
+}
+
+function addAdminMovieProject() {
+    const titleEl = document.getElementById('adminProjTitle');
+    const yearEl = document.getElementById('adminProjYear');
+    const roleEl = document.getElementById('adminProjRole');
+    const linkEl = document.getElementById('adminProjLink');
+    const posterEl = document.getElementById('adminProjPoster');
+    const aboutEl = document.getElementById('adminProjAbout');
+
+    const title = titleEl ? titleEl.value.trim() : '';
+    if (!title) {
+        alert("Please enter movie project title.");
+        return;
+    }
+
+    const proj = {
+        title: title,
+        year: yearEl && yearEl.value ? parseInt(yearEl.value) : null,
+        role: roleEl ? roleEl.value.trim() : '',
+        videoUrl: linkEl ? linkEl.value.trim() : '',
+        imageUrl: posterEl ? posterEl.value.trim() : '',
+        description: aboutEl ? aboutEl.value.trim() : ''
+    };
+
+    adminMovieProjects.push(proj);
+    renderAdminProjectsList();
+
+    if (titleEl) titleEl.value = '';
+    if (yearEl) yearEl.value = '';
+    if (roleEl) roleEl.value = '';
+    if (linkEl) linkEl.value = '';
+    if (posterEl) posterEl.value = '';
+    if (aboutEl) aboutEl.value = '';
+    clearAdminMediaField('adminProjPoster', 'adminProjPosterStatus');
+}
+
+function removeAdminMovieProject(index) {
+    adminMovieProjects.splice(index, 1);
+    renderAdminProjectsList();
+}
+
+function renderAdminProjectsList() {
+    const container = document.getElementById('adminProjectsListContainer');
+    if (!container) return;
+
+    if (adminMovieProjects.length === 0) {
+        container.innerHTML = `<span style="font-size: 11px; color: #94a3b8; font-style: italic;">No filmography projects added yet.</span>`;
+        return;
+    }
+
+    let html = '';
+    adminMovieProjects.forEach((p, i) => {
+        html += `
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+                <div>
+                    <strong style="color: #0f172a;">${p.title}</strong> ${p.year ? `(${p.year})` : ''} 
+                    <span style="color: #ff8c00; font-weight: 600;">• ${p.role || 'Contributor'}</span>
+                </div>
+                <button type="button" onclick="removeAdminMovieProject(${i})" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-weight: 700; font-size: 11px;">✕ Remove</button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
 }
 
 async function submitUnclaimedProfile() {
@@ -142,8 +240,16 @@ async function submitUnclaimedProfile() {
 
     const cameraExpertise = getValue('unclaimedCameraExpertise');
     const editingSoftware = getValue('unclaimedEditingSoftware');
+    const editingStyle = getValue('unclaimedEditingStyle');
+    const turnaroundTime = getValue('unclaimedTurnaroundTime');
     const daws = getValue('unclaimedDaws');
+    const instruments = getValue('unclaimedInstruments');
+    const sampleTracks = getValue('unclaimedSampleTracks');
     const genres = getValue('unclaimedGenres');
+    const projectsDirected = getValue('unclaimedProjectsDirected');
+    const budgetHandled = getValue('unclaimedBudgetHandled');
+    const visionStatement = getValue('unclaimedVisionStatement');
+
     const skills = getValue('unclaimedSkills');
     const bio = getValue('unclaimedBio');
 
@@ -173,14 +279,27 @@ async function submitUnclaimedProfile() {
                 name, role, phone, email, location, bio,
                 profilePicture, resume, showreel, userType, experience,
                 height, weight, ageRange, gender, bodyType, languages,
-                cameraExpertise, editingSoftware, daws, genres, skills,
-                recentPictures, portfolioVideos,
+                cameraExpertise, editingSoftware, editingStyle, turnaroundTime,
+                daws, instruments, sampleTracks, genres, projectsDirected, budgetHandled, visionStatement,
+                skills, recentPictures, portfolioVideos,
                 instagram, youtube, tiktok, twitter,
-                expectedMovieRemuneration, expectedWebseriesRemuneration
+                expectedMovieRemuneration, expectedWebseriesRemuneration,
+                projects: adminMovieProjects
             })
         });
 
-        const data = await res.json();
+        const resText = await res.text();
+        let data;
+        try {
+            data = JSON.parse(resText);
+        } catch (jsonErr) {
+            if (!res.ok) {
+                alert("Server Error (" + res.status + "). Please ensure image file sizes are compressed.");
+                return;
+            }
+            data = { message: resText };
+        }
+
         if (res.ok) {
             const finalLink = formatClaimLink(data.claimLink);
             alert("✨ Success! 100% Full Unclaimed Profile created.\n\nClaim Link Generated:\n" + finalLink);
@@ -188,7 +307,7 @@ async function submitUnclaimedProfile() {
             fetchClaimMetrics();
             fetchClaimProfiles();
         } else {
-            alert("Error: " + (data.message || data));
+            alert("Error: " + (data.message || resText));
         }
     } catch (e) {
         alert("Failed to create profile: " + e);
@@ -325,25 +444,60 @@ async function viewClaimActivity(profileId, name) {
     }
 }
 
-/* Device File Upload Handlers (Photos, Resume, Videos) */
+/* Device File Upload Handlers with Automatic Image Compression (Photos, Resume, Videos) */
+function compressImageBeforeBase64(file, callback) {
+    if (!file || !file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => callback(e.target.result);
+        reader.readAsDataURL(file);
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1200;
+
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+            callback(compressedBase64);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 function handleAdminDeviceFileUpload(fileInput, targetInputId, statusId) {
     const file = fileInput.files[0];
     if (!file) return;
 
     const statusEl = document.getElementById(statusId);
-    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading ${file.name}...`;
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing ${file.name}...`;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById(targetInputId).value = e.target.result;
+    compressImageBeforeBase64(file, function(base64Result) {
+        document.getElementById(targetInputId).value = base64Result;
         if (statusEl) {
-            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Uploaded & Optimized: ${file.name}`;
         }
-    };
-    reader.onerror = function() {
-        if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444;">Failed to read file.</span>`;
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 function handleAdminMultipleGalleryFiles(fileInput, targetInputId, statusId) {
@@ -351,15 +505,14 @@ function handleAdminMultipleGalleryFiles(fileInput, targetInputId, statusId) {
     if (files.length === 0) return;
 
     const statusEl = document.getElementById(statusId);
-    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading ${files.length} photo(s)...`;
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing ${files.length} photo(s)...`;
 
     let readResults = [];
     let count = 0;
 
     files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            readResults[index] = e.target.result;
+        compressImageBeforeBase64(file, function(base64Result) {
+            readResults[index] = base64Result;
             count++;
             if (count === files.length) {
                 const targetInput = document.getElementById(targetInputId);
@@ -367,11 +520,10 @@ function handleAdminMultipleGalleryFiles(fileInput, targetInputId, statusId) {
                 const combined = readResults.join(', ');
                 targetInput.value = existing ? (existing + ', ' + combined) : combined;
                 if (statusEl) {
-                    statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Added ${files.length} photo(s) from device!`;
+                    statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Added ${files.length} optimized photo(s) from device!`;
                 }
             }
-        };
-        reader.readAsDataURL(file);
+        });
     });
 }
 

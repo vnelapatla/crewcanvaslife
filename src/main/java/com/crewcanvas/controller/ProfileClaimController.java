@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class ProfileClaimController {
     @PostMapping("/api/admin/profile-claims/create")
     public ResponseEntity<?> createUnclaimedProfile(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestBody User profileData) {
+            @RequestBody Map<String, Object> payload) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required.");
         }
@@ -35,7 +36,21 @@ public class ProfileClaimController {
         }
 
         try {
-            Map<String, Object> result = profileClaimService.createUnclaimedProfile(profileData, principal.getId());
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            User profileData = mapper.convertValue(payload, User.class);
+            List<com.crewcanvas.model.Project> projects = new ArrayList<>();
+            if (payload.containsKey("projects") && payload.get("projects") instanceof List) {
+                List<?> projList = (List<?>) payload.get("projects");
+                for (Object item : projList) {
+                    com.crewcanvas.model.Project proj = mapper.convertValue(item, com.crewcanvas.model.Project.class);
+                    projects.add(proj);
+                }
+            }
+
+            Map<String, Object> result = profileClaimService.createUnclaimedProfile(profileData, projects, principal.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

@@ -3,9 +3,11 @@ package com.crewcanvas.service;
 import com.crewcanvas.config.JwtTokenProvider;
 import com.crewcanvas.model.ProfileClaimAuditLog;
 import com.crewcanvas.model.ProfileClaimInvitation;
+import com.crewcanvas.model.Project;
 import com.crewcanvas.model.User;
 import com.crewcanvas.repository.ProfileClaimAuditLogRepository;
 import com.crewcanvas.repository.ProfileClaimInvitationRepository;
+import com.crewcanvas.repository.ProjectRepository;
 import com.crewcanvas.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +93,17 @@ public class ProfileClaimService {
     }
 
     /**
-     * Admin creates an unclaimed professional actor profile.
+     * Creates an unclaimed profile with complete initial profile details and optional filmography projects.
      */
     @Transactional
     public Map<String, Object> createUnclaimedProfile(User profileData, Long adminId) {
-        if (profileData.getName() == null || profileData.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Actor name is required to create a profile.");
+        return createUnclaimedProfile(profileData, null, adminId);
+    }
+
+    @Transactional
+    public Map<String, Object> createUnclaimedProfile(User profileData, List<Project> projects, Long adminId) {
+        if (profileData == null || profileData.getName() == null || profileData.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Actor name is required.");
         }
 
         // Handle email / placeholder email for unclaimed profile
@@ -154,6 +161,15 @@ public class ProfileClaimService {
         user.setIsVerifiedProfessional(Boolean.TRUE.equals(profileData.getIsVerifiedProfessional()));
 
         User savedUser = userRepository.save(user);
+
+        if (projects != null && !projects.isEmpty()) {
+            for (Project proj : projects) {
+                if (proj != null && proj.getTitle() != null && !proj.getTitle().trim().isEmpty()) {
+                    proj.setUserId(savedUser.getId());
+                    projectRepository.save(proj);
+                }
+            }
+        }
 
         // Record audit log
         auditLogRepository.save(new ProfileClaimAuditLog(

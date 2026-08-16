@@ -887,7 +887,7 @@
                         </div>
                         <div>
                             <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Primary Craft / Role</label>
-                            <select id="unclaimedRole" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <select id="unclaimedRole" onchange="handleAdminRoleChange()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
                                 <option value="Actor">Actor</option>
                                 <option value="Director">Director</option>
                                 <option value="DOP">DOP (Cinematographer)</option>
@@ -927,6 +927,7 @@
                                 <button type="button" onclick="document.getElementById('unclaimedPicFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
+                                <button type="button" onclick="clearAdminMediaField('unclaimedProfilePicture', 'picFileStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 800;" title="Remove Photo">✕</button>
                                 <input type="file" id="unclaimedPicFileInput" style="display: none;" accept="image/*" onchange="handleAdminDeviceFileUpload(this, 'unclaimedProfilePicture', 'picFileStatus')">
                             </div>
                             <small id="picFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
@@ -938,6 +939,7 @@
                                 <button type="button" onclick="document.getElementById('unclaimedResumeFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
                                     <i class="fas fa-file-pdf"></i> Upload
                                 </button>
+                                <button type="button" onclick="clearAdminMediaField('unclaimedResume', 'resumeFileStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 800;" title="Remove Resume">✕</button>
                                 <input type="file" id="unclaimedResumeFileInput" style="display: none;" accept=".pdf,image/*,.doc,.docx" onchange="handleAdminDeviceFileUpload(this, 'unclaimedResume', 'resumeFileStatus')">
                             </div>
                             <small id="resumeFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
@@ -949,6 +951,7 @@
                                 <button type="button" onclick="document.getElementById('unclaimedShowreelFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
                                     <i class="fas fa-video"></i> Upload
                                 </button>
+                                <button type="button" onclick="clearAdminMediaField('unclaimedShowreel', 'showreelFileStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 800;" title="Remove Video">✕</button>
                                 <input type="file" id="unclaimedShowreelFileInput" style="display: none;" accept="video/*" onchange="handleAdminDeviceFileUpload(this, 'unclaimedShowreel', 'showreelFileStatus')">
                             </div>
                             <small id="showreelFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
@@ -982,62 +985,54 @@
                         </div>
                     </div>
 
-                    <!-- Physical Demographics (Actors / Talent) -->
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
-                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Physical Demographics (Actors / Talent)</span>
+                    <!-- Craft Specific Modules (Dynamically toggled based on Craft / Role) -->
+                    <div id="adminModuleActor" class="admin-craft-module" style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #ff8c00; text-transform: uppercase; display: block; margin-bottom: 8px;"><i class="fas fa-user-ninja"></i> Actor / Talent Physical Specs</span>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Height (cm)</label>
-                                <input type="text" id="unclaimedHeight" placeholder="e.g. 178" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Weight (kg)</label>
-                                <input type="text" id="unclaimedWeight" placeholder="e.g. 72" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Age Range</label>
-                                <input type="text" id="unclaimedAgeRange" placeholder="e.g. 24-28" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
+                            <div><label style="font-size: 11px; color: #64748b;">Height (cm)</label><input type="text" id="unclaimedHeight" placeholder="e.g. 178" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Weight (kg)</label><input type="text" id="unclaimedWeight" placeholder="e.g. 72" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Age Range</label><input type="text" id="unclaimedAgeRange" placeholder="e.g. 24-28" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
                             <div>
                                 <label style="font-size: 11px; color: #64748b;">Gender</label>
                                 <select id="unclaimedGender" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                                    <option value="">Select</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
                                 </select>
                             </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Body Type</label>
-                                <input type="text" id="unclaimedBodyType" placeholder="e.g. Athletic" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Languages</label>
-                                <input type="text" id="unclaimedLanguages" placeholder="Telugu, Eng" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
+                            <div><label style="font-size: 11px; color: #64748b;">Body Type</label><input type="text" id="unclaimedBodyType" placeholder="e.g. Athletic" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Languages</label><input type="text" id="unclaimedLanguages" placeholder="Telugu, Eng" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
                         </div>
                     </div>
 
-                    <!-- Craft Technical Specifics -->
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
-                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Craft Technical Specifics (DOP / Editor / Music / Director)</span>
+                    <div id="adminModuleDirector" class="admin-craft-module" style="display:none; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #ff8c00; text-transform: uppercase; display: block; margin-bottom: 8px;"><i class="fas fa-video"></i> Director Craft Specs</span>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Camera Expertise (DOP)</label>
-                                <input type="text" id="unclaimedCameraExpertise" placeholder="e.g. ARRI, RED, Sony FX6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Editing Software (Editor)</label>
-                                <input type="text" id="unclaimedEditingSoftware" placeholder="e.g. Premiere, DaVinci" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">DAWs / Instruments (Music)</label>
-                                <input type="text" id="unclaimedDaws" placeholder="e.g. Logic Pro, FL Studio" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 11px; color: #64748b;">Genres (Director)</label>
-                                <input type="text" id="unclaimedGenres" placeholder="e.g. Action, Thriller" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
+                            <div><label style="font-size: 11px; color: #64748b;">Genres</label><input type="text" id="unclaimedGenres" placeholder="e.g. Thriller, Drama" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Projects Directed</label><input type="text" id="unclaimedProjectsDirected" placeholder="e.g. 2 Feature Films" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Budget Handled</label><input type="text" id="unclaimedBudgetHandled" placeholder="e.g. ₹2 Cr" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Vision Statement</label><input type="text" id="unclaimedVisionStatement" placeholder="Directional vision..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                        </div>
+                    </div>
+
+                    <div id="adminModuleDOP" class="admin-craft-module" style="display:none; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #ff8c00; text-transform: uppercase; display: block; margin-bottom: 8px;"><i class="fas fa-camera-retro"></i> DOP Cinematographer Specs</span>
+                        <div><label style="font-size: 11px; color: #64748b;">Camera & Lens Expertise</label><input type="text" id="unclaimedCameraExpertise" placeholder="e.g. ARRI Alexa, RED V-Raptor, Sony FX6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                    </div>
+
+                    <div id="adminModuleEditor" class="admin-craft-module" style="display:none; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #ff8c00; text-transform: uppercase; display: block; margin-bottom: 8px;"><i class="fas fa-cut"></i> Editor Craft Specs</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                            <div><label style="font-size: 11px; color: #64748b;">Editing Software</label><input type="text" id="unclaimedEditingSoftware" placeholder="Premiere, DaVinci, FCP" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Editing Style</label><input type="text" id="unclaimedEditingStyle" placeholder="Narrative, Fast-paced" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Turnaround Time</label><input type="text" id="unclaimedTurnaroundTime" placeholder="e.g. 3 Days" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                        </div>
+                    </div>
+
+                    <div id="adminModuleMusic" class="admin-craft-module" style="display:none; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #ff8c00; text-transform: uppercase; display: block; margin-bottom: 8px;"><i class="fas fa-music"></i> Music & Sound Specs</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                            <div><label style="font-size: 11px; color: #64748b;">DAWs</label><input type="text" id="unclaimedDaws" placeholder="Logic Pro, FL Studio, ProTools" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Instruments</label><input type="text" id="unclaimedInstruments" placeholder="Guitar, Keyboards" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
+                            <div><label style="font-size: 11px; color: #64748b;">Sample Tracks Link</label><input type="text" id="unclaimedSampleTracks" placeholder="SoundCloud / Spotify Link" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></div>
                         </div>
                     </div>
 
@@ -1065,6 +1060,7 @@
                                 <button type="button" onclick="document.getElementById('unclaimedGalleryFilesInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
                                     <i class="fas fa-images"></i> Upload Photos
                                 </button>
+                                <button type="button" onclick="clearAdminMediaField('unclaimedRecentPictures', 'galleryFileStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 800;" title="Remove Photos">✕</button>
                                 <input type="file" id="unclaimedGalleryFilesInput" style="display: none;" accept="image/*" multiple onchange="handleAdminMultipleGalleryFiles(this, 'unclaimedRecentPictures', 'galleryFileStatus')">
                             </div>
                             <small id="galleryFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
@@ -1076,10 +1072,64 @@
                                 <button type="button" onclick="document.getElementById('unclaimedPortfolioVideoFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
                                     <i class="fas fa-film"></i> Upload Videos
                                 </button>
+                                <button type="button" onclick="clearAdminMediaField('unclaimedPortfolioVideos', 'portfolioVideoFileStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 800;" title="Remove Videos">✕</button>
                                 <input type="file" id="unclaimedPortfolioVideoFileInput" style="display: none;" accept="video/*" multiple onchange="handleAdminMultipleVideoFiles(this, 'unclaimedPortfolioVideos', 'portfolioVideoFileStatus')">
                             </div>
                             <small id="portfolioVideoFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Section 03.5: Movie Projects & Filmography -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fas fa-film"></i> Movie Projects & Filmography</span>
+                        <span style="font-size: 11px; color: #64748b; font-weight: 600;">(Optional)</span>
+                    </div>
+
+                    <!-- Added Projects List -->
+                    <div id="adminProjectsListContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
+
+                    <!-- Add Project Form -->
+                    <div style="background: white; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 14px;">
+                        <span style="font-size: 12px; font-weight: 800; color: #334155; display: block; margin-bottom: 8px;">+ Add Filmography Project</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px;">
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Movie Title *</label>
+                                <input type="text" id="adminProjTitle" placeholder="e.g. Project K" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Release Year</label>
+                                <input type="number" id="adminProjYear" placeholder="2024" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Role in Project</label>
+                                <input type="text" id="adminProjRole" placeholder="e.g. Lead Actor / DOP" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Trailer / Video Link</label>
+                                <input type="text" id="adminProjLink" placeholder="YouTube/Vimeo Link" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: #64748b;">Movie Poster (Upload / URL)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="adminProjPoster" placeholder="Poster image link or upload..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                                <button type="button" onclick="document.getElementById('adminProjPosterFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 11px;">
+                                    <i class="fas fa-image"></i> Poster File
+                                </button>
+                                <button type="button" onclick="clearAdminMediaField('adminProjPoster', 'adminProjPosterStatus')" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 800;">✕</button>
+                                <input type="file" id="adminProjPosterFileInput" style="display: none;" accept="image/*" onchange="handleAdminDeviceFileUpload(this, 'adminProjPoster', 'adminProjPosterStatus')">
+                            </div>
+                            <small id="adminProjPosterStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: #64748b;">About Project</label>
+                            <textarea id="adminProjAbout" placeholder="Brief details about contribution..." style="width: 100%; height: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;"></textarea>
+                        </div>
+                        <button type="button" onclick="addAdminMovieProject()" style="background: #0f172a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-plus"></i> Add Project to List
+                        </button>
                     </div>
                 </div>
 
