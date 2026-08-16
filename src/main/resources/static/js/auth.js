@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        if (!email) {
-            showMessage('Please enter your email or mobile phone number.', 'error');
+        if (!email || !password) {
+            showMessage('Please enter both your login identifier and password.', 'error');
             return;
         }
 

@@ -290,8 +290,7 @@ public class UserService {
                 userRepository.save(u);
             }
             String storedPassword = u.getPassword();
-
-            // 1. Password matches (if password was provided)
+            // Enforce password verification for security
             if (storedPassword != null && password != null && !password.trim().isEmpty()) {
                 if (passwordEncoder.matches(password, storedPassword) || storedPassword.equals(password)) {
                     if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
@@ -302,12 +301,7 @@ public class UserService {
                 }
             }
 
-            // 2. Mobile Phone Number / Claimed Profile Login (Mobile Number is 100% enough!)
-            if (password == null || password.trim().isEmpty() || storedPassword == null || "CLAIMED".equalsIgnoreCase(u.getClaimStatus())) {
-                return user;
-            }
-
-            // 3. Check Google link
+            // Check Google link
             if (u.getGoogleId() != null && u.getPassword() == null) {
                 throw new RuntimeException("This account is linked to Google. Please 'Sign in with Google'.");
             }
