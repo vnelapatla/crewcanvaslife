@@ -324,3 +324,85 @@ async function viewClaimActivity(profileId, name) {
         alert("Error fetching audit logs.");
     }
 }
+
+/* Device File Upload Handlers (Photos, Resume, Videos) */
+function handleAdminDeviceFileUpload(fileInput, targetInputId, statusId) {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading ${file.name}...`;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById(targetInputId).value = e.target.result;
+        if (statusEl) {
+            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+        }
+    };
+    reader.onerror = function() {
+        if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444;">Failed to read file.</span>`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleAdminMultipleGalleryFiles(fileInput, targetInputId, statusId) {
+    const files = Array.from(fileInput.files);
+    if (files.length === 0) return;
+
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading ${files.length} photo(s)...`;
+
+    let readResults = [];
+    let count = 0;
+
+    files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            readResults[index] = e.target.result;
+            count++;
+            if (count === files.length) {
+                const targetInput = document.getElementById(targetInputId);
+                const existing = targetInput.value.trim();
+                const combined = readResults.join(', ');
+                targetInput.value = existing ? (existing + ', ' + combined) : combined;
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Added ${files.length} photo(s) from device!`;
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function handleAdminMultipleVideoFiles(fileInput, targetInputId, statusId) {
+    const files = Array.from(fileInput.files);
+    if (files.length === 0) return;
+
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading ${files.length} video(s)...`;
+
+    let readResults = [];
+    let count = 0;
+
+    files.forEach((file, index) => {
+        if (file.size > 50 * 1024 * 1024) {
+            alert(`File ${file.name} exceeds 50MB limit.`);
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            readResults[index] = e.target.result;
+            count++;
+            if (count === files.length) {
+                const targetInput = document.getElementById(targetInputId);
+                const existing = targetInput.value.trim();
+                const combined = readResults.join(', ');
+                targetInput.value = existing ? (existing + ', ' + combined) : combined;
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Added ${files.length} video file(s) from device!`;
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}

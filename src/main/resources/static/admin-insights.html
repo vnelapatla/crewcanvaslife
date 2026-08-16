@@ -921,16 +921,37 @@
                             <input type="text" id="unclaimedLocation" placeholder="e.g. Hyderabad, India" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
                         </div>
                         <div>
-                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Profile Picture Link</label>
-                            <input type="text" id="unclaimedProfilePicture" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Profile Picture (Upload / URL)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="unclaimedProfilePicture" placeholder="Paste link or upload..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <button type="button" onclick="document.getElementById('unclaimedPicFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
+                                    <i class="fas fa-upload"></i> Upload
+                                </button>
+                                <input type="file" id="unclaimedPicFileInput" style="display: none;" accept="image/*" onchange="handleAdminDeviceFileUpload(this, 'unclaimedProfilePicture', 'picFileStatus')">
+                            </div>
+                            <small id="picFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
                         <div>
-                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Resume / CV Link (PDF/URL)</label>
-                            <input type="text" id="unclaimedResume" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Resume / CV Document (Upload / URL)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="unclaimedResume" placeholder="Paste link or upload PDF..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <button type="button" onclick="document.getElementById('unclaimedResumeFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
+                                    <i class="fas fa-file-pdf"></i> Upload
+                                </button>
+                                <input type="file" id="unclaimedResumeFileInput" style="display: none;" accept=".pdf,image/*,.doc,.docx" onchange="handleAdminDeviceFileUpload(this, 'unclaimedResume', 'resumeFileStatus')">
+                            </div>
+                            <small id="resumeFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
                         <div>
-                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Main Showreel Video Link</label>
-                            <input type="text" id="unclaimedShowreel" placeholder="YouTube/Vimeo Link" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Main Showreel Video (Upload / Link)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="unclaimedShowreel" placeholder="YouTube link or upload video..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <button type="button" onclick="document.getElementById('unclaimedShowreelFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
+                                    <i class="fas fa-video"></i> Upload
+                                </button>
+                                <input type="file" id="unclaimedShowreelFileInput" style="display: none;" accept="video/*" onchange="handleAdminDeviceFileUpload(this, 'unclaimedShowreel', 'showreelFileStatus')">
+                            </div>
+                            <small id="showreelFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
                     </div>
                 </div>
@@ -1034,16 +1055,30 @@
                 <!-- Section 03: Professional Gallery & Multiple Video Portfolio -->
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
                     <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-photo-video"></i> 03. Professional Image Gallery & Multiple Video Links
+                        <i class="fas fa-photo-video"></i> 03. Professional Image Gallery & Multiple Video Portfolio (Upload / Links)
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div>
-                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Professional Gallery Image URLs (Comma Separated)</label>
-                            <input type="text" id="unclaimedRecentPictures" placeholder="https://img1.jpg, https://img2.jpg, https://img3.jpg" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Professional Gallery Photos (Upload Multiple / URLs)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="unclaimedRecentPictures" placeholder="Paste image links or upload multiple photos from device..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <button type="button" onclick="document.getElementById('unclaimedGalleryFilesInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
+                                    <i class="fas fa-images"></i> Upload Photos
+                                </button>
+                                <input type="file" id="unclaimedGalleryFilesInput" style="display: none;" accept="image/*" multiple onchange="handleAdminMultipleGalleryFiles(this, 'unclaimedRecentPictures', 'galleryFileStatus')">
+                            </div>
+                            <small id="galleryFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
                         <div>
-                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Multiple Portfolio Video URLs (YouTube/Vimeo Comma Separated)</label>
-                            <input type="text" id="unclaimedPortfolioVideos" placeholder="https://youtube.com/watch?v=vid1, https://vimeo.com/vid2" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Multiple Portfolio Video Files / Links (Upload Videos / YouTube Links)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="unclaimedPortfolioVideos" placeholder="Paste YouTube links or upload multiple video files..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <button type="button" onclick="document.getElementById('unclaimedPortfolioVideoFileInput').click()" style="background: white; border: 1px solid #ff8c00; color: #ff8c00; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;">
+                                    <i class="fas fa-film"></i> Upload Videos
+                                </button>
+                                <input type="file" id="unclaimedPortfolioVideoFileInput" style="display: none;" accept="video/*" multiple onchange="handleAdminMultipleVideoFiles(this, 'unclaimedPortfolioVideos', 'portfolioVideoFileStatus')">
+                            </div>
+                            <small id="portfolioVideoFileStatus" style="font-size: 11px; color: #16a34a; margin-top: 2px; display: block;"></small>
                         </div>
                     </div>
                 </div>
