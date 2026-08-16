@@ -408,10 +408,10 @@ async function sendWhatsAppClaim(profileId, name, phone) {
             const finalLink = formatClaimLink(data.claimLink);
 
             let msg = `Hi ${name}!\n\n`;
-            msg += `We have created your official professional profile on CrewCanvas.\n\n`;
+            msg += `We have created your official professional profile.\n\n`;
             msg += `Click the link below to take 1-click control of your profile:\n`;
             msg += `${finalLink}\n\n`;
-            msg += `Welcome to CrewCanvas!`;
+            msg += `Welcome!`;
 
             const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
             window.open(waUrl, '_blank');
