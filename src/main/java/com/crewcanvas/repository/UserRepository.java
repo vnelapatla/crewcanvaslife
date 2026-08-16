@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByGoogleId(String googleId);
+    List<User> findByClaimStatus(String claimStatus);
+    long countByClaimStatus(String claimStatus);
 
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT u FROM User u WHERE " +

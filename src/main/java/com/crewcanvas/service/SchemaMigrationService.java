@@ -98,6 +98,49 @@ public class SchemaMigrationService {
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ") ENGINE=InnoDB;");
 
+            // Ensure profile_claim_invitations table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS profile_claim_invitations (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "profile_id BIGINT NOT NULL, " +
+                    "token_hash VARCHAR(128) NOT NULL, " +
+                    "phone VARCHAR(50), " +
+                    "email VARCHAR(191), " +
+                    "status VARCHAR(50) NOT NULL DEFAULT 'UNCLAIMED', " +
+                    "created_by_admin_id BIGINT, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "sent_at TIMESTAMP NULL, " +
+                    "opened_at TIMESTAMP NULL, " +
+                    "expires_at TIMESTAMP NOT NULL, " +
+                    "claimed_at TIMESTAMP NULL, " +
+                    "claimed_by_user_id BIGINT, " +
+                    "INDEX idx_claim_token_hash (token_hash), " +
+                    "INDEX idx_claim_profile_id (profile_id), " +
+                    "INDEX idx_claim_status (status)" +
+                    ") ENGINE=InnoDB;");
+
+            // Ensure profile_claim_audit_logs table exists
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS profile_claim_audit_logs (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "profile_id BIGINT NOT NULL, " +
+                    "invitation_id BIGINT, " +
+                    "event_type VARCHAR(60) NOT NULL, " +
+                    "event_details VARCHAR(1000), " +
+                    "actor_user_id BIGINT, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "INDEX idx_audit_profile_id (profile_id), " +
+                    "INDEX idx_audit_event_type (event_type)" +
+                    ") ENGINE=InnoDB;");
+
+            // Check if claim_status column exists in users table
+            try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN claim_status VARCHAR(50) DEFAULT 'CLAIMED';");
+                System.out.println("Added claim_status column to users table.");
+            } catch (Exception e) {
+                if (!e.getMessage().contains("Duplicate column name")) {
+                    System.err.println("Note adding claim_status: " + e.getMessage());
+                }
+            }
+
             // Update official user name to KrewCanvas Official
             try {
                 jdbcTemplate.execute("UPDATE users SET name = 'KrewCanvas Official' WHERE email = 'crewcanvas2@gmail.com' OR name = 'CrewCanvas Official';");
@@ -107,7 +150,7 @@ public class SchemaMigrationService {
                 System.err.println("Branding migration note: " + e.getMessage());
             }
 
-            System.out.println("Database schema verified for groups, polls, and connections.");
+            System.out.println("Database schema verified for groups, polls, connections, and profile claim features.");
         } catch (Exception e) {
             System.err.println("Migration warning: " + e.getMessage());
         }

@@ -41,6 +41,9 @@ public class User {
     @Column(name = "is_admin")
     private Boolean isAdmin = false;
 
+    @Column(name = "claim_status")
+    private String claimStatus = "CLAIMED";
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 
@@ -443,4 +446,7 @@ public class User {
         
         return Math.min(score, 100);
     }
+
+    public String getClaimStatus() { return claimStatus; }
+    public void setClaimStatus(String claimStatus) { this.claimStatus = claimStatus; }
 }

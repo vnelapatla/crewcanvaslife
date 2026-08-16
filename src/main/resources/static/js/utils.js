@@ -284,9 +284,15 @@ function getCurrentUserEmail() {
 
 // Get current user admin status
 function getCurrentUserIsAdmin() {
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    const isHardcodedAdmin = getCurrentUserEmail() === 'crewcanvas2@gmail.com';
-    return isAdmin || isHardcodedAdmin;
+    const isAdmin = localStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === true;
+    let isUserAdmin = false;
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        isUserAdmin = currentUser && (currentUser.isAdmin === true || currentUser.isAdmin === 'true');
+    } catch (e) {}
+    const email = getCurrentUserEmail();
+    const isHardcodedAdmin = email === 'crewcanvas2@gmail.com';
+    return Boolean(isAdmin || isUserAdmin || isHardcodedAdmin);
 }
 
 // Fetch user profile by ID (Cached)

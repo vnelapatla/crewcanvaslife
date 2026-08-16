@@ -14,4 +14,4 @@ Disallow: /messages.html
 Disallow: /notifications.html
 Disallow: /api/
 
-Sitemap: https://krewcanvas.in/sitemap.xml
+Sitemap: https://crewcanvas.in/sitemap.xml

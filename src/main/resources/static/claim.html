@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Your Profile | CrewCanvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --secondary-orange: #ff4c3b;
+            --bg-dark: #0f172a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .claim-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            max-width: 460px;
+            width: 100%;
+            padding: 35px 30px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .brand-logo img {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+        }
+        .brand-logo span {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .avatar-box {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 25px rgba(255, 140, 0, 0.3);
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-box i {
+            font-size: 36px;
+            color: #ffffff;
+        }
+        .actor-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 6px;
+        }
+        .actor-craft {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        .welcome-msg {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .btn-claim {
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary-orange), var(--primary-orange));
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 140, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-claim:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(255, 140, 0, 0.45);
+        }
+        .btn-claim:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-card {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #fca5a5;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="claim-card">
+        <div class="brand-logo">
+            <img src="images/crew_canvas_logo.png" alt="CrewCanvas" onerror="this.style.display='none'">
+            <span>CrewCanvas</span>
+        </div>
+
+        <div id="loadingState">
+            <div class="spinner" style="margin: 30px auto; width: 36px; height: 36px;"></div>
+            <p style="font-size: 14px; color: #94a3b8;">Verifying your invitation link...</p>
+        </div>
+
+        <div id="claimState" style="display: none;">
+            <div class="avatar-box" id="avatarContainer">
+                <i class="fas fa-user-tie" id="defaultAvatarIcon"></i>
+                <img id="avatarImage" src="" style="display: none;" alt="Profile Picture">
+            </div>
+
+            <h1 class="actor-name" id="actorName">Welcome Professional</h1>
+            <div class="actor-craft" id="actorCraft">Film Craft Professional</div>
+
+            <p class="welcome-msg">
+                Your professional CrewCanvas profile has been initialized by our casting team.
+                Claim complete control of your profile below.
+            </p>
+
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;"><i class="fas fa-lock" style="color: var(--primary-orange);"></i> Create Account Password (for future logins):</label>
+                <input type="password" id="claimPassword" placeholder="Set a private password..." style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(15,23,42,0.6); color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+            </div>
+
+            <button class="btn-claim" id="claimBtn" onclick="executeClaim()">
+                <i class="fas fa-magic"></i> CLAIM MY PROFILE
+            </button>
+        </div>
+
+        <div id="errorState" class="error-card">
+            <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px; display: block; color: #ef4444;"></i>
+            <span id="errorMessage">This claim link has expired or is invalid.</span>
+            <div style="margin-top: 15px;">
+                <a href="index.html" style="color: var(--primary-orange); text-decoration: none; font-weight: 700; font-size: 13px;">Return to Home Page</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/claim.js"></script>
+</body>
+</html>

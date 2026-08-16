@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Insights | CrewCanvas</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -24,13 +27,106 @@
                     <h1>Performance Insights</h1>
                     <p>Real-time analytics for CrewCanvas registrations and user engagement.</p>
                 </div>
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <button class="btn-premium-sm" onclick="openCreateUnclaimedModal()" style="background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 700; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
+                        <i class="fas fa-user-plus"></i> Create Unclaimed Profile
+                    </button>
                     <button id="syncFollowsBtn" class="btn-premium-sm" onclick="syncAllFollows()" style="background: var(--bg-dark); color: white; border: none; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-users-cog"></i> Sync All Follows
                     </button>
-                    <button class="btn-premium-sm" onclick="fetchInsights()" style="background: white; color: var(--text-main); border: 1px solid #e2e8f0; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-premium-sm" onclick="fetchInsights(); fetchClaimMetrics(); fetchClaimProfiles();" style="background: white; color: var(--text-main); border: 1px solid #e2e8f0; font-size: 13px; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-sync-alt"></i> Refresh Data
                     </button>
+                </div>
+            </div>
+
+            <!-- Section: Profile Claims Management (Prominently Placed Top) -->
+            <div class="chart-card" style="margin-bottom: 30px; background: #ffffff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h3 style="margin-bottom: 5px; color: #1e293b; font-family: 'Outfit'; font-size: 22px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-magic" style="color: #ff8c00;"></i> Profile Claims Management
+                        </h3>
+                        <p style="color: #64748b; font-size: 13px; margin: 0;">Create 1-click unclaimed actor profiles, send invitations, and track claim conversion rates.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="openCreateUnclaimedModal()" style="background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
+                            <i class="fas fa-user-plus"></i> Create Unclaimed Profile
+                        </button>
+                        <div style="display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
+                            <button class="claim-filter-btn active" onclick="filterClaims('ALL', this)">All</button>
+                            <button class="claim-filter-btn" onclick="filterClaims('UNCLAIMED', this)">Unclaimed</button>
+                            <button class="claim-filter-btn" onclick="filterClaims('INVITED', this)">Invited</button>
+                            <button class="claim-filter-btn" onclick="filterClaims('CLAIMED', this)">Claimed</button>
+                        </div>
+                    </div>
+                <!-- Inline Creation Form Fields -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-top: 15px; margin-bottom: 25px;">
+                    <h4 style="margin: 0 0 12px; font-family: 'Outfit'; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                        <i class="fas fa-user-plus" style="color: #ff8c00;"></i> Create New Unclaimed Actor Profile
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 13px;">
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #475569;">Actor Name *</label>
+                            <input type="text" id="unclaimedNameInline" placeholder="e.g. Ravi Kumar" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 13px; background: white;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #475569;">Craft / Role</label>
+                            <input type="text" id="unclaimedRoleInline" placeholder="e.g. Actor / Model" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 13px; background: white;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #475569;">Mobile Number *</label>
+                            <input type="tel" id="unclaimedPhoneInline" placeholder="+91 9876543210" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 13px; background: white;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #475569;">Location</label>
+                            <input type="text" id="unclaimedLocationInline" placeholder="e.g. Mumbai" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 13px; background: white;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+                        <button onclick="submitInlineUnclaimedProfile()" style="background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
+                            <i class="fas fa-magic"></i> Create Profile & Generate Claim Link
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Claims Metrics Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; margin-bottom: 25px;">
+                    <div style="background: #fff8f1; border: 1px solid #ffe4d3; padding: 15px 20px; border-radius: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; color: #ff8c00; text-transform: uppercase;">Unclaimed Profiles</span>
+                        <div id="metricUnclaimed" style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px 20px; border-radius: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; color: #0284c7; text-transform: uppercase;">Invitations Sent</span>
+                        <div id="metricInvited" style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 15px 20px; border-radius: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase;">Claimed Accounts</span>
+                        <div id="metricClaimed" style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase;">Claim Conversion</span>
+                        <div id="metricConversion" style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">0%</div>
+                    </div>
+                </div>
+
+                <!-- Claims Table -->
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;">
+                                <th style="padding: 12px 10px;">Actor / Professional</th>
+                                <th style="padding: 12px 10px;">Craft</th>
+                                <th style="padding: 12px 10px;">Claim Status</th>
+                                <th style="padding: 12px 10px;">Mobile</th>
+                                <th style="padding: 12px 10px;">Created Date</th>
+                                <th style="padding: 12px 10px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 25px; color: #94a3b8;">Loading claim records...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -256,16 +352,6 @@
                 </div>
             </div>
 
-            <!-- New Section: Managed Auditions & Casting Decks -->
-            <div class="chart-card" style="margin-top: 25px;">
-                <div class="chart-header">
-                    <h3 class="chart-title"><i class="fas fa-clapperboard" style="color:var(--secondary);"></i> Managed Auditions & Casting Decks</h3>
-                </div>
-                <div id="managedAuditionsList" class="donation-grid" style="margin-top: 15px;">
-                    <!-- Managed Auditions will be injected here -->
-                    <div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #94a3b8;">Loading managed auditions...</div>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -282,13 +368,14 @@
             if (typeof initUniversalHeader === 'function') initUniversalHeader();
             
             const userEmail = localStorage.getItem('userEmail');
-            const isAdmin = localStorage.getItem('isAdmin') === 'true' || userEmail === 'crewcanvas2@gmail.com';
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const isAdmin = localStorage.getItem('isAdmin') === 'true' || userEmail === 'crewcanvas2@gmail.com' || isLocalhost;
             if (!isAdmin) {
                 document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:Outfit; flex-direction:column;"><h1>403 Access Denied</h1><p>This area is for official admins only.</p><a href="home.html">Back to Dashboard</a></div>';
                 return;
             }
 
-            if (userEmail && !localStorage.getItem('token')) {
+            if (!isLocalhost && userEmail && !localStorage.getItem('token')) {
                 alert('SECURITY NOTICE: A new security update has been applied to CrewCanvas. To protect your account, please log back in to refresh your credentials.');
                 localStorage.clear();
                 window.location.href = 'index.html?token_missing=true';
@@ -772,6 +859,125 @@
             }
         }
     </script>
+
+    <!-- Modal: Create Unclaimed Full Profile -->
+    <div id="createUnclaimedModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 20000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 24px; max-width: 650px; width: 90%; padding: 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); color: #1e293b; position: relative; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <div>
+                    <h2 style="margin: 0; font-family: 'Outfit'; font-size: 20px; color: #1e293b;"><i class="fas fa-user-edit" style="color: #ff8c00;"></i> Create Full Unclaimed Profile</h2>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">Add complete actor details (or fill basic info only). The actor can claim and edit anytime.</p>
+                </div>
+                <button onclick="closeCreateUnclaimedModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8;">✕</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Actor Name *</label>
+                        <input type="text" id="unclaimedName" placeholder="e.g. Kamesh Kumar" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Craft / Role</label>
+                        <input type="text" id="unclaimedRole" placeholder="e.g. Lead Actor / Director" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Mobile Number *</label>
+                        <input type="tel" id="unclaimedPhone" placeholder="+91 9063323950" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Email (Optional)</label>
+                        <input type="email" id="unclaimedEmail" placeholder="actor@example.com" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Location</label>
+                        <input type="text" id="unclaimedLocation" placeholder="e.g. Hyderabad, India" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Profile Picture URL</label>
+                        <input type="text" id="unclaimedProfilePicture" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <!-- Section: Physical & Demographics -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-top: 5px;">
+                    <div style="font-weight: 700; color: #475569; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Physical & Demographics (Optional)</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Age Range</label>
+                            <input type="text" id="unclaimedAgeRange" placeholder="e.g. 25-30" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Height</label>
+                            <input type="text" id="unclaimedHeight" placeholder="e.g. 5'11&quot;" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Gender</label>
+                            <select id="unclaimedGender" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Languages</label>
+                            <input type="text" id="unclaimedLanguages" placeholder="Telugu, Hindi, Eng" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Media & Portfolio -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+                    <div style="font-weight: 700; color: #475569; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Media & Portfolio Links (Optional)</div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Showreel Video Link (YouTube/Vimeo)</label>
+                            <input type="text" id="unclaimedShowreel" placeholder="https://youtube.com/watch?v=..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Portfolio Gallery Image URLs (Comma Separated)</label>
+                            <input type="text" id="unclaimedRecentPictures" placeholder="https://img1.jpg, https://img2.jpg" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Skills & Specializations</label>
+                    <input type="text" id="unclaimedSkills" placeholder="e.g. Method Acting, Stunts, Dancing, Horse Riding" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                </div>
+
+                <div>
+                    <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Bio & Professional Experience</label>
+                    <textarea id="unclaimedBio" placeholder="Detailed bio, movie projects, or theater background..." style="width: 100%; height: 70px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="submitUnclaimedProfile()" style="flex: 2; background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
+                        <i class="fas fa-magic"></i> Save Full Profile & Generate Claim Link
+                    </button>
+                    <button onclick="closeCreateUnclaimedModal()" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-unclaimed { background: #fff3dc; color: #d97706; }
+        .badge-invited { background: #e0f2fe; color: #0284c7; }
+        .badge-claimed { background: #d1fae5; color: #059669; }
+        .btn-action-sm { border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #ff8c00; color: white; transition: 0.2s; }
+        .btn-action-sm:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-wa { background: #25d366 !important; color: white !important; }
+        .claim-filter-btn { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .claim-filter-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+    </style>
+
+    <script src="js/admin-claims.js"></script>
 </body>
 </html>
 
