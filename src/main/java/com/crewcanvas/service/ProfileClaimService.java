@@ -193,7 +193,8 @@ public class ProfileClaimService {
                 profileId, savedInvitation.getId(), "INVITATION_CREATED",
                 "Secure claim token generated. Valid for " + expirationHours + " hours.", adminId));
 
-        String claimLink = baseUrl + "/claim.html?token=" + rawToken;
+        String effectiveBaseUrl = (baseUrl != null) ? baseUrl.replaceAll("(?i)krewcanvas", "crewcanvas") : "https://crewcanvas.in";
+        String claimLink = effectiveBaseUrl + "/claim.html?token=" + rawToken;
 
         Map<String, Object> result = new HashMap<>();
         result.put("invitation", savedInvitation);

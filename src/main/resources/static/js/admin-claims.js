@@ -210,10 +210,11 @@ async function submitInlineUnclaimedProfile() {
 
 function formatClaimLink(rawLink) {
     if (!rawLink) return rawLink;
+    let updated = rawLink.replace(/krewcanvas\.in/gi, 'crewcanvas.in').replace(/krewcanvas/gi, 'crewcanvas');
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return rawLink.replace(/https?:\/\/[^\/]+/, window.location.origin);
+        return updated.replace(/https?:\/\/[^\/]+/, window.location.origin);
     }
-    return rawLink;
+    return updated;
 }
 
 async function generateAndCopyClaimLink(profileId, phone) {
