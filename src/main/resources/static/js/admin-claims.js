@@ -117,23 +117,49 @@ function closeCreateUnclaimedModal() {
 }
 
 async function submitUnclaimedProfile() {
-    const name = document.getElementById('unclaimedName') ? document.getElementById('unclaimedName').value : '';
-    const role = document.getElementById('unclaimedRole') ? document.getElementById('unclaimedRole').value : '';
-    const phone = document.getElementById('unclaimedPhone') ? document.getElementById('unclaimedPhone').value : '';
-    const email = document.getElementById('unclaimedEmail') ? document.getElementById('unclaimedEmail').value : '';
-    const location = document.getElementById('unclaimedLocation') ? document.getElementById('unclaimedLocation').value : '';
-    const bio = document.getElementById('unclaimedBio') ? document.getElementById('unclaimedBio').value : '';
-    const profilePicture = document.getElementById('unclaimedProfilePicture') ? document.getElementById('unclaimedProfilePicture').value : '';
-    const showreel = document.getElementById('unclaimedShowreel') ? document.getElementById('unclaimedShowreel').value : '';
-    const skills = document.getElementById('unclaimedSkills') ? document.getElementById('unclaimedSkills').value : '';
-    const height = document.getElementById('unclaimedHeight') ? document.getElementById('unclaimedHeight').value : '';
-    const ageRange = document.getElementById('unclaimedAgeRange') ? document.getElementById('unclaimedAgeRange').value : '';
-    const gender = document.getElementById('unclaimedGender') ? document.getElementById('unclaimedGender').value : '';
-    const languages = document.getElementById('unclaimedLanguages') ? document.getElementById('unclaimedLanguages').value : '';
-    const recentPictures = document.getElementById('unclaimedRecentPictures') ? document.getElementById('unclaimedRecentPictures').value : '';
+    const getValue = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+    };
+
+    const name = getValue('unclaimedName');
+    const role = getValue('unclaimedRole');
+    const phone = getValue('unclaimedPhone');
+    const email = getValue('unclaimedEmail');
+    const location = getValue('unclaimedLocation');
+    const profilePicture = getValue('unclaimedProfilePicture');
+    const resume = getValue('unclaimedResume');
+    const showreel = getValue('unclaimedShowreel');
+
+    const userType = getValue('unclaimedUserType');
+    const experience = getValue('unclaimedExperience');
+    const height = getValue('unclaimedHeight');
+    const weight = getValue('unclaimedWeight');
+    const ageRange = getValue('unclaimedAgeRange');
+    const gender = getValue('unclaimedGender');
+    const bodyType = getValue('unclaimedBodyType');
+    const languages = getValue('unclaimedLanguages');
+
+    const cameraExpertise = getValue('unclaimedCameraExpertise');
+    const editingSoftware = getValue('unclaimedEditingSoftware');
+    const daws = getValue('unclaimedDaws');
+    const genres = getValue('unclaimedGenres');
+    const skills = getValue('unclaimedSkills');
+    const bio = getValue('unclaimedBio');
+
+    const recentPictures = getValue('unclaimedRecentPictures');
+    const portfolioVideos = getValue('unclaimedPortfolioVideos');
+
+    const instagram = getValue('unclaimedInstagram');
+    const youtube = getValue('unclaimedYoutube');
+    const tiktok = getValue('unclaimedTiktok');
+    const twitter = getValue('unclaimedTwitter');
+
+    const expectedMovieRemuneration = getValue('unclaimedExpectedMovieRemuneration');
+    const expectedWebseriesRemuneration = getValue('unclaimedExpectedWebseriesRemuneration');
 
     if (!name) {
-        alert("Please enter actor name.");
+        alert("Please enter actor/member name.");
         return;
     }
 
@@ -145,15 +171,19 @@ async function submitUnclaimedProfile() {
             headers: headers,
             body: JSON.stringify({
                 name, role, phone, email, location, bio,
-                profilePicture, showreel, skills, height,
-                ageRange, gender, languages, recentPictures
+                profilePicture, resume, showreel, userType, experience,
+                height, weight, ageRange, gender, bodyType, languages,
+                cameraExpertise, editingSoftware, daws, genres, skills,
+                recentPictures, portfolioVideos,
+                instagram, youtube, tiktok, twitter,
+                expectedMovieRemuneration, expectedWebseriesRemuneration
             })
         });
 
         const data = await res.json();
         if (res.ok) {
             const finalLink = formatClaimLink(data.claimLink);
-            alert("✨ Success! Full unclaimed profile created.\n\nClaim Link Generated:\n" + finalLink);
+            alert("✨ Success! 100% Full Unclaimed Profile created.\n\nClaim Link Generated:\n" + finalLink);
             closeCreateUnclaimedModal();
             fetchClaimMetrics();
             fetchClaimProfiles();

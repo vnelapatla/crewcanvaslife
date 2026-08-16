@@ -130,7 +130,26 @@ public class ProfileClaimService {
         user.setWeight(profileData.getWeight());
         user.setAgeRange(profileData.getAgeRange());
         user.setGender(profileData.getGender());
+        user.setBodyType(profileData.getBodyType());
         user.setLanguages(profileData.getLanguages());
+        user.setInstagram(profileData.getInstagram());
+        user.setYoutube(profileData.getYoutube());
+        user.setTiktok(profileData.getTiktok());
+        user.setTwitter(profileData.getTwitter());
+        user.setCameraExpertise(profileData.getCameraExpertise());
+        user.setEditingSoftware(profileData.getEditingSoftware());
+        user.setEditingStyle(profileData.getEditingStyle());
+        user.setTurnaroundTime(profileData.getTurnaroundTime());
+        user.setDaws(profileData.getDaws());
+        user.setInstruments(profileData.getInstruments());
+        user.setSampleTracks(profileData.getSampleTracks());
+        user.setGenres(profileData.getGenres());
+        user.setProjectsDirected(profileData.getProjectsDirected());
+        user.setBudgetHandled(profileData.getBudgetHandled());
+        user.setVisionStatement(profileData.getVisionStatement());
+        user.setExpectedMovieRemuneration(profileData.getExpectedMovieRemuneration());
+        user.setExpectedWebseriesRemuneration(profileData.getExpectedWebseriesRemuneration());
+        user.setResume(profileData.getResume());
         user.setClaimStatus("UNCLAIMED");
         user.setIsVerifiedProfessional(Boolean.TRUE.equals(profileData.getIsVerifiedProfessional()));
 

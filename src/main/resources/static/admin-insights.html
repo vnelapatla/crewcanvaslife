@@ -860,106 +860,241 @@
         }
     </script>
 
-    <!-- Modal: Create Unclaimed Full Profile -->
-    <div id="createUnclaimedModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 20000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px 0;">
-        <div style="background: white; border-radius: 24px; max-width: 650px; width: 90%; padding: 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); color: #1e293b; position: relative; max-height: 90vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+    <!-- Modal: Create Unclaimed 100% Full Profile (Matches edit-profile.html) -->
+    <div id="createUnclaimedModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(10px); z-index: 20000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 28px; max-width: 800px; width: 92%; padding: 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.4); color: #1e293b; position: relative; max-height: 88vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; sticky; top: 0; background: white; z-index: 10;">
                 <div>
-                    <h2 style="margin: 0; font-family: 'Outfit'; font-size: 20px; color: #1e293b;"><i class="fas fa-user-edit" style="color: #ff8c00;"></i> Create Full Unclaimed Profile</h2>
-                    <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">Add complete actor details (or fill basic info only). The actor can claim and edit anytime.</p>
+                    <h2 style="margin: 0; font-family: 'Outfit'; font-size: 22px; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-user-edit" style="color: #ff8c00;"></i> Create 100% Full Profile (Admin Editor)
+                    </h2>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">Includes all fields from edit-profile.html: media uploads, physical specs, social links & quotes.</p>
                 </div>
-                <button onclick="closeCreateUnclaimedModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8;">✕</button>
+                <button onclick="closeCreateUnclaimedModal()" style="background: #f1f5f9; border: none; font-size: 20px; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Actor Name *</label>
-                        <input type="text" id="unclaimedName" placeholder="e.g. Joe" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Craft / Role</label>
-                        <input type="text" id="unclaimedRole" placeholder="e.g. Lead Actor / Director" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Mobile Number *</label>
-                        <input type="tel" id="unclaimedPhone" placeholder="+91 9123456789" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Email (Optional)</label>
-                        <input type="email" id="unclaimedEmail" placeholder="actor@example.com" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Location</label>
-                        <input type="text" id="unclaimedLocation" placeholder="e.g. Hyderabad, India" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Profile Picture URL</label>
-                        <input type="text" id="unclaimedProfilePicture" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
-                    </div>
-                </div>
 
-                <!-- Section: Physical & Demographics -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-top: 5px;">
-                    <div style="font-weight: 700; color: #475569; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Physical & Demographics (Optional)</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 20px; font-size: 13px;">
+                
+                <!-- Section 01: Identity & Contact -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-id-card"></i> 01. Identity & Contact Information
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                         <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Age Range</label>
-                            <input type="text" id="unclaimedAgeRange" placeholder="e.g. 25-30" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Actor / Member Name *</label>
+                            <input type="text" id="unclaimedName" placeholder="e.g. Joe" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
                         </div>
                         <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Height</label>
-                            <input type="text" id="unclaimedHeight" placeholder="e.g. 5'11&quot;" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Gender</label>
-                            <select id="unclaimedGender" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                                <option value="">Select</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Primary Craft / Role</label>
+                            <select id="unclaimedRole" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                                <option value="Actor">Actor</option>
+                                <option value="Director">Director</option>
+                                <option value="DOP">DOP (Cinematographer)</option>
+                                <option value="Editor">Editor</option>
+                                <option value="Music Director">Music Director</option>
+                                <option value="Script Writer">Script Writer</option>
+                                <option value="Producer">Producer</option>
+                                <option value="Art Director">Art Director</option>
+                                <option value="Costume Designer">Costume Designer</option>
+                                <option value="Makeup Artist">Makeup Artist</option>
+                                <option value="Sound Designer">Sound Designer</option>
+                                <option value="VFX Artist">VFX Artist</option>
+                                <option value="Colorist">Colorist</option>
+                                <option value="Choreographer">Choreographer</option>
+                                <option value="Stunt Coordinator">Stunt Coordinator</option>
+                                <option value="Still Photographer">Still Photographer</option>
+                                <option value="Assistant Director">Assistant Director</option>
+                                <option value="Content Creator">Content Creator</option>
                             </select>
                         </div>
                         <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Languages</label>
-                            <input type="text" id="unclaimedLanguages" placeholder="Telugu, Hindi, Eng" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Mobile Number *</label>
+                            <input type="tel" id="unclaimedPhone" placeholder="+91 9123456789" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Email (Optional)</label>
+                            <input type="email" id="unclaimedEmail" placeholder="actor@example.com" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Location</label>
+                            <input type="text" id="unclaimedLocation" placeholder="e.g. Hyderabad, India" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Profile Picture Link</label>
+                            <input type="text" id="unclaimedProfilePicture" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Resume / CV Link (PDF/URL)</label>
+                            <input type="text" id="unclaimedResume" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Main Showreel Video Link</label>
+                            <input type="text" id="unclaimedShowreel" placeholder="YouTube/Vimeo Link" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
                         </div>
                     </div>
                 </div>
 
-                <!-- Section: Media & Portfolio -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
-                    <div style="font-weight: 700; color: #475569; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Media & Portfolio Links (Optional)</div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Section 02: Professional Specs & Physical Attributes -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sliders-h"></i> 02. Professional Specs & Physical Attributes
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Showreel Video Link (YouTube/Vimeo)</label>
-                            <input type="text" id="unclaimedShowreel" placeholder="https://youtube.com/watch?v=..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: #475569;">Profile Category</label>
+                            <select id="unclaimedUserType" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                                <option value="Professional">Professional</option>
+                                <option value="Explorer">Explorer</option>
+                                <option value="Aspirant">Aspirant</option>
+                                <option value="Content Creator">Content Creator</option>
+                            </select>
                         </div>
                         <div>
-                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Portfolio Gallery Image URLs (Comma Separated)</label>
-                            <input type="text" id="unclaimedRecentPictures" placeholder="https://img1.jpg, https://img2.jpg" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: #475569;">Experience Level</label>
+                            <select id="unclaimedExperience" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                                <option value="Fresher">Fresher / Student</option>
+                                <option value="1-3 Years">1-3 Years</option>
+                                <option value="4-7 Years">4-7 Years</option>
+                                <option value="8+ Years">8+ Years (Pro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Physical Demographics (Actors / Talent) -->
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Physical Demographics (Actors / Talent)</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Height (cm)</label>
+                                <input type="text" id="unclaimedHeight" placeholder="e.g. 178" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Weight (kg)</label>
+                                <input type="text" id="unclaimedWeight" placeholder="e.g. 72" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Age Range</label>
+                                <input type="text" id="unclaimedAgeRange" placeholder="e.g. 24-28" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Gender</label>
+                                <select id="unclaimedGender" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Body Type</label>
+                                <input type="text" id="unclaimedBodyType" placeholder="e.g. Athletic" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Languages</label>
+                                <input type="text" id="unclaimedLanguages" placeholder="Telugu, Eng" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Craft Technical Specifics -->
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Craft Technical Specifics (DOP / Editor / Music / Director)</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Camera Expertise (DOP)</label>
+                                <input type="text" id="unclaimedCameraExpertise" placeholder="e.g. ARRI, RED, Sony FX6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Editing Software (Editor)</label>
+                                <input type="text" id="unclaimedEditingSoftware" placeholder="e.g. Premiere, DaVinci" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">DAWs / Instruments (Music)</label>
+                                <input type="text" id="unclaimedDaws" placeholder="e.g. Logic Pro, FL Studio" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; color: #64748b;">Genres (Director)</label>
+                                <input type="text" id="unclaimedGenres" placeholder="e.g. Action, Thriller" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Skills & Specializations (Comma Separated)</label>
+                        <input type="text" id="unclaimedSkills" placeholder="e.g. Method Acting, Stunts, Dancing, Horse Riding" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; margin-bottom: 10px;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Short Bio & Experience Summary</label>
+                        <textarea id="unclaimedBio" placeholder="Detailed bio, movie projects, or theater background..." style="width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Section 03: Professional Gallery & Multiple Video Portfolio -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-photo-video"></i> 03. Professional Image Gallery & Multiple Video Links
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Professional Gallery Image URLs (Comma Separated)</label>
+                            <input type="text" id="unclaimedRecentPictures" placeholder="https://img1.jpg, https://img2.jpg, https://img3.jpg" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Multiple Portfolio Video URLs (YouTube/Vimeo Comma Separated)</label>
+                            <input type="text" id="unclaimedPortfolioVideos" placeholder="https://youtube.com/watch?v=vid1, https://vimeo.com/vid2" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Skills & Specializations</label>
-                    <input type="text" id="unclaimedSkills" placeholder="e.g. Method Acting, Stunts, Dancing, Horse Riding" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;">
+                <!-- Section 04: Social Presence Links -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ff8c00; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-hashtag"></i> 04. Social Presence Links
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                        <div>
+                            <label style="font-weight: 600; color: #475569;"><i class="fab fa-instagram" style="color: #e1306c;"></i> Instagram</label>
+                            <input type="text" id="unclaimedInstagram" placeholder="@handle or link" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; color: #475569;"><i class="fab fa-youtube" style="color: #ff0000;"></i> YouTube Channel</label>
+                            <input type="text" id="unclaimedYoutube" placeholder="Channel Link" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; color: #475569;"><i class="fab fa-tiktok" style="color: #000000;"></i> TikTok</label>
+                            <input type="text" id="unclaimedTiktok" placeholder="@handle or link" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; color: #475569;"><i class="fab fa-twitter" style="color: #1da1f2;"></i> Twitter / X</label>
+                            <input type="text" id="unclaimedTwitter" placeholder="@handle or link" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label style="font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Bio & Professional Experience</label>
-                    <textarea id="unclaimedBio" placeholder="Detailed bio, movie projects, or theater background..." style="width: 100%; height: 70px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box;"></textarea>
+                <!-- Section 05: Private Quotes & Remuneration -->
+                <div style="background: #fff5f5; border: 1px solid #fee2e2; border-radius: 16px; padding: 18px;">
+                    <div style="font-weight: 800; color: #ef4444; font-size: 13px; margin-bottom: 12px; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-lock"></i> 05. Private Quotes & Expected Remuneration
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                        <div>
+                            <label style="font-weight: 600; color: #991b1b;">Expected Movie Remuneration</label>
+                            <input type="text" id="unclaimedExpectedMovieRemuneration" placeholder="e.g. ₹5,00,000 / movie" style="width: 100%; padding: 9px; border: 1px solid #fca5a5; border-radius: 8px; background: white;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; color: #991b1b;">Expected Webseries Remuneration</label>
+                            <input type="text" id="unclaimedExpectedWebseriesRemuneration" placeholder="e.g. ₹50,000 / episode" style="width: 100%; padding: 9px; border: 1px solid #fca5a5; border-radius: 8px; background: white;">
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button onclick="submitUnclaimedProfile()" style="flex: 2; background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
-                        <i class="fas fa-magic"></i> Save Full Profile & Generate Claim Link
+                <div style="margin-top: 15px; display: flex; gap: 12px; position: sticky; bottom: 0; background: white; padding-top: 15px; border-top: 1px solid #f1f5f9;">
+                    <button onclick="submitUnclaimedProfile()" style="flex: 2; background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(255, 140, 0, 0.35);">
+                        <i class="fas fa-magic"></i> SAVE 100% FULL PROFILE & GENERATE CLAIM LINK
                     </button>
-                    <button onclick="closeCreateUnclaimedModal()" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+                    <button onclick="closeCreateUnclaimedModal()" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 16px; border-radius: 14px; font-weight: 700; cursor: pointer;">Cancel</button>
                 </div>
             </div>
         </div>
