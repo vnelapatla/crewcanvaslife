@@ -141,6 +141,17 @@ public class SchemaMigrationService {
                 }
             }
 
+            // Ensure UTF-8 / multi-byte character support (Telugu, Hindi, Emojis, etc.) for users, posts, comments, messages
+            try {
+                jdbcTemplate.execute("ALTER TABLE users CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                jdbcTemplate.execute("ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                jdbcTemplate.execute("ALTER TABLE comments CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                jdbcTemplate.execute("ALTER TABLE messages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                System.out.println("Converted database tables to utf8mb4 character set for multi-language support.");
+            } catch (Exception e) {
+                System.err.println("Note converting charset to utf8mb4: " + e.getMessage());
+            }
+
             // Update official user name to KrewCanvas Official
             try {
                 jdbcTemplate.execute("UPDATE users SET name = 'KrewCanvas Official' WHERE email = 'crewcanvas2@gmail.com' OR name = 'CrewCanvas Official';");
