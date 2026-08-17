@@ -1,4 +1,4 @@
-﻿// Edit Profile functionality
+// Edit Profile functionality
 let currentUserId = null;
 let selectedProfilePic = null;
 let selectedCoverImage = null;
@@ -637,8 +637,8 @@ async function saveProfile() {
             tiktok: getVal('editTiktok'),
             
             // Dates
-            availabilityFrom: getVal('editAvailFrom') || null,
-            availabilityTo: getVal('editAvailTo') || null,
+            availabilityFrom: (getVal('editAvailFrom') && /^\d{4}-\d{2}-\d{2}$/.test(getVal('editAvailFrom'))) ? getVal('editAvailFrom') : null,
+            availabilityTo: (getVal('editAvailTo') && /^\d{4}-\d{2}-\d{2}$/.test(getVal('editAvailTo'))) ? getVal('editAvailTo') : null,
             
             // Private Info
             expectedMovieRemuneration: getVal('editBudgetMovie'),

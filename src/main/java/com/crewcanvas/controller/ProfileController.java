@@ -220,8 +220,9 @@ public class ProfileController {
             User user = userService.updateProfile(updatedUser);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Error updating profile: " + e.getClass().getSimpleName();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("We couldn't update your profile. Please check your connection and try again.");
+                    .body(errorMsg);
         }
     }
     
