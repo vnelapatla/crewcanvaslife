@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -177,6 +177,13 @@
                 Your professional KrewCanvas profile has been initialized by our casting team.
                 Claim complete control of your profile below.
             </p>
+
+            <div id="passwordSetupBox" style="margin-bottom: 20px; text-align: left;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fas fa-lock" style="color: var(--primary-orange);"></i> Set Your Password (Optional)
+                </label>
+                <input type="password" id="claimPassword" placeholder="Create a password for direct login" style="width: 100%; padding: 14px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; color: #fff; font-size: 14px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            </div>
 
             <button class="btn-claim" id="claimBtn" onclick="executeClaim()">
                 <i class="fas fa-magic"></i> CLAIM MY PROFILE

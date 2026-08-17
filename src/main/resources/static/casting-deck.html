@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -653,18 +653,10 @@
                 const reel = user.showreel || user.portfolioVideos || user.sampleTracks;
                 const videoBox = document.getElementById('videoContainer');
                 const headerReel = document.getElementById('headerReel');
-                if (reel) {
-                    let hasReel = false;
-                    if (reel.includes('youtube.com') || reel.includes('youtu.be')) {
-                        const vidId = reel.includes('v=') ? reel.split('v=')[1].split('&')[0] : reel.split('/').pop();
-                        videoBox.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
-                        hasReel = true;
-                    } else if (reel.startsWith('data:video')) {
-                        videoBox.innerHTML = `<video src="${reel}" controls style="width:100%; height:100%; object-fit:cover;"></video>`;
-                        hasReel = true;
-                    }
-                    
-                    if (hasReel) {
+                if (reel && videoBox && headerReel) {
+                    const embedHtml = typeof formatShowreelEmbedHtml === 'function' ? formatShowreelEmbedHtml(reel) : null;
+                    if (embedHtml) {
+                        videoBox.innerHTML = embedHtml;
                         videoBox.style.display = 'block';
                         headerReel.style.display = 'flex';
                     }

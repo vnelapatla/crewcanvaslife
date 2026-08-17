@@ -474,7 +474,7 @@ public class ProfileClaimService {
     }
 
     /**
-     * Deletes an unclaimed / unverified profile and wipes all associated records from the cloud DB.
+     * Deletes an unclaimed, invited, or claimed profile and wipes all associated records completely.
      */
     @Transactional
     public void deleteUnclaimedProfile(Long profileId, Long adminId) {
@@ -487,26 +487,24 @@ public class ProfileClaimService {
         // Delete associated audit logs
         auditLogRepository.deleteByProfileId(profileId);
 
-        // Delete associated projects
-        if (projectRepository != null) {
-            projectRepository.deleteByUserId(profileId);
+        // Delegate complete cascade wipe of user data & user row to userService
+        if (userService != null) {
+            userService.deleteUser(profileId);
+        } else {
+            if (projectRepository != null) {
+                projectRepository.deleteByUserId(profileId);
+            }
+            userRepository.delete(profile);
         }
-
-        // Delete user row completely from database
-        userRepository.delete(profile);
     }
 
     /**
-     * Returns all unclaimed and invited profiles for admin list view.
+     * Returns all unclaimed, invited, and claimed profiles for admin list view.
      */
     public List<User> getUnclaimedProfiles(String statusFilter) {
         if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(statusFilter)) {
             return userRepository.findByClaimStatus(statusFilter.toUpperCase());
         }
-        List<User> unclaimed = userRepository.findByClaimStatus("UNCLAIMED");
-        List<User> invited = userRepository.findByClaimStatus("INVITED");
-        List<User> result = new ArrayList<>(unclaimed);
-        result.addAll(invited);
-        return result;
+        return userRepository.findAll();
     }
 }

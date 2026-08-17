@@ -1,4 +1,4 @@
-﻿// Profile page functionality
+// Profile page functionality
 let profileUserId = null;
 let currentUserId = null;
 let profileUserData = null; 
@@ -790,27 +790,9 @@ function removeEditingImage(index) {
 
 function renderMediaLink(url, label) {
     if (!url) return '';
-    
-    // Check if it's a YouTube link
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        const videoId = extractYouTubeId(url);
-        if (videoId) {
-            return `
-                <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin-top: 10px;">
-                    <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
-                </div>
-            `;
-        }
-    }
-
-    // Check if it's a direct video file (Base64 or URL)
-    if (typeof isVideoFile === 'function' && isVideoFile(url)) {
-        const safeUrl = typeof getSafeMediaUrl === 'function' ? getSafeMediaUrl(url) : url;
-        return `
-            <div class="video-container" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px;">
-                <video src="${safeUrl}" controls muted playsinline style="width: 100%; max-height: 400px; display: block;"></video>
-            </div>
-        `;
+    if (typeof formatShowreelEmbedHtml === 'function') {
+        const html = formatShowreelEmbedHtml(url);
+        if (html) return html;
     }
     
     // Default: Professional Link Button

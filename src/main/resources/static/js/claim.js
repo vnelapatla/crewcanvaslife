@@ -57,6 +57,9 @@ async function validateToken(token) {
 async function executeClaim() {
     if (!currentToken) return;
 
+    const passwordInput = document.getElementById('claimPassword');
+    const password = passwordInput ? passwordInput.value.trim() : '';
+
     const claimBtn = document.getElementById('claimBtn');
     claimBtn.disabled = true;
     claimBtn.innerHTML = `<div class="spinner"></div> Claiming Profile...`;
@@ -67,7 +70,7 @@ async function executeClaim() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({})
+            body: JSON.stringify({ password: password })
         });
 
         const data = await response.json();

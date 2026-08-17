@@ -1,4 +1,4 @@
-﻿if (typeof window.API_BASE_URL === 'undefined') {
+if (typeof window.API_BASE_URL === 'undefined') {
     window.API_BASE_URL = ''; // Use relative paths by default for better compatibility
 }
 if (typeof window.GOOGLE_CLIENT_ID === 'undefined') {
@@ -737,6 +737,73 @@ function isVideoFile(src) {
     if (typeof src !== 'string') return false;
     if (src.startsWith('data:video/')) return true;
     return src.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi|flv|wmv)($|\?)/i);
+}
+
+// Global Helper to format and embed professional showreel videos safely
+function formatShowreelEmbedHtml(url) {
+    if (!url || typeof url !== 'string') return '';
+    url = url.trim();
+    if (!url) return '';
+
+    // 1. YouTube (Watch, Shorts, Embed, Shortlink)
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = null;
+        if (url.includes('shorts/')) {
+            videoId = url.split('shorts/')[1].split('?')[0].split('/')[0].split('#')[0];
+        } else if (url.includes('v=')) {
+            videoId = url.split('v=')[1].split('&')[0].split('#')[0];
+        } else if (url.includes('embed/')) {
+            videoId = url.split('embed/')[1].split('?')[0].split('#')[0];
+        } else if (url.includes('youtu.be/')) {
+            videoId = url.split('youtu.be/')[1].split('?')[0].split('#')[0];
+        }
+
+        if (videoId && videoId.length >= 5) {
+            return `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 14px; border: none; width: 100%; height: 100%; min-height: 320px; aspect-ratio: 16/9;"></iframe>`;
+        }
+    }
+
+    // 2. Google Drive Video Links
+    if (url.includes('drive.google.com')) {
+        let fileId = null;
+        if (url.includes('/file/d/')) {
+            fileId = url.split('/file/d/')[1].split('/')[0];
+        } else if (url.includes('id=')) {
+            fileId = url.split('id=')[1].split('&')[0];
+        }
+        if (fileId) {
+            return `<iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="100%" frameborder="0" allow="autoplay" allowfullscreen style="border-radius: 14px; border: none; width: 100%; min-height: 320px; aspect-ratio: 16/9;"></iframe>`;
+        }
+    }
+
+    // 3. Vimeo Links
+    if (url.includes('vimeo.com')) {
+        const vimeoId = url.split('/').pop().split('?')[0];
+        if (vimeoId && !isNaN(vimeoId)) {
+            return `<iframe src="https://player.vimeo.com/video/${vimeoId}" width="100%" height="100%" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="border-radius: 14px; border: none; width: 100%; min-height: 320px; aspect-ratio: 16/9;"></iframe>`;
+        }
+    }
+
+    // 4. Base64 Video OR Direct Uploaded Video File (.mp4, .webm, .mov, etc.)
+    if (url.startsWith('data:video/') || url.match(/\.(mp4|webm|ogg|mov|avi|m4v)($|\?)/i) || url.startsWith('/uploads/')) {
+        const safeSrc = (typeof getSafeMediaUrl === 'function') ? getSafeMediaUrl(url) : url;
+        return `<video src="${safeSrc}" controls preload="metadata" playsinline style="width:100%; max-height:450px; border-radius:14px; background:#000; object-fit:contain; border: 1px solid rgba(255,255,255,0.1);"></video>`;
+    }
+
+    // 5. Fallback for any HTTP/HTTPS URL
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return `
+            <div style="padding: 25px 20px; text-align: center; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-play-circle" style="font-size: 40px; color: var(--primary-orange, #ff8c00); margin-bottom: 12px; display: block;"></i>
+                <h4 style="color: #fff; margin: 0 0 12px 0; font-size: 15px; font-weight: 700;">Showreel Video Link</h4>
+                <a href="${url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #ff4c3b, #ff8c00); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 13px; box-shadow: 0 4px 15px rgba(255,140,0,0.3);">
+                    Watch Showreel Video <i class="fas fa-external-link-alt" style="font-size: 11px;"></i>
+                </a>
+            </div>
+        `;
+    }
+
+    return '';
 }
 
 // Double tap to like feature (Mobile only)

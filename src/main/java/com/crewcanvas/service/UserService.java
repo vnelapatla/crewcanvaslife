@@ -290,13 +290,26 @@ public class UserService {
                 userRepository.save(u);
             }
             String storedPassword = u.getPassword();
-            // Enforce password verification for security
-            if (storedPassword != null && password != null && !password.trim().isEmpty()) {
-                if (passwordEncoder.matches(password, storedPassword) || storedPassword.equals(password)) {
-                    if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
-                        u.setPassword(passwordEncoder.encode(password));
-                        userRepository.save(u);
+            // If account has a password set, enforce strict password verification
+            if (storedPassword != null && !storedPassword.trim().isEmpty()) {
+                if (password != null && !password.trim().isEmpty()) {
+                    if (passwordEncoder.matches(password, storedPassword) || storedPassword.equals(password)) {
+                        if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
+                            u.setPassword(passwordEncoder.encode(password));
+                            userRepository.save(u);
+                        }
+                        return user;
                     }
+                }
+            } else {
+                // Account has NO password set yet (e.g. claimed profile without password):
+                if (password != null && !password.trim().isEmpty()) {
+                    // Save password and log in
+                    u.setPassword(passwordEncoder.encode(password.trim()));
+                    userRepository.save(u);
+                    return user;
+                } else if ("CLAIMED".equalsIgnoreCase(u.getClaimStatus()) || u.getPhone() != null) {
+                    // Allow login for claimed profile without password set yet
                     return user;
                 }
             }
@@ -563,15 +576,34 @@ public class UserService {
             
             // Clean up post likes and posts
             logger.debug("Deleting post data for user: {}", id);
-            postRepository.deleteUserLikes(id); // Likes MADE BY user
+            try { postRepository.deleteUserLikes(id); } catch (Exception e) { logger.warn("User likes cleanup: {}", e.getMessage()); }
             
-            // Fix: Delete all collection data FOR the user's posts before deleting the posts themselves
-            postRepository.deleteLikesOnUserPosts(id);
-            postRepository.deleteCommentsOnUserPosts(id);
-            postRepository.deleteImagesOnUserPosts(id);
-            postRepository.deleteLinksOnUserPosts(id);
-            
-            postRepository.deleteByUserId(id);
+            // Fix: Delete all collection data and comments FOR the user's posts before deleting the posts themselves
+            try { jdbcTemplate.update("DELETE FROM post_actual_comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("post_actual_comments cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("comments on posts cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM post_likes_users WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("post_likes_users cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM post_reposts_users WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("post_reposts_users cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM post_images WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("post_images cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM post_links WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("post_links cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM poll_votes WHERE poll_id IN (SELECT id FROM polls WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?))", id, id); } catch (Exception e) { logger.warn("poll_votes cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM poll_options WHERE poll_id IN (SELECT id FROM polls WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?))", id, id); } catch (Exception e) { logger.warn("poll_options cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM polls WHERE post_id IN (SELECT id FROM posts WHERE user_id = ? OR author_id = ?)", id, id); } catch (Exception e) { logger.warn("polls cleanup: {}", e.getMessage()); }
+
+            try { jdbcTemplate.update("DELETE FROM posts WHERE user_id = ? OR author_id = ?", id, id); } catch (Exception e) {
+                logger.warn("Native posts deletion failed, using repository: {}", e.getMessage());
+                postRepository.deleteByUserId(id);
+            }
+
+            // Additional safe table cleanups for claimed profiles & active users
+            try { jdbcTemplate.update("DELETE FROM post_actual_comments WHERE user_id = ?", id); } catch (Exception e) { logger.warn("post_actual_comments user cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM comments WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Comment cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM comment_likes WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Comment likes cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM group_members WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Group members cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM movie_quiz_results WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Movie quiz cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM support_donations WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Support donation cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM course_payments WHERE user_id = ?", id); } catch (Exception e) { logger.warn("Course payment cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM profile_claim_invitations WHERE profile_id = ?", id); } catch (Exception e) { logger.warn("Invitations cleanup: {}", e.getMessage()); }
+            try { jdbcTemplate.update("DELETE FROM profile_claim_audit_logs WHERE profile_id = ?", id); } catch (Exception e) { logger.warn("Audit log cleanup: {}", e.getMessage()); }
             
             logger.info("Final step: Deleting user record for ID: {}", id);
             userRepository.deleteById(id);

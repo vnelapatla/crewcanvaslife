@@ -8,8 +8,10 @@ echo ===================================================
 echo   KrewCanvas - Rebuild and Run (Monolith)
 echo ===================================================
 echo.
-echo [1/3] Stopping any running Java processes...
+echo [1/3] Stopping any processes on port 8081 & Java...
 taskkill /F /IM java.exe 2>nul
+taskkill /F /IM javaw.exe 2>nul
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /F /PID %%a 2>nul
 timeout /t 2 /nobreak >nul
 
 echo [2/3] Cleaning and Building Monolith...
